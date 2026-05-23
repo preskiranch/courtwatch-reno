@@ -1,0 +1,111 @@
+databases:
+  - name: courtwatch-reno-db
+    databaseName: courtwatch_reno
+    user: courtwatch_reno
+    plan: starter
+
+services:
+  - type: web
+    name: courtwatch-reno-web
+    runtime: node
+    plan: starter
+    repo: https://github.com/preskiranch/courtwatch-reno
+    branch: main
+    rootDir: .
+    buildCommand: npm ci && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
+    startCommand: npm run start --workspace @courtwatch/web
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: WEB_BASE_URL
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
+
+  - type: web
+    name: courtwatch-reno-api
+    runtime: node
+    plan: starter
+    repo: https://github.com/preskiranch/courtwatch-reno
+    branch: main
+    rootDir: .
+    buildCommand: npm ci && npm run db:generate && npm run db:migrate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
+    startCommand: npm run start --workspace @courtwatch/api
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: courtwatch-reno-db
+          property: connectionString
+      - key: WEB_BASE_URL
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: EXPOSURE_EVENT_ID
+        value: "255539"
+      - key: EXPOSURE_API_KEY
+        sync: false
+      - key: EXPOSURE_SECRET_KEY
+        sync: false
+      - key: EXPOSURE_PUBLIC_BASE_URL
+        value: https://basketball.exposureevents.com
+      - key: ENABLE_MOCK_ARSENAL
+        value: "false"
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: PUSH_CONTACT_EMAIL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET
+        generateValue: true
+      - key: EXPO_ACCESS_TOKEN
+        sync: false
+
+  - type: worker
+    name: courtwatch-reno-sync-worker
+    runtime: node
+    plan: starter
+    repo: https://github.com/preskiranch/courtwatch-reno
+    branch: main
+    rootDir: .
+    buildCommand: npm ci && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/worker
+    startCommand: npm run start --workspace @courtwatch/worker
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: courtwatch-reno-db
+          property: connectionString
+      - key: API_BASE_URL
+        sync: false
+      - key: ADMIN_SECRET
+        sync: false
+      - key: EXPOSURE_EVENT_ID
+        value: "255539"
+      - key: EXPOSURE_API_KEY
+        sync: false
+      - key: EXPOSURE_SECRET_KEY
+        sync: false
+      - key: ENABLE_MOCK_ARSENAL
+        value: "false"
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: PUSH_CONTACT_EMAIL
+        sync: false

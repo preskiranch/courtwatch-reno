@@ -1,0 +1,31 @@
+{
+  "name": "@courtwatch/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3000}",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@courtwatch/core": "0.1.0",
+    "@tanstack/react-query": "^5.90.11",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.554.0",
+    "next": "^16.0.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.1.17",
+    "vitest": "^4.0.13"
+  }
+}

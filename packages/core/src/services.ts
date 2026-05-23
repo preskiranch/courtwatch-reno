@@ -1,0 +1,70 @@
+import { buildDashboard } from "./dashboard.js";
+import { detectGameChanges } from "./change-detection.js";
+import { findProgramMatches, matchTeamToProgram } from "./matcher.js";
+import type { CourtWatchSnapshot, Game, ProgramAlias, ProgramWatchlist, Team } from "./types.js";
+
+export class ProgramMatcherService {
+  match(team: Team, program: ProgramWatchlist, aliases: ProgramAlias[]) {
+    return matchTeamToProgram(team, program, aliases);
+  }
+}
+
+export class TeamDiscoveryService {
+  discover(snapshot: CourtWatchSnapshot) {
+    return findProgramMatches(snapshot.teams, snapshot.programs, snapshot.aliases);
+  }
+}
+
+export class ChangeDetectionService {
+  detect(previous: Game | null, next: Game) {
+    return detectGameChanges(previous, next);
+  }
+}
+
+export class DashboardService {
+  build(snapshot: CourtWatchSnapshot, now = new Date()) {
+    return buildDashboard(snapshot, now);
+  }
+}
+
+export class ScheduleService {
+  listWatchedGames(snapshot: CourtWatchSnapshot, filters: { programId?: string; status?: string; court?: string; division?: string } = {}) {
+    const watchedTeamIds = new Set(
+      snapshot.matches
+        .filter((match) => match.active && (!filters.programId || match.programWatchlistId === filters.programId))
+        .map((match) => match.teamId)
+    );
+
+    const gamesById = new Map<string, Game>();
+    for (const game of snapshot.games) {
+      if (!watchedTeamIds.has(game.homeTeamId ?? "") && !watchedTeamIds.has(game.awayTeamId ?? "")) continue;
+      if (filters.status && game.status !== filters.status) continue;
+      if (filters.court && game.courtName !== filters.court) continue;
+      if (filters.division && game.divisionId !== filters.division) continue;
+      gamesById.set(game.id, game);
+    }
+
+    return Array.from(gamesById.values()).sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime());
+  }
+}
+
+export class RenderHealthCheckService {
+  check(status: { dbConfigured: boolean; sourceConfigured: boolean; lastSyncAt: string | null }) {
+    return {
+      ok: true,
+      service: "courtwatch-reno-api",
+      dbConfigured: status.dbConfigured,
+      exposureApiConfigured: status.sourceConfigured,
+      lastSyncAt: status.lastSyncAt,
+      time: new Date().toISOString()
+    };
+  }
+}
+
+export class TournamentSyncService {
+  constructor(private readonly syncRunner: () => Promise<{ status: string; teamsCount: number; gamesCount: number; changesDetected: number }>) {}
+
+  async syncOnce() {
+    return this.syncRunner();
+  }
+}

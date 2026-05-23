@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="CourtWatch Reno icon">
+  <rect width="512" height="512" rx="96" fill="#07111f"/>
+  <circle cx="256" cy="256" r="164" fill="#f97316"/>
+  <path d="M256 92c0 78 0 250 0 328M92 256h328M139 139c54 44 86 83 95 117-9 34-41 73-95 117M373 139c-54 44-86 83-95 117 9 34 41 73 95 117" fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round"/>
+  <path d="M128 390h256" stroke="#ffcf8a" stroke-width="18" stroke-linecap="round"/>
+</svg>

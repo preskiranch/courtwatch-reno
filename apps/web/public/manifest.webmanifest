@@ -1,0 +1,20 @@
+{
+  "name": "CourtWatch Reno",
+  "short_name": "CourtWatch",
+  "description": "Mobile tournament tracker for Arsenal and Splash City at the Reno Memorial Day Tournament.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "productivity"]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "courtwatch-reno",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CourtWatch Reno tournament tracker for Jam On It / Exposure Basketball Events.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @courtwatch/web",
+    "dev:api": "npm run dev --workspace @courtwatch/api",
+    "dev:worker": "npm run dev --workspace @courtwatch/worker",
+    "build": "npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api && npm run build --workspace @courtwatch/worker && npm run build --workspace @courtwatch/web",
+    "typecheck": "npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run typecheck --workspace @courtwatch/api && npm run typecheck --workspace @courtwatch/worker && npm run typecheck --workspace @courtwatch/web && npm run typecheck --workspace @courtwatch/core && npm run typecheck --workspace @courtwatch/db",
+    "lint": "npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run lint --workspace @courtwatch/api && npm run lint --workspace @courtwatch/worker && npm run lint --workspace @courtwatch/web && npm run lint --workspace @courtwatch/core && npm run lint --workspace @courtwatch/db",
+    "test": "npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run test --workspace @courtwatch/core && npm run test --workspace @courtwatch/api && npm run test --workspace @courtwatch/worker && npm run test --workspace @courtwatch/web",
+    "test:run": "npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run test:run --workspace @courtwatch/core && npm run test:run --workspace @courtwatch/api && npm run test:run --workspace @courtwatch/worker && npm run test:run --workspace @courtwatch/web",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx scripts/seed.ts",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "playwright": "^1.60.0",
+    "prettier": "^3.6.2",
+    "prisma": "^6.19.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.13"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

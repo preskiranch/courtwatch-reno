@@ -1,0 +1,256 @@
+# CourtWatch Reno
+
+CourtWatch Reno is a mobile-first PWA for following all Arsenal and Splash City teams at the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.
+
+It is an independent companion tracker and is not affiliated with Jam On It or Exposure Events. Official schedules and rulings come from tournament staff.
+
+## What It Does
+
+- Tracks the Exposure event `255539` for the 2026 Reno Memorial Day Tournament.
+- Keeps default global watch programs for `Arsenal` and `Splash City`.
+- Automatically discovers all matching teams across divisions, grade levels, gender, and levels.
+- Uses exact matching first, then normalized matching, then fuzzy matching with false-positive protection.
+- Keeps Arsenal in the watchlist even if zero teams are found in a sync.
+- Shows dashboard, program detail, unified schedule, game status, alerts, settings, and admin sync.
+- Supports browser push notifications with VAPID.
+- Keeps the last saved schedule visible when the source temporarily fails.
+- Provides a Render Blueprint with web, API, worker, and Postgres.
+
+## Monorepo
+
+```text
+apps/web       Next.js PWA
+apps/api       Express REST API
+apps/worker    Render background sync worker
+packages/core  matching, sync helpers, source clients, seed data, tests
+packages/db    Prisma client wrapper
+prisma         schema and migrations
+scripts        seed script
+```
+
+## Local Setup
+
+```bash
+npm ci
+cp .env.example .env
+npm run db:generate
+npm run typecheck
+npm run test:run
+npm run build
+```
+
+Without `DATABASE_URL`, the API runs from built-in mock data. For persistent local data, run Postgres and set `DATABASE_URL`.
+
+Example local Postgres:
+
+```bash
+docker run --name courtwatch-reno-postgres \
+  -e POSTGRES_USER=courtwatch \
+  -e POSTGRES_PASSWORD=courtwatch \
+  -e POSTGRES_DB=courtwatch_reno \
+  -p 5432:5432 -d postgres:16
+
+npm run db:migrate
+npm run db:seed
+```
+
+Run locally:
+
+```bash
+npm run dev:api
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Environment Variables
+
+Copy `.env.example` and set real values in local shell or Render dashboard. Do not commit secrets.
+
+Required for production:
+
+- `DATABASE_URL`
+- `WEB_BASE_URL`
+- `API_BASE_URL`
+- `NEXT_PUBLIC_API_BASE_URL`
+- `ADMIN_SECRET`
+- `JWT_SECRET`
+- `EXPOSURE_EVENT_ID=255539`
+- `ENABLE_MOCK_ARSENAL=false`
+
+Exposure API:
+
+- `EXPOSURE_API_KEY`
+- `EXPOSURE_SECRET_KEY`
+
+Push notifications:
+
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+- `PUSH_CONTACT_EMAIL`
+- `EXPO_ACCESS_TOKEN` for future Expo support
+
+Render automation:
+
+- `RENDER_API_KEY` only if you later script Render API calls. Never commit it.
+
+## Exposure API
+
+CourtWatch prefers the official Exposure API when `EXPOSURE_API_KEY` and `EXPOSURE_SECRET_KEY` are configured. The API client signs requests with the documented `Timestamp` and `Authentication` headers and keeps credentials server-side only.
+
+If credentials are missing, the backend can use a respectful public-page fallback for team discovery from:
+
+- `https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams`
+
+The public fallback does not bypass authentication, does not scrape aggressively, and keeps existing saved data visible if source fetches fail. Rich demo games and change events are seeded until official API credentials are available.
+
+## Program Watchlist
+
+Default programs:
+
+- Arsenal
+- Splash City
+
+Default aliases include:
+
+- Team Arsenal
+- Arsenal Basketball
+- Arsenal Elite
+- Arsenal AAU
+- SplashCity
+- Splash City Basketball
+
+Admin/manual aliases can be added from the Programs screen or via:
+
+```bash
+curl -X POST "$API_BASE_URL/api/programs/program-arsenal/aliases" \
+  -H "Content-Type: application/json" \
+  -d '{"alias":"Arsenal Select"}'
+```
+
+## Sync Worker
+
+The worker calls the API admin sync endpoint.
+
+```bash
+API_BASE_URL=http://localhost:4000 ADMIN_SECRET=dev-secret npm run dev:worker
+```
+
+Behavior:
+
+- Runs an immediate sync on startup.
+- Polls every 60 seconds during May 23-25, 2026 active Reno tournament hours.
+- Polls every 10-15 minutes outside active hours.
+- Uses exponential backoff after failures.
+- Preserves old saved data if the source fails.
+
+Manual sync:
+
+```bash
+curl -X POST "$API_BASE_URL/api/admin/sync-now" \
+  -H "x-admin-secret: $ADMIN_SECRET"
+```
+
+## Seed Mock Data
+
+```bash
+npm run db:seed
+```
+
+Seed data includes:
+
+- Splash City teams in multiple divisions.
+- Arsenal teams in multiple divisions so the demo works before live credentials.
+- Upcoming, changed, final, and bracket games.
+- Court change, time change, final score, and bracket change events.
+
+When the database-backed sync can read the public teams page, mock Arsenal teams are skipped unless `ENABLE_MOCK_ARSENAL=true`; this preserves the required production zero-state when Arsenal is not found publicly.
+
+## Push Notifications
+
+Generate VAPID keys:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Set these in Render:
+
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` with the same public key
+- `PUSH_CONTACT_EMAIL=mailto:you@example.com`
+
+The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push/subscribe`. Notification logs use dedupe keys so repeated source data does not resend identical updates.
+
+## API Routes
+
+- `GET /api/health`
+- `GET /api/events/current`
+- `GET /api/programs`
+- `GET /api/programs/:programId`
+- `POST /api/programs/:programId/aliases`
+- `DELETE /api/programs/:programId/aliases/:aliasId`
+- `GET /api/teams?search=`
+- `GET /api/teams/:teamId`
+- `GET /api/games`
+- `GET /api/games/:gameId`
+- `GET /api/dashboard`
+- `GET /api/alerts`
+- `POST /api/push/subscribe`
+- `DELETE /api/push/unsubscribe`
+- `GET /api/settings/notification-preferences`
+- `PATCH /api/settings/notification-preferences`
+- `POST /api/admin/sync-now`
+
+## Render Deployment
+
+1. Create a GitHub repository named `courtwatch-reno`.
+2. Push this repo to `main`.
+3. Confirm the `render.yaml` repo URLs point to `https://github.com/preskiranch/courtwatch-reno`.
+4. In Render, choose **New > Blueprint** and connect the GitHub repository.
+5. Render creates:
+   - `courtwatch-reno-web`
+   - `courtwatch-reno-api`
+   - `courtwatch-reno-sync-worker`
+   - `courtwatch-reno-db`
+6. Set environment variables marked `sync: false`.
+7. Deploy. The API build applies migrations with `npm run db:migrate`.
+8. After first deploy, run `npm run db:seed` from a Render shell or trigger `POST /api/admin/sync-now`.
+
+Render service URLs should be wired like:
+
+- `WEB_BASE_URL=https://courtwatch-reno-web.onrender.com`
+- `API_BASE_URL=https://courtwatch-reno-api.onrender.com`
+- `NEXT_PUBLIC_API_BASE_URL=https://courtwatch-reno-api.onrender.com`
+
+## GitHub
+
+If GitHub CLI is available:
+
+```bash
+git init
+git branch -M main
+git add .
+git commit -m "Build CourtWatch Reno tournament tracker"
+gh repo create courtwatch-reno --private --source=. --remote=origin --push
+```
+
+If the repo already exists:
+
+```bash
+git remote add origin git@github.com:preskiranch/courtwatch-reno.git
+git push -u origin main
+```
+
+## Checks
+
+```bash
+npm run typecheck
+npm run lint
+npm run test:run
+npm run build
+```
+
+CI runs type checking, linting, tests, and build verification on pushes and pull requests to `main`.

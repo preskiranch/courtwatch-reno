@@ -1,0 +1,711 @@
+"use client";
+
+import type { DashboardResponse, Game, GameChangeEvent, ProgramSummary } from "@courtwatch/core";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import clsx from "clsx";
+import {
+  Activity,
+  Bell,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  Gauge,
+  Home,
+  MapPin,
+  Plus,
+  Radio,
+  RefreshCcw,
+  Search,
+  Settings,
+  ShieldAlert,
+  Smartphone,
+  Trophy,
+  Users,
+  WifiOff,
+  X
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { CourtWatchApi, apiBaseUrl } from "../lib/api";
+import { requestPushSubscription } from "../lib/push";
+
+type Tab = "dashboard" | "schedule" | "programs" | "alerts" | "settings";
+
+const tabs: Array<{ id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { id: "dashboard", label: "Dashboard", icon: Home },
+  { id: "schedule", label: "Schedule", icon: CalendarDays },
+  { id: "programs", label: "Programs", icon: Users },
+  { id: "alerts", label: "Alerts", icon: Bell },
+  { id: "settings", label: "Settings", icon: Settings }
+];
+
+export function CourtWatchApp() {
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [toast, setToast] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const dashboardQuery = useQuery({ queryKey: ["dashboard"], queryFn: CourtWatchApi.dashboard });
+  const gamesQuery = useQuery({ queryKey: ["games"], queryFn: () => CourtWatchApi.games() });
+  const alertsQuery = useQuery({ queryKey: ["alerts"], queryFn: CourtWatchApi.alerts });
+
+  const refresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["games"] }),
+      queryClient.invalidateQueries({ queryKey: ["alerts"] })
+    ]);
+    setToast("Schedule refreshed");
+    window.setTimeout(() => setToast(null), 2200);
+  };
+
+  const dashboard = dashboardQuery.data;
+  const isLoading = dashboardQuery.isLoading;
+  const offline = dashboardQuery.isError || gamesQuery.isError || alertsQuery.isError;
+
+  return (
+    <main className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
+      <AppHeader dashboard={dashboard} offline={offline} onRefresh={refresh} refreshing={dashboardQuery.isFetching || gamesQuery.isFetching} />
+
+      {toast ? (
+        <div className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 rounded-lg border border-orange-300/50 bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
+          {toast}
+        </div>
+      ) : null}
+
+      <section className="mt-4 flex-1">
+        {isLoading ? <SkeletonDashboard /> : null}
+        {!isLoading && dashboard && activeTab === "dashboard" ? <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? []} onRefresh={refresh} /> : null}
+        {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} /> : null}
+        {!isLoading && dashboard && activeTab === "programs" ? <ProgramsScreen programs={dashboard.programs} /> : null}
+        {!isLoading && dashboard && activeTab === "alerts" ? <AlertsScreen alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} /> : null}
+        {!isLoading && dashboard && activeTab === "settings" ? <SettingsScreen dashboard={dashboard} onRefresh={refresh} /> : null}
+      </section>
+
+      <BottomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+    </main>
+  );
+}
+
+function AppHeader({
+  dashboard,
+  offline,
+  onRefresh,
+  refreshing
+}: {
+  dashboard?: DashboardResponse;
+  offline: boolean;
+  onRefresh: () => void;
+  refreshing: boolean;
+}) {
+  return (
+    <header className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#07111f]/92 px-4 pb-3 pt-3 backdrop-blur">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-orange-300">
+            <Radio className="h-3.5 w-3.5" />
+            Reno Memorial Day
+          </div>
+          <h1 className="mt-1 text-2xl font-black tracking-normal text-white">CourtWatch Reno</h1>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="grid h-11 w-11 place-items-center rounded-lg border border-white/12 bg-white/8 text-white transition active:scale-95"
+          aria-label="Refresh schedule"
+        >
+          <RefreshCcw className={clsx("h-5 w-5", refreshing && "animate-spin")} />
+        </button>
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-300">
+        <span className="flex items-center gap-1.5">
+          {offline ? <WifiOff className="h-3.5 w-3.5 text-orange-300" /> : <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />}
+          {offline ? "Offline cache" : dashboard?.sourceStatus.message ?? "Loading source"}
+        </span>
+        <span>{dashboard?.lastUpdated ? `Updated ${formatShortTime(dashboard.lastUpdated)}` : "Sync pending"}</span>
+      </div>
+    </header>
+  );
+}
+
+function DashboardScreen({ dashboard, alerts, onRefresh }: { dashboard: DashboardResponse; alerts: GameChangeEvent[]; onRefresh: () => void }) {
+  return (
+    <div className="space-y-4">
+      <NextGameBanner game={dashboard.nextGame} />
+
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/8 px-4 text-sm font-semibold text-slate-100 active:scale-[0.99]"
+      >
+        <RefreshCcw className="h-4 w-4" />
+        Pull to refresh
+      </button>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        {dashboard.programs.map((program) => (
+          <ProgramCard key={program.program.id} program={program} />
+        ))}
+      </div>
+
+      <section className="court-card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-black text-slate-950">Latest Alerts</h2>
+          <span className="text-xs font-bold text-slate-500">{alerts.length} updates</span>
+        </div>
+        <AlertList alerts={alerts.slice(0, 5)} compact />
+      </section>
+    </div>
+  );
+}
+
+function NextGameBanner({ game }: { game: Game | null }) {
+  if (!game) {
+    return (
+      <section className="court-card court-line-bg sticky top-[92px] z-20 overflow-hidden p-4">
+        <div className="flex items-center gap-3">
+          <div className="grid h-12 w-12 place-items-center rounded-lg bg-slate-950 text-orange-300">
+            <Trophy className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Next Game</p>
+            <h2 className="text-xl font-black text-slate-950">Awaiting bracket updates</h2>
+            <p className="text-sm font-medium text-slate-600">The tracker will keep the saved schedule visible.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="court-card court-line-bg sticky top-[92px] z-20 overflow-hidden p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-2 py-1 text-[11px] font-black uppercase text-white">
+            <Clock3 className="h-3 w-3" />
+            NEXT
+          </div>
+          <h2 className="text-2xl font-black text-slate-950">{game.scheduledTime}</h2>
+          <p className="mt-1 text-sm font-bold text-slate-700">
+            {game.homeTeamNameSnapshot} vs {game.awayTeamNameSnapshot}
+          </p>
+        </div>
+        <div className="rounded-lg bg-slate-950 px-3 py-2 text-right text-white">
+          <p className="text-[11px] font-bold uppercase text-orange-300">{game.courtName ?? "Court TBD"}</p>
+          <p className="max-w-28 text-xs text-slate-300">{game.venueName ?? "Venue TBD"}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProgramCard({ program }: { program: ProgramSummary }) {
+  const found = program.teams.length;
+  const programTone = program.program.programName.toLowerCase().includes("splash") ? "bg-orange-500" : "bg-slate-950";
+  return (
+    <article className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-black text-slate-950">
+            {program.program.programName} <span className="text-slate-400">&mdash;</span> {found} teams found
+          </h2>
+          {program.zeroStateMessage ? <p className="mt-2 text-sm font-semibold text-amber-700">{program.zeroStateMessage}</p> : null}
+        </div>
+        <div className={clsx("grid h-10 w-10 place-items-center rounded-lg text-white", programTone)}>
+          <Users className="h-5 w-5" />
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Metric label="Next" value={program.nextGame?.scheduledTime ?? "TBD"} />
+        <Metric label="Alerts" value={String(program.alertsCount)} />
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {program.teams.slice(0, 4).map((team) => (
+          <div key={team.id} className="rounded-lg border border-slate-200 bg-white p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-black text-slate-950">{team.name}</p>
+              <StatusBadge status={team.liveStatus} />
+            </div>
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              {team.divisionName ?? "Division TBD"} {team.level ? ` / ${team.level}` : ""}
+            </p>
+            <p className="mt-2 text-sm text-slate-700">
+              {team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "Next game awaiting bracket"}
+            </p>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
+      <p className="mt-0.5 text-lg font-black text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramSummary[] }) {
+  const [programFilter, setProgramFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [courtFilter, setCourtFilter] = useState("");
+  const watchedTeamsByProgram = useMemo(
+    () => new Map(programs.map((program) => [program.program.id, new Set(program.teams.map((team) => team.id))])),
+    [programs]
+  );
+  const courts = Array.from(new Set(games.map((game) => game.courtName).filter(Boolean))).sort();
+
+  const filteredGames = games.filter((game) => {
+    if (programFilter !== "all") {
+      const teamIds = watchedTeamsByProgram.get(programFilter);
+      if (!teamIds?.has(game.homeTeamId ?? "") && !teamIds?.has(game.awayTeamId ?? "")) return false;
+    }
+    if (statusFilter !== "all" && game.status !== statusFilter) return false;
+    if (courtFilter && game.courtName !== courtFilter) return false;
+    return true;
+  });
+
+  const groups = groupGamesByDate(filteredGames);
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-lg border border-white/10 bg-white/8 p-3">
+        <div className="mb-3 flex items-center gap-2 text-sm font-black text-white">
+          <Search className="h-4 w-4 text-orange-300" />
+          Schedule Filters
+        </div>
+        <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+          <FilterButton active={programFilter === "all"} onClick={() => setProgramFilter("all")}>
+            All watched
+          </FilterButton>
+          {programs.map((program) => (
+            <FilterButton key={program.program.id} active={programFilter === program.program.id} onClick={() => setProgramFilter(program.program.id)}>
+              {program.program.programName}
+            </FilterButton>
+          ))}
+        </div>
+        <div className="mt-2 no-scrollbar flex gap-2 overflow-x-auto pb-1">
+          {["all", "playing_now", "upcoming", "final", "schedule_changed"].map((status) => (
+            <FilterButton key={status} active={statusFilter === status} onClick={() => setStatusFilter(status)}>
+              {status === "all" ? "All status" : labelStatus(status)}
+            </FilterButton>
+          ))}
+        </div>
+        <select
+          value={courtFilter}
+          onChange={(event) => setCourtFilter(event.target.value)}
+          className="mt-2 h-11 w-full rounded-lg border border-white/12 bg-slate-950 px-3 text-sm font-semibold text-white"
+        >
+          <option value="">All courts</option>
+          {courts.map((court) => (
+            <option key={court} value={court ?? ""}>
+              {court}
+            </option>
+          ))}
+        </select>
+      </section>
+
+      {groups.map((group) => (
+        <section key={group.label} className="space-y-2">
+          <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">{group.label}</h2>
+          {group.games.map((game) => (
+            <GameRow key={game.id} game={game} />
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={clsx(
+        "min-h-10 shrink-0 rounded-lg px-3 text-sm font-black transition active:scale-95",
+        active ? "bg-orange-500 text-white" : "border border-white/12 bg-slate-950 text-slate-200"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GameRow({ game }: { game: Game }) {
+  return (
+    <article className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <StatusBadge status={game.status} />
+            <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{game.gameType ?? "Pool"}</span>
+          </div>
+          <h3 className="mt-2 text-lg font-black text-slate-950">
+            {game.homeTeamNameSnapshot ?? "TBD"} vs {game.awayTeamNameSnapshot ?? "TBD"}
+          </h3>
+          <p className="mt-1 text-sm font-semibold text-slate-500">{formatGameDate(game.startsAt)}</p>
+        </div>
+        {game.homeScore !== null && game.awayScore !== null ? (
+          <div className="rounded-lg bg-slate-950 px-3 py-2 text-center text-white">
+            <p className="text-xl font-black">
+              {game.homeScore}-{game.awayScore}
+            </p>
+            <p className="text-[11px] font-bold text-orange-300">FINAL</p>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-orange-500 px-3 py-2 text-center text-white">
+            <p className="text-xl font-black">{game.scheduledTime}</p>
+            <p className="text-[11px] font-bold">{game.courtName ?? "Court TBD"}</p>
+          </div>
+        )}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-slate-700">
+        <span className="flex items-center gap-1.5">
+          <MapPin className="h-4 w-4 text-orange-500" />
+          {game.venueName ?? "Venue TBD"}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Gauge className="h-4 w-4 text-orange-500" />
+          {game.courtName ?? "Court TBD"}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function ProgramsScreen({ programs }: { programs: ProgramSummary[] }) {
+  const queryClient = useQueryClient();
+  const [aliasDrafts, setAliasDrafts] = useState<Record<string, string>>({});
+  const addAlias = useMutation({
+    mutationFn: ({ programId, alias }: { programId: string; alias: string }) => CourtWatchApi.addAlias(programId, alias),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+    }
+  });
+
+  return (
+    <div className="space-y-4">
+      {programs.map((program) => (
+        <section key={program.program.id} className="court-card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black text-slate-950">
+                {program.program.programName} <span className="text-slate-400">&mdash;</span> {program.teams.length} teams found
+              </h2>
+              {program.zeroStateMessage ? <p className="mt-2 text-sm font-semibold text-amber-700">{program.zeroStateMessage}</p> : null}
+            </div>
+            <ChevronRight className="h-5 w-5 text-slate-400" />
+          </div>
+          <div className="mt-4 space-y-2">
+            {program.teams.map((team) => (
+              <div key={team.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-black text-slate-950">{team.name}</p>
+                  <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-black uppercase text-slate-600">{team.matchType}</span>
+                </div>
+                <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-500">
+                  {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
+                </p>
+                <p className="mt-2 text-sm text-slate-700">
+                  Next: {team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "Awaiting bracket"}
+                </p>
+                <p className="mt-1 text-sm text-slate-700">
+                  Last: {team.lastResult ? scoreSummary(team.lastResult) : "No result posted"}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 rounded-lg bg-slate-100 p-3">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Aliases</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {program.aliases.map((alias) => (
+                <span key={alias.id} className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-700">
+                  {alias.alias}
+                </span>
+              ))}
+            </div>
+            <form
+              className="mt-3 flex gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const alias = aliasDrafts[program.program.id]?.trim();
+                if (!alias) return;
+                addAlias.mutate({ programId: program.program.id, alias });
+                setAliasDrafts((current) => ({ ...current, [program.program.id]: "" }));
+              }}
+            >
+              <input
+                value={aliasDrafts[program.program.id] ?? ""}
+                onChange={(event) => setAliasDrafts((current) => ({ ...current, [program.program.id]: event.target.value }))}
+                placeholder={`Add alias for ${program.program.programName}`}
+                className="min-h-11 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-orange-500"
+              />
+              <button type="submit" className="grid min-h-11 w-12 place-items-center rounded-lg bg-orange-500 text-white active:scale-95" aria-label="Add alias">
+                <Plus className="h-5 w-5" />
+              </button>
+            </form>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function AlertsScreen({ alerts, games }: { alerts: GameChangeEvent[]; games: Game[] }) {
+  return (
+    <section className="court-card p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-2xl font-black text-slate-950">Alerts</h2>
+        <span className="rounded-md bg-orange-100 px-2 py-1 text-xs font-black text-orange-700">{alerts.length} recent</span>
+      </div>
+      <AlertList alerts={alerts} games={games} />
+    </section>
+  );
+}
+
+function AlertList({ alerts, games = [], compact = false }: { alerts: GameChangeEvent[]; games?: Game[]; compact?: boolean }) {
+  if (alerts.length === 0) {
+    return <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">No alerts yet. CourtWatch is monitoring for changes.</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {alerts.map((alert) => {
+        const game = games.find((item) => item.id === alert.gameId);
+        return (
+          <article key={alert.id} className="rounded-lg border border-slate-200 bg-white p-3">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-orange-500 text-white">
+                <Bell className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-sm font-black text-slate-950">{labelStatus(alert.eventType)}</p>
+                  <span className="text-[11px] font-bold text-slate-400">{formatShortTime(alert.createdAt)}</span>
+                </div>
+                <p className="mt-1 text-sm font-semibold text-slate-600">
+                  {game ? `${game.homeTeamNameSnapshot ?? "TBD"} vs ${game.awayTeamNameSnapshot ?? "TBD"}` : stringifyChange(alert.newValue)}
+                </p>
+                {!compact ? <p className="mt-1 text-xs text-slate-500">{stringifyChange(alert.newValue)}</p> : null}
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function SettingsScreen({ dashboard, onRefresh }: { dashboard: DashboardResponse; onRefresh: () => void }) {
+  const [adminSecret, setAdminSecret] = useState("");
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
+  const [adminMessage, setAdminMessage] = useState<string | null>(null);
+  const syncMutation = useMutation({
+    mutationFn: () => CourtWatchApi.syncNow(adminSecret),
+    onSuccess: (result) => {
+      setAdminMessage(`Sync complete: ${result.teamsCount} teams, ${result.gamesCount} games`);
+      onRefresh();
+    },
+    onError: (error) => setAdminMessage(error instanceof Error ? error.message : "Sync failed")
+  });
+
+  const subscribe = async () => {
+    try {
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+      if (!publicKey) {
+        setPushMessage("VAPID public key is not configured yet.");
+        return;
+      }
+      const subscription = await requestPushSubscription(publicKey);
+      await CourtWatchApi.subscribePush(subscription, Intl.DateTimeFormat().resolvedOptions().timeZone);
+      setPushMessage("Push notifications enabled for this device.");
+    } catch (error) {
+      setPushMessage(error instanceof Error ? error.message : "Unable to enable notifications.");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <section className="court-card p-4">
+        <h2 className="text-2xl font-black text-slate-950">Settings</h2>
+        <div className="mt-4 space-y-3">
+          <SettingRow icon={Bell} title="Notifications" value="Game changes, scores, courts, brackets" />
+          <SettingRow icon={Clock3} title="Refresh frequency" value="60s during active tournament hours" />
+          <SettingRow icon={Activity} title="Source status" value={`${dashboard.sourceStatus.source} / ${dashboard.sourceStatus.status}`} />
+          <SettingRow icon={Smartphone} title="API URL" value={apiBaseUrl()} />
+        </div>
+        <button type="button" onClick={subscribe} className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99]">
+          <Bell className="h-4 w-4" />
+          Enable Push Notifications
+        </button>
+        {pushMessage ? <p className="mt-2 text-sm font-semibold text-slate-600">{pushMessage}</p> : null}
+      </section>
+
+      <section className="court-card p-4">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5 text-orange-500" />
+          <h2 className="text-lg font-black text-slate-950">Admin Sync</h2>
+        </div>
+        <input
+          value={adminSecret}
+          onChange={(event) => setAdminSecret(event.target.value)}
+          type="password"
+          placeholder="ADMIN_SECRET"
+          className="mt-3 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-orange-500"
+        />
+        <button
+          type="button"
+          onClick={() => syncMutation.mutate()}
+          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-black text-white active:scale-[0.99]"
+        >
+          <RefreshCcw className={clsx("h-4 w-4", syncMutation.isPending && "animate-spin")} />
+          Sync Now
+        </button>
+        {adminMessage ? <p className="mt-2 text-sm font-semibold text-slate-600">{adminMessage}</p> : null}
+      </section>
+
+      <section className="rounded-lg border border-white/12 bg-white/8 p-4 text-sm font-medium leading-6 text-slate-200">
+        {dashboard.disclaimer}
+      </section>
+    </div>
+  );
+}
+
+function SettingRow({ icon: Icon, title, value }: { icon: React.ComponentType<{ className?: string }>; title: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+      <div className="grid h-9 w-9 place-items-center rounded-lg bg-slate-950 text-orange-300">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="font-black text-slate-950">{title}</p>
+        <p className="truncate text-sm font-semibold text-slate-500">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function BottomTabs({ activeTab, setActiveTab }: { activeTab: Tab; setActiveTab: (tab: Tab) => void }) {
+  return (
+    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-2 backdrop-blur">
+      <div className="mx-auto grid max-w-[520px] grid-cols-5 gap-1">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = tab.id === activeTab;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              aria-label={tab.label}
+              onClick={() => setActiveTab(tab.id)}
+              className={clsx(
+                "flex min-h-14 min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-lg text-[8px] font-black leading-none transition active:scale-95 sm:text-[11px]",
+                active ? "bg-orange-500 text-white" : "text-slate-300"
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="block w-full text-center">
+                {tab.id === "dashboard" ? (
+                  <>
+                    Dash
+                    <br />
+                    board
+                  </>
+                ) : (
+                  tab.label
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const label = labelStatus(status);
+  const tone =
+    status === "final"
+      ? "bg-slate-900 text-white"
+      : status === "playing_now"
+        ? "bg-emerald-500 text-white"
+        : status === "schedule_changed"
+          ? "bg-amber-400 text-slate-950"
+          : status === "awaiting_bracket"
+            ? "bg-slate-200 text-slate-700"
+            : "bg-orange-500 text-white";
+  return <span className={clsx("rounded-md px-2 py-1 text-[11px] font-black uppercase", tone)}>{label}</span>;
+}
+
+function SkeletonDashboard() {
+  return (
+    <div className="space-y-4">
+      {[0, 1, 2].map((item) => (
+        <div key={item} className="h-36 animate-pulse rounded-lg bg-white/12" />
+      ))}
+    </div>
+  );
+}
+
+function groupGamesByDate(games: Game[]) {
+  const formatter = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "America/Los_Angeles" });
+  const today = "2026-05-23";
+  const tomorrow = "2026-05-24";
+  const grouped = new Map<string, Game[]>();
+  for (const game of games) {
+    const key = game.scheduledDate;
+    grouped.set(key, [...(grouped.get(key) ?? []), game]);
+  }
+  return Array.from(grouped.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([date, groupGames]) => ({
+      label: date === today ? "Today" : date === tomorrow ? "Tomorrow" : formatter.format(new Date(`${date}T12:00:00.000Z`)),
+      games: groupGames.sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime())
+    }));
+}
+
+function labelStatus(status: string): string {
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace("Playing Now", "LIVE")
+    .replace("Schedule Changed", "CHANGED")
+    .replace("New Game Added", "NEW GAME");
+}
+
+function formatShortTime(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" }).format(new Date(iso));
+}
+
+function formatGameDate(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Los_Angeles"
+  }).format(new Date(iso));
+}
+
+function scoreSummary(game: Game): string {
+  if (game.homeScore === null || game.awayScore === null) return "No score posted";
+  return `${game.homeTeamNameSnapshot ?? "Home"} ${game.homeScore}, ${game.awayTeamNameSnapshot ?? "Away"} ${game.awayScore}`;
+}
+
+function stringifyChange(value: unknown): string {
+  if (value === null || value === undefined) return "Update posted";
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "Update posted";
+  }
+}
