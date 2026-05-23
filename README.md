@@ -8,7 +8,7 @@ It is an independent companion tracker and is not affiliated with Jam On It or E
 
 - Tracks the Exposure event `255539` for the 2026 Reno Memorial Day Tournament.
 - Starts with no teams preselected.
-- Lets you search registered team names, club names, divisions, and player names when roster/player data is available.
+- Lets you search registered team names, club names, and divisions.
 - Lets you follow or unfollow any registered team, then builds a unified schedule and alert feed from your choices.
 - Shows dashboard, team selection, unified schedule, per-team court/bracket focus, game status, alerts, settings, and admin sync.
 - Supports browser push notifications with VAPID.
@@ -101,7 +101,7 @@ Render automation:
 
 CourtWatch prefers the official Exposure API when `EXPOSURE_API_KEY` and `EXPOSURE_SECRET_KEY` are configured. The API client signs requests with the documented `Timestamp` and `Authentication` headers and keeps credentials server-side only.
 
-Team search is backed by Exposure teams. Player-name search uses the official Exposure Players endpoint when credentials and roster visibility allow it. The public-page fallback can discover teams, but it does not expose private roster/player data.
+Team search is backed by Exposure teams. Player-name search is intentionally disabled because the public fallback does not expose private roster/player data and the official players endpoint requires Exposure API access.
 
 If credentials are missing, the backend can use a respectful public-page fallback for team discovery from:
 
@@ -120,7 +120,6 @@ Search supports:
 - Team name
 - Club/program name when provided by Exposure
 - Division/grade/level
-- Registered player name when Exposure roster/player data is available through API credentials
 
 Follow a team through the API:
 
@@ -195,7 +194,8 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 - `GET /api/teams/:teamId`
 - `POST /api/teams/:teamId/follow`
 - `DELETE /api/teams/:teamId/follow`
-- `GET /api/players?search=`
+- `GET /api/presence`
+- `POST /api/presence/heartbeat`
 - `GET /api/games`
 - `GET /api/games?scope=division&division=division-1278469`
 - `GET /api/games/:gameId`

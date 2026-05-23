@@ -285,7 +285,13 @@ function mapPublicExposureGame(raw: PublicExposureGameRaw, eventId: number, brac
   const status = mapPublicStatus(raw, startsAt, homeScore, awayScore);
   const divisionExposureId = stringOrNull(raw.DivisionId);
   const matchedBracket = matchBracketLink(stringOrNull(raw.GameTypeName), bracketLinks);
-  const rawJson = { source: "public_eventgames", ...raw, BracketUrl: matchedBracket?.url ?? null, BracketName: matchedBracket?.name ?? null };
+  const rawJson = {
+    source: "public_eventgames",
+    ...raw,
+    BracketUrl: matchedBracket?.url ?? null,
+    BracketName: matchedBracket?.name ?? null,
+    DivisionBracketUrls: bracketLinks
+  };
 
   return {
     id: `public-game-${id}`,

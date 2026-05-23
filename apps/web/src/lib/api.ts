@@ -1,8 +1,15 @@
-import type { DashboardResponse, Game, GameChangeEvent, Player, ProgramAlias, ProgramSummary, ProgramTeamMatch, Team, TournamentEvent } from "@courtwatch/core";
+import type { DashboardResponse, Game, GameChangeEvent, ProgramAlias, ProgramSummary, ProgramTeamMatch, Team, TournamentEvent } from "@courtwatch/core";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || "http://localhost:4000";
 
 type CacheKey = "dashboard" | "games" | "alerts" | "programs" | "event";
+
+export type PresenceResponse = {
+  activeUsers: number;
+  pages: Record<string, number>;
+  clientId: string | null;
+  updatedAt: string;
+};
 
 export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
   try {
@@ -47,7 +54,8 @@ export const CourtWatchApi = {
   games: (query = "") => apiGet<Game[]>(`/api/games${query}`, "games"),
   alerts: () => apiGet<GameChangeEvent[]>("/api/alerts", "alerts"),
   teams: (search = "") => apiGet<Team[]>(`/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`),
-  players: (search = "") => apiGet<Player[]>(`/api/players${search ? `?search=${encodeURIComponent(search)}` : ""}`),
+  presence: () => apiGet<PresenceResponse>("/api/presence"),
+  presenceHeartbeat: (clientId: string, page: string) => apiPost<PresenceResponse>("/api/presence/heartbeat", { clientId, page }),
   followTeam: (teamId: string) => apiPost<ProgramTeamMatch>(`/api/teams/${teamId}/follow`, {}),
   unfollowTeam: (teamId: string) => apiDelete(`/api/teams/${teamId}/follow`),
   addAlias: (programId: string, alias: string) => apiPost<ProgramAlias>(`/api/programs/${programId}/aliases`, { alias }),

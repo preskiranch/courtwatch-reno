@@ -46,7 +46,6 @@ export interface CourtWatchStore {
   games(filters: Record<string, string | undefined>): Promise<Game[]>;
   game(gameId: string): Promise<(Game & { changeHistory: GameChangeEvent[] }) | null>;
   teams(search?: string): Promise<Team[]>;
-  players(search?: string): Promise<Player[]>;
   team(teamId: string): Promise<Team | null>;
   alerts(): Promise<GameChangeEvent[]>;
   followTeam(teamId: string): Promise<ProgramTeamMatch>;
@@ -96,12 +95,6 @@ export class MockStore implements CourtWatchStore {
     const normalized = normalizeName(search);
     const snapshot = await this.snapshot();
     return filterTeamsForSearch(snapshot, normalized);
-  }
-
-  async players(search?: string) {
-    const normalized = normalizeName(search);
-    const snapshot = await this.snapshot();
-    return normalized ? snapshot.players.filter((player) => player.normalizedName.includes(normalized)) : snapshot.players;
   }
 
   async team(teamId: string) {
@@ -334,12 +327,6 @@ export class PrismaStore implements CourtWatchStore {
     const snapshot = await this.snapshot();
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
-  }
-
-  async players(search?: string) {
-    const snapshot = await this.snapshot();
-    const normalized = normalizeName(search);
-    return normalized ? snapshot.players.filter((player) => player.normalizedName.includes(normalized)) : snapshot.players;
   }
 
   async team(teamId: string) {
@@ -1012,27 +999,15 @@ function extractExposureTeamIds(raw: Record<string, unknown>): string[] {
 function filterTeamsForSearch(snapshot: CourtWatchSnapshot, normalizedSearch: string): Team[] {
   const activeProgramIds = new Set(snapshot.programs.filter((program) => program.active).map((program) => program.id));
   const followedTeamIds = new Set(snapshot.matches.filter((match) => match.active && activeProgramIds.has(match.programWatchlistId)).map((match) => match.teamId));
-  const playerNamesByTeam = groupPlayerNamesByTeam(snapshot.players);
 
   return snapshot.teams
-    .map((team) => {
-      const playerNames = playerNamesByTeam.get(team.id) ?? team.playerNames ?? [];
-      const playerMatchNames = normalizedSearch ? playerNames.filter((name) => normalizeName(name).includes(normalizedSearch)) : [];
-      return {
-        ...team,
-        playerNames,
-        playerMatchNames,
-        isFollowed: followedTeamIds.has(team.id)
-      };
-    })
+    .map((team) => ({
+      ...team,
+      isFollowed: followedTeamIds.has(team.id)
+    }))
     .filter((team) => {
       if (!normalizedSearch) return true;
-      return (
-        team.normalizedName.includes(normalizedSearch) ||
-        normalizeName(team.clubName).includes(normalizedSearch) ||
-        normalizeName(team.divisionName).includes(normalizedSearch) ||
-        team.playerMatchNames.length > 0
-      );
+      return team.normalizedName.includes(normalizedSearch) || normalizeName(team.clubName).includes(normalizedSearch) || normalizeName(team.divisionName).includes(normalizedSearch);
     })
     .sort((left, right) => Number(right.isFollowed) - Number(left.isFollowed) || (left.divisionName ?? "").localeCompare(right.divisionName ?? "") || left.name.localeCompare(right.name));
 }

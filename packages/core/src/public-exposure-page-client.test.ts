@@ -119,5 +119,8 @@ describe("PublicExposurePageClient", () => {
       status: "final"
     });
     expect((games[1]?.rawJson as { BracketUrl?: string }).BracketUrl).toBe("https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213");
+    expect((games[0]?.rawJson as { DivisionBracketUrls?: Array<{ url: string }> }).DivisionBracketUrls?.[0]?.url).toBe(
+      "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213"
+    );
   });
 });

@@ -69,7 +69,6 @@ export interface Team {
   rawJson?: unknown;
   lastSeenAt: string;
   playerNames?: string[];
-  playerMatchNames?: string[];
   isFollowed?: boolean;
 }
 

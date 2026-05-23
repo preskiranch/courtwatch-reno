@@ -23,7 +23,7 @@ describe("CourtWatch API", () => {
     expect(unfollowed.body.programs[0].teams).toHaveLength(0);
   });
 
-  it("searches teams by registered player name when roster data exists", async () => {
+  it("searches registered teams without using player names", async () => {
     const snapshot = structuredClone(seedSnapshot);
     snapshot.players = [
       {
@@ -44,9 +44,14 @@ describe("CourtWatch API", () => {
     ];
     const app = createApp(new MockStore(snapshot), null);
     const response = await request(app).get("/api/teams?search=Jordan").expect(200);
-    expect(response.body).toHaveLength(1);
-    expect(response.body[0].id).toBe("team-splash-4th");
-    expect(response.body[0].playerMatchNames).toEqual(["Jordan Sample"]);
+    expect(response.body).toHaveLength(0);
+  });
+
+  it("tracks active online users with a heartbeat", async () => {
+    const app = createApp(new MockStore(), null);
+    const response = await request(app).post("/api/presence/heartbeat").send({ clientId: "test-client-1", page: "dashboard" }).expect(200);
+    expect(response.body.activeUsers).toBeGreaterThanOrEqual(1);
+    expect(response.body.pages.dashboard).toBeGreaterThanOrEqual(1);
   });
 
   it("protects admin sync with ADMIN_SECRET when configured", async () => {

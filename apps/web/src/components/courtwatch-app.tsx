@@ -24,7 +24,7 @@ import {
   WifiOff,
   X
 } from "lucide-react";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
 import { requestPushSubscription } from "../lib/push";
 
@@ -41,10 +41,22 @@ const tabs: Array<{ id: Tab; label: string; icon: React.ComponentType<{ classNam
 export function CourtWatchApp() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [toast, setToast] = useState<string | null>(null);
+  const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const dashboardQuery = useQuery({ queryKey: ["dashboard"], queryFn: CourtWatchApi.dashboard });
   const gamesQuery = useQuery({ queryKey: ["games"], queryFn: () => CourtWatchApi.games() });
   const alertsQuery = useQuery({ queryKey: ["alerts"], queryFn: CourtWatchApi.alerts });
+  const presenceQuery = useQuery({
+    queryKey: ["presence", presenceClientId, activeTab],
+    queryFn: () => CourtWatchApi.presenceHeartbeat(presenceClientId ?? stablePresenceId(), activeTab),
+    enabled: Boolean(presenceClientId),
+    refetchInterval: 25_000,
+    staleTime: 20_000
+  });
+
+  useEffect(() => {
+    setPresenceClientId(stablePresenceId());
+  }, []);
 
   const refresh = async () => {
     await Promise.all([
@@ -62,7 +74,7 @@ export function CourtWatchApp() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
-      <AppHeader dashboard={dashboard} offline={offline} onRefresh={refresh} refreshing={dashboardQuery.isFetching || gamesQuery.isFetching} />
+      <AppHeader dashboard={dashboard} offline={offline} activeUsers={presenceQuery.data?.activeUsers ?? null} onRefresh={refresh} refreshing={dashboardQuery.isFetching || gamesQuery.isFetching} />
 
       {toast ? (
         <div className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 rounded-lg border border-orange-300/50 bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
@@ -89,11 +101,13 @@ export function CourtWatchApp() {
 function AppHeader({
   dashboard,
   offline,
+  activeUsers,
   onRefresh,
   refreshing
 }: {
   dashboard?: DashboardResponse;
   offline: boolean;
+  activeUsers: number | null;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
@@ -107,14 +121,20 @@ function AppHeader({
           </div>
           <h1 className="mt-1 text-2xl font-black tracking-normal text-white">CourtWatch Reno</h1>
         </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="grid h-11 w-11 place-items-center rounded-lg border border-white/12 bg-white/8 text-white transition active:scale-95"
-          aria-label="Refresh schedule"
-        >
-          <RefreshCcw className={clsx("h-5 w-5", refreshing && "animate-spin")} />
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex h-11 items-center gap-1.5 rounded-lg border border-white/12 bg-white/8 px-3 text-white" title="Active users online">
+            <Users className="h-4 w-4 text-emerald-300" />
+            <span className="text-sm font-black">{activeUsers ?? "-"}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="grid h-11 w-11 place-items-center rounded-lg border border-white/12 bg-white/8 text-white transition active:scale-95"
+            aria-label="Refresh schedule"
+          >
+            <RefreshCcw className={clsx("h-5 w-5", refreshing && "animate-spin")} />
+          </button>
+        </div>
       </div>
       <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-300">
         <span className="flex items-center gap-1.5">
@@ -169,7 +189,7 @@ function NextGameBanner({ game }: { game: Game | null }) {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Next Game</p>
             <h2 className="text-xl font-black text-slate-950">Choose teams to follow</h2>
-            <p className="text-sm font-medium text-slate-600">Search registered teams or player names from the Teams tab.</p>
+            <p className="text-sm font-medium text-slate-600">Search registered teams from the Teams tab.</p>
           </div>
         </div>
       </section>
@@ -430,7 +450,7 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Team Selection</p>
             <h2 className="mt-1 text-2xl font-black text-slate-950">{selectedProgram?.teams.length ?? 0} teams followed</h2>
-            <p className="mt-2 text-sm font-semibold text-slate-600">Nothing is preselected. Search a registered team or player name, then tap Follow.</p>
+            <p className="mt-2 text-sm font-semibold text-slate-600">Nothing is preselected. Search a registered team, then tap Follow.</p>
           </div>
           <div className="grid h-11 w-11 place-items-center rounded-lg bg-orange-500 text-white">
             <Search className="h-5 w-5" />
@@ -441,7 +461,7 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search team or registered player"
+            placeholder="Search registered team"
             className="min-h-11 flex-1 bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
           />
           {search ? (
@@ -450,7 +470,6 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
             </button>
           ) : null}
         </label>
-        <p className="mt-2 text-xs font-semibold text-slate-500">Player search uses Exposure roster/player data when it is available through the official API.</p>
       </section>
 
       {selectedProgram && selectedProgram.teams.length > 0 ? (
@@ -485,7 +504,7 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
         {!teamsQuery.isLoading && teams.length === 0 ? (
           <div className="court-card p-4">
             <h3 className="text-lg font-black text-slate-950">No matches found</h3>
-            <p className="mt-1 text-sm font-semibold text-slate-600">Try a team name, club name, division, or player name from official roster data.</p>
+            <p className="mt-1 text-sm font-semibold text-slate-600">Try a team name, club name, or division.</p>
           </div>
         ) : null}
         {teams.map((team) => (
@@ -539,6 +558,7 @@ function FollowedTeamRow({
         <Metric label="Next" value={team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "TBD"} />
         <Metric label="Last" value={team.lastResult ? scoreSummary(team.lastResult) : "No result"} />
       </div>
+      <TeamBracketLink team={team} />
       <button
         type="button"
         onClick={onFocus}
@@ -551,6 +571,32 @@ function FollowedTeamRow({
   );
 }
 
+function TeamBracketLink({ team }: { team: ProgramSummary["teams"][number] }) {
+  const divisionGamesQuery = useQuery({
+    queryKey: ["division-games", team.divisionId],
+    queryFn: () => CourtWatchApi.games(`?scope=division&division=${encodeURIComponent(team.divisionId ?? "")}`),
+    enabled: Boolean(team.divisionId),
+    staleTime: 60_000
+  });
+  const bracketUrl = (divisionGamesQuery.data ?? []).map(divisionBracketUrlFromGame).find(Boolean);
+
+  if (divisionGamesQuery.isLoading) {
+    return <div className="mt-3 h-10 animate-pulse rounded-lg bg-slate-100" />;
+  }
+
+  if (!bracketUrl) {
+    return <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs font-black text-slate-500">Official bracket not posted yet</p>;
+  }
+
+  return (
+    <a href={bracketUrl} target="_blank" rel="noreferrer" className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-orange-50 px-3 text-sm font-black text-orange-700 active:scale-[0.99]">
+      <Trophy className="h-4 w-4" />
+      Official bracket
+      <ChevronRight className="h-4 w-4" />
+    </a>
+  );
+}
+
 function TeamFocusPanel({ team }: { team: ProgramSummary["teams"][number] }) {
   const divisionGamesQuery = useQuery({
     queryKey: ["division-games", team.divisionId],
@@ -560,7 +606,7 @@ function TeamFocusPanel({ team }: { team: ProgramSummary["teams"][number] }) {
   const divisionGames = divisionGamesQuery.data ?? [];
   const teamGames = divisionGames.filter((game) => gameBelongsToTeam(game, team));
   const bracketGames = divisionGames.filter(isBracketGame);
-  const bracketUrl = bracketGames.map(bracketUrlFromGame).find(Boolean);
+  const bracketUrl = divisionGames.map(divisionBracketUrlFromGame).find(Boolean);
   const displayName = teamDisplayName(team);
 
   return (
@@ -669,9 +715,6 @@ function TeamSearchCard({
           {pending ? "..." : followed ? "Following" : "Follow"}
         </button>
       </div>
-      {team.playerMatchNames && team.playerMatchNames.length > 0 ? (
-        <p className="mt-3 rounded-lg bg-orange-50 px-3 py-2 text-sm font-bold text-orange-800">Player match: {team.playerMatchNames.slice(0, 3).join(", ")}</p>
-      ) : null}
       {team.sourceUrl ? (
         <a href={team.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-black text-orange-600">
           Official team page
@@ -898,6 +941,20 @@ function groupGamesByDate(games: Game[]) {
     }));
 }
 
+function stablePresenceId(): string {
+  if (typeof window === "undefined") return "server-render";
+  const key = "courtwatch:presence-client-id";
+  const generated = window.crypto?.randomUUID?.() ?? `presence-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  try {
+    const existing = window.localStorage.getItem(key);
+    if (existing) return existing;
+    window.localStorage.setItem(key, generated);
+  } catch {
+    return generated;
+  }
+  return generated;
+}
+
 function labelStatus(status: string): string {
   return status
     .replace(/_/g, " ")
@@ -1099,6 +1156,20 @@ function bracketUrlFromGame(game: Game): string | null {
   if (!game.rawJson || typeof game.rawJson !== "object" || Array.isArray(game.rawJson)) return null;
   const value = (game.rawJson as { BracketUrl?: unknown }).BracketUrl;
   return typeof value === "string" && value.startsWith("http") ? value : null;
+}
+
+function divisionBracketUrlFromGame(game: Game): string | null {
+  const gameBracketUrl = bracketUrlFromGame(game);
+  if (gameBracketUrl) return gameBracketUrl;
+  if (!game.rawJson || typeof game.rawJson !== "object" || Array.isArray(game.rawJson)) return null;
+  const links = (game.rawJson as { DivisionBracketUrls?: unknown }).DivisionBracketUrls;
+  if (!Array.isArray(links)) return null;
+  for (const link of links) {
+    if (!link || typeof link !== "object" || Array.isArray(link)) continue;
+    const url = (link as { url?: unknown }).url;
+    if (typeof url === "string" && url.startsWith("http")) return url;
+  }
+  return null;
 }
 
 function divisionNameFromGame(game: Game): string | null {

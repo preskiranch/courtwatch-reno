@@ -2,6 +2,7 @@ import { Prisma } from "@courtwatch/db";
 import type { PrismaClient } from "@courtwatch/db";
 import { RenderHealthCheckService, TournamentSyncService } from "@courtwatch/core";
 import cors from "cors";
+import { randomUUID } from "node:crypto";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
@@ -10,6 +11,9 @@ import { z } from "zod";
 import { config, isDatabaseConfigured, isExposureConfigured } from "./config.js";
 import { NotificationService } from "./notification-service.js";
 import type { CourtWatchStore } from "./store.js";
+
+const PRESENCE_TTL_MS = 45_000;
+const activePresence = new Map<string, { lastSeenAt: number; page: string | null }>();
 
 export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | null = null) {
   const app = express();
@@ -66,6 +70,23 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
   app.get("/api/dashboard", async (_req, res, next) => {
     try {
       res.json(await store.dashboard());
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/presence", async (_req, res) => {
+    prunePresence();
+    res.json(presencePayload());
+  });
+
+  app.post("/api/presence/heartbeat", async (req, res, next) => {
+    try {
+      const body = z.object({ clientId: z.string().trim().min(8).max(120).optional(), page: z.string().trim().max(80).optional() }).parse(req.body ?? {});
+      const clientId = body.clientId ?? randomUUID();
+      activePresence.set(clientId, { lastSeenAt: Date.now(), page: body.page ?? null });
+      prunePresence();
+      res.json(presencePayload(clientId));
     } catch (error) {
       next(error);
     }
@@ -143,14 +164,6 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     try {
       await store.unfollowTeam(req.params.teamId);
       res.status(204).end();
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  app.get("/api/players", async (req, res, next) => {
-    try {
-      res.json(await store.players(typeof req.query.search === "string" ? req.query.search : undefined));
     } catch (error) {
       next(error);
     }
@@ -324,6 +337,27 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
   });
 
   return app;
+}
+
+function prunePresence(now = Date.now()) {
+  for (const [clientId, presence] of activePresence.entries()) {
+    if (now - presence.lastSeenAt > PRESENCE_TTL_MS) activePresence.delete(clientId);
+  }
+}
+
+function presencePayload(clientId?: string) {
+  const pages = Array.from(activePresence.values()).reduce<Record<string, number>>((counts, presence) => {
+    const key = presence.page ?? "unknown";
+    counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
+
+  return {
+    activeUsers: activePresence.size,
+    pages,
+    clientId: clientId ?? null,
+    updatedAt: new Date().toISOString()
+  };
 }
 
 function stringQuery(value: unknown): string | undefined {

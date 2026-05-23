@@ -62,7 +62,7 @@ export function buildProgramSummaries(snapshot: CourtWatchSnapshot, now = new Da
       alertsCount,
       zeroStateMessage:
         teams.length === 0
-          ? `${program.programName}: no teams selected yet. Search registered teams or player names and tap Follow.`
+          ? `${program.programName}: no teams selected yet. Search registered teams and tap Follow.`
           : undefined
     };
   });
