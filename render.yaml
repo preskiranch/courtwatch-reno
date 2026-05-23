@@ -2,7 +2,7 @@ databases:
   - name: courtwatch-reno-db
     databaseName: courtwatch_reno
     user: courtwatch_reno
-    plan: starter
+    plan: basic-256mb
 
 services:
   - type: web
@@ -19,11 +19,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: WEB_BASE_URL
-        sync: false
+        value: https://courtwatch-reno-web.onrender.com
       - key: API_BASE_URL
-        sync: false
+        value: https://courtwatch-reno-api.onrender.com
       - key: NEXT_PUBLIC_API_BASE_URL
-        sync: false
+        value: https://courtwatch-reno-api.onrender.com
       - key: VAPID_PUBLIC_KEY
         sync: false
       - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
@@ -48,9 +48,9 @@ services:
           name: courtwatch-reno-db
           property: connectionString
       - key: WEB_BASE_URL
-        sync: false
+        value: https://courtwatch-reno-web.onrender.com
       - key: API_BASE_URL
-        sync: false
+        value: https://courtwatch-reno-api.onrender.com
       - key: EXPOSURE_EVENT_ID
         value: "255539"
       - key: EXPOSURE_API_KEY
@@ -92,20 +92,38 @@ services:
           name: courtwatch-reno-db
           property: connectionString
       - key: API_BASE_URL
-        sync: false
+        value: https://courtwatch-reno-api.onrender.com
       - key: ADMIN_SECRET
-        sync: false
+        fromService:
+          name: courtwatch-reno-api
+          type: web
+          envVarKey: ADMIN_SECRET
       - key: EXPOSURE_EVENT_ID
         value: "255539"
       - key: EXPOSURE_API_KEY
-        sync: false
+        fromService:
+          name: courtwatch-reno-api
+          type: web
+          envVarKey: EXPOSURE_API_KEY
       - key: EXPOSURE_SECRET_KEY
-        sync: false
+        fromService:
+          name: courtwatch-reno-api
+          type: web
+          envVarKey: EXPOSURE_SECRET_KEY
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: VAPID_PUBLIC_KEY
-        sync: false
+        fromService:
+          name: courtwatch-reno-api
+          type: web
+          envVarKey: VAPID_PUBLIC_KEY
       - key: VAPID_PRIVATE_KEY
-        sync: false
+        fromService:
+          name: courtwatch-reno-api
+          type: web
+          envVarKey: VAPID_PRIVATE_KEY
       - key: PUSH_CONTACT_EMAIL
-        sync: false
+        fromService:
+          name: courtwatch-reno-api
+          type: web
+          envVarKey: PUSH_CONTACT_EMAIL

@@ -70,9 +70,9 @@ Copy `.env.example` and set real values in local shell or Render dashboard. Do n
 Required for production:
 
 - `DATABASE_URL`
-- `WEB_BASE_URL`
-- `API_BASE_URL`
-- `NEXT_PUBLIC_API_BASE_URL`
+- `WEB_BASE_URL` (Blueprint defaults to `https://courtwatch-reno-web.onrender.com`)
+- `API_BASE_URL` (Blueprint defaults to `https://courtwatch-reno-api.onrender.com`)
+- `NEXT_PUBLIC_API_BASE_URL` (Blueprint defaults to `https://courtwatch-reno-api.onrender.com`)
 - `ADMIN_SECRET`
 - `JWT_SECRET`
 - `EXPOSURE_EVENT_ID=255539`
@@ -215,7 +215,7 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
    - `courtwatch-reno-api`
    - `courtwatch-reno-sync-worker`
    - `courtwatch-reno-db`
-6. Set environment variables marked `sync: false`.
+6. Set environment variables marked `sync: false`. The API service generates `ADMIN_SECRET`, and the worker references that generated value from the API service.
 7. Deploy. The API build applies migrations with `npm run db:migrate`.
 8. After first deploy, run `npm run db:seed` from a Render shell or trigger `POST /api/admin/sync-now`.
 
