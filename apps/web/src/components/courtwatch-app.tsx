@@ -12,6 +12,7 @@ import {
   Clock3,
   Gauge,
   Home,
+  Instagram,
   MapPin,
   Radio,
   RefreshCcw,
@@ -113,6 +114,16 @@ function AppHeader({
 }) {
   return (
     <header className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#07111f]/92 px-4 pb-3 pt-3 backdrop-blur">
+      <div className="mb-3 flex justify-center">
+        <div className="inline-flex max-w-full items-center gap-2 rounded-lg border border-white/10 bg-white/8 px-3 py-1.5 text-[11px] font-bold text-slate-200">
+          <span className="whitespace-nowrap">Designed by PreskiRanch LLC</span>
+          <span className="h-3 w-px bg-white/20" />
+          <a href="https://www.instagram.com/PreskiRanch" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 whitespace-nowrap text-orange-300">
+            <Instagram className="h-3.5 w-3.5" />
+            @PreskiRanch
+          </a>
+        </div>
+      </div>
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-orange-300">
