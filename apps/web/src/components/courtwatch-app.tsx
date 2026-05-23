@@ -1,6 +1,6 @@
 "use client";
 
-import type { DashboardResponse, Game, GameChangeEvent, ProgramSummary } from "@courtwatch/core";
+import type { DashboardResponse, Game, GameChangeEvent, ProgramSummary, Team } from "@courtwatch/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import {
@@ -13,7 +13,6 @@ import {
   Gauge,
   Home,
   MapPin,
-  Plus,
   Radio,
   RefreshCcw,
   Search,
@@ -25,16 +24,16 @@ import {
   WifiOff,
   X
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
 import { requestPushSubscription } from "../lib/push";
 
-type Tab = "dashboard" | "schedule" | "programs" | "alerts" | "settings";
+type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
 
 const tabs: Array<{ id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
   { id: "dashboard", label: "Dashboard", icon: Home },
   { id: "schedule", label: "Schedule", icon: CalendarDays },
-  { id: "programs", label: "Programs", icon: Users },
+  { id: "teams", label: "Teams", icon: Users },
   { id: "alerts", label: "Alerts", icon: Bell },
   { id: "settings", label: "Settings", icon: Settings }
 ];
@@ -75,7 +74,7 @@ export function CourtWatchApp() {
         {isLoading ? <SkeletonDashboard /> : null}
         {!isLoading && dashboard && activeTab === "dashboard" ? <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? []} onRefresh={refresh} /> : null}
         {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} /> : null}
-        {!isLoading && dashboard && activeTab === "programs" ? <ProgramsScreen programs={dashboard.programs} /> : null}
+        {!isLoading && dashboard && activeTab === "teams" ? <TeamsScreen dashboard={dashboard} /> : null}
         {!isLoading && dashboard && activeTab === "alerts" ? <AlertsScreen alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} /> : null}
         {!isLoading && dashboard && activeTab === "settings" ? <SettingsScreen dashboard={dashboard} onRefresh={refresh} /> : null}
       </section>
@@ -167,8 +166,8 @@ function NextGameBanner({ game }: { game: Game | null }) {
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Next Game</p>
-            <h2 className="text-xl font-black text-slate-950">Awaiting bracket updates</h2>
-            <p className="text-sm font-medium text-slate-600">The tracker will keep the saved schedule visible.</p>
+            <h2 className="text-xl font-black text-slate-950">Choose teams to follow</h2>
+            <p className="text-sm font-medium text-slate-600">Search registered teams or player names from the Teams tab.</p>
           </div>
         </div>
       </section>
@@ -199,17 +198,16 @@ function NextGameBanner({ game }: { game: Game | null }) {
 
 function ProgramCard({ program }: { program: ProgramSummary }) {
   const found = program.teams.length;
-  const programTone = program.program.programName.toLowerCase().includes("splash") ? "bg-orange-500" : "bg-slate-950";
   return (
     <article className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-950">
-            {program.program.programName} <span className="text-slate-400">&mdash;</span> {found} teams found
+            {program.program.programName} <span className="text-slate-400">&mdash;</span> {found} followed
           </h2>
           {program.zeroStateMessage ? <p className="mt-2 text-sm font-semibold text-amber-700">{program.zeroStateMessage}</p> : null}
         </div>
-        <div className={clsx("grid h-10 w-10 place-items-center rounded-lg text-white", programTone)}>
+        <div className="grid h-10 w-10 place-items-center rounded-lg bg-orange-500 text-white">
           <Users className="h-5 w-5" />
         </div>
       </div>
@@ -316,6 +314,12 @@ function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramS
           ))}
         </section>
       ))}
+      {groups.length === 0 ? (
+        <section className="court-card p-4">
+          <h2 className="text-xl font-black text-slate-950">No followed-team games yet</h2>
+          <p className="mt-2 text-sm font-semibold text-slate-600">Use Teams search to follow the registered teams you want on this schedule.</p>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -377,83 +381,179 @@ function GameRow({ game }: { game: Game }) {
   );
 }
 
-function ProgramsScreen({ programs }: { programs: ProgramSummary[] }) {
+function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
   const queryClient = useQueryClient();
-  const [aliasDrafts, setAliasDrafts] = useState<Record<string, string>>({});
-  const addAlias = useMutation({
-    mutationFn: ({ programId, alias }: { programId: string; alias: string }) => CourtWatchApi.addAlias(programId, alias),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["programs"] });
-    }
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search.trim());
+  const selectedProgram = dashboard.programs[0];
+  const teamsQuery = useQuery({
+    queryKey: ["teams", deferredSearch],
+    queryFn: () => CourtWatchApi.teams(deferredSearch)
   });
+  const refreshSelection = () => {
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["games"] });
+    queryClient.invalidateQueries({ queryKey: ["alerts"] });
+    queryClient.invalidateQueries({ queryKey: ["teams"] });
+  };
+  const followTeam = useMutation({
+    mutationFn: (teamId: string) => CourtWatchApi.followTeam(teamId),
+    onSuccess: refreshSelection
+  });
+  const unfollowTeam = useMutation({
+    mutationFn: (teamId: string) => CourtWatchApi.unfollowTeam(teamId),
+    onSuccess: refreshSelection
+  });
+  const teams = teamsQuery.data ?? [];
+  const pendingTeamId = String(followTeam.variables ?? unfollowTeam.variables ?? "");
 
   return (
     <div className="space-y-4">
-      {programs.map((program) => (
-        <section key={program.program.id} className="court-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-2xl font-black text-slate-950">
-                {program.program.programName} <span className="text-slate-400">&mdash;</span> {program.teams.length} teams found
-              </h2>
-              {program.zeroStateMessage ? <p className="mt-2 text-sm font-semibold text-amber-700">{program.zeroStateMessage}</p> : null}
-            </div>
-            <ChevronRight className="h-5 w-5 text-slate-400" />
+      <section className="court-card p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Team Selection</p>
+            <h2 className="mt-1 text-2xl font-black text-slate-950">{selectedProgram?.teams.length ?? 0} teams followed</h2>
+            <p className="mt-2 text-sm font-semibold text-slate-600">Nothing is preselected. Search a registered team or player name, then tap Follow.</p>
           </div>
-          <div className="mt-4 space-y-2">
-            {program.teams.map((team) => (
-              <div key={team.id} className="rounded-lg border border-slate-200 bg-white p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-black text-slate-950">{team.name}</p>
-                  <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-black uppercase text-slate-600">{team.matchType}</span>
-                </div>
-                <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
-                <p className="mt-1 text-xs font-semibold text-slate-500">
-                  {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
-                </p>
-                <p className="mt-2 text-sm text-slate-700">
-                  Next: {team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "Awaiting bracket"}
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  Last: {team.lastResult ? scoreSummary(team.lastResult) : "No result posted"}
-                </p>
-              </div>
+          <div className="grid h-11 w-11 place-items-center rounded-lg bg-orange-500 text-white">
+            <Search className="h-5 w-5" />
+          </div>
+        </div>
+        <label className="mt-4 flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 focus-within:border-orange-500">
+          <Search className="h-5 w-5 text-slate-400" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search team or registered player"
+            className="min-h-11 flex-1 bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+          />
+          {search ? (
+            <button type="button" onClick={() => setSearch("")} className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-500" aria-label="Clear search">
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+        </label>
+        <p className="mt-2 text-xs font-semibold text-slate-500">Player search uses Exposure roster/player data when it is available through the official API.</p>
+      </section>
+
+      {selectedProgram && selectedProgram.teams.length > 0 ? (
+        <section className="court-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-xl font-black text-slate-950">Following</h2>
+            <span className="rounded-md bg-orange-100 px-2 py-1 text-xs font-black text-orange-700">{selectedProgram.teams.length} active</span>
+          </div>
+          <div className="space-y-2">
+            {selectedProgram.teams.map((team) => (
+              <FollowedTeamRow key={team.id} team={team} onUnfollow={() => unfollowTeam.mutate(team.id)} pending={unfollowTeam.isPending && pendingTeamId === team.id} />
             ))}
           </div>
-          <div className="mt-4 rounded-lg bg-slate-100 p-3">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Aliases</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {program.aliases.map((alias) => (
-                <span key={alias.id} className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-700">
-                  {alias.alias}
-                </span>
-              ))}
-            </div>
-            <form
-              className="mt-3 flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const alias = aliasDrafts[program.program.id]?.trim();
-                if (!alias) return;
-                addAlias.mutate({ programId: program.program.id, alias });
-                setAliasDrafts((current) => ({ ...current, [program.program.id]: "" }));
-              }}
-            >
-              <input
-                value={aliasDrafts[program.program.id] ?? ""}
-                onChange={(event) => setAliasDrafts((current) => ({ ...current, [program.program.id]: event.target.value }))}
-                placeholder={`Add alias for ${program.program.programName}`}
-                className="min-h-11 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-orange-500"
-              />
-              <button type="submit" className="grid min-h-11 w-12 place-items-center rounded-lg bg-orange-500 text-white active:scale-95" aria-label="Add alias">
-                <Plus className="h-5 w-5" />
-              </button>
-            </form>
-          </div>
         </section>
-      ))}
+      ) : null}
+
+      <section className="space-y-2">
+        <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">{deferredSearch ? "Search Results" : "Registered Teams"}</h2>
+        {teamsQuery.isLoading ? <div className="h-28 animate-pulse rounded-lg bg-white/12" /> : null}
+        {!teamsQuery.isLoading && teams.length === 0 ? (
+          <div className="court-card p-4">
+            <h3 className="text-lg font-black text-slate-950">No matches found</h3>
+            <p className="mt-1 text-sm font-semibold text-slate-600">Try a team name, club name, division, or player name from official roster data.</p>
+          </div>
+        ) : null}
+        {teams.map((team) => (
+          <TeamSearchCard
+            key={team.id}
+            team={team}
+            onFollow={() => followTeam.mutate(team.id)}
+            onUnfollow={() => unfollowTeam.mutate(team.id)}
+            pending={(followTeam.isPending || unfollowTeam.isPending) && pendingTeamId === team.id}
+          />
+        ))}
+      </section>
     </div>
+  );
+}
+
+function FollowedTeamRow({
+  team,
+  onUnfollow,
+  pending
+}: {
+  team: ProgramSummary["teams"][number];
+  onUnfollow: () => void;
+  pending: boolean;
+}) {
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-black text-slate-950">{team.name}</p>
+          <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onUnfollow}
+          disabled={pending}
+          className="min-h-10 shrink-0 rounded-lg border border-slate-200 px-3 text-xs font-black text-slate-700 active:scale-95 disabled:opacity-60"
+        >
+          {pending ? "..." : "Unfollow"}
+        </button>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Metric label="Next" value={team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "TBD"} />
+        <Metric label="Last" value={team.lastResult ? scoreSummary(team.lastResult) : "No result"} />
+      </div>
+    </article>
+  );
+}
+
+function TeamSearchCard({
+  team,
+  onFollow,
+  onUnfollow,
+  pending
+}: {
+  team: Team;
+  onFollow: () => void;
+  onUnfollow: () => void;
+  pending: boolean;
+}) {
+  const followed = Boolean(team.isFollowed);
+  return (
+    <article className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-lg font-black text-slate-950">{team.name}</p>
+          <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={followed ? onUnfollow : onFollow}
+          className={clsx(
+            "min-h-11 shrink-0 rounded-lg px-4 text-sm font-black active:scale-95 disabled:opacity-60",
+            followed ? "border border-slate-200 bg-white text-slate-800" : "bg-orange-500 text-white"
+          )}
+        >
+          {pending ? "..." : followed ? "Following" : "Follow"}
+        </button>
+      </div>
+      {team.playerMatchNames && team.playerMatchNames.length > 0 ? (
+        <p className="mt-3 rounded-lg bg-orange-50 px-3 py-2 text-sm font-bold text-orange-800">Player match: {team.playerMatchNames.slice(0, 3).join(", ")}</p>
+      ) : null}
+      {team.sourceUrl ? (
+        <a href={team.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-black text-orange-600">
+          Official team page
+          <ChevronRight className="h-4 w-4" />
+        </a>
+      ) : null}
+    </article>
   );
 }
 

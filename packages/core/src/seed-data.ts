@@ -1,6 +1,7 @@
 import { hashSource } from "./change-detection.js";
 import { normalizeName, normalizeProgramName } from "./normalization.js";
-import type { CourtWatchSnapshot, Division, Game, GameChangeEvent, ProgramAlias, ProgramTeamMatch, ProgramWatchlist, SyncRun, Team, TournamentEvent } from "./types.js";
+import type { CourtWatchSnapshot, Division, Game, GameChangeEvent, Player, ProgramAlias, ProgramTeamMatch, ProgramWatchlist, SyncRun, Team, TournamentEvent } from "./types.js";
+import { SELECTED_TEAMS_PROGRAM_ID, SELECTED_TEAMS_PROGRAM_NAME } from "./types.js";
 import { RENO_TIMEZONE } from "./types.js";
 
 const now = "2026-05-23T16:10:00.000Z";
@@ -19,31 +20,16 @@ export const seedEvent: TournamentEvent = {
 
 export const seedPrograms: ProgramWatchlist[] = [
   {
-    id: "program-arsenal",
+    id: SELECTED_TEAMS_PROGRAM_ID,
     userId: null,
-    programName: "Arsenal",
-    normalizedProgramName: normalizeProgramName("Arsenal"),
-    active: true,
-    createdAt: now
-  },
-  {
-    id: "program-splash-city",
-    userId: null,
-    programName: "Splash City",
-    normalizedProgramName: normalizeProgramName("Splash City"),
+    programName: SELECTED_TEAMS_PROGRAM_NAME,
+    normalizedProgramName: normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME),
     active: true,
     createdAt: now
   }
 ];
 
-export const seedAliases: ProgramAlias[] = [
-  alias("alias-arsenal-team", "program-arsenal", "Team Arsenal"),
-  alias("alias-arsenal-basketball", "program-arsenal", "Arsenal Basketball"),
-  alias("alias-arsenal-elite", "program-arsenal", "Arsenal Elite"),
-  alias("alias-arsenal-aau", "program-arsenal", "Arsenal AAU"),
-  alias("alias-splash-city-compact", "program-splash-city", "SplashCity"),
-  alias("alias-splash-city-hoops", "program-splash-city", "Splash City Basketball")
-];
+export const seedAliases: ProgramAlias[] = [];
 
 export const seedDivisions: Division[] = [
   division("division-boys-3rd-orange", "5168259", "Boys 2nd/3rd Level 3 Orange", "Boys", "3RD", "Level 3 Orange"),
@@ -65,13 +51,8 @@ export const seedTeams: Team[] = [
   team("team-valley-8", "division-boys-8th-black", "opponent-valley", "Valley Kings 8th", null, null)
 ];
 
-export const seedMatches: ProgramTeamMatch[] = [
-  match("match-splash-3rd", "program-splash-city", "team-splash-3rd", "exact", 1),
-  match("match-splash-4th", "program-splash-city", "team-splash-4th", "exact", 1),
-  match("match-splash-6th", "program-splash-city", "team-splash-6th", "normalized", 0.94),
-  match("match-arsenal-girls-7", "program-arsenal", "team-arsenal-girls-7", "alias", 0.92),
-  match("match-arsenal-boys-8", "program-arsenal", "team-arsenal-boys-8", "normalized", 0.96)
-];
+export const seedMatches: ProgramTeamMatch[] = [];
+export const seedPlayers: Player[] = [];
 
 export const seedGames: Game[] = [
   game({
@@ -164,10 +145,10 @@ export const seedGames: Game[] = [
 ];
 
 export const seedChangeEvents: GameChangeEvent[] = [
-  change("change-splash-6-court", "game-splash-6-changed", "team-splash-6th", "program-splash-city", "court_changed", "Court 18", "Court 31"),
-  change("change-splash-3-final", "game-splash-3-final", "team-splash-3rd", "program-splash-city", "final_score", null, { home: 42, away: 38 }),
-  change("change-arsenal-bracket", "game-arsenal-bracket", "team-arsenal-boys-8", "program-arsenal", "bracket_update", null, "Bracket Quarterfinal"),
-  change("change-splash-4-time", "game-splash-4-next", "team-splash-4th", "program-splash-city", "game_time_changed", "2026-05-23T21:30:00.000Z", "2026-05-23T21:40:00.000Z")
+  change("change-splash-6-court", "game-splash-6-changed", "team-splash-6th", null, "court_changed", "Court 18", "Court 31"),
+  change("change-splash-3-final", "game-splash-3-final", "team-splash-3rd", null, "final_score", null, { home: 42, away: 38 }),
+  change("change-arsenal-bracket", "game-arsenal-bracket", "team-arsenal-boys-8", null, "bracket_update", null, "Bracket Quarterfinal"),
+  change("change-splash-4-time", "game-splash-4-next", "team-splash-4th", null, "game_time_changed", "2026-05-23T21:30:00.000Z", "2026-05-23T21:40:00.000Z")
 ];
 
 export const seedSyncRuns: SyncRun[] = [
@@ -189,6 +170,7 @@ export const seedSnapshot: CourtWatchSnapshot = {
   event: seedEvent,
   divisions: seedDivisions,
   teams: seedTeams,
+  players: seedPlayers,
   programs: seedPrograms,
   aliases: seedAliases,
   matches: seedMatches,

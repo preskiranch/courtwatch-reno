@@ -29,8 +29,26 @@ const ExposureGameSchema = z.object({
   AwayTeam: z.unknown().optional()
 }).passthrough();
 
+const ExposurePlayerSchema = z.object({
+  Id: z.union([z.number(), z.string()]),
+  FirstName: z.string().optional(),
+  LastName: z.string().optional(),
+  Name: z.string().optional(),
+  Teams: z
+    .array(
+      z
+        .object({
+          Id: z.union([z.number(), z.string()]).optional(),
+          Name: z.string().optional()
+        })
+        .passthrough()
+    )
+    .optional()
+}).passthrough();
+
 export type ExposureTeam = z.infer<typeof ExposureTeamSchema>;
 export type ExposureGame = z.infer<typeof ExposureGameSchema>;
+export type ExposurePlayer = z.infer<typeof ExposurePlayerSchema>;
 
 export interface ExposureClientOptions {
   apiKey?: string | null;
@@ -68,7 +86,13 @@ export class ExposureClient {
     return payload.map((item) => ExposureGameSchema.parse(item));
   }
 
-  private async fetchPaged(path: string, params: Record<string, string>, rootKey: "Teams" | "Games"): Promise<unknown[]> {
+  async fetchPlayers(eventId: number): Promise<ExposurePlayer[]> {
+    if (!this.configured) return [];
+    const payload = await this.fetchPaged("/api/v1/players", { eventid: String(eventId), pagesize: "250" }, "Players");
+    return payload.map((item) => ExposurePlayerSchema.parse(item));
+  }
+
+  private async fetchPaged(path: string, params: Record<string, string>, rootKey: "Teams" | "Games" | "Players"): Promise<unknown[]> {
     const results: unknown[] = [];
     let page = 1;
     let total = Number.POSITIVE_INFINITY;

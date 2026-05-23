@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "CourtWatch Reno",
-  description: "Independent Reno Memorial Day Tournament tracker for Arsenal and Splash City.",
+  description: "Independent Reno Memorial Day Tournament tracker for selected teams and player-searchable rosters.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

@@ -1,4 +1,4 @@
-import type { CourtWatchSnapshot, DashboardResponse, Game, ProgramSummary, Team } from "./types.js";
+import type { CourtWatchSnapshot, DashboardResponse, Game, GameChangeEvent, ProgramSummary, Team } from "./types.js";
 import { DISCLAIMER } from "./types.js";
 
 function compareStartsAt(left: Game, right: Game): number {
@@ -22,7 +22,7 @@ export function lastResultForTeam(team: Team, games: Game[], now = new Date()): 
 }
 
 export function buildProgramSummaries(snapshot: CourtWatchSnapshot, now = new Date()): ProgramSummary[] {
-  return snapshot.programs.map((program) => {
+  return snapshot.programs.filter((program) => program.active).map((program) => {
     const aliases = snapshot.aliases.filter((alias) => alias.programWatchlistId === program.id);
     const matches = snapshot.matches.filter((match) => match.programWatchlistId === program.id && match.active);
     const teams = matches
@@ -62,7 +62,7 @@ export function buildProgramSummaries(snapshot: CourtWatchSnapshot, now = new Da
       alertsCount,
       zeroStateMessage:
         teams.length === 0
-          ? `${program.programName}: 0 teams currently found - still monitoring for updates or alternate spelling.`
+          ? `${program.programName}: no teams selected yet. Search registered teams or player names and tap Follow.`
           : undefined
     };
   });
@@ -72,16 +72,18 @@ export function buildDashboard(snapshot: CourtWatchSnapshot, now = new Date()): 
   const programs = buildProgramSummaries(snapshot, now);
   const watchedTeamIds = new Set(programs.flatMap((program) => program.teams.map((team) => team.id)));
   const watchedGames = snapshot.games.filter((game) => watchedTeamIds.has(game.homeTeamId ?? "") || watchedTeamIds.has(game.awayTeamId ?? ""));
+  const watchedGameIds = new Set(watchedGames.map((game) => game.id));
   const nextGame = watchedGames
     .filter((game) => new Date(game.startsAt).getTime() >= now.getTime() && game.status !== "final")
     .sort(compareStartsAt)[0] ?? null;
   const lastRun = [...snapshot.syncRuns].sort((left, right) => new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime())[0] ?? null;
+  const watchedAlerts = watchedAlertEvents(snapshot.changeEvents, watchedTeamIds, watchedGameIds);
 
   return {
     event: snapshot.event,
     nextGame,
     programs,
-    alerts: [...snapshot.changeEvents].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()).slice(0, 20),
+    alerts: watchedAlerts.sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()).slice(0, 20),
     lastUpdated: snapshot.event.lastSyncedAt,
     sourceStatus: {
       source: lastRun?.source ?? "mock",
@@ -91,4 +93,12 @@ export function buildDashboard(snapshot: CourtWatchSnapshot, now = new Date()): 
     },
     disclaimer: DISCLAIMER
   };
+}
+
+export function watchedAlertEvents(changeEvents: GameChangeEvent[], watchedTeamIds: Set<string>, watchedGameIds: Set<string>): GameChangeEvent[] {
+  return changeEvents.filter((event) => {
+    if (event.affectedTeamId && watchedTeamIds.has(event.affectedTeamId)) return true;
+    if (event.gameId && watchedGameIds.has(event.gameId)) return true;
+    return false;
+  });
 }

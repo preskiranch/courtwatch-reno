@@ -131,6 +131,31 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     }
   });
 
+  app.post("/api/teams/:teamId/follow", async (req, res, next) => {
+    try {
+      res.status(201).json(await store.followTeam(req.params.teamId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/api/teams/:teamId/follow", async (req, res, next) => {
+    try {
+      await store.unfollowTeam(req.params.teamId);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/players", async (req, res, next) => {
+    try {
+      res.json(await store.players(typeof req.query.search === "string" ? req.query.search : undefined));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/games", async (req, res, next) => {
     try {
       res.json(

@@ -1,4 +1,4 @@
-import type { DashboardResponse, Game, GameChangeEvent, ProgramAlias, ProgramSummary, Team, TournamentEvent } from "@courtwatch/core";
+import type { DashboardResponse, Game, GameChangeEvent, Player, ProgramAlias, ProgramSummary, ProgramTeamMatch, Team, TournamentEvent } from "@courtwatch/core";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || "http://localhost:4000";
 
@@ -47,6 +47,9 @@ export const CourtWatchApi = {
   games: (query = "") => apiGet<Game[]>(`/api/games${query}`, "games"),
   alerts: () => apiGet<GameChangeEvent[]>("/api/alerts", "alerts"),
   teams: (search = "") => apiGet<Team[]>(`/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`),
+  players: (search = "") => apiGet<Player[]>(`/api/players${search ? `?search=${encodeURIComponent(search)}` : ""}`),
+  followTeam: (teamId: string) => apiPost<ProgramTeamMatch>(`/api/teams/${teamId}/follow`, {}),
+  unfollowTeam: (teamId: string) => apiDelete(`/api/teams/${teamId}/follow`),
   addAlias: (programId: string, alias: string) => apiPost<ProgramAlias>(`/api/programs/${programId}/aliases`, { alias }),
   deleteAlias: (programId: string, aliasId: string) => apiDelete(`/api/programs/${programId}/aliases/${aliasId}`),
   subscribePush: (subscription: PushSubscription, timezone: string) => apiPost<{ ok: boolean; userId?: string }>("/api/push/subscribe", { subscription, timezone }),

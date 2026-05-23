@@ -10,8 +10,8 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest --exclude dist/**",
-    "test:run": "vitest run --exclude dist/**"
+    "test": "vitest src",
+    "test:run": "vitest run src"
   },
   "dependencies": {
     "@courtwatch/core": "0.1.0",

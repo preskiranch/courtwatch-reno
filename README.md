@@ -1,17 +1,16 @@
 # CourtWatch Reno
 
-CourtWatch Reno is a mobile-first PWA for following all Arsenal and Splash City teams at the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.
+CourtWatch Reno is a mobile-first PWA for choosing and following registered teams at the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.
 
 It is an independent companion tracker and is not affiliated with Jam On It or Exposure Events. Official schedules and rulings come from tournament staff.
 
 ## What It Does
 
 - Tracks the Exposure event `255539` for the 2026 Reno Memorial Day Tournament.
-- Keeps default global watch programs for `Arsenal` and `Splash City`.
-- Automatically discovers all matching teams across divisions, grade levels, gender, and levels.
-- Uses exact matching first, then normalized matching, then fuzzy matching with false-positive protection.
-- Keeps Arsenal in the watchlist even if zero teams are found in a sync.
-- Shows dashboard, program detail, unified schedule, game status, alerts, settings, and admin sync.
+- Starts with no teams preselected.
+- Lets you search registered team names, club names, divisions, and player names when roster/player data is available.
+- Lets you follow or unfollow any registered team, then builds a unified schedule and alert feed from your choices.
+- Shows dashboard, team selection, unified schedule, game status, alerts, settings, and admin sync.
 - Supports browser push notifications with VAPID.
 - Keeps the last saved schedule visible when the source temporarily fails.
 - Provides a Render Blueprint with web, API, worker, and Postgres.
@@ -99,34 +98,30 @@ Render automation:
 
 CourtWatch prefers the official Exposure API when `EXPOSURE_API_KEY` and `EXPOSURE_SECRET_KEY` are configured. The API client signs requests with the documented `Timestamp` and `Authentication` headers and keeps credentials server-side only.
 
+Team search is backed by Exposure teams. Player-name search uses the official Exposure Players endpoint when credentials and roster visibility allow it. The public-page fallback can discover teams, but it does not expose private roster/player data.
+
 If credentials are missing, the backend can use a respectful public-page fallback for team discovery from:
 
 - `https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams`
 
 The public fallback does not bypass authentication, does not scrape aggressively, and keeps existing saved data visible if source fetches fail. Rich demo games and change events are seeded until official API credentials are available.
 
-## Program Watchlist
+## Team Selection
 
-Default programs:
+The app now uses a single `My Teams` watchlist. It starts empty, and every followed team is added manually from the Teams screen.
 
-- Arsenal
-- Splash City
+Search supports:
 
-Default aliases include:
+- Team name
+- Club/program name when provided by Exposure
+- Division/grade/level
+- Registered player name when Exposure roster/player data is available through API credentials
 
-- Team Arsenal
-- Arsenal Basketball
-- Arsenal Elite
-- Arsenal AAU
-- SplashCity
-- Splash City Basketball
-
-Admin/manual aliases can be added from the Programs screen or via:
+Follow a team through the API:
 
 ```bash
-curl -X POST "$API_BASE_URL/api/programs/program-arsenal/aliases" \
-  -H "Content-Type: application/json" \
-  -d '{"alias":"Arsenal Select"}'
+curl -X POST "$API_BASE_URL/api/teams/team-splash-4th/follow"
+curl -X DELETE "$API_BASE_URL/api/teams/team-splash-4th/follow"
 ```
 
 ## Sync Worker
@@ -162,10 +157,11 @@ Seed data includes:
 
 - Splash City teams in multiple divisions.
 - Arsenal teams in multiple divisions so the demo works before live credentials.
+- No teams followed by default; use the Teams screen to choose them.
 - Upcoming, changed, final, and bracket games.
 - Court change, time change, final score, and bracket change events.
 
-When the database-backed sync can read the public teams page, mock Arsenal teams are skipped unless `ENABLE_MOCK_ARSENAL=true`; this preserves the required production zero-state when Arsenal is not found publicly.
+When the database-backed sync can read the public teams page, mock Arsenal teams are skipped unless `ENABLE_MOCK_ARSENAL=true`; this keeps production data aligned with teams currently visible from the source.
 
 ## Push Notifications
 
@@ -194,6 +190,9 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 - `DELETE /api/programs/:programId/aliases/:aliasId`
 - `GET /api/teams?search=`
 - `GET /api/teams/:teamId`
+- `POST /api/teams/:teamId/follow`
+- `DELETE /api/teams/:teamId/follow`
+- `GET /api/players?search=`
 - `GET /api/games`
 - `GET /api/games/:gameId`
 - `GET /api/dashboard`

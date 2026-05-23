@@ -35,6 +35,7 @@ model Event {
 
   divisions       Division[]
   teams           Team[]
+  players         Player[]
   games           Game[]
   syncRuns        SyncRun[]
 
@@ -106,6 +107,7 @@ model Team {
   event              Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   division           Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
   matches            ProgramTeamMatch[]
+  players            Player[]
   homeGames          Game[]   @relation("HomeTeam")
   awayGames          Game[]   @relation("AwayTeam")
   changeEvents       GameChangeEvent[]
@@ -113,6 +115,30 @@ model Team {
   @@unique([eventId, exposureTeamId])
   @@index([normalizedName])
   @@map("teams")
+}
+
+model Player {
+  id               String   @id @default(cuid())
+  eventId          String   @map("event_id")
+  teamId           String?  @map("team_id")
+  exposurePlayerId String?  @map("exposure_player_id")
+  firstName        String?  @map("first_name")
+  lastName         String?  @map("last_name")
+  fullName         String   @map("full_name")
+  normalizedName   String   @map("normalized_name")
+  jerseyNumber     String?  @map("jersey_number")
+  position         String?
+  grade            String?
+  rawJson          Json?    @map("raw_json")
+  lastSeenAt       DateTime @map("last_seen_at")
+
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  team             Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, exposurePlayerId])
+  @@index([normalizedName])
+  @@index([teamId])
+  @@map("players")
 }
 
 model ProgramTeamMatch {

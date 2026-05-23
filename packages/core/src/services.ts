@@ -29,9 +29,10 @@ export class DashboardService {
 
 export class ScheduleService {
   listWatchedGames(snapshot: CourtWatchSnapshot, filters: { programId?: string; status?: string; court?: string; division?: string } = {}) {
+    const activeProgramIds = new Set(snapshot.programs.filter((program) => program.active).map((program) => program.id));
     const watchedTeamIds = new Set(
       snapshot.matches
-        .filter((match) => match.active && (!filters.programId || match.programWatchlistId === filters.programId))
+        .filter((match) => match.active && activeProgramIds.has(match.programWatchlistId) && (!filters.programId || match.programWatchlistId === filters.programId))
         .map((match) => match.teamId)
     );
 

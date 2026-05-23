@@ -1,4 +1,7 @@
 export const RENO_TIMEZONE = "America/Los_Angeles";
+export const SELECTED_TEAMS_PROGRAM_ID = "program-selected-teams";
+export const SELECTED_TEAMS_PROGRAM_NAME = "My Teams";
+export const LEGACY_AUTO_PROGRAM_IDS = ["program-arsenal", "program-splash-city"];
 
 export type GameStatus =
   | "upcoming"
@@ -63,6 +66,25 @@ export interface Team {
   gender?: string | null;
   gradeLevel?: string | null;
   level?: string | null;
+  rawJson?: unknown;
+  lastSeenAt: string;
+  playerNames?: string[];
+  playerMatchNames?: string[];
+  isFollowed?: boolean;
+}
+
+export interface Player {
+  id: string;
+  eventId: string;
+  teamId: string | null;
+  exposurePlayerId: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string;
+  normalizedName: string;
+  jerseyNumber: string | null;
+  position: string | null;
+  grade: string | null;
   rawJson?: unknown;
   lastSeenAt: string;
 }
@@ -200,6 +222,7 @@ export interface CourtWatchSnapshot {
   event: TournamentEvent;
   divisions: Division[];
   teams: Team[];
+  players: Player[];
   programs: ProgramWatchlist[];
   aliases: ProgramAlias[];
   matches: ProgramTeamMatch[];
