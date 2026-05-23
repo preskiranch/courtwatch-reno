@@ -59,6 +59,10 @@ services:
         sync: false
       - key: EXPOSURE_PUBLIC_BASE_URL
         value: https://basketball.exposureevents.com
+      - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
+        value: "false"
+      - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
+        value: "125"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA

@@ -80,7 +80,8 @@ export class MockStore implements CourtWatchStore {
       programId: filters.programId,
       status: filters.status,
       court: filters.court,
-      division: filters.division
+      division: filters.division,
+      scope: filters.scope
     });
     return schedule;
   }
@@ -318,7 +319,8 @@ export class PrismaStore implements CourtWatchStore {
       programId: filters.programId,
       status: filters.status,
       court: filters.court,
-      division: filters.division
+      division: filters.division,
+      scope: filters.scope
     });
   }
 
@@ -368,6 +370,7 @@ export class PrismaStore implements CourtWatchStore {
         matchConfidence: 1
       }
     });
+    await this.syncNow();
     return prismaMatchToCore(match);
   }
 
@@ -445,15 +448,17 @@ export class PrismaStore implements CourtWatchStore {
         await upsertPlayer(this.prisma, event.id, player);
       }
 
-      const exposureGames = await fetchSourceGames();
-      for (const sourceGame of exposureGames) {
-        const mapped = mapExposureGame(sourceGame, event.id, teamMap);
+      const selectedDivisionIds = await loadSelectedDivisionExposureIds(this.prisma, event.id);
+      const sourceGames = await fetchSourceGames(selectedDivisionIds);
+      for (const sourceGame of sourceGames) {
+        const mapped = isCoreGame(sourceGame) ? mapStoredSourceGame(sourceGame, event.id, teamMap) : mapExposureGame(sourceGame, event.id, teamMap);
         if (!mapped) continue;
         const existing = mapped.exposureGameId
           ? await this.prisma.game.findUnique({ where: { eventId_exposureGameId: { eventId: event.id, exposureGameId: mapped.exposureGameId } } })
           : null;
         const previousGame = existing ? prismaGameToCore(existing) : null;
         const changes = detectGameChanges(previousGame, mapped);
+        changesDetected += changes.length;
         const savedGame = await upsertGame(this.prisma, mapped);
         for (const change of changes) {
           await this.prisma.gameChangeEvent.upsert({
@@ -549,13 +554,20 @@ async function fetchSourceTeams(): Promise<{ divisions: Division[]; teams: Team[
   return new PublicExposurePageClient().fetchTeams(config.EXPOSURE_EVENT_ID);
 }
 
-async function fetchSourceGames() {
-  if (!isExposureConfigured()) return [];
+async function fetchSourceGames(selectedDivisionIds: string[]): Promise<Array<Record<string, unknown> | Game>> {
   try {
-    return await new ExposureClient().fetchGames(config.EXPOSURE_EVENT_ID);
+    if (isExposureConfigured()) {
+      const exposureGames = await new ExposureClient().fetchGames(config.EXPOSURE_EVENT_ID);
+      if (exposureGames.length > 0) return exposureGames;
+    }
   } catch {
-    return [];
+    // Fall through to the public schedule endpoint; old data stays visible if that fails.
   }
+
+  const publicClient = new PublicExposurePageClient();
+  const fetchAllPublicGames = process.env.EXPOSURE_PUBLIC_FETCH_ALL_GAMES === "true";
+  if (!fetchAllPublicGames && selectedDivisionIds.length === 0) return [];
+  return publicClient.fetchGames(config.EXPOSURE_EVENT_ID, { divisionIds: fetchAllPublicGames ? [] : selectedDivisionIds });
 }
 
 async function fetchSourcePlayers(eventId: string, teamMap: Map<string, Team>): Promise<Player[]> {
@@ -872,6 +884,38 @@ async function loadTeamMap(prisma: PrismaClient, eventId: string): Promise<Map<s
       ] as Array<[string, Team]>;
     })
   );
+}
+
+async function loadSelectedDivisionExposureIds(prisma: PrismaClient, eventId: string): Promise<string[]> {
+  const followedTeams = await prisma.team.findMany({
+    where: {
+      eventId,
+      matches: {
+        some: {
+          programWatchlistId: SELECTED_TEAMS_PROGRAM_ID,
+          active: true
+        }
+      }
+    },
+    include: { division: true }
+  });
+  return Array.from(new Set(followedTeams.map((team) => team.division?.exposureDivisionId).filter((value): value is string => Boolean(value))));
+}
+
+function isCoreGame(value: unknown): value is Game {
+  return isRecord(value) && typeof value.id === "string" && typeof value.startsAt === "string" && typeof value.scheduledDate === "string";
+}
+
+function mapStoredSourceGame(game: Game, eventId: string, teamMap: Map<string, Team>): Game {
+  const raw = isRecord(game.rawJson) ? game.rawJson : {};
+  const homeDivisionTeamId = stringOrNull(raw.HomeDivisionTeamId);
+  const awayDivisionTeamId = stringOrNull(raw.AwayDivisionTeamId);
+  return {
+    ...game,
+    eventId,
+    homeTeamId: (homeDivisionTeamId ? teamMap.get(homeDivisionTeamId)?.id : null) ?? game.homeTeamId,
+    awayTeamId: (awayDivisionTeamId ? teamMap.get(awayDivisionTeamId)?.id : null) ?? game.awayTeamId
+  };
 }
 
 function mapExposureGame(raw: Record<string, unknown>, eventId: string, teamMap: Map<string, Team>): Game | null {

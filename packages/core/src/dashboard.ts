@@ -17,7 +17,7 @@ export function nextGameForTeam(team: Team, games: Game[], now = new Date()): Ga
 
 export function lastResultForTeam(team: Team, games: Game[], now = new Date()): Game | null {
   return teamGames(team, games)
-    .filter((game) => game.status === "final" || new Date(game.startsAt).getTime() < now.getTime())
+    .filter((game) => game.status === "final")
     .sort((left, right) => compareStartsAt(right, left))[0] ?? null;
 }
 

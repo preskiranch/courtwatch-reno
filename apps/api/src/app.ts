@@ -163,7 +163,8 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
           programId: stringQuery(req.query.programId),
           status: stringQuery(req.query.status),
           court: stringQuery(req.query.court),
-          division: stringQuery(req.query.division)
+          division: stringQuery(req.query.division),
+          scope: stringQuery(req.query.scope)
         })
       );
     } catch (error) {

@@ -10,7 +10,7 @@ It is an independent companion tracker and is not affiliated with Jam On It or E
 - Starts with no teams preselected.
 - Lets you search registered team names, club names, divisions, and player names when roster/player data is available.
 - Lets you follow or unfollow any registered team, then builds a unified schedule and alert feed from your choices.
-- Shows dashboard, team selection, unified schedule, game status, alerts, settings, and admin sync.
+- Shows dashboard, team selection, unified schedule, per-team court/bracket focus, game status, alerts, settings, and admin sync.
 - Supports browser push notifications with VAPID.
 - Keeps the last saved schedule visible when the source temporarily fails.
 - Provides a Render Blueprint with web, API, worker, and Postgres.
@@ -75,6 +75,8 @@ Required for production:
 - `ADMIN_SECRET`
 - `JWT_SECRET`
 - `EXPOSURE_EVENT_ID=255539`
+- `EXPOSURE_PUBLIC_FETCH_ALL_GAMES=false`
+- `EXPOSURE_PUBLIC_REQUEST_DELAY_MS=125`
 - `ENABLE_MOCK_ARSENAL=false`
 - `ENABLE_MOCK_DATA=false`
 
@@ -104,8 +106,10 @@ Team search is backed by Exposure teams. Player-name search uses the official Ex
 If credentials are missing, the backend can use a respectful public-page fallback for team discovery from:
 
 - `https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams`
+- `https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/schedule`
+- Exposure's public `eventgames` and `bracket/{id}` endpoints referenced by that schedule page
 
-The public fallback does not bypass authentication, does not scrape aggressively, and keeps existing saved data visible if source fetches fail. Rich demo games and change events are seeded until official API credentials are available.
+The public fallback does not bypass authentication, does not scrape aggressively, and keeps existing saved data visible if source fetches fail. It fetches schedule/bracket data for followed-team divisions by default. Set `EXPOSURE_PUBLIC_FETCH_ALL_GAMES=true` only if you intentionally want a full public schedule sweep.
 
 ## Team Selection
 
@@ -160,6 +164,8 @@ The app only uses built-in mock games when `ENABLE_MOCK_DATA=true` and no source
 
 No teams are followed by default; use the Teams screen to choose them. When the database-backed sync can read the public teams page, mock Arsenal teams are skipped unless `ENABLE_MOCK_ARSENAL=true`; this keeps production data aligned with teams currently visible from the source.
 
+Following a team triggers a limited schedule sync for that team's division so the schedule tab and focused-team bracket panel can populate without waiting for the next worker poll.
+
 ## Push Notifications
 
 Generate VAPID keys:
@@ -191,6 +197,7 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 - `DELETE /api/teams/:teamId/follow`
 - `GET /api/players?search=`
 - `GET /api/games`
+- `GET /api/games?scope=division&division=division-1278469`
 - `GET /api/games/:gameId`
 - `GET /api/dashboard`
 - `GET /api/alerts`

@@ -250,6 +250,7 @@ function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramS
   const [programFilter, setProgramFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courtFilter, setCourtFilter] = useState("");
+  const followedCount = programs.reduce((count, program) => count + program.teams.length, 0);
   const watchedTeamsByProgram = useMemo(
     () => new Map(programs.map((program) => [program.program.id, new Set(program.teams.map((team) => team.id))])),
     [programs]
@@ -317,7 +318,11 @@ function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramS
       {groups.length === 0 ? (
         <section className="court-card p-4">
           <h2 className="text-xl font-black text-slate-950">No followed-team games yet</h2>
-          <p className="mt-2 text-sm font-semibold text-slate-600">Use Teams search to follow the registered teams you want on this schedule.</p>
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            {followedCount > 0
+              ? "CourtWatch is waiting for the real Exposure schedule feed for your selected teams. No placeholder games are shown."
+              : "Use Teams search to follow the registered teams you want on this schedule."}
+          </p>
         </section>
       ) : null}
     </div>
@@ -340,6 +345,7 @@ function FilterButton({ active, onClick, children }: { active: boolean; onClick:
 }
 
 function GameRow({ game }: { game: Game }) {
+  const bracketUrl = bracketUrlFromGame(game);
   return (
     <article className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
@@ -377,6 +383,13 @@ function GameRow({ game }: { game: Game }) {
           {game.courtName ?? "Court TBD"}
         </span>
       </div>
+      {bracketUrl ? (
+        <a href={bracketUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-1 rounded-lg bg-slate-100 px-3 text-sm font-black text-slate-800">
+          <Trophy className="h-4 w-4 text-orange-500" />
+          Official bracket
+          <ChevronRight className="h-4 w-4" />
+        </a>
+      ) : null}
     </article>
   );
 }
@@ -384,6 +397,7 @@ function GameRow({ game }: { game: Game }) {
 function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [focusedTeamId, setFocusedTeamId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
   const selectedProgram = dashboard.programs[0];
   const teamsQuery = useQuery({
@@ -406,6 +420,7 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
   });
   const teams = teamsQuery.data ?? [];
   const pendingTeamId = String(followTeam.variables ?? unfollowTeam.variables ?? "");
+  const focusedTeam = selectedProgram?.teams.find((team) => team.id === focusedTeamId) ?? null;
 
   return (
     <div className="space-y-4">
@@ -445,11 +460,23 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
           </div>
           <div className="space-y-2">
             {selectedProgram.teams.map((team) => (
-              <FollowedTeamRow key={team.id} team={team} onUnfollow={() => unfollowTeam.mutate(team.id)} pending={unfollowTeam.isPending && pendingTeamId === team.id} />
+              <FollowedTeamRow
+                key={team.id}
+                team={team}
+                focused={focusedTeamId === team.id}
+                onFocus={() => setFocusedTeamId(team.id)}
+                onUnfollow={() => {
+                  if (focusedTeamId === team.id) setFocusedTeamId(null);
+                  unfollowTeam.mutate(team.id);
+                }}
+                pending={unfollowTeam.isPending && pendingTeamId === team.id}
+              />
             ))}
           </div>
         </section>
       ) : null}
+
+      {focusedTeam ? <TeamFocusPanel team={focusedTeam} /> : null}
 
       <section className="space-y-2">
         <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">{deferredSearch ? "Search Results" : "Registered Teams"}</h2>
@@ -476,15 +503,19 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
 
 function FollowedTeamRow({
   team,
+  focused,
+  onFocus,
   onUnfollow,
   pending
 }: {
   team: ProgramSummary["teams"][number];
+  focused: boolean;
+  onFocus: () => void;
   onUnfollow: () => void;
   pending: boolean;
 }) {
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-3">
+    <article className={clsx("rounded-lg border bg-white p-3", focused ? "border-orange-400 ring-2 ring-orange-100" : "border-slate-200")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-black text-slate-950">{team.name}</p>
@@ -506,7 +537,98 @@ function FollowedTeamRow({
         <Metric label="Next" value={team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "TBD"} />
         <Metric label="Last" value={team.lastResult ? scoreSummary(team.lastResult) : "No result"} />
       </div>
+      <button
+        type="button"
+        onClick={onFocus}
+        className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-black text-white active:scale-[0.99]"
+      >
+        <Trophy className="h-4 w-4 text-orange-300" />
+        Schedule & bracket
+      </button>
     </article>
+  );
+}
+
+function TeamFocusPanel({ team }: { team: ProgramSummary["teams"][number] }) {
+  const divisionGamesQuery = useQuery({
+    queryKey: ["division-games", team.divisionId],
+    queryFn: () => CourtWatchApi.games(`?scope=division&division=${encodeURIComponent(team.divisionId ?? "")}`),
+    enabled: Boolean(team.divisionId)
+  });
+  const divisionGames = divisionGamesQuery.data ?? [];
+  const teamGames = divisionGames.filter((game) => gameBelongsToTeam(game, team));
+  const bracketGames = divisionGames.filter(isBracketGame);
+  const bracketUrl = bracketGames.map(bracketUrlFromGame).find(Boolean);
+
+  return (
+    <section className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Focused Team</p>
+          <h2 className="mt-1 text-2xl font-black text-slate-950">{team.name}</h2>
+          <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
+        </div>
+        <div className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-orange-300">
+          <Trophy className="h-5 w-5" />
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Metric label="Next court" value={team.nextGame?.courtName ?? "TBD"} />
+        <Metric label="Bracket games" value={divisionGamesQuery.isLoading ? "..." : String(bracketGames.length)} />
+      </div>
+
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h3 className="text-lg font-black text-slate-950">Team Schedule</h3>
+          <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-black text-slate-600">{teamGames.length} games</span>
+        </div>
+        <MiniGameList games={teamGames} loading={divisionGamesQuery.isLoading} empty="No official games published for this team yet." />
+      </div>
+
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h3 className="text-lg font-black text-slate-950">Division Bracket</h3>
+          {bracketUrl ? (
+            <a href={bracketUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-orange-500 px-3 text-xs font-black text-white">
+              Official
+              <ChevronRight className="h-4 w-4" />
+            </a>
+          ) : null}
+        </div>
+        <MiniGameList games={bracketGames} loading={divisionGamesQuery.isLoading} empty="No bracket games published for this division yet." />
+      </div>
+    </section>
+  );
+}
+
+function MiniGameList({ games, loading, empty }: { games: Game[]; loading: boolean; empty: string }) {
+  if (loading) return <div className="h-24 animate-pulse rounded-lg bg-slate-100" />;
+  if (games.length === 0) return <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">{empty}</p>;
+
+  return (
+    <div className="space-y-2">
+      {games.map((game) => (
+        <article key={game.id} className="rounded-lg border border-slate-200 bg-white p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <StatusBadge status={game.status} />
+                <span className="truncate text-xs font-black uppercase tracking-[0.14em] text-slate-400">{game.gameType ?? "Pool"}</span>
+              </div>
+              <p className="mt-2 text-sm font-black text-slate-950">
+                {game.homeTeamNameSnapshot ?? "TBD"} vs {game.awayTeamNameSnapshot ?? "TBD"}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{formatGameDate(game.startsAt)}</p>
+            </div>
+            <div className="shrink-0 rounded-lg bg-orange-500 px-3 py-2 text-center text-white">
+              <p className="text-sm font-black">{game.scheduledTime}</p>
+              <p className="text-[11px] font-bold">{game.courtName ?? "Court TBD"}</p>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -798,6 +920,23 @@ function formatGameDate(iso: string): string {
 function scoreSummary(game: Game): string {
   if (game.homeScore === null || game.awayScore === null) return "No score posted";
   return `${game.homeTeamNameSnapshot ?? "Home"} ${game.homeScore}, ${game.awayTeamNameSnapshot ?? "Away"} ${game.awayScore}`;
+}
+
+function gameBelongsToTeam(game: Game, team: Team): boolean {
+  return game.homeTeamId === team.id || game.awayTeamId === team.id;
+}
+
+function isBracketGame(game: Game): boolean {
+  const gameType = game.gameType?.toLowerCase() ?? "";
+  if (!gameType) return false;
+  if (gameType.startsWith("pool")) return false;
+  return ["championship", "consolation", "play in", "gold", "silver", "bracket"].some((keyword) => gameType.includes(keyword));
+}
+
+function bracketUrlFromGame(game: Game): string | null {
+  if (!game.rawJson || typeof game.rawJson !== "object" || Array.isArray(game.rawJson)) return null;
+  const value = (game.rawJson as { BracketUrl?: unknown }).BracketUrl;
+  return typeof value === "string" && value.startsWith("http") ? value : null;
 }
 
 function stringifyChange(value: unknown): string {

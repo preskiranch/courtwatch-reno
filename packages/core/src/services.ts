@@ -28,7 +28,23 @@ export class DashboardService {
 }
 
 export class ScheduleService {
-  listWatchedGames(snapshot: CourtWatchSnapshot, filters: { programId?: string; status?: string; court?: string; division?: string } = {}) {
+  listWatchedGames(snapshot: CourtWatchSnapshot, filters: { programId?: string; status?: string; court?: string; division?: string; scope?: string } = {}) {
+    if (filters.scope === "division" && filters.division) {
+      return snapshot.games
+        .filter((game) => game.divisionId === filters.division)
+        .filter((game) => !filters.status || game.status === filters.status)
+        .filter((game) => !filters.court || game.courtName === filters.court)
+        .sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime());
+    }
+
+    if (filters.scope === "all") {
+      return snapshot.games
+        .filter((game) => !filters.status || game.status === filters.status)
+        .filter((game) => !filters.court || game.courtName === filters.court)
+        .filter((game) => !filters.division || game.divisionId === filters.division)
+        .sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime());
+    }
+
     const activeProgramIds = new Set(snapshot.programs.filter((program) => program.active).map((program) => program.id));
     const watchedTeamIds = new Set(
       snapshot.matches
