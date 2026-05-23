@@ -18,6 +18,7 @@ import {
   RefreshCcw,
   Search,
   Settings,
+  Share2,
   ShieldAlert,
   Smartphone,
   Trophy,
@@ -74,28 +75,74 @@ export function CourtWatchApp() {
   const offline = dashboardQuery.isError || gamesQuery.isError || alertsQuery.isError;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
-      <AppHeader dashboard={dashboard} offline={offline} activeUsers={presenceQuery.data?.activeUsers ?? null} onRefresh={refresh} refreshing={dashboardQuery.isFetching || gamesQuery.isFetching} />
+    <>
+      <ShareQrRail />
+      <main className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
+        <AppHeader dashboard={dashboard} offline={offline} activeUsers={presenceQuery.data?.activeUsers ?? null} onRefresh={refresh} refreshing={dashboardQuery.isFetching || gamesQuery.isFetching} />
 
-      {toast ? (
-        <div className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 rounded-lg border border-orange-300/50 bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
-          {toast}
+        <div className="mt-4 xl:hidden">
+          <ShareQrMobileCard />
         </div>
-      ) : null}
 
-      <section className="mt-4 flex-1">
-        {isLoading ? <SkeletonDashboard /> : null}
-        {!isLoading && dashboard && activeTab === "dashboard" ? (
-          <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} onRefresh={refresh} />
+        {toast ? (
+          <div className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 rounded-lg border border-orange-300/50 bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
+            {toast}
+          </div>
         ) : null}
-        {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} /> : null}
-        {!isLoading && dashboard && activeTab === "teams" ? <TeamsScreen dashboard={dashboard} /> : null}
-        {!isLoading && dashboard && activeTab === "alerts" ? <AlertsScreen alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} /> : null}
-        {!isLoading && dashboard && activeTab === "settings" ? <SettingsScreen dashboard={dashboard} onRefresh={refresh} /> : null}
-      </section>
 
-      <BottomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-    </main>
+        <section className="mt-4 flex-1">
+          {isLoading ? <SkeletonDashboard /> : null}
+          {!isLoading && dashboard && activeTab === "dashboard" ? (
+            <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} onRefresh={refresh} />
+          ) : null}
+          {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} /> : null}
+          {!isLoading && dashboard && activeTab === "teams" ? <TeamsScreen dashboard={dashboard} /> : null}
+          {!isLoading && dashboard && activeTab === "alerts" ? <AlertsScreen alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} /> : null}
+          {!isLoading && dashboard && activeTab === "settings" ? <SettingsScreen dashboard={dashboard} onRefresh={refresh} /> : null}
+        </section>
+
+        <BottomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+      </main>
+    </>
+  );
+}
+
+function ShareQrRail() {
+  return (
+    <aside className="fixed left-3 top-32 z-20 hidden w-28 xl:block 2xl:left-6 2xl:w-36">
+      <ShareQrCard layout="rail" />
+    </aside>
+  );
+}
+
+function ShareQrMobileCard() {
+  return (
+    <div className="flex justify-start">
+      <ShareQrCard layout="mobile" />
+    </div>
+  );
+}
+
+function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
+  const qrSize = layout === "rail" ? "h-24 w-24 2xl:h-32 2xl:w-32" : "h-20 w-20";
+  return (
+    <section
+      className={clsx(
+        "rounded-lg border border-white/12 bg-[#07111f]/92 p-2 text-white shadow-2xl backdrop-blur",
+        layout === "rail" ? "text-center" : "flex max-w-[320px] items-center gap-3"
+      )}
+      aria-label="Share CourtWatch Reno"
+    >
+      <img src="/share/courtwatch-reno-qr.jpg" alt="QR code for CourtWatch Reno" className={clsx("shrink-0 rounded-md border border-white bg-white object-contain", qrSize)} />
+      <div className={layout === "rail" ? "mt-2" : "min-w-0"}>
+        <div className={clsx("flex items-center gap-1 text-orange-300", layout === "rail" ? "justify-center" : "")}>
+          <Share2 className="h-3.5 w-3.5" />
+          <p className="text-[11px] font-black uppercase tracking-[0.12em]">Share</p>
+        </div>
+        <p className={clsx("font-black leading-tight", layout === "rail" ? "mt-1 text-sm" : "text-base")}>Share with your friends</p>
+        <p className="mt-1 text-[11px] font-semibold leading-4 text-slate-300">Scan to open CourtWatch Reno.</p>
+      </div>
+    </section>
   );
 }
 
