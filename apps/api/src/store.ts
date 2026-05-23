@@ -339,6 +339,7 @@ export class PrismaStore implements CourtWatchStore {
       const sourceTeams = await fetchSourceTeams();
       const includeMockArsenal = process.env.ENABLE_MOCK_ARSENAL === "true" || sourceTeams.teams.length === 0;
       await ensurePrograms(this.prisma);
+      if (!includeMockArsenal) await removeMockArsenalSeedData(this.prisma);
       await upsertSeedDivisionsTeamsAndGames(this.prisma, event.id, includeMockArsenal);
 
       for (const division of sourceTeams.divisions) {
@@ -587,6 +588,25 @@ async function upsertSeedDivisionsTeamsAndGames(prisma: PrismaClient, eventId: s
       }
     });
   }
+}
+
+async function removeMockArsenalSeedData(prisma: PrismaClient) {
+  const mockTeamIds = seedTeams.filter((team) => team.id.includes("arsenal")).map((team) => team.id);
+  const mockDivisionIds = seedDivisions.filter((division) => division.id.includes("arsenal")).map((division) => division.id);
+  const mockTeamIdSet = new Set(mockTeamIds);
+  const mockGameIds = seedGames
+    .filter((game) => (game.homeTeamId ? mockTeamIdSet.has(game.homeTeamId) : false) || (game.awayTeamId ? mockTeamIdSet.has(game.awayTeamId) : false))
+    .map((game) => game.id);
+
+  await prisma.programTeamMatch.deleteMany({ where: { teamId: { in: mockTeamIds } } });
+  await prisma.gameChangeEvent.deleteMany({
+    where: {
+      OR: [{ affectedTeamId: { in: mockTeamIds } }, { gameId: { in: mockGameIds } }]
+    }
+  });
+  await prisma.game.deleteMany({ where: { id: { in: mockGameIds } } });
+  await prisma.team.deleteMany({ where: { id: { in: mockTeamIds } } });
+  await prisma.division.deleteMany({ where: { id: { in: mockDivisionIds } } });
 }
 
 async function upsertDivision(prisma: PrismaClient, eventId: string, division: Division) {
