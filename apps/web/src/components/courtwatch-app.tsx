@@ -72,7 +72,9 @@ export function CourtWatchApp() {
 
       <section className="mt-4 flex-1">
         {isLoading ? <SkeletonDashboard /> : null}
-        {!isLoading && dashboard && activeTab === "dashboard" ? <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? []} onRefresh={refresh} /> : null}
+        {!isLoading && dashboard && activeTab === "dashboard" ? (
+          <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} onRefresh={refresh} />
+        ) : null}
         {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} /> : null}
         {!isLoading && dashboard && activeTab === "teams" ? <TeamsScreen dashboard={dashboard} /> : null}
         {!isLoading && dashboard && activeTab === "alerts" ? <AlertsScreen alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} /> : null}
@@ -125,7 +127,7 @@ function AppHeader({
   );
 }
 
-function DashboardScreen({ dashboard, alerts, onRefresh }: { dashboard: DashboardResponse; alerts: GameChangeEvent[]; onRefresh: () => void }) {
+function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: DashboardResponse; alerts: GameChangeEvent[]; games: Game[]; onRefresh: () => void }) {
   return (
     <div className="space-y-4">
       <NextGameBanner game={dashboard.nextGame} />
@@ -150,7 +152,7 @@ function DashboardScreen({ dashboard, alerts, onRefresh }: { dashboard: Dashboar
           <h2 className="text-lg font-black text-slate-950">Latest Alerts</h2>
           <span className="text-xs font-bold text-slate-500">{alerts.length} updates</span>
         </div>
-        <AlertList alerts={alerts.slice(0, 5)} compact />
+        <AlertList alerts={alerts.slice(0, 5)} games={games} compact />
       </section>
     </div>
   );
@@ -693,6 +695,8 @@ function AlertsScreen({ alerts, games }: { alerts: GameChangeEvent[]; games: Gam
 }
 
 function AlertList({ alerts, games = [], compact = false }: { alerts: GameChangeEvent[]; games?: Game[]; compact?: boolean }) {
+  const gamesById = useMemo(() => new Map(games.map((game) => [game.id, game])), [games]);
+
   if (alerts.length === 0) {
     return <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">No alerts yet. CourtWatch is monitoring for changes.</p>;
   }
@@ -700,22 +704,22 @@ function AlertList({ alerts, games = [], compact = false }: { alerts: GameChange
   return (
     <div className="space-y-2">
       {alerts.map((alert) => {
-        const game = games.find((item) => item.id === alert.gameId);
+        const game = alert.gameId ? (gamesById.get(alert.gameId) ?? null) : null;
+        const display = alertDisplay(alert, game);
         return (
-          <article key={alert.id} className="rounded-lg border border-slate-200 bg-white p-3">
+          <article key={alert.id} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-orange-500 text-white">
+              <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-orange-500 text-white">
                 <Bell className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-black text-slate-950">{labelStatus(alert.eventType)}</p>
+                  <p className="truncate text-xs font-black uppercase tracking-[0.12em] text-orange-600">{labelStatus(alert.eventType)}</p>
                   <span className="text-[11px] font-bold text-slate-400">{formatShortTime(alert.createdAt)}</span>
                 </div>
-                <p className="mt-1 text-sm font-semibold text-slate-600">
-                  {game ? gameMatchupDisplayName(game) : stringifyChange(alert.newValue)}
-                </p>
-                {!compact ? <p className="mt-1 text-xs text-slate-500">{stringifyChange(alert.newValue)}</p> : null}
+                <p className={clsx("mt-1 font-black leading-snug text-slate-950", compact ? "text-sm" : "text-base")}>{display.headline}</p>
+                {display.meta ? <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{display.meta}</p> : null}
+                {!compact && display.detail ? <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold leading-5 text-slate-600">{display.detail}</p> : null}
               </div>
             </div>
           </article>
@@ -918,6 +922,120 @@ function formatGameDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+type AlertDisplay = {
+  headline: string;
+  meta: string | null;
+  detail: string | null;
+};
+
+function alertDisplay(alert: GameChangeEvent, game: Game | null): AlertDisplay {
+  const value = objectValue(alert.newValue);
+  const previous = objectValue(alert.previousValue);
+  const headline = alertHeadline(alert, game, value);
+  const meta = alertMeta(game, value);
+  const detail = alertDetail(alert.eventType, game, value, previous);
+
+  return { headline, meta, detail };
+}
+
+function alertHeadline(alert: GameChangeEvent, game: Game | null, value: Record<string, unknown> | null): string {
+  if (game) {
+    if (alert.eventType === "final_score" || alert.eventType === "score_posted") return scoreSummary(game);
+    return gameMatchupDisplayName(game);
+  }
+
+  const matchup = matchupFromValue(value);
+  if (matchup) return matchup;
+
+  if (alert.eventType === "new_team_discovered") {
+    const teamName = readString(value, ["teamName", "name", "team"]);
+    return teamName ? `New team found: ${teamName}` : "New watched team found";
+  }
+
+  return "Watched schedule update";
+}
+
+function alertMeta(game: Game | null, value: Record<string, unknown> | null): string | null {
+  const parts = [
+    game ? formatGameDate(game.startsAt) : formatAlertDate(readString(value, ["startsAt", "scheduledAt", "scheduledTime"])),
+    game?.courtName ?? readString(value, ["courtName", "court"]),
+    game?.venueName ?? readString(value, ["venueName", "venue"])
+  ].filter((part): part is string => Boolean(part));
+
+  return parts.length > 0 ? parts.join(" • ") : null;
+}
+
+function alertDetail(
+  eventType: GameChangeEvent["eventType"],
+  game: Game | null,
+  value: Record<string, unknown> | null,
+  previous: Record<string, unknown> | null
+): string | null {
+  const currentCourt = game?.courtName ?? readString(value, ["courtName", "court"]);
+  const previousCourt = readString(previous, ["courtName", "court"]);
+  const currentVenue = game?.venueName ?? readString(value, ["venueName", "venue"]);
+  const previousVenue = readString(previous, ["venueName", "venue"]);
+  const currentTime = game ? formatGameDate(game.startsAt) : formatAlertDate(readString(value, ["startsAt", "scheduledAt", "scheduledTime"]));
+  const previousTime = formatAlertDate(readString(previous, ["startsAt", "scheduledAt", "scheduledTime"]));
+
+  switch (eventType) {
+    case "new_game_added":
+      return "New game added to your watched schedule.";
+    case "game_time_changed":
+    case "date_changed":
+      return previousTime && currentTime ? `Tip changed from ${previousTime} to ${currentTime}.` : currentTime ? `Tip changed to ${currentTime}.` : "Tip time changed.";
+    case "court_changed":
+      return previousCourt && currentCourt ? `Court changed from ${previousCourt} to ${currentCourt}.` : currentCourt ? `Court changed to ${currentCourt}.` : "Court assignment changed.";
+    case "venue_changed":
+      return previousVenue && currentVenue ? `Venue changed from ${previousVenue} to ${currentVenue}.` : currentVenue ? `Venue changed to ${currentVenue}.` : "Venue changed.";
+    case "opponent_assigned":
+      return "Opponent assignment was posted.";
+    case "score_posted":
+      return "Score was posted by the tournament source.";
+    case "final_score":
+      return "Final score was posted by the tournament source.";
+    case "bracket_update":
+    case "team_advanced":
+      return "Bracket information was updated.";
+    case "starting_soon":
+      return "Game is starting soon.";
+    case "new_team_discovered":
+      return "A team you follow was added to CourtWatch.";
+    case "home_away_changed":
+      return "Home and away assignment changed.";
+    default:
+      return null;
+  }
+}
+
+function matchupFromValue(value: Record<string, unknown> | null): string | null {
+  const home = readString(value, ["homeTeamNameSnapshot", "homeTeamName", "home"]);
+  const away = readString(value, ["awayTeamNameSnapshot", "awayTeamName", "away"]);
+  if (!home && !away) return null;
+  return `${home ?? "TBD"} vs ${away ?? "TBD"}`;
+}
+
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+function readString(value: Record<string, unknown> | null, keys: string[]): string | null {
+  if (!value) return null;
+  for (const key of keys) {
+    const raw = value[key];
+    if (typeof raw === "string" && raw.trim()) return raw.trim();
+    if (typeof raw === "number" && Number.isFinite(raw)) return String(raw);
+  }
+  return null;
+}
+
+function formatAlertDate(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return formatGameDate(date.toISOString());
+}
+
 function scoreSummary(game: Game): string {
   if (game.homeScore === null || game.awayScore === null) return "No score posted";
   return `${gameTeamDisplayName(game.homeTeamNameSnapshot, game, "Home")} ${game.homeScore}, ${gameTeamDisplayName(game.awayTeamNameSnapshot, game, "Away")} ${game.awayScore}`;
@@ -991,14 +1109,4 @@ function divisionNameFromGame(game: Game): string | null {
     if (typeof value === "string" && value.trim()) return value;
   }
   return null;
-}
-
-function stringifyChange(value: unknown): string {
-  if (value === null || value === undefined) return "Update posted";
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return "Update posted";
-  }
 }
