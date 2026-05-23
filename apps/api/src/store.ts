@@ -536,12 +536,20 @@ async function ensurePrograms(prisma: PrismaClient) {
       }
     });
   }
+  const seenAliases = new Set<string>();
   for (const alias of seedAliases) {
+    const aliasKey = `${alias.programWatchlistId}:${alias.normalizedAlias}`;
+    if (seenAliases.has(aliasKey)) continue;
+    seenAliases.add(aliasKey);
     await prisma.programAlias.upsert({
-      where: { id: alias.id },
+      where: {
+        programWatchlistId_normalizedAlias: {
+          programWatchlistId: alias.programWatchlistId,
+          normalizedAlias: alias.normalizedAlias
+        }
+      },
       update: {
-        alias: alias.alias,
-        normalizedAlias: alias.normalizedAlias
+        alias: alias.alias
       },
       create: {
         id: alias.id,
