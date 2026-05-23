@@ -12,7 +12,7 @@ services:
     repo: https://github.com/preskiranch/courtwatch-reno
     branch: main
     rootDir: .
-    buildCommand: npm ci && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
+    buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
     startCommand: npm run start --workspace @courtwatch/web
     autoDeploy: true
     envVars:
@@ -36,7 +36,7 @@ services:
     repo: https://github.com/preskiranch/courtwatch-reno
     branch: main
     rootDir: .
-    buildCommand: npm ci && npm run db:generate && npm run db:migrate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
+    buildCommand: npm ci --include=dev && npm run db:generate && npm run db:migrate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
     startCommand: npm run start --workspace @courtwatch/api
     healthCheckPath: /api/health
     autoDeploy: true
@@ -81,7 +81,7 @@ services:
     repo: https://github.com/preskiranch/courtwatch-reno
     branch: main
     rootDir: .
-    buildCommand: npm ci && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/worker
+    buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/worker
     startCommand: npm run start --workspace @courtwatch/worker
     autoDeploy: true
     envVars:

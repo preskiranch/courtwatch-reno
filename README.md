@@ -219,6 +219,8 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 7. Deploy. The API build applies migrations with `npm run db:migrate`.
 8. After first deploy, run `npm run db:seed` from a Render shell or trigger `POST /api/admin/sync-now`.
 
+The Blueprint uses `npm ci --include=dev` in build commands so TypeScript, Prisma CLI, and other build-time tools are available even though the deployed services run with `NODE_ENV=production`.
+
 Render service URLs should be wired like:
 
 - `WEB_BASE_URL=https://courtwatch-reno-web.onrender.com`
