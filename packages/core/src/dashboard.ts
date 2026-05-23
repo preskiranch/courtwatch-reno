@@ -73,11 +73,12 @@ export function buildDashboard(snapshot: CourtWatchSnapshot, now = new Date()): 
   const watchedTeamIds = new Set(programs.flatMap((program) => program.teams.map((team) => team.id)));
   const watchedGames = snapshot.games.filter((game) => watchedTeamIds.has(game.homeTeamId ?? "") || watchedTeamIds.has(game.awayTeamId ?? ""));
   const watchedGameIds = new Set(watchedGames.map((game) => game.id));
+  const activeProgramIds = new Set(programs.map((program) => program.program.id));
   const nextGame = watchedGames
     .filter((game) => new Date(game.startsAt).getTime() >= now.getTime() && game.status !== "final")
     .sort(compareStartsAt)[0] ?? null;
   const lastRun = [...snapshot.syncRuns].sort((left, right) => new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime())[0] ?? null;
-  const watchedAlerts = watchedAlertEvents(snapshot.changeEvents, watchedTeamIds, watchedGameIds);
+  const watchedAlerts = watchedAlertEvents(snapshot.changeEvents, watchedTeamIds, watchedGameIds, activeProgramIds);
 
   return {
     event: snapshot.event,
@@ -95,8 +96,9 @@ export function buildDashboard(snapshot: CourtWatchSnapshot, now = new Date()): 
   };
 }
 
-export function watchedAlertEvents(changeEvents: GameChangeEvent[], watchedTeamIds: Set<string>, watchedGameIds: Set<string>): GameChangeEvent[] {
+export function watchedAlertEvents(changeEvents: GameChangeEvent[], watchedTeamIds: Set<string>, watchedGameIds: Set<string>, activeProgramIds: Set<string>): GameChangeEvent[] {
   return changeEvents.filter((event) => {
+    if (event.affectedProgramWatchlistId && !activeProgramIds.has(event.affectedProgramWatchlistId)) return false;
     if (event.affectedTeamId && watchedTeamIds.has(event.affectedTeamId)) return true;
     if (event.gameId && watchedGameIds.has(event.gameId)) return true;
     return false;

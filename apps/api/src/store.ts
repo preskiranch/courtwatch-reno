@@ -351,7 +351,7 @@ export class PrismaStore implements CourtWatchStore {
     const watchedGameIds = new Set(
       snapshot.games.filter((game) => watchedTeamIds.has(game.homeTeamId ?? "") || watchedTeamIds.has(game.awayTeamId ?? "")).map((game) => game.id)
     );
-    return watchedAlertEvents(snapshot.changeEvents, watchedTeamIds, watchedGameIds).sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+    return watchedAlertEvents(snapshot.changeEvents, watchedTeamIds, watchedGameIds, activeProgramIds).sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
   }
 
   async followTeam(teamId: string) {
@@ -703,6 +703,7 @@ async function removeSeedGameAndChangeData(prisma: PrismaClient) {
   await prisma.gameChangeEvent.deleteMany({
     where: {
       OR: [
+        { affectedProgramWatchlistId: { in: LEGACY_AUTO_PROGRAM_IDS } },
         { id: { in: seedChangeIds } },
         { dedupeKey: { in: seedChangeDedupeKeys } },
         { gameId: { in: seedGameIds } }
