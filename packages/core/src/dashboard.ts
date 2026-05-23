@@ -90,7 +90,12 @@ export function buildDashboard(snapshot: CourtWatchSnapshot, now = new Date()): 
       source: lastRun?.source ?? "mock",
       status: lastRun?.status ?? "success",
       lastSyncAt: lastRun?.completedAt ?? snapshot.event.lastSyncedAt,
-      message: lastRun?.status === "failed" ? lastRun.errorMessage ?? "Last sync failed; showing saved schedule." : "Schedule data is current from the latest successful sync."
+      message:
+        lastRun?.status === "failed"
+          ? lastRun.errorMessage ?? "Last sync failed; showing saved schedule."
+          : lastRun && lastRun.gamesCount === 0
+            ? "Team data is current. No official game or score feed is available yet, so no results are shown."
+            : "Schedule data is current from the latest successful sync."
     },
     disclaimer: DISCLAIMER
   };
