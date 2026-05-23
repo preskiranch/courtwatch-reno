@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 import type { ChangeEventType, Game, GameChangeEvent } from "./types.js";
 
 function stableStringify(value: unknown): string {
+  if (value === null || value === undefined || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
   return JSON.stringify(value, Object.keys(value as Record<string, unknown>).sort());
 }
 
