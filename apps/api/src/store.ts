@@ -348,7 +348,7 @@ export class PrismaStore implements CourtWatchStore {
         await upsertTeam(this.prisma, event.id, team);
       }
 
-      const exposureGames = isExposureConfigured() ? await new ExposureClient().fetchGames(config.EXPOSURE_EVENT_ID) : [];
+      const exposureGames = await fetchSourceGames();
       const teamMap = await loadTeamMap(this.prisma, event.id);
       for (const sourceGame of exposureGames) {
         const mapped = mapExposureGame(sourceGame, event.id, teamMap);
@@ -442,42 +442,55 @@ export class PrismaStore implements CourtWatchStore {
 
 async function fetchSourceTeams(): Promise<{ divisions: Division[]; teams: Team[] }> {
   if (isExposureConfigured()) {
-    const teams = await new ExposureClient().fetchTeams(config.EXPOSURE_EVENT_ID);
-    const divisions = new Map<string, Division>();
-    const mappedTeams = teams.map((team) => {
-      const divisionName = String(team.Division?.Name ?? "Unknown Division");
-      const divisionExposureId = String(team.Division?.Id ?? normalizeName(divisionName));
-      const divisionId = `division-${divisionExposureId}`;
-      const meta = extractDivisionMeta(divisionName);
-      divisions.set(divisionId, {
-        id: divisionId,
-        eventId: seedEvent.id,
-        exposureDivisionId: divisionExposureId,
-        name: divisionName,
-        ...meta,
-        rawJson: team.Division ?? {}
+    try {
+      const teams = await new ExposureClient().fetchTeams(config.EXPOSURE_EVENT_ID);
+      const divisions = new Map<string, Division>();
+      const mappedTeams = teams.map((team) => {
+        const divisionName = String(team.Division?.Name ?? "Unknown Division");
+        const divisionExposureId = String(team.Division?.Id ?? normalizeName(divisionName));
+        const divisionId = `division-${divisionExposureId}`;
+        const meta = extractDivisionMeta(divisionName);
+        divisions.set(divisionId, {
+          id: divisionId,
+          eventId: seedEvent.id,
+          exposureDivisionId: divisionExposureId,
+          name: divisionName,
+          ...meta,
+          rawJson: team.Division ?? {}
+        });
+        return {
+          id: `team-${team.Id}`,
+          eventId: seedEvent.id,
+          divisionId,
+          exposureTeamId: String(team.Id),
+          name: team.Name,
+          normalizedName: normalizeName(team.Name),
+          clubName: null,
+          normalizedClubName: null,
+          coachName: null,
+          sourceUrl: `${seedEvent.officialUrl}/teams`,
+          divisionName,
+          ...meta,
+          rawJson: team,
+          lastSeenAt: new Date().toISOString()
+        };
       });
-      return {
-        id: `team-${team.Id}`,
-        eventId: seedEvent.id,
-        divisionId,
-        exposureTeamId: String(team.Id),
-        name: team.Name,
-        normalizedName: normalizeName(team.Name),
-        clubName: null,
-        normalizedClubName: null,
-        coachName: null,
-        sourceUrl: `${seedEvent.officialUrl}/teams`,
-        divisionName,
-        ...meta,
-        rawJson: team,
-        lastSeenAt: new Date().toISOString()
-      };
-    });
-    return { divisions: Array.from(divisions.values()), teams: mappedTeams };
+      return { divisions: Array.from(divisions.values()), teams: mappedTeams };
+    } catch {
+      return new PublicExposurePageClient().fetchTeams(config.EXPOSURE_EVENT_ID);
+    }
   }
 
   return new PublicExposurePageClient().fetchTeams(config.EXPOSURE_EVENT_ID);
+}
+
+async function fetchSourceGames() {
+  if (!isExposureConfigured()) return [];
+  try {
+    return await new ExposureClient().fetchGames(config.EXPOSURE_EVENT_ID);
+  } catch {
+    return [];
+  }
 }
 
 async function upsertEvent(prisma: PrismaClient) {
