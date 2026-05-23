@@ -87,9 +87,7 @@ export const seedGames: Game[] = [
     awayTeamId: null,
     homeTeamNameSnapshot: "Splash City 3rd",
     awayTeamNameSnapshot: "Bay Area Impact 9U",
-    homeScore: 42,
-    awayScore: 38,
-    status: "final"
+    status: "upcoming"
   }),
   game({
     id: "game-splash-6-changed",
@@ -146,7 +144,6 @@ export const seedGames: Game[] = [
 
 export const seedChangeEvents: GameChangeEvent[] = [
   change("change-splash-6-court", "game-splash-6-changed", "team-splash-6th", null, "court_changed", "Court 18", "Court 31"),
-  change("change-splash-3-final", "game-splash-3-final", "team-splash-3rd", null, "final_score", null, { home: 42, away: 38 }),
   change("change-arsenal-bracket", "game-arsenal-bracket", "team-arsenal-boys-8", null, "bracket_update", null, "Bracket Quarterfinal"),
   change("change-splash-4-time", "game-splash-4-next", "team-splash-4th", null, "game_time_changed", "2026-05-23T21:30:00.000Z", "2026-05-23T21:40:00.000Z")
 ];

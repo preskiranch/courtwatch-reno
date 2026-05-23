@@ -76,6 +76,7 @@ Required for production:
 - `JWT_SECRET`
 - `EXPOSURE_EVENT_ID=255539`
 - `ENABLE_MOCK_ARSENAL=false`
+- `ENABLE_MOCK_DATA=false`
 
 Exposure API:
 
@@ -147,21 +148,17 @@ curl -X POST "$API_BASE_URL/api/admin/sync-now" \
   -H "x-admin-secret: $ADMIN_SECRET"
 ```
 
-## Seed Mock Data
+## Seed Source Data
 
 ```bash
 npm run db:seed
 ```
 
-Seed data includes:
+`npm run db:seed` runs the same sync path as production. It fetches current teams from Exposure/API or the respectful public fallback and removes any old demo games or demo change events from the database.
 
-- Splash City teams in multiple divisions.
-- Arsenal teams in multiple divisions so the demo works before live credentials.
-- No teams followed by default; use the Teams screen to choose them.
-- Upcoming, changed, final, and bracket games.
-- Court change, time change, final score, and bracket change events.
+The app only uses built-in mock games when `ENABLE_MOCK_DATA=true` and no source teams are available. Do not enable mock data for production tournament use.
 
-When the database-backed sync can read the public teams page, mock Arsenal teams are skipped unless `ENABLE_MOCK_ARSENAL=true`; this keeps production data aligned with teams currently visible from the source.
+No teams are followed by default; use the Teams screen to choose them. When the database-backed sync can read the public teams page, mock Arsenal teams are skipped unless `ENABLE_MOCK_ARSENAL=true`; this keeps production data aligned with teams currently visible from the source.
 
 ## Push Notifications
 

@@ -422,10 +422,15 @@ export class PrismaStore implements CourtWatchStore {
 
     try {
       const sourceTeams = await fetchSourceTeams();
-      const includeMockArsenal = process.env.ENABLE_MOCK_ARSENAL === "true" || sourceTeams.teams.length === 0;
+      const mockDataEnabled = process.env.ENABLE_MOCK_DATA === "true";
+      const includeMockArsenal = process.env.ENABLE_MOCK_ARSENAL === "true";
       await ensurePrograms(this.prisma);
-      if (!includeMockArsenal) await removeMockArsenalSeedData(this.prisma);
-      await upsertSeedDivisionsTeamsAndGames(this.prisma, event.id, includeMockArsenal);
+      if (mockDataEnabled && sourceTeams.teams.length === 0) {
+        await upsertSeedDivisionsTeamsAndGames(this.prisma, event.id, includeMockArsenal);
+      } else {
+        await removeSeedGameAndChangeData(this.prisma);
+        if (!includeMockArsenal) await removeMockArsenalSeedData(this.prisma);
+      }
 
       for (const division of sourceTeams.divisions) {
         await upsertDivision(this.prisma, event.id, division);
@@ -687,6 +692,28 @@ async function removeMockArsenalSeedData(prisma: PrismaClient) {
   await prisma.game.deleteMany({ where: { id: { in: mockGameIds } } });
   await prisma.team.deleteMany({ where: { id: { in: mockTeamIds } } });
   await prisma.division.deleteMany({ where: { id: { in: mockDivisionIds } } });
+}
+
+async function removeSeedGameAndChangeData(prisma: PrismaClient) {
+  const seedGameIds = seedGames.map((game) => game.id);
+  const seedExposureGameIds = seedGames.map((game) => game.exposureGameId ?? game.id);
+  const seedChangeIds = [...seedChangeEvents.map((event) => event.id), "change-splash-3-final"];
+  const seedChangeDedupeKeys = seedChangeEvents.map((event) => event.dedupeKey);
+
+  await prisma.gameChangeEvent.deleteMany({
+    where: {
+      OR: [
+        { id: { in: seedChangeIds } },
+        { dedupeKey: { in: seedChangeDedupeKeys } },
+        { gameId: { in: seedGameIds } }
+      ]
+    }
+  });
+  await prisma.game.deleteMany({
+    where: {
+      OR: [{ id: { in: seedGameIds } }, { exposureGameId: { in: seedExposureGameIds } }]
+    }
+  });
 }
 
 async function upsertDivision(prisma: PrismaClient, eventId: string, division: Division) {

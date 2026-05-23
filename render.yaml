@@ -61,6 +61,8 @@ services:
         value: https://basketball.exposureevents.com
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
+      - key: ENABLE_MOCK_DATA
+        value: "false"
       - key: VAPID_PUBLIC_KEY
         sync: false
       - key: VAPID_PRIVATE_KEY
@@ -101,4 +103,6 @@ services:
       - key: EXPOSURE_EVENT_ID
         value: "255539"
       - key: ENABLE_MOCK_ARSENAL
+        value: "false"
+      - key: ENABLE_MOCK_DATA
         value: "false"
