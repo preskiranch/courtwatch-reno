@@ -174,6 +174,8 @@ function NextGameBanner({ game }: { game: Game | null }) {
     );
   }
 
+  const matchup = gameMatchupDisplayName(game);
+
   return (
     <section className="court-card court-line-bg sticky top-[92px] z-20 overflow-hidden p-4">
       <div className="flex items-start justify-between gap-3">
@@ -183,9 +185,7 @@ function NextGameBanner({ game }: { game: Game | null }) {
             NEXT
           </div>
           <h2 className="text-2xl font-black text-slate-950">{game.scheduledTime}</h2>
-          <p className="mt-1 text-sm font-bold text-slate-700">
-            {game.homeTeamNameSnapshot} vs {game.awayTeamNameSnapshot}
-          </p>
+          <p className="mt-1 text-sm font-bold text-slate-700">{matchup}</p>
         </div>
         <div className="rounded-lg bg-slate-950 px-3 py-2 text-right text-white">
           <p className="text-[11px] font-bold uppercase text-orange-300">{game.courtName ?? "Court TBD"}</p>
@@ -221,7 +221,7 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
         {program.teams.slice(0, 4).map((team) => (
           <div key={team.id} className="rounded-lg border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-black text-slate-950">{team.name}</p>
+              <p className="font-black text-slate-950">{teamDisplayName(team)}</p>
               <StatusBadge status={team.liveStatus} />
             </div>
             <p className="mt-1 text-xs font-semibold text-slate-500">
@@ -346,6 +346,7 @@ function FilterButton({ active, onClick, children }: { active: boolean; onClick:
 
 function GameRow({ game }: { game: Game }) {
   const bracketUrl = bracketUrlFromGame(game);
+  const matchup = gameMatchupDisplayName(game);
   return (
     <article className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
@@ -354,9 +355,7 @@ function GameRow({ game }: { game: Game }) {
             <StatusBadge status={game.status} />
             <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{game.gameType ?? "Pool"}</span>
           </div>
-          <h3 className="mt-2 text-lg font-black text-slate-950">
-            {game.homeTeamNameSnapshot ?? "TBD"} vs {game.awayTeamNameSnapshot ?? "TBD"}
-          </h3>
+          <h3 className="mt-2 text-lg font-black text-slate-950">{matchup}</h3>
           <p className="mt-1 text-sm font-semibold text-slate-500">{formatGameDate(game.startsAt)}</p>
         </div>
         {game.homeScore !== null && game.awayScore !== null ? (
@@ -514,11 +513,12 @@ function FollowedTeamRow({
   onUnfollow: () => void;
   pending: boolean;
 }) {
+  const displayName = teamDisplayName(team);
   return (
     <article className={clsx("rounded-lg border bg-white p-3", focused ? "border-orange-400 ring-2 ring-orange-100" : "border-slate-200")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-black text-slate-950">{team.name}</p>
+          <p className="font-black text-slate-950">{displayName}</p>
           <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
           <p className="mt-1 text-xs font-semibold text-slate-500">
             {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
@@ -559,13 +559,14 @@ function TeamFocusPanel({ team }: { team: ProgramSummary["teams"][number] }) {
   const teamGames = divisionGames.filter((game) => gameBelongsToTeam(game, team));
   const bracketGames = divisionGames.filter(isBracketGame);
   const bracketUrl = bracketGames.map(bracketUrlFromGame).find(Boolean);
+  const displayName = teamDisplayName(team);
 
   return (
     <section className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Focused Team</p>
-          <h2 className="mt-1 text-2xl font-black text-slate-950">{team.name}</h2>
+          <h2 className="mt-1 text-2xl font-black text-slate-950">{displayName}</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
         </div>
         <div className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-orange-300">
@@ -617,7 +618,7 @@ function MiniGameList({ games, loading, empty }: { games: Game[]; loading: boole
                 <span className="truncate text-xs font-black uppercase tracking-[0.14em] text-slate-400">{game.gameType ?? "Pool"}</span>
               </div>
               <p className="mt-2 text-sm font-black text-slate-950">
-                {game.homeTeamNameSnapshot ?? "TBD"} vs {game.awayTeamNameSnapshot ?? "TBD"}
+                {gameMatchupDisplayName(game)}
               </p>
               <p className="mt-1 text-xs font-semibold text-slate-500">{formatGameDate(game.startsAt)}</p>
             </div>
@@ -648,7 +649,7 @@ function TeamSearchCard({
     <article className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-lg font-black text-slate-950">{team.name}</p>
+          <p className="text-lg font-black text-slate-950">{teamDisplayName(team)}</p>
           <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
           <p className="mt-1 text-xs font-semibold text-slate-500">
             {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
@@ -712,7 +713,7 @@ function AlertList({ alerts, games = [], compact = false }: { alerts: GameChange
                   <span className="text-[11px] font-bold text-slate-400">{formatShortTime(alert.createdAt)}</span>
                 </div>
                 <p className="mt-1 text-sm font-semibold text-slate-600">
-                  {game ? `${game.homeTeamNameSnapshot ?? "TBD"} vs ${game.awayTeamNameSnapshot ?? "TBD"}` : stringifyChange(alert.newValue)}
+                  {game ? gameMatchupDisplayName(game) : stringifyChange(alert.newValue)}
                 </p>
                 {!compact ? <p className="mt-1 text-xs text-slate-500">{stringifyChange(alert.newValue)}</p> : null}
               </div>
@@ -919,7 +920,50 @@ function formatGameDate(iso: string): string {
 
 function scoreSummary(game: Game): string {
   if (game.homeScore === null || game.awayScore === null) return "No score posted";
-  return `${game.homeTeamNameSnapshot ?? "Home"} ${game.homeScore}, ${game.awayTeamNameSnapshot ?? "Away"} ${game.awayScore}`;
+  return `${gameTeamDisplayName(game.homeTeamNameSnapshot, game, "Home")} ${game.homeScore}, ${gameTeamDisplayName(game.awayTeamNameSnapshot, game, "Away")} ${game.awayScore}`;
+}
+
+type TeamNameDisplayInput = Pick<Team, "name" | "divisionName" | "gradeLevel">;
+
+function teamDisplayName(team: TeamNameDisplayInput): string {
+  const ageLabel = splashCityAgeLabel(team.name, team.divisionName, team.gradeLevel);
+  return ageLabel ? `Splash City ${ageLabel}` : team.name;
+}
+
+function gameMatchupDisplayName(game: Game): string {
+  return `${gameTeamDisplayName(game.homeTeamNameSnapshot, game)} vs ${gameTeamDisplayName(game.awayTeamNameSnapshot, game)}`;
+}
+
+function gameTeamDisplayName(name: string | null, game: Game, fallback = "TBD"): string {
+  if (!name) return fallback;
+  const ageLabel = splashCityAgeLabel(name, divisionNameFromGame(game));
+  return ageLabel ? `Splash City ${ageLabel}` : name;
+}
+
+function splashCityAgeLabel(name: string, ...contexts: Array<string | null | undefined>): string | null {
+  if (!isSplashCityName(name)) return null;
+
+  const sources = [name, ...contexts].filter((value): value is string => Boolean(value));
+  return sources.map(extractAgeLabel).find(Boolean) ?? sources.map(extractGradeAgeLabel).find(Boolean) ?? null;
+}
+
+function isSplashCityName(name: string): boolean {
+  const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const compact = normalized.replace(/\s+/g, "");
+  return compact.startsWith("splashcity") || normalized.startsWith("splash city ");
+}
+
+function extractAgeLabel(value: string): string | null {
+  const match = value.match(/\b(\d{1,2})\s*u\b/i);
+  return match ? `${Number(match[1])}U` : null;
+}
+
+function extractGradeAgeLabel(value: string): string | null {
+  const grades = Array.from(value.toLowerCase().matchAll(/\b(\d{1,2})(?:st|nd|rd|th)\s*(?:grade)?\b/g)).map((match) => Number(match[1]));
+  const highestGrade = Math.max(...grades.filter(Number.isFinite));
+  if (!Number.isFinite(highestGrade)) return null;
+  const age = highestGrade + 6;
+  return age >= 6 && age <= 19 ? `${age}U` : null;
 }
 
 function gameBelongsToTeam(game: Game, team: Team): boolean {
@@ -937,6 +981,16 @@ function bracketUrlFromGame(game: Game): string | null {
   if (!game.rawJson || typeof game.rawJson !== "object" || Array.isArray(game.rawJson)) return null;
   const value = (game.rawJson as { BracketUrl?: unknown }).BracketUrl;
   return typeof value === "string" && value.startsWith("http") ? value : null;
+}
+
+function divisionNameFromGame(game: Game): string | null {
+  if (!game.rawJson || typeof game.rawJson !== "object" || Array.isArray(game.rawJson)) return null;
+  const raw = game.rawJson as Record<string, unknown>;
+  for (const key of ["DivisionName", "divisionName", "Division", "division", "AgeGroup", "ageGroup"]) {
+    const value = raw[key];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return null;
 }
 
 function stringifyChange(value: unknown): string {
