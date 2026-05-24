@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-reno-v1";
+const CACHE_NAME = "courtwatch-reno-v2";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -25,6 +25,11 @@ self.addEventListener("fetch", (event) => {
 
   if (request.url.includes("/api/")) {
     event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
+
+  if (request.url.includes("/_next/static/")) {
+    event.respondWith(fetch(request));
     return;
   }
 
