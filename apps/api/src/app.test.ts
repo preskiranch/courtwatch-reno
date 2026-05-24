@@ -41,6 +41,21 @@ describe("CourtWatch API", () => {
     expect(alphaAfterBetaFollow.body.programs[0].teams.map((team: { id: string }) => team.id)).toEqual(["team-splash-4th"]);
   });
 
+  it("returns anonymous follower counts for teams that are already followed", async () => {
+    const app = createApp(new MockStore(), null);
+
+    await request(app).post("/api/teams/team-splash-4th/follow").set("x-courtwatch-client-id", "client-alpha-123").expect(201);
+    await request(app).post("/api/teams/team-splash-4th/follow").set("x-courtwatch-client-id", "client-beta-456").expect(201);
+
+    const teams = await request(app).get("/api/teams?search=Splash").set("x-courtwatch-client-id", "client-alpha-123").expect(200);
+    const splash4 = teams.body.find((team: { id: string }) => team.id === "team-splash-4th");
+    expect(splash4.followerCount).toBe(2);
+    expect(splash4.isFollowed).toBe(true);
+
+    const dashboard = await request(app).get("/api/dashboard").set("x-courtwatch-client-id", "client-alpha-123").expect(200);
+    expect(dashboard.body.programs[0].teams[0].followerCount).toBe(2);
+  });
+
   it("searches registered teams without using player names", async () => {
     const snapshot = structuredClone(seedSnapshot);
     snapshot.players = [

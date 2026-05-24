@@ -227,6 +227,7 @@ export class PrismaStore implements CourtWatchStore {
       this.prisma.syncRun.findMany({ where: { eventId: event.id }, orderBy: { startedAt: "desc" }, take: 20 })
     ]);
     const playerNamesByTeam = groupPlayerNamesByTeam(players.map(prismaPlayerToCore));
+    const followerCounts = teamFollowerCounts(programs, matches.map(prismaMatchToCore));
     const followedTeamIds = new Set(matches.filter((match) => match.active && match.programWatchlistId === SELECTED_TEAMS_PROGRAM_ID).map((match) => match.teamId));
 
     return {
@@ -269,7 +270,8 @@ export class PrismaStore implements CourtWatchStore {
         rawJson: team.rawJson,
         lastSeenAt: team.lastSeenAt.toISOString(),
         playerNames: playerNamesByTeam.get(team.id) ?? [],
-        isFollowed: followedTeamIds.has(team.id)
+        isFollowed: followedTeamIds.has(team.id),
+        followerCount: followerCounts.get(team.id) ?? 0
       })),
       players: players.map(prismaPlayerToCore),
       divisionResults: divisionResults.map((result) => ({
@@ -620,6 +622,7 @@ export class PrismaStore implements CourtWatchStore {
 }
 
 function scopeSnapshot(snapshot: CourtWatchSnapshot, programId: string): CourtWatchSnapshot {
+  const followerCounts = teamFollowerCounts(snapshot.programs, snapshot.matches);
   const selectedProgram =
     snapshot.programs.find((program) => program.id === programId) ??
     ({
@@ -639,7 +642,7 @@ function scopeSnapshot(snapshot: CourtWatchSnapshot, programId: string): CourtWa
     programs: [activeProgram],
     aliases: snapshot.aliases.filter((alias) => alias.programWatchlistId === programId),
     matches,
-    teams: snapshot.teams.map((team) => ({ ...team, isFollowed: followedTeamIds.has(team.id) }))
+    teams: snapshot.teams.map((team) => ({ ...team, isFollowed: followedTeamIds.has(team.id), followerCount: followerCounts.get(team.id) ?? 0 }))
   };
 }
 
@@ -1217,17 +1220,42 @@ function extractExposureTeamIds(raw: Record<string, unknown>): string[] {
 function filterTeamsForSearch(snapshot: CourtWatchSnapshot, normalizedSearch: string): Team[] {
   const activeProgramIds = new Set(snapshot.programs.filter((program) => program.active).map((program) => program.id));
   const followedTeamIds = new Set(snapshot.matches.filter((match) => match.active && activeProgramIds.has(match.programWatchlistId)).map((match) => match.teamId));
+  const followerCounts = teamFollowerCounts(snapshot.programs, snapshot.matches);
 
   return snapshot.teams
     .map((team) => ({
       ...team,
-      isFollowed: followedTeamIds.has(team.id)
+      isFollowed: followedTeamIds.has(team.id),
+      followerCount: team.followerCount ?? followerCounts.get(team.id) ?? 0
     }))
     .filter((team) => {
       if (!normalizedSearch) return true;
       return team.normalizedName.includes(normalizedSearch) || normalizeName(team.clubName).includes(normalizedSearch) || normalizeName(team.divisionName).includes(normalizedSearch);
     })
     .sort(compareRegisteredTeams);
+}
+
+function teamFollowerCounts(
+  programs: Array<Pick<ProgramWatchlist, "active" | "id" | "normalizedProgramName" | "userId">>,
+  matches: Array<Pick<ProgramTeamMatch, "active" | "programWatchlistId" | "teamId">>
+): Map<string, number> {
+  const countableProgramIds = new Set(
+    programs
+      .filter((program) => program.active && program.userId && program.normalizedProgramName === normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME))
+      .map((program) => program.id)
+  );
+  const programTeamPairs = new Set<string>();
+  for (const match of matches) {
+    if (!match.active || !countableProgramIds.has(match.programWatchlistId)) continue;
+    programTeamPairs.add(`${match.programWatchlistId}:${match.teamId}`);
+  }
+
+  const counts = new Map<string, number>();
+  for (const pair of programTeamPairs) {
+    const teamId = pair.split(":").slice(1).join(":");
+    counts.set(teamId, (counts.get(teamId) ?? 0) + 1);
+  }
+  return counts;
 }
 
 function compareRegisteredTeams(left: Team, right: Team): number {

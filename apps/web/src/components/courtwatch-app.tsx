@@ -799,7 +799,10 @@ function FollowedTeamRow({
     <article className={clsx("rounded-lg border bg-white p-3", focused ? "border-orange-400 ring-2 ring-orange-100" : "border-slate-200")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-black text-slate-950">{displayName}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-black text-slate-950">{displayName}</p>
+            <FollowerCountBadge count={team.followerCount ?? 0} />
+          </div>
           <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
           <p className="mt-1 text-xs font-semibold text-slate-500">
             {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
@@ -959,7 +962,10 @@ function TeamSearchCard({
     <article className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-lg font-black text-slate-950">{teamDisplayName(team)}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-lg font-black text-slate-950">{teamDisplayName(team)}</p>
+            <FollowerCountBadge count={team.followerCount ?? 0} />
+          </div>
           <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
           <p className="mt-1 text-xs font-semibold text-slate-500">
             {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} / {team.level ?? "Level TBD"}
@@ -979,6 +985,15 @@ function TeamSearchCard({
       </div>
       <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
     </article>
+  );
+}
+
+function FollowerCountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="shrink-0 rounded-md bg-orange-100 px-2 py-1 text-[11px] font-black text-orange-700">
+      {count} following
+    </span>
   );
 }
 

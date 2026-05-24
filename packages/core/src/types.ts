@@ -74,6 +74,7 @@ export interface Team {
   lastSeenAt: string;
   playerNames?: string[];
   isFollowed?: boolean;
+  followerCount?: number;
 }
 
 export interface Player {
