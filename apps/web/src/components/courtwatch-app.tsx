@@ -700,6 +700,7 @@ function FollowedTeamRow({
         <Metric label="Next" value={team.nextGame ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}` : "TBD"} />
         <Metric label="Last" value={team.lastResult ? scoreSummary(team.lastResult) : "No result"} />
       </div>
+      <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
       <TeamBracketLink team={team} />
       <button
         type="button"
@@ -758,6 +759,7 @@ function TeamFocusPanel({ team }: { team: ProgramSummary["teams"][number] }) {
           <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Focused Team</p>
           <h2 className="mt-1 text-2xl font-black text-slate-950">{displayName}</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600">{team.divisionName ?? "Division TBD"}</p>
+          <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
         </div>
         <div className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-orange-300">
           <Trophy className="h-5 w-5" />
@@ -857,13 +859,19 @@ function TeamSearchCard({
           {pending ? "..." : followed ? "Following" : "Follow"}
         </button>
       </div>
-      {team.sourceUrl ? (
-        <a href={team.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-black text-orange-600">
-          Official team page
-          <ChevronRight className="h-4 w-4" />
-        </a>
-      ) : null}
+      <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
     </article>
+  );
+}
+
+function OfficialTeamPageLink({ sourceUrl }: { sourceUrl: string | null | undefined }) {
+  if (!sourceUrl) return null;
+
+  return (
+    <a href={sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-black text-orange-600">
+      Official team page
+      <ChevronRight className="h-4 w-4" />
+    </a>
   );
 }
 
