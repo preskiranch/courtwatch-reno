@@ -164,7 +164,7 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
   return (
     <section
       className={clsx(
-        "rounded-lg border border-white/12 bg-[#07111f]/92 p-2 text-white shadow-2xl backdrop-blur",
+        "pointer-events-none rounded-lg border border-white/12 bg-[#07111f]/92 p-2 text-white shadow-2xl backdrop-blur",
         layout === "rail" ? "text-center" : "flex max-w-[320px] items-center gap-3"
       )}
       aria-label="Share CourtWatch Reno"
