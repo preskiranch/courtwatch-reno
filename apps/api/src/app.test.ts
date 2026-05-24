@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import { normalizeName, seedSnapshot } from "@courtwatch/core";
+import { normalizeName, seedGames, seedSnapshot } from "@courtwatch/core";
+import type { Game } from "@courtwatch/core";
 import { createApp } from "./app.js";
 import { MockStore } from "./store.js";
 
@@ -82,6 +83,38 @@ describe("CourtWatch API", () => {
       "team-splash-6th",
       "team-arsenal-boys-8"
     ]);
+  });
+
+  it("returns final results without changing saved followed teams", async () => {
+    const snapshot = structuredClone(seedSnapshot);
+    snapshot.games = [
+      {
+        ...seedGames[0]!,
+        id: "game-gold-final",
+        exposureGameId: "game-gold-final",
+        divisionId: "division-boys-4th-green",
+        gameType: "Gold Championship",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 42,
+        awayScore: 38,
+        status: "final",
+        rawJson: { BracketUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test" }
+      } satisfies Game
+    ];
+    const app = createApp(new MockStore(snapshot), null);
+
+    await request(app).post("/api/teams/team-splash-4th/follow").set("x-courtwatch-client-id", "client-results-123").expect(201);
+    const results = await request(app).get("/api/results").set("x-courtwatch-client-id", "client-results-123").expect(200);
+    expect(results.body[0].rows.map((result: { placement: number; medalLabel: string; teamId: string }) => [result.placement, result.medalLabel, result.teamId])).toEqual([
+      [1, "Gold", "team-splash-4th"],
+      [2, "Silver", "team-premier-10u"]
+    ]);
+
+    const dashboard = await request(app).get("/api/dashboard").set("x-courtwatch-client-id", "client-results-123").expect(200);
+    expect(dashboard.body.programs[0].teams.map((team: { id: string }) => team.id)).toEqual(["team-splash-4th"]);
   });
 
   it("tracks active online users with a heartbeat", async () => {

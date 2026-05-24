@@ -1,6 +1,19 @@
 import { hashSource } from "./change-detection.js";
 import { normalizeName, normalizeProgramName } from "./normalization.js";
-import type { CourtWatchSnapshot, Division, Game, GameChangeEvent, Player, ProgramAlias, ProgramTeamMatch, ProgramWatchlist, SyncRun, Team, TournamentEvent } from "./types.js";
+import type {
+  CourtWatchSnapshot,
+  Division,
+  DivisionResult,
+  Game,
+  GameChangeEvent,
+  Player,
+  ProgramAlias,
+  ProgramTeamMatch,
+  ProgramWatchlist,
+  SyncRun,
+  Team,
+  TournamentEvent
+} from "./types.js";
 import { SELECTED_TEAMS_PROGRAM_ID, SELECTED_TEAMS_PROGRAM_NAME } from "./types.js";
 import { RENO_TIMEZONE } from "./types.js";
 
@@ -53,6 +66,7 @@ export const seedTeams: Team[] = [
 
 export const seedMatches: ProgramTeamMatch[] = [];
 export const seedPlayers: Player[] = [];
+export const seedDivisionResults: DivisionResult[] = [];
 
 export const seedGames: Game[] = [
   game({
@@ -168,6 +182,7 @@ export const seedSnapshot: CourtWatchSnapshot = {
   divisions: seedDivisions,
   teams: seedTeams,
   players: seedPlayers,
+  divisionResults: seedDivisionResults,
   programs: seedPrograms,
   aliases: seedAliases,
   matches: seedMatches,

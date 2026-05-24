@@ -201,6 +201,15 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     }
   });
 
+  app.get("/api/results", async (req, res, next) => {
+    try {
+      const scope = stringQuery(req.query.scope) === "all" ? "all" : "watched";
+      res.json(await store.results(requestClientId(req), scope));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/alerts", async (req, res, next) => {
     try {
       res.json(await store.alerts(requestClientId(req)));

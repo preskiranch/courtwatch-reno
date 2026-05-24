@@ -38,6 +38,7 @@ model Event {
   teams           Team[]
   players         Player[]
   games           Game[]
+  divisionResults DivisionResult[]
   syncRuns        SyncRun[]
 
   @@map("events")
@@ -86,6 +87,7 @@ model Division {
   event              Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   teams              Team[]
   games              Game[]
+  results            DivisionResult[]
 
   @@unique([eventId, exposureDivisionId])
   @@map("divisions")
@@ -109,6 +111,7 @@ model Team {
   division           Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
   matches            ProgramTeamMatch[]
   players            Player[]
+  divisionResults    DivisionResult[]
   homeGames          Game[]   @relation("HomeTeam")
   awayGames          Game[]   @relation("AwayTeam")
   changeEvents       GameChangeEvent[]
@@ -214,6 +217,34 @@ model GameChangeEvent {
 
   @@index([createdAt])
   @@map("game_change_events")
+}
+
+model DivisionResult {
+  id               String   @id @default(cuid())
+  eventId          String   @map("event_id")
+  divisionId       String   @map("division_id")
+  teamId           String?  @map("team_id")
+  placement        Int
+  medalLabel       String   @map("medal_label")
+  bracketLabel     String?  @map("bracket_label")
+  teamNameSnapshot String   @map("team_name_snapshot")
+  source           String
+  sourceUrl        String?  @map("source_url")
+  isOfficial       Boolean  @default(false) @map("is_official")
+  sourceHash       String   @map("source_hash")
+  rawJson          Json?    @map("raw_json")
+  lastSeenAt       DateTime @default(now()) @map("last_seen_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  division         Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  team             Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, divisionId, placement])
+  @@index([divisionId])
+  @@index([teamId])
+  @@map("division_results")
 }
 
 model NotificationPreference {

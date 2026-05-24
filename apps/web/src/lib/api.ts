@@ -1,9 +1,9 @@
-import type { DashboardResponse, Game, GameChangeEvent, ProgramAlias, ProgramSummary, ProgramTeamMatch, Team, TournamentEvent } from "@courtwatch/core";
+import type { DashboardResponse, DivisionResultGroup, Game, GameChangeEvent, ProgramAlias, ProgramSummary, ProgramTeamMatch, Team, TournamentEvent } from "@courtwatch/core";
 import { stableClientId } from "./client-id";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || "http://localhost:4000";
 
-type CacheKey = "dashboard" | "games" | "alerts" | "programs" | "event";
+type CacheKey = "dashboard" | "games" | "alerts" | "programs" | "event" | "results" | "resultsAll";
 
 export type PresenceResponse = {
   activeUsers: number;
@@ -54,6 +54,7 @@ export const CourtWatchApi = {
   event: () => apiGet<TournamentEvent>("/api/events/current", "event"),
   programs: () => apiGet<ProgramSummary[]>("/api/programs", "programs"),
   games: (query = "") => apiGet<Game[]>(`/api/games${query}`, "games"),
+  results: (scope: "watched" | "all" = "watched") => apiGet<DivisionResultGroup[]>(`/api/results?scope=${scope}`, scope === "all" ? "resultsAll" : "results"),
   alerts: () => apiGet<GameChangeEvent[]>("/api/alerts", "alerts"),
   teams: (search = "") => apiGet<Team[]>(`/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`),
   presence: () => apiGet<PresenceResponse>("/api/presence"),

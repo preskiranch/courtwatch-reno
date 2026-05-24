@@ -1,6 +1,6 @@
 "use client";
 
-import type { DashboardResponse, Game, GameChangeEvent, ProgramSummary, Team } from "@courtwatch/core";
+import type { DashboardResponse, DivisionResult, DivisionResultGroup, Game, GameChangeEvent, ProgramSummary, Team } from "@courtwatch/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import {
@@ -14,6 +14,7 @@ import {
   Home,
   Instagram,
   MapPin,
+  Medal,
   Radio,
   RefreshCcw,
   Search,
@@ -100,7 +101,8 @@ export function CourtWatchApp() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
       queryClient.invalidateQueries({ queryKey: ["games"] }),
-      queryClient.invalidateQueries({ queryKey: ["alerts"] })
+      queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+      queryClient.invalidateQueries({ queryKey: ["results"] })
     ]);
     setToast("Schedule refreshed");
     window.setTimeout(() => setToast(null), 2200);
@@ -264,6 +266,8 @@ function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: D
         ))}
       </div>
 
+      <FinalResultsSection />
+
       <section className="court-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-black text-slate-950">Latest Alerts</h2>
@@ -353,6 +357,108 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
         ))}
       </div>
     </article>
+  );
+}
+
+function FinalResultsSection() {
+  const [scope, setScope] = useState<"watched" | "all">("watched");
+  const resultsQuery = useQuery({
+    queryKey: ["results", scope],
+    queryFn: () => CourtWatchApi.results(scope),
+    staleTime: 60_000
+  });
+  const resultGroups = resultsQuery.data ?? [];
+
+  return (
+    <section className="court-card p-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Final Results</p>
+          <h2 className="mt-1 text-xl font-black text-slate-950">Gold, silver, bronze by division</h2>
+        </div>
+        <span className="shrink-0 rounded-md bg-orange-100 px-2 py-1 text-xs font-black text-orange-700">
+          {resultsQuery.isLoading ? "..." : `${resultGroups.length} divisions`}
+        </span>
+      </div>
+
+      <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
+        <button
+          type="button"
+          onClick={() => setScope("watched")}
+          className={clsx("min-h-10 rounded-md text-sm font-black transition active:scale-95", scope === "watched" ? "bg-slate-950 text-white" : "text-slate-600")}
+        >
+          My divisions
+        </button>
+        <button
+          type="button"
+          onClick={() => setScope("all")}
+          className={clsx("min-h-10 rounded-md text-sm font-black transition active:scale-95", scope === "all" ? "bg-slate-950 text-white" : "text-slate-600")}
+        >
+          All divisions
+        </button>
+      </div>
+
+      {resultsQuery.isLoading ? <div className="h-28 animate-pulse rounded-lg bg-slate-100" /> : null}
+      {!resultsQuery.isLoading && resultGroups.length === 0 ? (
+        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">
+          Final placements will appear here after official bracket finals are posted. Champion is only used for 1st place / Gold.
+        </p>
+      ) : null}
+
+      <div className="space-y-3">
+        {resultGroups.map((group) => (
+          <DivisionResultCard key={group.divisionId} group={group} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DivisionResultCard({ group }: { group: DivisionResultGroup }) {
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-3">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-base font-black leading-tight text-slate-950">{group.divisionName}</h3>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {group.gradeLevel ?? "Grade TBD"} {group.level ? `/ ${group.level}` : ""}
+          </p>
+        </div>
+        <span className={clsx("shrink-0 rounded-md px-2 py-1 text-[10px] font-black uppercase", group.isOfficial ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600")}>
+          {group.isOfficial ? "Official" : "Bracket final"}
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        {group.rows.map((result) => (
+          <DivisionResultRow key={`${result.divisionId}-${result.placement}`} result={result} />
+        ))}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+        <p className="text-[11px] font-semibold leading-4 text-slate-500">Official schedules and rulings come from tournament staff.</p>
+        {group.sourceUrl ? (
+          <a href={group.sourceUrl} target="_blank" rel="noreferrer" className="shrink-0 text-xs font-black text-orange-600">
+            Source
+          </a>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function DivisionResultRow({ result }: { result: DivisionResult }) {
+  const isChampion = result.placement === 1;
+  return (
+    <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2">
+      <div className={clsx("grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white", result.placement === 1 ? "bg-orange-500" : result.placement === 2 ? "bg-slate-500" : "bg-amber-700")}>
+        {isChampion ? <Trophy className="h-5 w-5" /> : <Medal className="h-5 w-5" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-black uppercase text-slate-500">{resultPlacementLabel(result)}</p>
+        <p className="truncate text-sm font-black text-slate-950">{result.teamNameSnapshot}</p>
+      </div>
+    </div>
   );
 }
 
@@ -532,6 +638,7 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     queryClient.invalidateQueries({ queryKey: ["games"] });
     queryClient.invalidateQueries({ queryKey: ["alerts"] });
+    queryClient.invalidateQueries({ queryKey: ["results"] });
     queryClient.invalidateQueries({ queryKey: ["teams"] });
   };
   const followTeam = useMutation({
@@ -1105,6 +1212,12 @@ function divisionTotalsForTeams(teams: Team[]): DivisionTotal[] {
 function divisionSortKey(divisionName: string): string {
   const genderRank = divisionName.toLowerCase().startsWith("girls") ? "2" : divisionName.toLowerCase().startsWith("boys") ? "1" : "3";
   return `${genderRank} ${divisionName}`;
+}
+
+function resultPlacementLabel(result: DivisionResult): string {
+  if (result.placement === 1) return "Champion / 1st / Gold";
+  if (result.placement === 2) return "2nd / Silver";
+  return "3rd / Bronze";
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {

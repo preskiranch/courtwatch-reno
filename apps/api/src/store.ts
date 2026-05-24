@@ -9,7 +9,9 @@ import {
   SELECTED_TEAMS_PROGRAM_ID,
   SELECTED_TEAMS_PROGRAM_NAME,
   buildDashboard,
+  buildDivisionResultGroups,
   detectGameChanges,
+  deriveDivisionResultsFromGames,
   extractDivisionMeta,
   hashSource,
   normalizeName,
@@ -27,6 +29,8 @@ import {
 import type {
   CourtWatchSnapshot,
   Division,
+  DivisionResult,
+  DivisionResultGroup,
   Game,
   GameChangeEvent,
   MatchType,
@@ -34,6 +38,9 @@ import type {
   ProgramAlias,
   ProgramTeamMatch,
   ProgramWatchlist,
+  ResultMedalLabel,
+  ResultPlacement,
+  ResultSource,
   Team
 } from "@courtwatch/core";
 import { fromZonedTime } from "date-fns-tz";
@@ -50,6 +57,7 @@ export interface CourtWatchStore {
   game(gameId: string): Promise<(Game & { changeHistory: GameChangeEvent[] }) | null>;
   teams(search?: string, clientId?: string | null): Promise<Team[]>;
   team(teamId: string): Promise<Team | null>;
+  results(clientId?: string | null, scope?: "watched" | "all"): Promise<DivisionResultGroup[]>;
   alerts(clientId?: string | null): Promise<GameChangeEvent[]>;
   followTeam(teamId: string, clientId?: string | null): Promise<ProgramTeamMatch>;
   unfollowTeam(teamId: string, clientId?: string | null): Promise<void>;
@@ -107,6 +115,10 @@ export class MockStore implements CourtWatchStore {
   async alerts(clientId?: string | null) {
     const dashboard = await this.dashboard(clientId);
     return dashboard.alerts;
+  }
+
+  async results(clientId?: string | null, scope: "watched" | "all" = "watched") {
+    return buildDivisionResultGroups(this.snapshotForClient(clientId), { scope });
   }
 
   async followTeam(teamId: string, clientId?: string | null) {
@@ -202,10 +214,11 @@ export class PrismaStore implements CourtWatchStore {
     const event = await this.prisma.event.findUnique({ where: { exposureEventId: config.EXPOSURE_EVENT_ID } });
     if (!event) return structuredClone(seedSnapshot);
 
-    const [divisions, teams, players, programs, aliases, matches, games, changeEvents, syncRuns] = await Promise.all([
+    const [divisions, teams, players, divisionResults, programs, aliases, matches, games, changeEvents, syncRuns] = await Promise.all([
       this.prisma.division.findMany({ where: { eventId: event.id } }),
       this.prisma.team.findMany({ where: { eventId: event.id }, include: { division: true } }),
       this.prisma.player.findMany({ where: { eventId: event.id } }),
+      this.prisma.divisionResult.findMany({ where: { eventId: event.id }, include: { division: true, team: true }, orderBy: [{ divisionId: "asc" }, { placement: "asc" }] }),
       this.prisma.programWatchlist.findMany({ where: { active: true } }),
       this.prisma.programAlias.findMany(),
       this.prisma.programTeamMatch.findMany({ where: { active: true } }),
@@ -259,6 +272,27 @@ export class PrismaStore implements CourtWatchStore {
         isFollowed: followedTeamIds.has(team.id)
       })),
       players: players.map(prismaPlayerToCore),
+      divisionResults: divisionResults.map((result) => ({
+        id: result.id,
+        eventId: result.eventId,
+        divisionId: result.divisionId,
+        divisionName: result.division.name,
+        gender: result.division.gender,
+        gradeLevel: result.division.gradeLevel,
+        level: result.division.level,
+        teamId: result.teamId,
+        teamNameSnapshot: result.teamNameSnapshot,
+        teamSourceUrl: result.team?.sourceUrl ?? null,
+        placement: result.placement as ResultPlacement,
+        medalLabel: result.medalLabel as ResultMedalLabel,
+        bracketLabel: result.bracketLabel,
+        source: result.source as ResultSource,
+        sourceUrl: result.sourceUrl,
+        isOfficial: result.isOfficial,
+        sourceHash: result.sourceHash,
+        rawJson: result.rawJson,
+        lastSeenAt: result.lastSeenAt.toISOString()
+      })),
       programs: programs.map((program) => ({
         id: program.id,
         userId: program.userId,
@@ -353,6 +387,10 @@ export class PrismaStore implements CourtWatchStore {
     const snapshot = await this.snapshotForClient(clientId);
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
+  }
+
+  async results(clientId?: string | null, scope: "watched" | "all" = "watched") {
+    return buildDivisionResultGroups(await this.snapshotForClient(clientId), { scope });
   }
 
   async team(teamId: string) {
@@ -489,6 +527,11 @@ export class PrismaStore implements CourtWatchStore {
             }
           });
         }
+      }
+
+      const resultSnapshot = await this.snapshot();
+      for (const result of deriveDivisionResultsFromGames(resultSnapshot)) {
+        await upsertDivisionResult(this.prisma, result);
       }
 
       const after = await this.snapshot();
@@ -979,6 +1022,40 @@ function gameWrite(game: Game) {
     sourceHash: game.sourceHash,
     rawJson: (game.rawJson ?? {}) as object
   };
+}
+
+async function upsertDivisionResult(prisma: PrismaClient, result: DivisionResult) {
+  return prisma.divisionResult.upsert({
+    where: { eventId_divisionId_placement: { eventId: result.eventId, divisionId: result.divisionId, placement: result.placement } },
+    update: {
+      teamId: result.teamId,
+      teamNameSnapshot: result.teamNameSnapshot,
+      medalLabel: result.medalLabel,
+      bracketLabel: result.bracketLabel,
+      source: result.source,
+      sourceUrl: result.sourceUrl,
+      isOfficial: result.isOfficial,
+      sourceHash: result.sourceHash,
+      rawJson: (result.rawJson ?? {}) as object,
+      lastSeenAt: new Date(result.lastSeenAt)
+    },
+    create: {
+      id: result.id,
+      eventId: result.eventId,
+      divisionId: result.divisionId,
+      teamId: result.teamId,
+      placement: result.placement,
+      medalLabel: result.medalLabel,
+      bracketLabel: result.bracketLabel,
+      teamNameSnapshot: result.teamNameSnapshot,
+      source: result.source,
+      sourceUrl: result.sourceUrl,
+      isOfficial: result.isOfficial,
+      sourceHash: result.sourceHash,
+      rawJson: (result.rawJson ?? {}) as object,
+      lastSeenAt: new Date(result.lastSeenAt)
+    }
+  });
 }
 
 async function loadTeamMap(prisma: PrismaClient, eventId: string): Promise<Map<string, Team>> {

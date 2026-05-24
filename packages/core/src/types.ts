@@ -28,6 +28,10 @@ export type ChangeEventType =
   | "team_advanced"
   | "starting_soon";
 
+export type ResultPlacement = 1 | 2 | 3;
+export type ResultMedalLabel = "Gold" | "Silver" | "Bronze";
+export type ResultSource = "official_standings" | "bracket_final" | "manual_admin";
+
 export interface TournamentEvent {
   id: string;
   exposureEventId: number;
@@ -184,6 +188,40 @@ export interface SyncRun {
   errorMessage: string | null;
 }
 
+export interface DivisionResult {
+  id: string;
+  eventId: string;
+  divisionId: string;
+  divisionName: string;
+  gender: string | null;
+  gradeLevel: string | null;
+  level: string | null;
+  teamId: string | null;
+  teamNameSnapshot: string;
+  teamSourceUrl: string | null;
+  placement: ResultPlacement;
+  medalLabel: ResultMedalLabel;
+  bracketLabel: string | null;
+  source: ResultSource;
+  sourceUrl: string | null;
+  isOfficial: boolean;
+  sourceHash: string;
+  rawJson?: unknown;
+  lastSeenAt: string;
+}
+
+export interface DivisionResultGroup {
+  divisionId: string;
+  divisionName: string;
+  gender: string | null;
+  gradeLevel: string | null;
+  level: string | null;
+  sourceUrl: string | null;
+  lastUpdatedAt: string | null;
+  isOfficial: boolean;
+  rows: DivisionResult[];
+}
+
 export interface ProgramSummary {
   program: ProgramWatchlist;
   aliases: ProgramAlias[];
@@ -222,6 +260,7 @@ export interface CourtWatchSnapshot {
   divisions: Division[];
   teams: Team[];
   players: Player[];
+  divisionResults: DivisionResult[];
   programs: ProgramWatchlist[];
   aliases: ProgramAlias[];
   matches: ProgramTeamMatch[];
