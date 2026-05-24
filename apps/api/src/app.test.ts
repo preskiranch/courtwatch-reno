@@ -64,6 +64,26 @@ describe("CourtWatch API", () => {
     expect(response.body).toHaveLength(0);
   });
 
+  it("sorts registered teams alphabetically while keeping duplicate team names together", async () => {
+    const snapshot = structuredClone(seedSnapshot);
+    const ids = ["team-splash-6th", "team-premier-10u", "team-splash-4th", "team-norcal-6", "team-splash-3rd", "team-arsenal-boys-8"];
+    snapshot.teams = ids.map((id) => {
+      const team = seedSnapshot.teams.find((item) => item.id === id);
+      if (!team) throw new Error(`Missing seed team ${id}`);
+      return team;
+    });
+    const app = createApp(new MockStore(snapshot), null);
+    const response = await request(app).get("/api/teams").expect(200);
+    expect(response.body.map((team: { id: string }) => team.id)).toEqual([
+      "team-norcal-6",
+      "team-premier-10u",
+      "team-splash-3rd",
+      "team-splash-4th",
+      "team-splash-6th",
+      "team-arsenal-boys-8"
+    ]);
+  });
+
   it("tracks active online users with a heartbeat", async () => {
     const app = createApp(new MockStore(), null);
     const response = await request(app).post("/api/presence/heartbeat").send({ clientId: "test-client-1", page: "dashboard" }).expect(200);

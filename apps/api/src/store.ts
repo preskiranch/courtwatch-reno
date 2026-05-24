@@ -40,6 +40,8 @@ import { fromZonedTime } from "date-fns-tz";
 import { createHash } from "node:crypto";
 import { config, isExposureConfigured } from "./config.js";
 
+const teamSortCollator = new Intl.Collator("en-US", { numeric: true, sensitivity: "base" });
+
 export interface CourtWatchStore {
   snapshot(): Promise<CourtWatchSnapshot>;
   dashboard(clientId?: string | null): Promise<ReturnType<typeof buildDashboard>>;
@@ -1131,7 +1133,20 @@ function filterTeamsForSearch(snapshot: CourtWatchSnapshot, normalizedSearch: st
       if (!normalizedSearch) return true;
       return team.normalizedName.includes(normalizedSearch) || normalizeName(team.clubName).includes(normalizedSearch) || normalizeName(team.divisionName).includes(normalizedSearch);
     })
-    .sort((left, right) => Number(right.isFollowed) - Number(left.isFollowed) || (left.divisionName ?? "").localeCompare(right.divisionName ?? "") || left.name.localeCompare(right.name));
+    .sort(compareRegisteredTeams);
+}
+
+function compareRegisteredTeams(left: Team, right: Team): number {
+  return (
+    teamSortCollator.compare(teamAlphaGroup(left), teamAlphaGroup(right)) ||
+    teamSortCollator.compare(left.name, right.name) ||
+    teamSortCollator.compare(left.divisionName ?? "", right.divisionName ?? "") ||
+    teamSortCollator.compare(left.id, right.id)
+  );
+}
+
+function teamAlphaGroup(team: Team): string {
+  return team.name.trim();
 }
 
 function groupPlayerNamesByTeam(players: Player[]): Map<string, string[]> {
