@@ -27,9 +27,10 @@ import {
   WifiOff,
   X
 } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
 import { stableClientId } from "../lib/client-id";
+import { RENO_TIME_ZONE, dateKeyInReno, scheduleDateSectionLabel } from "../lib/date-labels";
 import { requestPushSubscription } from "../lib/push";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
@@ -46,6 +47,8 @@ export function CourtWatchApp() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
+  const todayKey = useRenoTodayKey();
+  const lastTodayKeyRef = useRef(todayKey);
   const queryClient = useQueryClient();
   const clientReady = Boolean(presenceClientId);
   const dashboardQuery = useQuery({ queryKey: ["dashboard", presenceClientId], queryFn: CourtWatchApi.dashboard, enabled: clientReady });
@@ -62,6 +65,17 @@ export function CourtWatchApp() {
   useEffect(() => {
     setPresenceClientId(stableClientId());
   }, []);
+
+  useEffect(() => {
+    if (lastTodayKeyRef.current === todayKey) return;
+    lastTodayKeyRef.current = todayKey;
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["games"] }),
+      queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+      queryClient.invalidateQueries({ queryKey: ["results"] })
+    ]);
+  }, [queryClient, todayKey]);
 
   useEffect(() => {
     if (!presenceClientId || !dashboardQuery.data || typeof window === "undefined") return;
@@ -133,7 +147,7 @@ export function CourtWatchApp() {
           {!isLoading && dashboard && activeTab === "dashboard" ? (
             <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} onRefresh={refresh} />
           ) : null}
-          {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} /> : null}
+          {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} todayKey={todayKey} /> : null}
           {!isLoading && dashboard && activeTab === "teams" ? <TeamsScreen dashboard={dashboard} /> : null}
           {!isLoading && dashboard && activeTab === "alerts" ? <AlertsScreen alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} /> : null}
           {!isLoading && dashboard && activeTab === "settings" ? <SettingsScreen dashboard={dashboard} onRefresh={refresh} /> : null}
@@ -471,7 +485,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramSummary[] }) {
+function ScheduleScreen({ games, programs, todayKey }: { games: Game[]; programs: ProgramSummary[]; todayKey: string }) {
   const [programFilter, setProgramFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courtFilter, setCourtFilter] = useState("");
@@ -492,7 +506,7 @@ function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramS
     return true;
   });
 
-  const groups = groupGamesByDate(filteredGames);
+  const groups = groupGamesByDate(filteredGames, todayKey);
 
   return (
     <div className="space-y-4">
@@ -533,7 +547,7 @@ function ScheduleScreen({ games, programs }: { games: Game[]; programs: ProgramS
       </section>
 
       {groups.map((group) => (
-        <section key={group.label} className="space-y-2">
+        <section key={group.date} className="space-y-2">
           <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">{group.label}</h2>
           {group.games.map((game) => (
             <GameRow key={game.id} game={game} />
@@ -1181,10 +1195,26 @@ function SkeletonDashboard() {
   );
 }
 
-function groupGamesByDate(games: Game[]) {
-  const formatter = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "America/Los_Angeles" });
-  const today = "2026-05-23";
-  const tomorrow = "2026-05-24";
+function useRenoTodayKey(): string {
+  const [todayKey, setTodayKey] = useState(() => dateKeyInReno());
+
+  useEffect(() => {
+    const update = () => setTodayKey(dateKeyInReno());
+    update();
+    const intervalId = window.setInterval(update, 30_000);
+    window.addEventListener("focus", update);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", update);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
+
+  return todayKey;
+}
+
+function groupGamesByDate(games: Game[], todayKey: string) {
   const grouped = new Map<string, Game[]>();
   for (const game of games) {
     const key = game.scheduledDate;
@@ -1193,7 +1223,8 @@ function groupGamesByDate(games: Game[]) {
   return Array.from(grouped.entries())
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([date, groupGames]) => ({
-      label: date === today ? "Today" : date === tomorrow ? "Tomorrow" : formatter.format(new Date(`${date}T12:00:00.000Z`)),
+      date,
+      label: scheduleDateSectionLabel(date, todayKey),
       games: groupGames.sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime())
     }));
 }
@@ -1247,7 +1278,7 @@ function labelStatus(status: string): string {
 }
 
 function formatShortTime(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: RENO_TIME_ZONE }).format(new Date(iso));
 }
 
 function formatGameDate(iso: string): string {
@@ -1257,7 +1288,7 @@ function formatGameDate(iso: string): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Los_Angeles"
+    timeZone: RENO_TIME_ZONE
   }).format(new Date(iso));
 }
 
