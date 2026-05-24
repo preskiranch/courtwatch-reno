@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@courtwatch/db";
+import { Prisma, type PrismaClient } from "@courtwatch/db";
 import {
   DashboardService,
   ExposureClient,
@@ -543,20 +543,27 @@ export class PrismaStore implements CourtWatchStore {
 
     const user = await ensureUserForClient(this.prisma, clientId);
     const normalizedProgramName = normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME);
-    const program = await this.prisma.programWatchlist.upsert({
-      where: { userId_normalizedProgramName: { userId: user.id, normalizedProgramName } },
-      update: {
-        programName: SELECTED_TEAMS_PROGRAM_NAME,
-        active: true
-      },
-      create: {
-        id: selectedProgramIdForClient(clientId),
-        userId: user.id,
-        programName: SELECTED_TEAMS_PROGRAM_NAME,
-        normalizedProgramName,
-        active: true
-      }
-    });
+    const selectedProgramWhere = { userId_normalizedProgramName: { userId: user.id, normalizedProgramName } };
+    let program;
+    try {
+      program = await this.prisma.programWatchlist.upsert({
+        where: selectedProgramWhere,
+        update: {
+          programName: SELECTED_TEAMS_PROGRAM_NAME,
+          active: true
+        },
+        create: {
+          userId: user.id,
+          programName: SELECTED_TEAMS_PROGRAM_NAME,
+          normalizedProgramName,
+          active: true
+        }
+      });
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) throw error;
+      program = await this.prisma.programWatchlist.findUnique({ where: selectedProgramWhere });
+      if (!program) throw error;
+    }
 
     return {
       id: program.id,
@@ -602,15 +609,26 @@ function selectedUserIdForClient(clientId: string): string {
 }
 
 async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
-  return prisma.user.upsert({
-    where: { clientId },
-    update: {},
-    create: {
-      clientId,
-      displayName: "CourtWatch Device",
-      timezone: RENO_TIMEZONE
-    }
-  });
+  try {
+    return await prisma.user.upsert({
+      where: { clientId },
+      update: {},
+      create: {
+        clientId,
+        displayName: "CourtWatch Device",
+        timezone: RENO_TIMEZONE
+      }
+    });
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error;
+    const existing = await prisma.user.findUnique({ where: { clientId } });
+    if (existing) return existing;
+    throw error;
+  }
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
 function clientHash(clientId: string): string {
