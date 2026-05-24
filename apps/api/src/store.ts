@@ -37,19 +37,20 @@ import type {
   Team
 } from "@courtwatch/core";
 import { fromZonedTime } from "date-fns-tz";
+import { createHash } from "node:crypto";
 import { config, isExposureConfigured } from "./config.js";
 
 export interface CourtWatchStore {
   snapshot(): Promise<CourtWatchSnapshot>;
-  dashboard(): Promise<ReturnType<typeof buildDashboard>>;
-  program(programId: string): Promise<ReturnType<DashboardService["build"]>["programs"][number] | null>;
-  games(filters: Record<string, string | undefined>): Promise<Game[]>;
+  dashboard(clientId?: string | null): Promise<ReturnType<typeof buildDashboard>>;
+  program(programId: string, clientId?: string | null): Promise<ReturnType<DashboardService["build"]>["programs"][number] | null>;
+  games(filters: Record<string, string | undefined>, clientId?: string | null): Promise<Game[]>;
   game(gameId: string): Promise<(Game & { changeHistory: GameChangeEvent[] }) | null>;
-  teams(search?: string): Promise<Team[]>;
+  teams(search?: string, clientId?: string | null): Promise<Team[]>;
   team(teamId: string): Promise<Team | null>;
-  alerts(): Promise<GameChangeEvent[]>;
-  followTeam(teamId: string): Promise<ProgramTeamMatch>;
-  unfollowTeam(teamId: string): Promise<void>;
+  alerts(clientId?: string | null): Promise<GameChangeEvent[]>;
+  followTeam(teamId: string, clientId?: string | null): Promise<ProgramTeamMatch>;
+  unfollowTeam(teamId: string, clientId?: string | null): Promise<void>;
   addAlias(programId: string, alias: string): Promise<ProgramAlias>;
   deleteAlias(programId: string, aliasId: string): Promise<void>;
   syncNow(): Promise<{ status: string; source: string; teamsCount: number; gamesCount: number; changesDetected: number }>;
@@ -66,16 +67,16 @@ export class MockStore implements CourtWatchStore {
     return structuredClone(this.data);
   }
 
-  async dashboard() {
-    return buildDashboard(await this.snapshot());
+  async dashboard(clientId?: string | null) {
+    return buildDashboard(this.snapshotForClient(clientId));
   }
 
-  async program(programId: string) {
-    return (await this.dashboard()).programs.find((program) => program.program.id === programId) ?? null;
+  async program(programId: string, clientId?: string | null) {
+    return (await this.dashboard(clientId)).programs.find((program) => program.program.id === programId) ?? null;
   }
 
-  async games(filters: Record<string, string | undefined>) {
-    const schedule = new ScheduleService().listWatchedGames(await this.snapshot(), {
+  async games(filters: Record<string, string | undefined>, clientId?: string | null) {
+    const schedule = new ScheduleService().listWatchedGames(this.snapshotForClient(clientId), {
       programId: filters.programId,
       status: filters.status,
       court: filters.court,
@@ -91,9 +92,9 @@ export class MockStore implements CourtWatchStore {
     return game ? { ...game, changeHistory: snapshot.changeEvents.filter((event) => event.gameId === gameId) } : null;
   }
 
-  async teams(search?: string) {
+  async teams(search?: string, clientId?: string | null) {
     const normalized = normalizeName(search);
-    const snapshot = await this.snapshot();
+    const snapshot = this.snapshotForClient(clientId);
     return filterTeamsForSearch(snapshot, normalized);
   }
 
@@ -101,22 +102,23 @@ export class MockStore implements CourtWatchStore {
     return (await this.snapshot()).teams.find((team) => team.id === teamId) ?? null;
   }
 
-  async alerts() {
-    const dashboard = await this.dashboard();
+  async alerts(clientId?: string | null) {
+    const dashboard = await this.dashboard(clientId);
     return dashboard.alerts;
   }
 
-  async followTeam(teamId: string) {
+  async followTeam(teamId: string, clientId?: string | null) {
     const team = this.data.teams.find((item) => item.id === teamId);
     if (!team) throw new Error("Team not found");
-    const existing = this.data.matches.find((match) => match.programWatchlistId === SELECTED_TEAMS_PROGRAM_ID && match.teamId === teamId);
+    const programId = this.ensureSelectedProgram(clientId).id;
+    const existing = this.data.matches.find((match) => match.programWatchlistId === programId && match.teamId === teamId);
     if (existing) {
       existing.active = true;
       return structuredClone(existing);
     }
     const match: ProgramTeamMatch = {
-      id: `match-selected-${teamId}`,
-      programWatchlistId: SELECTED_TEAMS_PROGRAM_ID,
+      id: `match-${programId}-${teamId}`,
+      programWatchlistId: programId,
       teamId,
       matchType: "manual",
       matchConfidence: 1,
@@ -127,9 +129,10 @@ export class MockStore implements CourtWatchStore {
     return structuredClone(match);
   }
 
-  async unfollowTeam(teamId: string) {
+  async unfollowTeam(teamId: string, clientId?: string | null) {
+    const programId = this.ensureSelectedProgram(clientId).id;
     this.data.matches = this.data.matches.map((match) =>
-      match.programWatchlistId === SELECTED_TEAMS_PROGRAM_ID && match.teamId === teamId ? { ...match, active: false } : match
+      match.programWatchlistId === programId && match.teamId === teamId ? { ...match, active: false } : match
     );
   }
 
@@ -166,6 +169,27 @@ export class MockStore implements CourtWatchStore {
     this.data.event.lastSyncedAt = run.completedAt;
     this.data.syncRuns.unshift(run);
     return { status: run.status, source: run.source, teamsCount: run.teamsCount, gamesCount: run.gamesCount, changesDetected: run.changesDetected };
+  }
+
+  private snapshotForClient(clientId?: string | null): CourtWatchSnapshot {
+    const program = this.ensureSelectedProgram(clientId);
+    return scopeSnapshot(structuredClone(this.data), program.id);
+  }
+
+  private ensureSelectedProgram(clientId?: string | null): ProgramWatchlist {
+    const programId = selectedProgramIdForClient(clientId);
+    const existing = this.data.programs.find((program) => program.id === programId);
+    if (existing) return existing;
+    const program: ProgramWatchlist = {
+      id: programId,
+      userId: clientId ? selectedUserIdForClient(clientId) : null,
+      programName: SELECTED_TEAMS_PROGRAM_NAME,
+      normalizedProgramName: normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME),
+      active: true,
+      createdAt: new Date().toISOString()
+    };
+    this.data.programs.push(program);
+    return program;
   }
 }
 
@@ -299,16 +323,16 @@ export class PrismaStore implements CourtWatchStore {
     };
   }
 
-  async dashboard() {
-    return buildDashboard(await this.snapshot());
+  async dashboard(clientId?: string | null) {
+    return buildDashboard(await this.snapshotForClient(clientId));
   }
 
-  async program(programId: string) {
-    return (await this.dashboard()).programs.find((program) => program.program.id === programId) ?? null;
+  async program(programId: string, clientId?: string | null) {
+    return (await this.dashboard(clientId)).programs.find((program) => program.program.id === programId) ?? null;
   }
 
-  async games(filters: Record<string, string | undefined>) {
-    return new ScheduleService().listWatchedGames(await this.snapshot(), {
+  async games(filters: Record<string, string | undefined>, clientId?: string | null) {
+    return new ScheduleService().listWatchedGames(await this.snapshotForClient(clientId), {
       programId: filters.programId,
       status: filters.status,
       court: filters.court,
@@ -323,8 +347,8 @@ export class PrismaStore implements CourtWatchStore {
     return game ? { ...game, changeHistory: snapshot.changeEvents.filter((event) => event.gameId === gameId) } : null;
   }
 
-  async teams(search?: string) {
-    const snapshot = await this.snapshot();
+  async teams(search?: string, clientId?: string | null) {
+    const snapshot = await this.snapshotForClient(clientId);
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
   }
@@ -333,8 +357,8 @@ export class PrismaStore implements CourtWatchStore {
     return (await this.snapshot()).teams.find((team) => team.id === teamId) ?? null;
   }
 
-  async alerts() {
-    const snapshot = await this.snapshot();
+  async alerts(clientId?: string | null) {
+    const snapshot = await this.snapshotForClient(clientId);
     const activeProgramIds = new Set(snapshot.programs.map((program) => program.id));
     const watchedTeamIds = new Set(snapshot.matches.filter((match) => match.active && activeProgramIds.has(match.programWatchlistId)).map((match) => match.teamId));
     const watchedGameIds = new Set(
@@ -343,15 +367,15 @@ export class PrismaStore implements CourtWatchStore {
     return watchedAlertEvents(snapshot.changeEvents, watchedTeamIds, watchedGameIds, activeProgramIds).sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
   }
 
-  async followTeam(teamId: string) {
-    await ensurePrograms(this.prisma);
+  async followTeam(teamId: string, clientId?: string | null) {
+    const program = await this.ensureSelectedProgram(clientId);
     const team = await this.prisma.team.findUnique({ where: { id: teamId } });
     if (!team) throw new Error("Team not found");
     const match = await this.prisma.programTeamMatch.upsert({
-      where: { programWatchlistId_teamId: { programWatchlistId: SELECTED_TEAMS_PROGRAM_ID, teamId } },
+      where: { programWatchlistId_teamId: { programWatchlistId: program.id, teamId } },
       update: { active: true, matchType: "manual", matchConfidence: 1 },
       create: {
-        programWatchlistId: SELECTED_TEAMS_PROGRAM_ID,
+        programWatchlistId: program.id,
         teamId,
         matchType: "manual",
         matchConfidence: 1
@@ -361,9 +385,10 @@ export class PrismaStore implements CourtWatchStore {
     return prismaMatchToCore(match);
   }
 
-  async unfollowTeam(teamId: string) {
+  async unfollowTeam(teamId: string, clientId?: string | null) {
+    const program = await this.ensureSelectedProgram(clientId);
     await this.prisma.programTeamMatch.updateMany({
-      where: { programWatchlistId: SELECTED_TEAMS_PROGRAM_ID, teamId },
+      where: { programWatchlistId: program.id, teamId },
       data: { active: false }
     });
   }
@@ -495,6 +520,100 @@ export class PrismaStore implements CourtWatchStore {
       throw error;
     }
   }
+
+  private async snapshotForClient(clientId?: string | null): Promise<CourtWatchSnapshot> {
+    const program = await this.ensureSelectedProgram(clientId);
+    return scopeSnapshot(await this.snapshot(), program.id);
+  }
+
+  private async ensureSelectedProgram(clientId?: string | null): Promise<ProgramWatchlist> {
+    if (!clientId) {
+      await ensurePrograms(this.prisma);
+      return {
+        id: SELECTED_TEAMS_PROGRAM_ID,
+        userId: null,
+        programName: SELECTED_TEAMS_PROGRAM_NAME,
+        normalizedProgramName: normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME),
+        active: true,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    const user = await ensureUserForClient(this.prisma, clientId);
+    const normalizedProgramName = normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME);
+    const program = await this.prisma.programWatchlist.upsert({
+      where: { userId_normalizedProgramName: { userId: user.id, normalizedProgramName } },
+      update: {
+        programName: SELECTED_TEAMS_PROGRAM_NAME,
+        active: true
+      },
+      create: {
+        id: selectedProgramIdForClient(clientId),
+        userId: user.id,
+        programName: SELECTED_TEAMS_PROGRAM_NAME,
+        normalizedProgramName,
+        active: true
+      }
+    });
+
+    return {
+      id: program.id,
+      userId: program.userId,
+      programName: program.programName,
+      normalizedProgramName: program.normalizedProgramName,
+      active: program.active,
+      createdAt: program.createdAt.toISOString()
+    };
+  }
+}
+
+function scopeSnapshot(snapshot: CourtWatchSnapshot, programId: string): CourtWatchSnapshot {
+  const selectedProgram =
+    snapshot.programs.find((program) => program.id === programId) ??
+    ({
+      id: programId,
+      userId: programId === SELECTED_TEAMS_PROGRAM_ID ? null : programId.replace(/^program-selected-/, "user-device-"),
+      programName: SELECTED_TEAMS_PROGRAM_NAME,
+      normalizedProgramName: normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME),
+      active: true,
+      createdAt: new Date().toISOString()
+    } satisfies ProgramWatchlist);
+  const activeProgram = { ...selectedProgram, active: true };
+  const matches = snapshot.matches.filter((match) => match.programWatchlistId === programId && match.active);
+  const followedTeamIds = new Set(matches.map((match) => match.teamId));
+
+  return {
+    ...snapshot,
+    programs: [activeProgram],
+    aliases: snapshot.aliases.filter((alias) => alias.programWatchlistId === programId),
+    matches,
+    teams: snapshot.teams.map((team) => ({ ...team, isFollowed: followedTeamIds.has(team.id) }))
+  };
+}
+
+function selectedProgramIdForClient(clientId?: string | null): string {
+  return clientId ? `program-selected-${clientHash(clientId)}` : SELECTED_TEAMS_PROGRAM_ID;
+}
+
+function selectedUserIdForClient(clientId: string): string {
+  return `user-device-${clientHash(clientId)}`;
+}
+
+async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
+  return prisma.user.upsert({
+    where: { clientId },
+    update: {},
+    create: {
+      id: selectedUserIdForClient(clientId),
+      clientId,
+      displayName: "CourtWatch Device",
+      timezone: RENO_TIMEZONE
+    }
+  });
+}
+
+function clientHash(clientId: string): string {
+  return createHash("sha256").update(clientId.trim()).digest("hex").slice(0, 32);
 }
 
 async function fetchSourceTeams(): Promise<{ divisions: Division[]; teams: Team[] }> {
@@ -879,8 +998,11 @@ async function loadSelectedDivisionExposureIds(prisma: PrismaClient, eventId: st
       eventId,
       matches: {
         some: {
-          programWatchlistId: SELECTED_TEAMS_PROGRAM_ID,
-          active: true
+          active: true,
+          programWatchlist: {
+            active: true,
+            normalizedProgramName: normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME)
+          }
         }
       }
     },

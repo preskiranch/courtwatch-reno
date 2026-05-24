@@ -23,6 +23,23 @@ describe("CourtWatch API", () => {
     expect(unfollowed.body.programs[0].teams).toHaveLength(0);
   });
 
+  it("keeps followed teams separate by browser client id", async () => {
+    const app = createApp(new MockStore(), null);
+
+    await request(app).post("/api/teams/team-splash-4th/follow").set("x-courtwatch-client-id", "client-alpha-123").expect(201);
+
+    const alpha = await request(app).get("/api/dashboard").set("x-courtwatch-client-id", "client-alpha-123").expect(200);
+    const beta = await request(app).get("/api/dashboard").set("x-courtwatch-client-id", "client-beta-456").expect(200);
+
+    expect(alpha.body.programs[0].teams.map((team: { id: string }) => team.id)).toEqual(["team-splash-4th"]);
+    expect(beta.body.programs[0].teams).toHaveLength(0);
+
+    await request(app).post("/api/teams/team-splash-6th/follow").set("x-courtwatch-client-id", "client-beta-456").expect(201);
+
+    const alphaAfterBetaFollow = await request(app).get("/api/dashboard").set("x-courtwatch-client-id", "client-alpha-123").expect(200);
+    expect(alphaAfterBetaFollow.body.programs[0].teams.map((team: { id: string }) => team.id)).toEqual(["team-splash-4th"]);
+  });
+
   it("searches registered teams without using player names", async () => {
     const snapshot = structuredClone(seedSnapshot);
     snapshot.players = [

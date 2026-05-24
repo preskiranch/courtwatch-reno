@@ -67,9 +67,9 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     }
   });
 
-  app.get("/api/dashboard", async (_req, res, next) => {
+  app.get("/api/dashboard", async (req, res, next) => {
     try {
-      res.json(await store.dashboard());
+      res.json(await store.dashboard(requestClientId(req)));
     } catch (error) {
       next(error);
     }
@@ -92,9 +92,9 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     }
   });
 
-  app.get("/api/programs", async (_req, res, next) => {
+  app.get("/api/programs", async (req, res, next) => {
     try {
-      res.json((await store.dashboard()).programs);
+      res.json((await store.dashboard(requestClientId(req))).programs);
     } catch (error) {
       next(error);
     }
@@ -102,7 +102,7 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
 
   app.get("/api/programs/:programId", async (req, res, next) => {
     try {
-      const program = await store.program(req.params.programId);
+      const program = await store.program(req.params.programId, requestClientId(req));
       if (!program) {
         res.status(404).json({ error: "Program not found" });
         return;
@@ -133,7 +133,7 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
 
   app.get("/api/teams", async (req, res, next) => {
     try {
-      res.json(await store.teams(typeof req.query.search === "string" ? req.query.search : undefined));
+      res.json(await store.teams(typeof req.query.search === "string" ? req.query.search : undefined, requestClientId(req)));
     } catch (error) {
       next(error);
     }
@@ -154,7 +154,7 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
 
   app.post("/api/teams/:teamId/follow", async (req, res, next) => {
     try {
-      res.status(201).json(await store.followTeam(req.params.teamId));
+      res.status(201).json(await store.followTeam(req.params.teamId, requestClientId(req)));
     } catch (error) {
       next(error);
     }
@@ -162,7 +162,7 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
 
   app.delete("/api/teams/:teamId/follow", async (req, res, next) => {
     try {
-      await store.unfollowTeam(req.params.teamId);
+      await store.unfollowTeam(req.params.teamId, requestClientId(req));
       res.status(204).end();
     } catch (error) {
       next(error);
@@ -172,13 +172,16 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
   app.get("/api/games", async (req, res, next) => {
     try {
       res.json(
-        await store.games({
-          programId: stringQuery(req.query.programId),
-          status: stringQuery(req.query.status),
-          court: stringQuery(req.query.court),
-          division: stringQuery(req.query.division),
-          scope: stringQuery(req.query.scope)
-        })
+        await store.games(
+          {
+            programId: stringQuery(req.query.programId),
+            status: stringQuery(req.query.status),
+            court: stringQuery(req.query.court),
+            division: stringQuery(req.query.division),
+            scope: stringQuery(req.query.scope)
+          },
+          requestClientId(req)
+        )
       );
     } catch (error) {
       next(error);
@@ -198,9 +201,9 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     }
   });
 
-  app.get("/api/alerts", async (_req, res, next) => {
+  app.get("/api/alerts", async (req, res, next) => {
     try {
-      res.json(await store.alerts());
+      res.json(await store.alerts(requestClientId(req)));
     } catch (error) {
       next(error);
     }
@@ -220,19 +223,36 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
         })
         .parse(req.body);
       const endpoint = String(body.subscription.endpoint ?? "");
+      const clientId = requestClientId(req);
       const existing = await prismaClient.user.findFirst({
         where: { pushSubscriptionJson: { path: ["endpoint"], equals: endpoint } }
       });
-      const user =
-        existing ??
-        (await prismaClient.user.create({
-          data: {
-            displayName: body.displayName ?? "CourtWatch User",
-            timezone: body.timezone,
-            pushSubscriptionJson: body.subscription as Prisma.InputJsonValue
-          }
-        }));
-      if (existing) {
+      const user = clientId
+        ? await prismaClient.user.upsert({
+            where: { clientId },
+            update: {
+              displayName: body.displayName ?? "CourtWatch Device",
+              timezone: body.timezone,
+              pushSubscriptionJson: body.subscription as Prisma.InputJsonValue
+            },
+            create: {
+              clientId,
+              displayName: body.displayName ?? "CourtWatch Device",
+              timezone: body.timezone,
+              pushSubscriptionJson: body.subscription as Prisma.InputJsonValue
+            }
+          })
+        : existing ??
+          (await prismaClient.user.create({
+            data: {
+              displayName: body.displayName ?? "CourtWatch User",
+              timezone: body.timezone,
+              pushSubscriptionJson: body.subscription as Prisma.InputJsonValue
+            }
+          }));
+      if (clientId && existing && existing.id !== user.id) {
+        await prismaClient.user.update({ where: { id: existing.id }, data: { pushSubscriptionJson: Prisma.JsonNull } });
+      } else if (existing) {
         await prismaClient.user.update({ where: { id: existing.id }, data: { pushSubscriptionJson: body.subscription as Prisma.InputJsonValue, timezone: body.timezone } });
       }
       await prismaClient.notificationPreference.upsert({
@@ -265,14 +285,19 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
     }
   });
 
-  app.get("/api/settings/notification-preferences", async (_req, res, next) => {
+  app.get("/api/settings/notification-preferences", async (req, res, next) => {
     try {
       if (!prismaClient) {
         res.json(defaultNotificationPreferences());
         return;
       }
-      const user = await prismaClient.user.findFirst({ include: { notificationPreferences: true } });
-      res.json(user?.notificationPreferences[0] ?? defaultNotificationPreferences());
+      const user = await settingsUser(prismaClient, requestClientId(req));
+      const preference = await prismaClient.notificationPreference.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: { userId: user.id }
+      });
+      res.json(preference);
     } catch (error) {
       next(error);
     }
@@ -299,7 +324,7 @@ export function createApp(store: CourtWatchStore, prismaClient: PrismaClient | n
         dailyDigest: z.boolean().optional()
       });
       const body = schema.parse(req.body);
-      const user = body.userId ? await prismaClient.user.findUnique({ where: { id: body.userId } }) : await prismaClient.user.findFirst();
+      const user = body.userId ? await prismaClient.user.findUnique({ where: { id: body.userId } }) : await settingsUser(prismaClient, requestClientId(req));
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
@@ -362,6 +387,38 @@ function presencePayload(clientId?: string) {
 
 function stringQuery(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function requestClientId(req: express.Request): string | null {
+  const headerValue = req.headers["x-courtwatch-client-id"];
+  const raw = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  if (!raw) return null;
+  const clientId = raw.trim();
+  if (clientId.length < 8 || clientId.length > 160) return null;
+  return clientId;
+}
+
+async function settingsUser(prismaClient: PrismaClient, clientId: string | null) {
+  if (clientId) {
+    return prismaClient.user.upsert({
+      where: { clientId },
+      update: {},
+      create: {
+        clientId,
+        displayName: "CourtWatch Device",
+        timezone: "America/Los_Angeles"
+      }
+    });
+  }
+  return (
+    (await prismaClient.user.findFirst()) ??
+    (await prismaClient.user.create({
+      data: {
+        displayName: "CourtWatch User",
+        timezone: "America/Los_Angeles"
+      }
+    }))
+  );
 }
 
 function isAdminAuthorized(authorization: string | undefined, adminSecretHeader: string | string[] | undefined): boolean {

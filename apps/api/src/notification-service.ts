@@ -16,7 +16,15 @@ export class NotificationService {
       return { attempted: 0, sent: 0, skipped: 0 };
     }
 
-    const users = await this.prisma.user.findMany({ where: { pushSubscriptionJson: { not: undefined } } });
+    const users = await this.prisma.user.findMany({
+      where: { pushSubscriptionJson: { not: undefined } },
+      include: {
+        watchlists: {
+          where: { active: true, normalizedProgramName: "my teams" },
+          include: { matches: { where: { active: true } } }
+        }
+      }
+    });
     const changes = await this.prisma.gameChangeEvent.findMany({
       where: { notificationSent: false },
       include: { game: true, affectedTeam: true },
@@ -44,6 +52,12 @@ export class NotificationService {
           dedupeKey: change.dedupeKey
         };
         const game = change.game ? prismaGameToCore(change.game) : null;
+        const watchedTeamIds = new Set(user.watchlists.flatMap((watchlist) => watchlist.matches.map((match) => match.teamId)));
+        const watchedProgramIds = new Set(user.watchlists.map((watchlist) => watchlist.id));
+        if (!shouldNotifyUser(coreEvent, game, watchedTeamIds, watchedProgramIds)) {
+          skipped += 1;
+          continue;
+        }
         const team = change.affectedTeam ? prismaTeamToCore(change.affectedTeam) : null;
         const message = formatNotification(coreEvent, game, team);
         const dedupeKey = notificationHash(coreEvent, user.id, "web_push");
@@ -92,6 +106,13 @@ export class NotificationService {
 
     return { attempted, sent, skipped };
   }
+}
+
+function shouldNotifyUser(coreEvent: GameChangeEvent, game: Game | null, watchedTeamIds: Set<string>, watchedProgramIds: Set<string>): boolean {
+  if (coreEvent.affectedProgramWatchlistId && watchedProgramIds.has(coreEvent.affectedProgramWatchlistId)) return true;
+  if (coreEvent.affectedTeamId && watchedTeamIds.has(coreEvent.affectedTeamId)) return true;
+  if (game && (watchedTeamIds.has(game.homeTeamId ?? "") || watchedTeamIds.has(game.awayTeamId ?? ""))) return true;
+  return false;
 }
 
 function prismaGameToCore(game: {

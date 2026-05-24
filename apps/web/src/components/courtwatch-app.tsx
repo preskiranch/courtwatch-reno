@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
+import { stableClientId } from "../lib/client-id";
 import { requestPushSubscription } from "../lib/push";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
@@ -45,20 +46,55 @@ export function CourtWatchApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const dashboardQuery = useQuery({ queryKey: ["dashboard"], queryFn: CourtWatchApi.dashboard });
-  const gamesQuery = useQuery({ queryKey: ["games"], queryFn: () => CourtWatchApi.games() });
-  const alertsQuery = useQuery({ queryKey: ["alerts"], queryFn: CourtWatchApi.alerts });
+  const clientReady = Boolean(presenceClientId);
+  const dashboardQuery = useQuery({ queryKey: ["dashboard", presenceClientId], queryFn: CourtWatchApi.dashboard, enabled: clientReady });
+  const gamesQuery = useQuery({ queryKey: ["games", presenceClientId], queryFn: () => CourtWatchApi.games(), enabled: clientReady });
+  const alertsQuery = useQuery({ queryKey: ["alerts", presenceClientId], queryFn: CourtWatchApi.alerts, enabled: clientReady });
   const presenceQuery = useQuery({
     queryKey: ["presence", presenceClientId, activeTab],
-    queryFn: () => CourtWatchApi.presenceHeartbeat(presenceClientId ?? stablePresenceId(), activeTab),
-    enabled: Boolean(presenceClientId),
+    queryFn: () => CourtWatchApi.presenceHeartbeat(presenceClientId ?? "unknown-client", activeTab),
+    enabled: clientReady,
     refetchInterval: 25_000,
     staleTime: 20_000
   });
 
   useEffect(() => {
-    setPresenceClientId(stablePresenceId());
+    setPresenceClientId(stableClientId());
   }, []);
+
+  useEffect(() => {
+    if (!presenceClientId || !dashboardQuery.data || typeof window === "undefined") return;
+    const migrationKey = `courtwatch:follow-migration:${presenceClientId}`;
+    if (window.localStorage.getItem(migrationKey)) return;
+    if (dashboardTeamIds(dashboardQuery.data).length > 0) {
+      window.localStorage.setItem(migrationKey, "complete");
+      return;
+    }
+    const teamIds = dashboardFollowMigrationTeamIds();
+    if (teamIds.length === 0) {
+      window.localStorage.setItem(migrationKey, "complete");
+      return;
+    }
+
+    let cancelled = false;
+    window.localStorage.setItem(migrationKey, "running");
+    void Promise.all(teamIds.map((teamId) => CourtWatchApi.followTeam(teamId)))
+      .then(() => {
+        if (cancelled) return;
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["games"] });
+        queryClient.invalidateQueries({ queryKey: ["alerts"] });
+        queryClient.invalidateQueries({ queryKey: ["teams"] });
+        window.localStorage.setItem(migrationKey, "complete");
+      })
+      .catch(() => {
+        window.localStorage.removeItem(migrationKey);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dashboardQuery.data, presenceClientId, queryClient]);
 
   const refresh = async () => {
     await Promise.all([
@@ -71,7 +107,7 @@ export function CourtWatchApp() {
   };
 
   const dashboard = dashboardQuery.data;
-  const isLoading = dashboardQuery.isLoading;
+  const isLoading = !presenceClientId || dashboardQuery.isLoading;
   const offline = dashboardQuery.isError || gamesQuery.isError || alertsQuery.isError;
 
   return (
@@ -999,18 +1035,21 @@ function groupGamesByDate(games: Game[]) {
     }));
 }
 
-function stablePresenceId(): string {
-  if (typeof window === "undefined") return "server-render";
-  const key = "courtwatch:presence-client-id";
-  const generated = window.crypto?.randomUUID?.() ?? `presence-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+function dashboardTeamIds(dashboard: DashboardResponse): string[] {
+  return Array.from(new Set(dashboard.programs.flatMap((program) => program.teams.map((team) => team.id))));
+}
+
+function dashboardFollowMigrationTeamIds(): string[] {
+  if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem("courtwatch:dashboard-follow-migration");
+  if (!raw) return [];
   try {
-    const existing = window.localStorage.getItem(key);
-    if (existing) return existing;
-    window.localStorage.setItem(key, generated);
+    const parsed = JSON.parse(raw) as { teamIds?: unknown };
+    if (!Array.isArray(parsed.teamIds)) return [];
+    return parsed.teamIds.filter((teamId): teamId is string => typeof teamId === "string");
   } catch {
-    return generated;
+    return [];
   }
-  return generated;
 }
 
 function labelStatus(status: string): string {
