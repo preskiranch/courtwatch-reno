@@ -519,6 +519,12 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
     queryKey: ["teams", deferredSearch],
     queryFn: () => CourtWatchApi.teams(deferredSearch)
   });
+  const allTeamsQuery = useQuery({
+    queryKey: ["teams", "registered-totals"],
+    queryFn: () => CourtWatchApi.teams(),
+    enabled: Boolean(deferredSearch),
+    staleTime: 60_000
+  });
   const refreshSelection = () => {
     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     queryClient.invalidateQueries({ queryKey: ["games"] });
@@ -534,6 +540,9 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
     onSuccess: refreshSelection
   });
   const teams = teamsQuery.data ?? [];
+  const registeredTeams = deferredSearch ? (allTeamsQuery.data ?? []) : teams;
+  const registeredCountLoading = deferredSearch ? allTeamsQuery.isLoading : teamsQuery.isLoading;
+  const divisionTotals = useMemo(() => divisionTotalsForTeams(registeredTeams), [registeredTeams]);
   const pendingTeamId = String(followTeam.variables ?? unfollowTeam.variables ?? "");
   const focusedTeam = selectedProgram?.teams.find((team) => team.id === focusedTeamId) ?? null;
 
@@ -593,7 +602,13 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
       {focusedTeam ? <TeamFocusPanel team={focusedTeam} /> : null}
 
       <section className="space-y-2">
-        <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">{deferredSearch ? "Search Results" : "Registered Teams"}</h2>
+        <div className="flex items-center justify-between gap-3 px-1">
+          <h2 className="text-sm font-black uppercase tracking-[0.16em] text-orange-300">{deferredSearch ? "Search Results" : "Registered Teams"}</h2>
+          <span className="shrink-0 rounded-md bg-white/10 px-2.5 py-1 text-xs font-black text-white">
+            {registeredCountLoading ? "..." : `${registeredTeams.length} registered`}
+          </span>
+        </div>
+        <DivisionTotalsPanel totals={divisionTotals} loading={registeredCountLoading} />
         {teamsQuery.isLoading ? <div className="h-28 animate-pulse rounded-lg bg-white/12" /> : null}
         {!teamsQuery.isLoading && teams.length === 0 ? (
           <div className="court-card p-4">
@@ -612,6 +627,36 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
         ))}
       </section>
     </div>
+  );
+}
+
+type DivisionTotal = {
+  divisionName: string;
+  count: number;
+};
+
+function DivisionTotalsPanel({ totals, loading }: { totals: DivisionTotal[]; loading: boolean }) {
+  if (loading) {
+    return <div className="h-12 animate-pulse rounded-lg bg-white/12" />;
+  }
+
+  if (totals.length === 0) return null;
+
+  return (
+    <details className="overflow-hidden rounded-lg border border-white/12 bg-white/8 text-white">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-black">
+        <span>Division totals</span>
+        <span className="rounded-md bg-orange-500 px-2 py-1 text-xs text-white">{totals.length} divisions</span>
+      </summary>
+      <div className="max-h-72 space-y-1 overflow-y-auto border-t border-white/10 p-2">
+        {totals.map((division) => (
+          <div key={division.divisionName} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-slate-900">
+            <span className="min-w-0 text-sm font-black leading-snug">{division.divisionName}</span>
+            <span className="shrink-0 rounded-md bg-slate-950 px-2 py-1 text-xs font-black text-white">{division.count}</span>
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -1033,6 +1078,22 @@ function groupGamesByDate(games: Game[]) {
       label: date === today ? "Today" : date === tomorrow ? "Tomorrow" : formatter.format(new Date(`${date}T12:00:00.000Z`)),
       games: groupGames.sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime())
     }));
+}
+
+function divisionTotalsForTeams(teams: Team[]): DivisionTotal[] {
+  const counts = new Map<string, number>();
+  for (const team of teams) {
+    const divisionName = team.divisionName?.trim() || "Division TBD";
+    counts.set(divisionName, (counts.get(divisionName) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([divisionName, count]) => ({ divisionName, count }))
+    .sort((left, right) => divisionSortKey(left.divisionName).localeCompare(divisionSortKey(right.divisionName), "en-US", { numeric: true, sensitivity: "base" }));
+}
+
+function divisionSortKey(divisionName: string): string {
+  const genderRank = divisionName.toLowerCase().startsWith("girls") ? "2" : divisionName.toLowerCase().startsWith("boys") ? "1" : "3";
+  return `${genderRank} ${divisionName}`;
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
