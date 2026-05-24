@@ -216,9 +216,12 @@ function AppHeader({
           <h1 className="mt-1 text-2xl font-black tracking-normal text-white">CourtWatch Reno</h1>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex h-11 items-center gap-1.5 rounded-lg border border-white/12 bg-white/8 px-3 text-white" title="Active users online">
+          <div className="flex h-11 shrink-0 items-center gap-2 rounded-lg border border-white/12 bg-white/8 px-3 text-white" title="Active users online">
             <Users className="h-4 w-4 text-emerald-300" />
-            <span className="text-sm font-black">{activeUsers ?? "-"}</span>
+            <span className="text-left leading-none">
+              <span className="block text-sm font-black">{activeUsers ?? "-"}</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[9px] font-black uppercase tracking-normal text-slate-300">Active users</span>
+            </span>
           </div>
           <button
             type="button"
