@@ -414,9 +414,7 @@ function FinalResultsSection() {
 
       {resultsQuery.isLoading ? <div className="h-28 animate-pulse rounded-lg bg-slate-100" /> : null}
       {!resultsQuery.isLoading && resultGroups.length === 0 ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">
-          Final placements will appear here after official bracket finals are posted. Champion is only used for 1st place / Gold.
-        </p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">Final placements will appear here after official bracket finals are posted.</p>
       ) : null}
 
       <div className="space-y-3">
