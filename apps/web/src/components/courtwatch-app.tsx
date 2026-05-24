@@ -675,7 +675,6 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Team Selection</p>
             <h2 className="mt-1 text-2xl font-black text-slate-950">{selectedProgram?.teams.length ?? 0} teams followed</h2>
-            <p className="mt-2 text-sm font-semibold text-slate-600">Nothing is preselected. Search a registered team, then tap Follow.</p>
           </div>
           <div className="grid h-11 w-11 place-items-center rounded-lg bg-orange-500 text-white">
             <Search className="h-5 w-5" />
