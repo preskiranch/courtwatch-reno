@@ -49,7 +49,9 @@ export function buildDivisionResultGroups(snapshot: CourtWatchSnapshot, options:
   const resultsByKey = new Map<string, DivisionResult>();
 
   for (const result of snapshot.divisionResults) {
-    resultsByKey.set(resultKey(result), result);
+    if (isTrustedStoredResult(result)) {
+      resultsByKey.set(resultKey(result), result);
+    }
   }
   for (const result of deriveDivisionResultsFromGames(snapshot)) {
     resultsByKey.set(resultKey(result), result);
@@ -150,7 +152,7 @@ function isGoldFinalGame(game: Game): boolean {
   const type = normalizeGameType(game.gameType);
   if (!type || type.includes("pool")) return false;
   if (["semi", "quarter", "play in", "consolation", "bronze", "third", "3rd", "silver"].some((blocked) => type.includes(blocked))) return false;
-  return type.includes("championship") || type.includes("gold");
+  return type.includes("championship") || type.includes("champion") || type.includes("1st place") || type.includes("first place") || type.includes("final");
 }
 
 function isBronzeFinalGame(game: Game): boolean {
@@ -174,6 +176,14 @@ function compareResults(left: DivisionResult, right: DivisionResult): number {
 
 function resultKey(result: DivisionResult): string {
   return `${result.divisionId}:${result.placement}`;
+}
+
+function isTrustedStoredResult(result: DivisionResult): boolean {
+  if (result.source !== "bracket_final") return true;
+  const type = normalizeGameType(result.bracketLabel);
+  if (result.placement === 3) return type.includes("bronze") || type.includes("third") || type.includes("3rd");
+  if (["semi", "quarter", "play in", "consolation", "bronze", "third", "3rd", "silver"].some((blocked) => type.includes(blocked))) return false;
+  return type.includes("championship") || type.includes("champion") || type.includes("1st place") || type.includes("first place") || type.includes("final");
 }
 
 function maxIso(left: string | null, right: string | null): string | null {

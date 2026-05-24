@@ -39,6 +39,54 @@ describe("final division results", () => {
       [3, "team-norcal-6"]
     ]);
   });
+
+  it("does not treat generic gold bracket games as final placements", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      finalGame({
+        id: "game-gold-bracket-semifinal",
+        gameType: "Gold (G12)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 42,
+        awayScore: 38
+      })
+    ];
+
+    expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
+  });
+
+  it("hides previously stored generic gold bracket placements", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [];
+    snapshot.divisionResults = [
+      {
+        id: "stored-generic-gold",
+        eventId: snapshot.event.id,
+        divisionId: "division-boys-4th-green",
+        divisionName: "Boys 4th Green",
+        gender: "Boys",
+        gradeLevel: "4TH",
+        level: "Green",
+        teamId: "team-splash-4th",
+        teamNameSnapshot: "Splash City",
+        teamSourceUrl: null,
+        placement: 1,
+        medalLabel: "Gold",
+        bracketLabel: "Gold (G12)",
+        source: "bracket_final",
+        sourceUrl: null,
+        isOfficial: false,
+        sourceHash: "stored",
+        rawJson: {},
+        lastSeenAt: "2026-05-24T00:00:00.000Z"
+      }
+    ];
+
+    expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
+  });
 });
 
 function snapshotWithFinals(): CourtWatchSnapshot {
