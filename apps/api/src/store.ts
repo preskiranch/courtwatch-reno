@@ -606,7 +606,6 @@ async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
     where: { clientId },
     update: {},
     create: {
-      id: selectedUserIdForClient(clientId),
       clientId,
       displayName: "CourtWatch Device",
       timezone: RENO_TIMEZONE
