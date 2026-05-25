@@ -1,5 +1,10 @@
-const CACHE_NAME = "courtwatch-reno-v10";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
+const CACHE_NAME = "courtwatch-reno-v11";
+const APP_SHELL = [
+  "/",
+  "/manifest.webmanifest",
+  "/icons/icon.svg",
+  "/share/courtwatch-reno-qr.jpg"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
