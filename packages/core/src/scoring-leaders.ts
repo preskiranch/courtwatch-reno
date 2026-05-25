@@ -9,6 +9,9 @@ export interface TeamScoringLeader {
   divisionName: string;
   totalPoints: number;
   gamesScored: number;
+  wins: number;
+  losses: number;
+  ties: number;
 }
 
 export interface TeamScoringLeaderOptions {
@@ -23,6 +26,9 @@ interface TeamScoringAccumulator {
   divisionName: string;
   totalPoints: number;
   gamesScored: number;
+  wins: number;
+  losses: number;
+  ties: number;
 }
 
 export function buildTeamScoringLeaders(games: Game[], teams: Team[], options: TeamScoringLeaderOptions = {}): TeamScoringLeader[] {
@@ -45,7 +51,10 @@ export function buildTeamScoringLeaders(games: Game[], teams: Team[], options: T
         divisionId: team.divisionId,
         divisionName: team.divisionName ?? "Division TBD",
         totalPoints: 0,
-        gamesScored: 0
+        gamesScored: 0,
+        wins: 0,
+        losses: 0,
+        ties: 0
       });
     }
   }
@@ -74,11 +83,20 @@ function addTeamPoints(
   const teamName = team?.name ?? cleanText(nameSnapshot);
   if (!teamName || (!teamId && isPlaceholderTeamName(teamName))) return;
 
+  const opponentTeamId = side === "home" ? game.awayTeamId : game.homeTeamId;
+  const opponentTeam = opponentTeamId ? teamsById.get(opponentTeamId) : undefined;
+  const opponentNameSnapshot = side === "home" ? game.awayTeamNameSnapshot : game.homeTeamNameSnapshot;
+  const opponentName = opponentTeam?.name ?? cleanText(opponentNameSnapshot);
+  const opponentScore = side === "home" ? game.awayScore : game.homeScore;
+  const record = recordFromFinalScore(game, score, opponentScore, opponentTeamId, opponentName);
   const teamKey = teamId ? `team:${teamId}` : `snapshot:${game.divisionId ?? "unknown"}:${stableNameKey(teamName)}`;
   const existing = totals.get(teamKey);
   if (existing) {
     existing.totalPoints += score;
     existing.gamesScored += 1;
+    existing.wins += record.wins;
+    existing.losses += record.losses;
+    existing.ties += record.ties;
     return;
   }
 
@@ -89,8 +107,30 @@ function addTeamPoints(
     divisionId: team?.divisionId ?? game.divisionId,
     divisionName: team?.divisionName ?? divisionNameFromGame(game) ?? "Division TBD",
     totalPoints: score,
-    gamesScored: 1
+    gamesScored: 1,
+    wins: record.wins,
+    losses: record.losses,
+    ties: record.ties
   });
+}
+
+function recordFromFinalScore(
+  game: Game,
+  score: number,
+  opponentScore: number | null,
+  opponentTeamId: string | null,
+  opponentName: string
+): Pick<TeamScoringAccumulator, "wins" | "losses" | "ties"> {
+  if (game.status !== "final") return zeroRecord();
+  if (opponentScore === null || !Number.isFinite(opponentScore) || opponentScore < 0) return zeroRecord();
+  if (!opponentTeamId && (!opponentName || isPlaceholderTeamName(opponentName))) return zeroRecord();
+  if (score > opponentScore) return { wins: 1, losses: 0, ties: 0 };
+  if (score < opponentScore) return { wins: 0, losses: 1, ties: 0 };
+  return { wins: 0, losses: 0, ties: 1 };
+}
+
+function zeroRecord(): Pick<TeamScoringAccumulator, "wins" | "losses" | "ties"> {
+  return { wins: 0, losses: 0, ties: 0 };
 }
 
 function rankScoringRows(rows: TeamScoringAccumulator[]): TeamScoringLeader[] {

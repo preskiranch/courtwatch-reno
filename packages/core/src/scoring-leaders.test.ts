@@ -18,6 +18,9 @@ describe("team scoring leaders", () => {
       [2, 35, "team-norcal-6"],
       [3, 20, "team-premier-10u"]
     ]);
+    expect(leaders.find((leader) => leader.teamId === "team-splash-4th")).toMatchObject({ wins: 1, losses: 1, ties: 0 });
+    expect(leaders.find((leader) => leader.teamId === "team-norcal-6")).toMatchObject({ wins: 1, losses: 0, ties: 0 });
+    expect(leaders.find((leader) => leader.teamId === "team-premier-10u")).toMatchObject({ wins: 0, losses: 1, ties: 0 });
   });
 
   it("uses tied ranks for equal total points", () => {
@@ -45,6 +48,7 @@ describe("team scoring leaders", () => {
 
     expect(leaders).toHaveLength(1);
     expect(leaders[0]).toMatchObject({ teamId: "team-splash-4th", totalPoints: 31 });
+    expect(leaders[0]).toMatchObject({ wins: 0, losses: 0, ties: 0 });
   });
 
   it("can include every registered team with zero points when requested", () => {
@@ -56,7 +60,22 @@ describe("team scoring leaders", () => {
 
     expect(leaders).toHaveLength(seedTeams.length);
     expect(leaders.find((leader) => leader.teamId === "team-splash-4th")).toMatchObject({ totalPoints: 34, gamesScored: 1 });
-    expect(leaders.find((leader) => leader.teamId === "team-arsenal-girls-7")).toMatchObject({ totalPoints: 0, gamesScored: 0 });
+    expect(leaders.find((leader) => leader.teamId === "team-arsenal-girls-7")).toMatchObject({ totalPoints: 0, gamesScored: 0, wins: 0, losses: 0, ties: 0 });
+  });
+
+  it("counts records only from final scored games", () => {
+    const liveGame = { ...scoredGame("game-live", "team-splash-4th", "Splash City", 40, "team-premier-10u", "Premier 10U Gold", 30), status: "playing_now" as const };
+    const leaders = buildTeamScoringLeaders(
+      [
+        liveGame,
+        scoredGame("game-final", "team-splash-4th", "Splash City", 34, "team-premier-10u", "Premier 10U Gold", 20),
+        scoredGame("game-tie", "team-splash-4th", "Splash City", 42, "team-norcal-6", "NorCal Elite Blue", 42)
+      ],
+      seedTeams
+    );
+
+    expect(leaders.find((leader) => leader.teamId === "team-splash-4th")).toMatchObject({ totalPoints: 116, wins: 1, losses: 0, ties: 1 });
+    expect(leaders.find((leader) => leader.teamId === "team-premier-10u")).toMatchObject({ totalPoints: 50, wins: 0, losses: 1, ties: 0 });
   });
 
   it("can compare selected divisions and rerank only those teams", () => {

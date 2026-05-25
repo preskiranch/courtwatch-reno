@@ -575,13 +575,17 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
 
 function PointLeaderRow({ leader }: { leader: TeamScoringLeader }) {
   return (
-    <div className="grid grid-cols-[3rem_4.5rem_1fr] items-center gap-2 rounded-lg border border-slate-200 bg-white p-2" data-testid="points-leader-row">
+    <div className="grid grid-cols-[2.75rem_4.25rem_3.4rem_minmax(0,1fr)] items-center gap-1.5 rounded-lg border border-slate-200 bg-white p-2" data-testid="points-leader-row">
       <div className={clsx("grid h-10 w-10 place-items-center rounded-lg text-sm font-black", leader.rank === 1 ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-700")}>
         {ordinalRank(leader.rank)}
       </div>
       <div className="rounded-md bg-slate-950 px-2 py-1 text-center text-white">
         <p className="text-lg font-black leading-5">{leader.totalPoints}</p>
         <p className="text-[9px] font-black uppercase tracking-[0.08em] text-orange-300">points</p>
+      </div>
+      <div className="rounded-md bg-slate-100 px-1.5 py-1 text-center text-slate-900">
+        <p className="text-sm font-black leading-4">{teamRecordLabel(leader)}</p>
+        <p className="text-[8px] font-black uppercase tracking-[0.08em] text-slate-500">{leader.ties > 0 ? "W-L-T" : "W-L"}</p>
       </div>
       <div className="min-w-0">
         <p className="truncate text-sm font-black text-slate-950">{leader.teamName}</p>
@@ -1543,6 +1547,10 @@ function ordinalRank(value: number): string {
     default:
       return `${value}th`;
   }
+}
+
+function teamRecordLabel(leader: TeamScoringLeader): string {
+  return leader.ties > 0 ? `${leader.wins}-${leader.losses}-${leader.ties}` : `${leader.wins}-${leader.losses}`;
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
