@@ -2606,12 +2606,20 @@ function buildTeamRecordMap(
   games: Game[],
   teams: Team[],
 ): Map<string, TeamRecord> {
+  const serverRecordTeamIds = new Set<string>();
+  const records = new Map<string, TeamRecord>();
+  for (const team of teams) {
+    if (!team.record) continue;
+    records.set(team.id, team.record);
+    serverRecordTeamIds.add(team.id);
+  }
+
   const leaders = buildTeamScoringLeaders(games, teams, {
     includeUnscoredTeams: true,
   });
-  const records = new Map<string, TeamRecord>();
   for (const leader of leaders) {
     if (!leader.teamId) continue;
+    if (records.has(leader.teamId)) continue;
     records.set(leader.teamId, {
       wins: leader.wins,
       losses: leader.losses,
@@ -2625,6 +2633,7 @@ function buildTeamRecordMap(
   for (const game of games) {
     for (const teamId of [game.homeTeamId, game.awayTeamId]) {
       if (!teamId) continue;
+      if (serverRecordTeamIds.has(teamId)) continue;
       const record = records.get(teamId);
       if (!record) continue;
       record.gamesSeen += 1;
