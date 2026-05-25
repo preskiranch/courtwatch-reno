@@ -105,9 +105,7 @@ export interface CourtWatchStore {
   unfollowTeam(teamId: string, clientId?: string | null): Promise<void>;
   addAlias(programId: string, alias: string): Promise<ProgramAlias>;
   deleteAlias(programId: string, aliasId: string): Promise<void>;
-  syncNow(
-    exposureEventId?: number | null,
-  ): Promise<{
+  syncNow(exposureEventId?: number | null): Promise<{
     status: string;
     source: string;
     teamsCount: number;
@@ -888,8 +886,9 @@ export class PrismaStore implements CourtWatchStore {
     });
 
     try {
-      const sourceTeams =
-        preloadedTeams ?? (await fetchSourceTeams(tournament));
+      const sourceTeams = dedupeSourceTeams(
+        preloadedTeams ?? (await fetchSourceTeams(tournament)),
+      );
       const mockDataEnabled = process.env.ENABLE_MOCK_DATA === "true";
       const includeMockArsenal = process.env.ENABLE_MOCK_ARSENAL === "true";
       const usingMockFallback =
@@ -1522,14 +1521,68 @@ async function fetchSourceGames(
   }
 
   const publicClient = new PublicExposurePageClient();
-  const fetchAllPublicGames =
-    process.env.EXPOSURE_PUBLIC_FETCH_ALL_GAMES === "true";
+  const fetchAllPublicGames = shouldFetchAllPublicGames(tournament);
   if (!fetchAllPublicGames && selectedDivisionIds.length === 0) return [];
   return publicClient.fetchGames(tournament.exposureEventId, {
     divisionIds: fetchAllPublicGames ? [] : selectedDivisionIds,
     eventSlug: tournament.slug,
     timezone: tournament.timezone,
   });
+}
+
+function shouldFetchAllPublicGames(tournament: TournamentSource): boolean {
+  if (process.env.EXPOSURE_PUBLIC_FETCH_ALL_GAMES === "true") return true;
+  return hasTournamentStarted(tournament);
+}
+
+function hasTournamentStarted(tournament: TournamentSource): boolean {
+  const todayKey =
+    process.env.COURTWATCH_TODAY ??
+    dateKeyInTournamentTimeZone(new Date(), tournament.timezone);
+  return todayKey >= tournament.startDate;
+}
+
+function dateKeyInTournamentTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function dedupeSourceTeams(source: { divisions: Division[]; teams: Team[] }): {
+  divisions: Division[];
+  teams: Team[];
+} {
+  const divisions = new Map<string, Division>();
+  for (const division of source.divisions) {
+    divisions.set(division.exposureDivisionId ?? division.id, division);
+  }
+
+  const teams = new Map<string, Team>();
+  for (const team of source.teams) {
+    const key = sourceTeamDedupeKey(team);
+    if (!teams.has(key)) teams.set(key, team);
+  }
+
+  return {
+    divisions: Array.from(divisions.values()),
+    teams: Array.from(teams.values()),
+  };
+}
+
+function sourceTeamDedupeKey(team: Team): string {
+  if (team.exposureTeamId) return `external:${team.exposureTeamId}`;
+  return [
+    "fallback",
+    team.divisionId ?? team.divisionName ?? "",
+    normalizeName(team.name),
+  ].join(":");
 }
 
 async function fetchSourcePlayers(

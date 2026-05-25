@@ -1,9 +1,9 @@
-const CACHE_NAME = "courtwatch-reno-v12";
+const CACHE_NAME = "courtwatch-reno-v13";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
   "/icons/icon.svg",
-  "/share/courtwatch-reno-qr.jpg"
+  "/share/courtwatch-reno-qr.jpg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -11,7 +11,7 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -19,8 +19,14 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key)),
+        ),
+      )
+      .then(() => self.clients.claim()),
   );
 });
 
@@ -45,16 +51,25 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+      .catch(() =>
+        caches.match(request).then((cached) => cached || caches.match("/")),
+      ),
   );
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "Court Watch AAU", body: "A watched tournament item changed.", url: "/" };
+  let payload = {
+    title: "Court Watch AAU",
+    body: "A watched tournament item changed.",
+    url: "/",
+  };
   try {
     payload = event.data ? event.data.json() : payload;
   } catch {
-    payload = { ...payload, body: event.data ? event.data.text() : payload.body };
+    payload = {
+      ...payload,
+      body: event.data ? event.data.text() : payload.body,
+    };
   }
 
   event.waitUntil(
@@ -62,8 +77,8 @@ self.addEventListener("push", (event) => {
       body: payload.body,
       icon: "/icons/icon.svg",
       badge: "/icons/icon.svg",
-      data: { url: payload.url || "/" }
-    })
+      data: { url: payload.url || "/" },
+    }),
   );
 });
 

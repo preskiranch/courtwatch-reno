@@ -182,7 +182,7 @@ export function buildDashboard(
         lastRun?.status === "failed"
           ? (lastRun.errorMessage ??
             "Last sync failed; showing saved schedule.")
-          : lastRun && lastRun.gamesCount === 0
+          : snapshot.games.length === 0
             ? "Team data is current. No official game or score feed is available yet, so no results are shown."
             : "Schedule data is current from the latest successful sync.",
     },

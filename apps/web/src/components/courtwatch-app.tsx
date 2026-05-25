@@ -54,7 +54,10 @@ type PointsLeaderMode = "overall" | "compare";
 type TeamRecord = Pick<
   TeamScoringLeader,
   "wins" | "losses" | "ties" | "gamesScored" | "totalPoints"
->;
+> & {
+  finalGames: number;
+  gamesSeen: number;
+};
 
 const tabs: Array<{
   id: Tab;
@@ -573,8 +576,8 @@ function DashboardScreen({
     });
   }, [allGamesQuery.data, teamsQuery.data]);
   const teamRecords = useMemo(
-    () => teamRecordsFromLeaders(pointLeaders),
-    [pointLeaders],
+    () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsQuery.data ?? []),
+    [allGamesQuery.data, teamsQuery.data],
   );
   const recordsLoading = allGamesQuery.isLoading || teamsQuery.isLoading;
 
@@ -1679,14 +1682,7 @@ function useTeamRecords(eventId: number | null): {
     staleTime: 60_000,
   });
   const records = useMemo(
-    () =>
-      teamRecordsFromLeaders(
-        buildTeamScoringLeaders(
-          allGamesQuery.data ?? [],
-          teamsQuery.data ?? [],
-          { includeUnscoredTeams: true },
-        ),
-      ),
+    () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsQuery.data ?? []),
     [allGamesQuery.data, teamsQuery.data],
   );
   return {
@@ -2131,9 +2127,7 @@ function GameRecordsLine({
       id: game.awayTeamId,
       name: gameTeamDisplayName(game.awayTeamNameSnapshot, game, "Away"),
     },
-  ].filter((team): team is { id: string; name: string } =>
-    Boolean(team.id),
-  );
+  ].filter((team): team is { id: string; name: string } => Boolean(team.id));
 
   if (teams.length === 0) return null;
 
@@ -2608,9 +2602,13 @@ function divisionCompareOptions(
   });
 }
 
-function teamRecordsFromLeaders(
-  leaders: TeamScoringLeader[],
+function buildTeamRecordMap(
+  games: Game[],
+  teams: Team[],
 ): Map<string, TeamRecord> {
+  const leaders = buildTeamScoringLeaders(games, teams, {
+    includeUnscoredTeams: true,
+  });
   const records = new Map<string, TeamRecord>();
   for (const leader of leaders) {
     if (!leader.teamId) continue;
@@ -2620,7 +2618,18 @@ function teamRecordsFromLeaders(
       ties: leader.ties,
       gamesScored: leader.gamesScored,
       totalPoints: leader.totalPoints,
+      finalGames: 0,
+      gamesSeen: 0,
     });
+  }
+  for (const game of games) {
+    for (const teamId of [game.homeTeamId, game.awayTeamId]) {
+      if (!teamId) continue;
+      const record = records.get(teamId);
+      if (!record) continue;
+      record.gamesSeen += 1;
+      if (game.status === "final") record.finalGames += 1;
+    }
   }
   return records;
 }
@@ -2699,19 +2708,25 @@ function ordinalRank(value: number): string {
   }
 }
 
-function teamRecordLabel(record: Pick<TeamRecord, "wins" | "losses" | "ties">): string {
+function teamRecordLabel(
+  record: Pick<TeamRecord, "wins" | "losses" | "ties">,
+): string {
   return record.ties > 0
     ? `${record.wins}-${record.losses}-${record.ties}`
     : `${record.wins}-${record.losses}`;
 }
 
-function recordCaption(record?: Pick<TeamRecord, "ties">): string {
+function recordCaption(
+  record?: Pick<TeamRecord, "ties" | "gamesSeen">,
+): string {
+  if (record?.gamesSeen === 0) return "";
   return record && record.ties > 0 ? "W-L-T" : "W-L";
 }
 
 function recordText(record: TeamRecord | undefined, loading = false): string {
+  if (record && record.gamesSeen === 0) return "No games";
   if (record) return teamRecordLabel(record);
-  return loading ? "..." : "0-0";
+  return loading ? "..." : "No games";
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
