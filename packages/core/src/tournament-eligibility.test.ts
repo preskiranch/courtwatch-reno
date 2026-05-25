@@ -3,7 +3,7 @@ import type { TournamentEvent } from "./types.js";
 import { eligibleTournamentEvents } from "./tournament-eligibility.js";
 
 describe("eligibleTournamentEvents", () => {
-  it("keeps public team-list tournaments in the 90-day active/upcoming window even before teams post", () => {
+  it("keeps public team-list tournaments in the six-month active/upcoming window even before teams post", () => {
     const base = tournamentEvent(1, {});
     const events = eligibleTournamentEvents(
       [
@@ -17,6 +17,11 @@ describe("eligibleTournamentEvents", () => {
           name: "More Than 90 Days",
           startDate: "2026-08-25",
           endDate: "2026-08-26",
+        }),
+        tournamentEvent(9, {
+          name: "More Than Six Months",
+          startDate: "2026-12-01",
+          endDate: "2026-12-02",
         }),
         tournamentEvent(3, {
           name: "No Public Teams",
@@ -39,6 +44,7 @@ describe("eligibleTournamentEvents", () => {
       base.name,
       "Zero Teams",
       "More Than 30 Days",
+      "More Than 90 Days",
     ]);
   });
 

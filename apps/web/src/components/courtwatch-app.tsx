@@ -488,7 +488,7 @@ function AppHeader({
         >
           {events.length === 0 ? (
             <option value="">
-              No upcoming public-source tournaments found
+              No public-source tournaments found in the next six months
             </option>
           ) : null}
           {hasGroupedEvents ? (
@@ -2531,7 +2531,7 @@ function NoTournamentEvents() {
           </h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
             No upcoming tournaments with public registered-team data were found
-            in the next 90 days.
+            in the next six months.
           </p>
         </div>
       </div>

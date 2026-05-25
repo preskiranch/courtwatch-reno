@@ -415,6 +415,7 @@ export class PrismaStore implements CourtWatchStore {
     }
 
     return eligibleTournamentEvents(Array.from(merged.values()), {
+      windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
       cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS,
     });
   }
@@ -827,6 +828,7 @@ export class PrismaStore implements CourtWatchStore {
     await this.markCompletedEvents();
     const result = await new TournamentDiscoveryService().discover(
       majorTournamentSources(),
+      { windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS },
     );
     const syncResults = [];
     for (const candidate of result.candidates) {
@@ -1247,7 +1249,10 @@ function dropdownEventsFromSnapshot(
       registeredTeamCount: teamCounts.get(event.id) ?? 0,
       hasPublicTeamList: event.hasPublicTeamList,
     })),
-    { cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS },
+    {
+      windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
+      cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS,
+    },
   );
 }
 
