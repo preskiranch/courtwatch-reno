@@ -403,6 +403,7 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
   const [mode, setMode] = useState<PointsLeaderMode>("overall");
   const [divisionSearch, setDivisionSearch] = useState("");
   const [selectedDivisionKeys, setSelectedDivisionKeys] = useState<string[]>(loadStoredDivisionCompareKeys);
+  const [divisionPickerOpen, setDivisionPickerOpen] = useState(false);
   const deferredDivisionSearch = useDeferredValue(divisionSearch);
   const divisionOptions = useMemo(() => divisionCompareOptions(leaders), [leaders]);
   const validDivisionKeys = useMemo(() => new Set(divisionOptions.map((division) => division.divisionKey)), [divisionOptions]);
@@ -431,8 +432,18 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
   }, [selectedDivisionKeys]);
 
   const toggleDivision = (divisionKey: string) => {
+    const selecting = !selectedDivisionKeys.includes(divisionKey);
+    const nextSelectionCount = selecting ? selectedDivisionKeys.length + 1 : selectedDivisionKeys.length - 1;
     setSelectedDivisionKeys((current) => (current.includes(divisionKey) ? current.filter((key) => key !== divisionKey) : [...current, divisionKey]));
+    if (!selecting && nextSelectionCount <= 0) {
+      setDivisionPickerOpen(true);
+    }
   };
+  const clearSelectedDivisions = () => {
+    setSelectedDivisionKeys([]);
+    setDivisionPickerOpen(true);
+  };
+  const comparePickerVisible = mode === "compare" && (divisionPickerOpen || selectedDivisionKeys.length === 0);
 
   return (
     <section className="court-card p-4">
@@ -457,7 +468,10 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
             <button
               key={item}
               type="button"
-              onClick={() => setMode(item)}
+              onClick={() => {
+                setMode(item);
+                if (item === "compare" && selectedDivisionKeys.length === 0) setDivisionPickerOpen(true);
+              }}
               className={clsx(
                 "min-h-11 rounded-md px-3 text-sm font-black transition active:scale-[0.98]",
                 mode === item ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"
@@ -469,7 +483,45 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
         </div>
       ) : null}
 
-      {!loading && leaders.length > 0 && mode === "compare" ? (
+      {!loading && leaders.length > 0 && mode === "compare" && selectedDivisions.length > 0 ? (
+        <div className="mb-3 rounded-lg border border-slate-200 bg-white p-2" data-testid="division-compare-summary">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-orange-600">Selected divisions</p>
+              <p className="truncate text-sm font-black text-slate-950">
+                {selectedDivisions.length} divisions · {compareLeaders.length} teams
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setDivisionPickerOpen((current) => !current)}
+                className="min-h-9 rounded-md bg-slate-950 px-3 text-xs font-black text-white"
+              >
+                {divisionPickerOpen ? "Done" : "Edit"}
+              </button>
+              <button type="button" onClick={clearSelectedDivisions} className="min-h-9 rounded-md bg-slate-100 px-3 text-xs font-black text-slate-600">
+                Clear
+              </button>
+            </div>
+          </div>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {selectedDivisions.map((division) => (
+              <button
+                key={division.divisionKey}
+                type="button"
+                onClick={() => toggleDivision(division.divisionKey)}
+                className="inline-flex min-h-8 max-w-[220px] shrink-0 items-center gap-1.5 rounded-md bg-orange-100 px-2.5 text-xs font-black text-orange-800"
+              >
+                <span className="truncate">{division.divisionName}</span>
+                <X className="h-3.5 w-3.5 shrink-0" />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {!loading && leaders.length > 0 && comparePickerVisible ? (
         <div className="mb-3 space-y-2">
           <label className="flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3">
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
@@ -480,25 +532,6 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
               className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
             />
           </label>
-
-          {selectedDivisions.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {selectedDivisions.map((division) => (
-                <button
-                  key={division.divisionKey}
-                  type="button"
-                  onClick={() => toggleDivision(division.divisionKey)}
-                  className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-md bg-orange-100 px-2.5 text-xs font-black text-orange-800"
-                >
-                  <span className="truncate">{division.divisionName}</span>
-                  <X className="h-3.5 w-3.5 shrink-0" />
-                </button>
-              ))}
-              <button type="button" onClick={() => setSelectedDivisionKeys([])} className="min-h-9 rounded-md bg-slate-100 px-2.5 text-xs font-black text-slate-600">
-                Clear
-              </button>
-            </div>
-          ) : null}
 
           <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2" data-testid="division-compare-options">
             {searchedDivisions.map((division) => {
