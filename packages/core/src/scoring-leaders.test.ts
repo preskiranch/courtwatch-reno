@@ -46,6 +46,18 @@ describe("team scoring leaders", () => {
     expect(leaders).toHaveLength(1);
     expect(leaders[0]).toMatchObject({ teamId: "team-splash-4th", totalPoints: 31 });
   });
+
+  it("can include every registered team with zero points when requested", () => {
+    const leaders = buildTeamScoringLeaders(
+      [scoredGame("game-1", "team-splash-4th", "Splash City", 34, "team-premier-10u", "Premier 10U Gold", 20)],
+      seedTeams,
+      { includeUnscoredTeams: true }
+    );
+
+    expect(leaders).toHaveLength(seedTeams.length);
+    expect(leaders.find((leader) => leader.teamId === "team-splash-4th")).toMatchObject({ totalPoints: 34, gamesScored: 1 });
+    expect(leaders.find((leader) => leader.teamId === "team-arsenal-girls-7")).toMatchObject({ totalPoints: 0, gamesScored: 0 });
+  });
 });
 
 function scoredGame(

@@ -10,6 +10,10 @@ export interface TeamScoringLeader {
   gamesScored: number;
 }
 
+export interface TeamScoringLeaderOptions {
+  includeUnscoredTeams?: boolean;
+}
+
 interface TeamScoringAccumulator {
   teamKey: string;
   teamId: string | null;
@@ -19,7 +23,7 @@ interface TeamScoringAccumulator {
   gamesScored: number;
 }
 
-export function buildTeamScoringLeaders(games: Game[], teams: Team[]): TeamScoringLeader[] {
+export function buildTeamScoringLeaders(games: Game[], teams: Team[], options: TeamScoringLeaderOptions = {}): TeamScoringLeader[] {
   const teamsById = new Map(teams.map((team) => [team.id, team]));
   const totals = new Map<string, TeamScoringAccumulator>();
 
@@ -28,10 +32,25 @@ export function buildTeamScoringLeaders(games: Game[], teams: Team[]): TeamScori
     addTeamPoints(totals, teamsById, game, "away");
   }
 
+  if (options.includeUnscoredTeams) {
+    for (const team of teams) {
+      const teamKey = `team:${team.id}`;
+      if (totals.has(teamKey)) continue;
+      totals.set(teamKey, {
+        teamKey,
+        teamId: team.id,
+        teamName: team.name,
+        divisionName: team.divisionName ?? "Division TBD",
+        totalPoints: 0,
+        gamesScored: 0
+      });
+    }
+  }
+
   let previousPoints: number | null = null;
   let currentRank = 0;
   return Array.from(totals.values())
-    .filter((leader) => leader.gamesScored > 0)
+    .filter((leader) => options.includeUnscoredTeams || leader.gamesScored > 0)
     .sort(compareLeaders)
     .map((leader, index) => {
       if (leader.totalPoints !== previousPoints) {

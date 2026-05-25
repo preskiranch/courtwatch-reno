@@ -275,7 +275,7 @@ function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: D
     () => {
       const teams = teamsQuery.data ?? [];
       const teamsById = new Map(teams.map((team) => [team.id, team]));
-      return buildTeamScoringLeaders(allGamesQuery.data ?? [], teams).map((leader) => {
+      return buildTeamScoringLeaders(allGamesQuery.data ?? [], teams, { includeUnscoredTeams: true }).map((leader) => {
         const team = leader.teamId ? teamsById.get(leader.teamId) : null;
         return team ? { ...leader, teamName: teamDisplayName(team) } : leader;
       });
@@ -399,27 +399,26 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
 }
 
 function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader[]; loading: boolean }) {
-  const topLeaders = leaders.slice(0, 10);
   return (
     <section className="court-card p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Points Leaders</p>
-          <h2 className="mt-1 text-xl font-black text-slate-950">Top scoring teams</h2>
+          <h2 className="mt-1 text-xl font-black text-slate-950">All teams by points</h2>
         </div>
         <span className="shrink-0 rounded-md bg-slate-950 px-2 py-1 text-xs font-black text-white">
-          {loading ? "..." : `${topLeaders.length}/10`}
+          {loading ? "..." : `${leaders.length} teams`}
         </span>
       </div>
 
       {loading ? <div className="h-44 animate-pulse rounded-lg bg-slate-100" /> : null}
-      {!loading && topLeaders.length === 0 ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">Scoring leaders will appear after tournament scores are posted.</p>
+      {!loading && leaders.length === 0 ? (
+        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">Registered teams will appear here after the next sync.</p>
       ) : null}
 
-      {!loading && topLeaders.length > 0 ? (
-        <div className="max-h-[430px] space-y-2 overflow-y-auto pr-1">
-          {topLeaders.map((leader) => (
+      {!loading && leaders.length > 0 ? (
+        <div className="max-h-[590px] space-y-2 overflow-y-auto pr-1" data-testid="points-leaders-list">
+          {leaders.map((leader) => (
             <PointLeaderRow key={leader.teamKey} leader={leader} />
           ))}
         </div>
@@ -430,7 +429,7 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
 
 function PointLeaderRow({ leader }: { leader: TeamScoringLeader }) {
   return (
-    <div className="grid grid-cols-[3rem_4.5rem_1fr] items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
+    <div className="grid grid-cols-[3rem_4.5rem_1fr] items-center gap-2 rounded-lg border border-slate-200 bg-white p-2" data-testid="points-leader-row">
       <div className={clsx("grid h-10 w-10 place-items-center rounded-lg text-sm font-black", leader.rank === 1 ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-700")}>
         {ordinalRank(leader.rank)}
       </div>
