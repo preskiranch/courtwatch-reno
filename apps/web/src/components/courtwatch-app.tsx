@@ -1,6 +1,6 @@
 "use client";
 
-import type { DashboardResponse, DivisionResult, DivisionResultGroup, Game, GameChangeEvent, ProgramSummary, Team } from "@courtwatch/core";
+import { buildTeamScoringLeaders, type DashboardResponse, type DivisionResult, type DivisionResultGroup, type Game, type GameChangeEvent, type ProgramSummary, type Team, type TeamScoringLeader } from "@courtwatch/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import {
@@ -261,6 +261,28 @@ function AppHeader({
 }
 
 function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: DashboardResponse; alerts: GameChangeEvent[]; games: Game[]; onRefresh: () => void }) {
+  const allGamesQuery = useQuery({
+    queryKey: ["games", "all"],
+    queryFn: CourtWatchApi.allGames,
+    staleTime: 60_000
+  });
+  const teamsQuery = useQuery({
+    queryKey: ["teams", "all"],
+    queryFn: () => CourtWatchApi.teams(),
+    staleTime: 60_000
+  });
+  const pointLeaders = useMemo(
+    () => {
+      const teams = teamsQuery.data ?? [];
+      const teamsById = new Map(teams.map((team) => [team.id, team]));
+      return buildTeamScoringLeaders(allGamesQuery.data ?? [], teams).map((leader) => {
+        const team = leader.teamId ? teamsById.get(leader.teamId) : null;
+        return team ? { ...leader, teamName: teamDisplayName(team) } : leader;
+      });
+    },
+    [allGamesQuery.data, teamsQuery.data]
+  );
+
   return (
     <div className="space-y-4">
       <NextGameBanner game={dashboard.nextGame} />
@@ -279,6 +301,8 @@ function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: D
           <ProgramCard key={program.program.id} program={program} />
         ))}
       </div>
+
+      <PointsLeadersSection leaders={pointLeaders} loading={allGamesQuery.isLoading || teamsQuery.isLoading} />
 
       <FinalResultsSection />
 
@@ -371,6 +395,54 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
         ))}
       </div>
     </article>
+  );
+}
+
+function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader[]; loading: boolean }) {
+  const topLeaders = leaders.slice(0, 10);
+  return (
+    <section className="court-card p-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Points Leaders</p>
+          <h2 className="mt-1 text-xl font-black text-slate-950">Top scoring teams</h2>
+        </div>
+        <span className="shrink-0 rounded-md bg-slate-950 px-2 py-1 text-xs font-black text-white">
+          {loading ? "..." : `${topLeaders.length}/10`}
+        </span>
+      </div>
+
+      {loading ? <div className="h-44 animate-pulse rounded-lg bg-slate-100" /> : null}
+      {!loading && topLeaders.length === 0 ? (
+        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">Scoring leaders will appear after tournament scores are posted.</p>
+      ) : null}
+
+      {!loading && topLeaders.length > 0 ? (
+        <div className="max-h-[430px] space-y-2 overflow-y-auto pr-1">
+          {topLeaders.map((leader) => (
+            <PointLeaderRow key={leader.teamKey} leader={leader} />
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function PointLeaderRow({ leader }: { leader: TeamScoringLeader }) {
+  return (
+    <div className="grid grid-cols-[3rem_4.5rem_1fr] items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
+      <div className={clsx("grid h-10 w-10 place-items-center rounded-lg text-sm font-black", leader.rank === 1 ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-700")}>
+        {ordinalRank(leader.rank)}
+      </div>
+      <div className="rounded-md bg-slate-950 px-2 py-1 text-center text-white">
+        <p className="text-lg font-black leading-5">{leader.totalPoints}</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.08em] text-orange-300">points</p>
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-black text-slate-950">{leader.teamName}</p>
+        <p className="truncate text-[11px] font-semibold text-slate-500">{leader.divisionName}</p>
+      </div>
+    </div>
   );
 }
 
@@ -1261,6 +1333,21 @@ function resultPlacementLabel(result: DivisionResult): string {
   if (result.placement === 1) return "Champion / 1st / Gold";
   if (result.placement === 2) return "2nd / Silver";
   return "3rd / Bronze";
+}
+
+function ordinalRank(value: number): string {
+  const tens = value % 100;
+  if (tens >= 11 && tens <= 13) return `${value}th`;
+  switch (value % 10) {
+    case 1:
+      return `${value}st`;
+    case 2:
+      return `${value}nd`;
+    case 3:
+      return `${value}rd`;
+    default:
+      return `${value}th`;
+  }
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {

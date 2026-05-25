@@ -3,7 +3,7 @@ import { stableClientId } from "./client-id";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || "http://localhost:4000";
 
-type CacheKey = "dashboard" | "games" | "alerts" | "programs" | "event" | "results" | "resultsAll";
+type CacheKey = "dashboard" | "games" | "gamesAll" | "alerts" | "programs" | "event" | "results" | "resultsAll" | "teams";
 
 export type PresenceResponse = {
   activeUsers: number;
@@ -54,9 +54,10 @@ export const CourtWatchApi = {
   event: () => apiGet<TournamentEvent>("/api/events/current", "event"),
   programs: () => apiGet<ProgramSummary[]>("/api/programs", "programs"),
   games: (query = "") => apiGet<Game[]>(`/api/games${query}`, "games"),
+  allGames: () => apiGet<Game[]>("/api/games?scope=all", "gamesAll"),
   results: (scope: "watched" | "all" = "watched") => apiGet<DivisionResultGroup[]>(`/api/results?scope=${scope}`, scope === "all" ? "resultsAll" : "results"),
   alerts: () => apiGet<GameChangeEvent[]>("/api/alerts", "alerts"),
-  teams: (search = "") => apiGet<Team[]>(`/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`),
+  teams: (search = "") => apiGet<Team[]>(`/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`, search ? undefined : "teams"),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
   presenceHeartbeat: (clientId: string, page: string) => apiPost<PresenceResponse>("/api/presence/heartbeat", { clientId, page }),
   followTeam: (teamId: string) => apiPost<ProgramTeamMatch>(`/api/teams/${teamId}/follow`, {}),
