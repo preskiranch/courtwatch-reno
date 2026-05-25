@@ -2610,6 +2610,7 @@ function buildTeamRecordMap(
   const records = new Map<string, TeamRecord>();
   for (const team of teams) {
     if (!team.record) continue;
+    if (team.record.gamesSeen <= 0 && team.record.gamesScored <= 0) continue;
     records.set(team.id, team.record);
     serverRecordTeamIds.add(team.id);
   }
@@ -2740,9 +2741,9 @@ function recordCaption(
 }
 
 function recordText(record: TeamRecord | undefined, loading = false): string {
-  if (record && record.gamesSeen === 0) return "No games";
+  if (record && record.gamesSeen === 0) return "Updating";
   if (record) return teamRecordLabel(record);
-  return loading ? "..." : "No games";
+  return loading ? "..." : "Updating";
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
