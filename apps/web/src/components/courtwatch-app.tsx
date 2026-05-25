@@ -145,8 +145,8 @@ export function CourtWatchApp() {
 
         <section className="mt-4 flex-1">
           {isLoading ? <SkeletonDashboard /> : null}
-          {!isLoading && dashboard && activeTab === "dashboard" ? (
-            <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} onRefresh={refresh} />
+          {!isLoading && dashboard && presenceClientId && activeTab === "dashboard" ? (
+            <DashboardScreen dashboard={dashboard} alerts={alertsQuery.data ?? dashboard.alerts} games={gamesQuery.data ?? []} clientId={presenceClientId} onRefresh={refresh} />
           ) : null}
           {!isLoading && dashboard && activeTab === "schedule" ? <ScheduleScreen games={gamesQuery.data ?? []} programs={dashboard.programs} todayKey={todayKey} /> : null}
           {!isLoading && dashboard && activeTab === "teams" ? <TeamsScreen dashboard={dashboard} /> : null}
@@ -261,7 +261,19 @@ function AppHeader({
   );
 }
 
-function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: DashboardResponse; alerts: GameChangeEvent[]; games: Game[]; onRefresh: () => void }) {
+function DashboardScreen({
+  dashboard,
+  alerts,
+  games,
+  clientId,
+  onRefresh
+}: {
+  dashboard: DashboardResponse;
+  alerts: GameChangeEvent[];
+  games: Game[];
+  clientId: string;
+  onRefresh: () => void;
+}) {
   const allGamesQuery = useQuery({
     queryKey: ["games", "all"],
     queryFn: CourtWatchApi.allGames,
@@ -303,7 +315,7 @@ function DashboardScreen({ dashboard, alerts, games, onRefresh }: { dashboard: D
         ))}
       </div>
 
-      <PointsLeadersSection leaders={pointLeaders} loading={allGamesQuery.isLoading || teamsQuery.isLoading} />
+      <PointsLeadersSection leaders={pointLeaders} loading={allGamesQuery.isLoading || teamsQuery.isLoading} clientId={clientId} />
 
       <FinalResultsSection />
 
@@ -399,10 +411,10 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
   );
 }
 
-function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader[]; loading: boolean }) {
+function PointsLeadersSection({ leaders, loading, clientId }: { leaders: TeamScoringLeader[]; loading: boolean; clientId: string }) {
   const [mode, setMode] = useState<PointsLeaderMode>("overall");
   const [divisionSearch, setDivisionSearch] = useState("");
-  const [selectedDivisionKeys, setSelectedDivisionKeys] = useState<string[]>(loadStoredDivisionCompareKeys);
+  const [selectedDivisionKeys, setSelectedDivisionKeys] = useState<string[]>(() => loadStoredDivisionCompareKeys(clientId));
   const [divisionPickerOpen, setDivisionPickerOpen] = useState(false);
   const deferredDivisionSearch = useDeferredValue(divisionSearch);
   const divisionOptions = useMemo(() => divisionCompareOptions(leaders), [leaders]);
@@ -419,6 +431,10 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
   const badgeText = loading ? "..." : mode === "compare" ? `${selectedDivisions.length} selected` : `${leaders.length} teams`;
 
   useEffect(() => {
+    setSelectedDivisionKeys(loadStoredDivisionCompareKeys(clientId));
+  }, [clientId]);
+
+  useEffect(() => {
     if (divisionOptions.length === 0) return;
     setSelectedDivisionKeys((current) => {
       const next = current.filter((divisionKey) => validDivisionKeys.has(divisionKey));
@@ -428,8 +444,9 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem("courtwatch:points-division-compare", JSON.stringify(selectedDivisionKeys));
-  }, [selectedDivisionKeys]);
+    window.localStorage.setItem(divisionCompareStorageKey(clientId), JSON.stringify(selectedDivisionKeys));
+    window.localStorage.removeItem(LEGACY_DIVISION_COMPARE_STORAGE_KEY);
+  }, [clientId, selectedDivisionKeys]);
 
   const toggleDivision = (divisionKey: string) => {
     const selecting = !selectedDivisionKeys.includes(divisionKey);
@@ -1509,14 +1526,34 @@ function divisionCompareOptions(leaders: TeamScoringLeader[]): DivisionCompareOp
   });
 }
 
-function loadStoredDivisionCompareKeys(): string[] {
+const LEGACY_DIVISION_COMPARE_STORAGE_KEY = "courtwatch:points-division-compare";
+
+function divisionCompareStorageKey(clientId: string): string {
+  return `${LEGACY_DIVISION_COMPARE_STORAGE_KEY}:${encodeURIComponent(clientId)}`;
+}
+
+function loadStoredDivisionCompareKeys(clientId: string): string[] {
   if (typeof window === "undefined") return [];
+  const deviceKey = divisionCompareStorageKey(clientId);
   try {
-    const parsed = JSON.parse(window.localStorage.getItem("courtwatch:points-division-compare") ?? "[]");
-    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
+    const stored = window.localStorage.getItem(deviceKey);
+    if (stored) return parseStoredDivisionCompareKeys(stored);
+
+    const legacyStored = window.localStorage.getItem(LEGACY_DIVISION_COMPARE_STORAGE_KEY);
+    const legacySelection = legacyStored ? parseStoredDivisionCompareKeys(legacyStored) : [];
+    if (legacySelection.length > 0) {
+      window.localStorage.setItem(deviceKey, JSON.stringify(legacySelection));
+      window.localStorage.removeItem(LEGACY_DIVISION_COMPARE_STORAGE_KEY);
+    }
+    return legacySelection;
   } catch {
     return [];
   }
+}
+
+function parseStoredDivisionCompareKeys(value: string): string[] {
+  const parsed = JSON.parse(value);
+  return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
 }
 
 function stableDivisionKey(divisionName: string): string {
