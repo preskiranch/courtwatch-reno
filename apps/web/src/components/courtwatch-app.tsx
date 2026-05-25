@@ -51,6 +51,10 @@ import { requestPushSubscription } from "../lib/push";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
 type PointsLeaderMode = "overall" | "compare";
+type TeamRecord = Pick<
+  TeamScoringLeader,
+  "wins" | "losses" | "ties" | "gamesScored" | "totalPoints"
+>;
 
 const tabs: Array<{
   id: Tab;
@@ -268,6 +272,7 @@ export function CourtWatchApp() {
               programs={dashboard.programs}
               todayKey={todayKey}
               timezone={dashboard.event.timezone}
+              eventId={activeEventId}
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "teams" ? (
@@ -550,6 +555,7 @@ function DashboardScreen({
     queryKey: ["games", "all", eventId],
     queryFn: () => CourtWatchApi.allGames(eventId),
     staleTime: 60_000,
+    refetchInterval: 60_000,
   });
   const teamsQuery = useQuery({
     queryKey: ["teams", "all", eventId],
@@ -566,10 +572,15 @@ function DashboardScreen({
       return team ? { ...leader, teamName: teamDisplayName(team) } : leader;
     });
   }, [allGamesQuery.data, teamsQuery.data]);
+  const teamRecords = useMemo(
+    () => teamRecordsFromLeaders(pointLeaders),
+    [pointLeaders],
+  );
+  const recordsLoading = allGamesQuery.isLoading || teamsQuery.isLoading;
 
   return (
     <div className="space-y-4">
-      <NextGameBanner game={dashboard.nextGame} />
+      <NextGameBanner game={dashboard.nextGame} records={teamRecords} />
 
       <button
         type="button"
@@ -582,7 +593,12 @@ function DashboardScreen({
 
       <div className="grid gap-3 md:grid-cols-2">
         {dashboard.programs.map((program) => (
-          <ProgramCard key={program.program.id} program={program} />
+          <ProgramCard
+            key={program.program.id}
+            program={program}
+            records={teamRecords}
+            recordsLoading={recordsLoading}
+          />
         ))}
       </div>
 
@@ -607,7 +623,13 @@ function DashboardScreen({
   );
 }
 
-function NextGameBanner({ game }: { game: Game | null }) {
+function NextGameBanner({
+  game,
+  records,
+}: {
+  game: Game | null;
+  records: Map<string, TeamRecord>;
+}) {
   if (!game) {
     return (
       <section className="court-card court-line-bg sticky top-[92px] z-20 overflow-hidden p-4">
@@ -645,6 +667,7 @@ function NextGameBanner({ game }: { game: Game | null }) {
             {game.scheduledTime}
           </h2>
           <p className="mt-1 text-sm font-bold text-slate-700">{matchup}</p>
+          <GameRecordsLine game={game} records={records} />
         </div>
         <div className="rounded-lg bg-slate-950 px-3 py-2 text-right text-white">
           <p className="text-[11px] font-bold uppercase text-orange-300">
@@ -659,7 +682,15 @@ function NextGameBanner({ game }: { game: Game | null }) {
   );
 }
 
-function ProgramCard({ program }: { program: ProgramSummary }) {
+function ProgramCard({
+  program,
+  records,
+  recordsLoading,
+}: {
+  program: ProgramSummary;
+  records: Map<string, TeamRecord>;
+  recordsLoading: boolean;
+}) {
   const found = program.teams.length;
   return (
     <article className="court-card p-4">
@@ -701,6 +732,12 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
               {team.divisionName ?? "Division TBD"}{" "}
               {team.level ? ` / ${team.level}` : ""}
             </p>
+            <div className="mt-2">
+              <TeamRecordBadge
+                record={records.get(team.id)}
+                loading={recordsLoading}
+              />
+            </div>
             <p className="mt-2 text-sm text-slate-700">
               {team.nextGame
                 ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}`
@@ -1208,15 +1245,18 @@ function ScheduleScreen({
   programs,
   todayKey,
   timezone,
+  eventId,
 }: {
   games: Game[];
   programs: ProgramSummary[];
   todayKey: string;
   timezone: string;
+  eventId: number | null;
 }) {
   const [programFilter, setProgramFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courtFilter, setCourtFilter] = useState("");
+  const { records, loading: recordsLoading } = useTeamRecords(eventId);
   const followedCount = programs.reduce(
     (count, program) => count + program.teams.length,
     0,
@@ -1308,7 +1348,12 @@ function ScheduleScreen({
             {group.label}
           </h2>
           {group.games.map((game) => (
-            <GameRow key={game.id} game={game} />
+            <GameRow
+              key={game.id}
+              game={game}
+              records={records}
+              recordsLoading={recordsLoading}
+            />
           ))}
         </section>
       ))}
@@ -1353,7 +1398,15 @@ function FilterButton({
   );
 }
 
-function GameRow({ game }: { game: Game }) {
+function GameRow({
+  game,
+  records,
+  recordsLoading,
+}: {
+  game: Game;
+  records: Map<string, TeamRecord>;
+  recordsLoading: boolean;
+}) {
   const bracketUrl = bracketUrlFromGame(game);
   const matchup = gameMatchupDisplayName(game);
   return (
@@ -1370,6 +1423,11 @@ function GameRow({ game }: { game: Game }) {
           <p className="mt-1 text-sm font-semibold text-slate-500">
             {formatGameDate(game.startsAt)}
           </p>
+          <GameRecordsLine
+            game={game}
+            records={records}
+            loading={recordsLoading}
+          />
         </div>
         {game.homeScore !== null && game.awayScore !== null ? (
           <div className="rounded-lg bg-slate-950 px-3 py-2 text-center text-white">
@@ -1425,6 +1483,7 @@ function TeamsScreen({
   const [focusedTeamId, setFocusedTeamId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
   const selectedProgram = dashboard.programs[0];
+  const { records, loading: recordsLoading } = useTeamRecords(eventId);
   const teamsQuery = useQuery({
     queryKey: ["teams", deferredSearch, eventId],
     queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
@@ -1517,6 +1576,8 @@ function TeamsScreen({
                 key={team.id}
                 team={team}
                 eventId={eventId}
+                record={records.get(team.id)}
+                recordsLoading={recordsLoading}
                 focused={focusedTeamId === team.id}
                 onFocus={() => setFocusedTeamId(team.id)}
                 onUnfollow={() => {
@@ -1531,7 +1592,13 @@ function TeamsScreen({
       ) : null}
 
       {focusedTeam ? (
-        <TeamFocusPanel team={focusedTeam} eventId={eventId} />
+        <TeamFocusPanel
+          team={focusedTeam}
+          eventId={eventId}
+          record={records.get(focusedTeam.id)}
+          records={records}
+          recordsLoading={recordsLoading}
+        />
       ) : null}
 
       <section className="space-y-2">
@@ -1566,6 +1633,8 @@ function TeamsScreen({
           <TeamSearchCard
             key={team.id}
             team={team}
+            record={records.get(team.id)}
+            recordsLoading={recordsLoading}
             onFollow={() => followTeam.mutate(team.id)}
             onUnfollow={() => unfollowTeam.mutate(team.id)}
             pending={
@@ -1591,6 +1660,40 @@ type DivisionCompareOption = {
   teamCount: number;
   totalPoints: number;
 };
+
+function useTeamRecords(eventId: number | null): {
+  records: Map<string, TeamRecord>;
+  loading: boolean;
+} {
+  const allGamesQuery = useQuery({
+    queryKey: ["games", "all", eventId],
+    queryFn: () => CourtWatchApi.allGames(eventId),
+    enabled: Boolean(eventId),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+  const teamsQuery = useQuery({
+    queryKey: ["teams", "all", eventId],
+    queryFn: () => CourtWatchApi.teams("", eventId),
+    enabled: Boolean(eventId),
+    staleTime: 60_000,
+  });
+  const records = useMemo(
+    () =>
+      teamRecordsFromLeaders(
+        buildTeamScoringLeaders(
+          allGamesQuery.data ?? [],
+          teamsQuery.data ?? [],
+          { includeUnscoredTeams: true },
+        ),
+      ),
+    [allGamesQuery.data, teamsQuery.data],
+  );
+  return {
+    records,
+    loading: allGamesQuery.isLoading || teamsQuery.isLoading,
+  };
+}
 
 function DivisionTotalsPanel({
   totals,
@@ -1635,6 +1738,8 @@ function DivisionTotalsPanel({
 function FollowedTeamRow({
   team,
   eventId,
+  record,
+  recordsLoading,
   focused,
   onFocus,
   onUnfollow,
@@ -1642,6 +1747,8 @@ function FollowedTeamRow({
 }: {
   team: ProgramSummary["teams"][number];
   eventId: number | null;
+  record: TeamRecord | undefined;
+  recordsLoading: boolean;
   focused: boolean;
   onFocus: () => void;
   onUnfollow: () => void;
@@ -1662,6 +1769,7 @@ function FollowedTeamRow({
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-black text-slate-950">{displayName}</p>
             <FollowerCountBadge count={team.followerCount ?? 0} />
+            <TeamRecordBadge record={record} loading={recordsLoading} />
           </div>
           <p className="mt-1 text-sm font-semibold text-slate-600">
             {team.divisionName ?? "Division TBD"}
@@ -1758,9 +1866,15 @@ function TeamBracketLink({
 function TeamFocusPanel({
   team,
   eventId,
+  record,
+  records,
+  recordsLoading,
 }: {
   team: ProgramSummary["teams"][number];
   eventId: number | null;
+  record: TeamRecord | undefined;
+  records: Map<string, TeamRecord>;
+  recordsLoading: boolean;
 }) {
   const divisionGamesQuery = useQuery({
     queryKey: ["division-games", team.divisionId, eventId],
@@ -1794,6 +1908,9 @@ function TeamFocusPanel({
           <p className="mt-1 text-sm font-semibold text-slate-600">
             {team.divisionName ?? "Division TBD"}
           </p>
+          <div className="mt-2">
+            <TeamRecordBadge record={record} loading={recordsLoading} />
+          </div>
           <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
         </div>
         <div className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-orange-300">
@@ -1821,6 +1938,8 @@ function TeamFocusPanel({
         <MiniGameList
           games={teamGames}
           loading={divisionGamesQuery.isLoading}
+          records={records}
+          recordsLoading={recordsLoading}
           empty="No official games published for this team yet."
         />
       </div>
@@ -1845,6 +1964,8 @@ function TeamFocusPanel({
         <MiniGameList
           games={bracketGames}
           loading={divisionGamesQuery.isLoading}
+          records={records}
+          recordsLoading={recordsLoading}
           empty="No bracket games published for this division yet."
         />
       </div>
@@ -1855,10 +1976,14 @@ function TeamFocusPanel({
 function MiniGameList({
   games,
   loading,
+  records,
+  recordsLoading,
   empty,
 }: {
   games: Game[];
   loading: boolean;
+  records: Map<string, TeamRecord>;
+  recordsLoading: boolean;
   empty: string;
 }) {
   if (loading)
@@ -1891,6 +2016,11 @@ function MiniGameList({
               <p className="mt-1 text-xs font-semibold text-slate-500">
                 {formatGameDate(game.startsAt)}
               </p>
+              <GameRecordsLine
+                game={game}
+                records={records}
+                loading={recordsLoading}
+              />
             </div>
             <div className="shrink-0 rounded-lg bg-orange-500 px-3 py-2 text-center text-white">
               <p className="text-sm font-black">{game.scheduledTime}</p>
@@ -1907,11 +2037,15 @@ function MiniGameList({
 
 function TeamSearchCard({
   team,
+  record,
+  recordsLoading,
   onFollow,
   onUnfollow,
   pending,
 }: {
   team: Team;
+  record: TeamRecord | undefined;
+  recordsLoading: boolean;
   onFollow: () => void;
   onUnfollow: () => void;
   pending: boolean;
@@ -1926,6 +2060,7 @@ function TeamSearchCard({
               {teamDisplayName(team)}
             </p>
             <FollowerCountBadge count={team.followerCount ?? 0} />
+            <TeamRecordBadge record={record} loading={recordsLoading} />
           </div>
           <p className="mt-1 text-sm font-semibold text-slate-600">
             {team.divisionName ?? "Division TBD"}
@@ -1960,6 +2095,68 @@ function FollowerCountBadge({ count }: { count: number }) {
     <span className="shrink-0 rounded-md bg-orange-100 px-2 py-1 text-[11px] font-black text-orange-700">
       {count} following
     </span>
+  );
+}
+
+function TeamRecordBadge({
+  record,
+  loading = false,
+}: {
+  record?: TeamRecord;
+  loading?: boolean;
+}) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-black text-slate-700">
+      <span className="text-slate-950">{recordText(record, loading)}</span>
+      <span className="uppercase text-slate-500">{recordCaption(record)}</span>
+    </span>
+  );
+}
+
+function GameRecordsLine({
+  game,
+  records,
+  loading = false,
+}: {
+  game: Game;
+  records: Map<string, TeamRecord>;
+  loading?: boolean;
+}) {
+  const teams = [
+    {
+      id: game.homeTeamId,
+      name: gameTeamDisplayName(game.homeTeamNameSnapshot, game, "Home"),
+    },
+    {
+      id: game.awayTeamId,
+      name: gameTeamDisplayName(game.awayTeamNameSnapshot, game, "Away"),
+    },
+  ].filter((team): team is { id: string; name: string } =>
+    Boolean(team.id),
+  );
+
+  if (teams.length === 0) return null;
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-black text-slate-600">
+      <span className="uppercase tracking-[0.12em] text-slate-400">
+        Records
+      </span>
+      {teams.map((team) => {
+        const record = records.get(team.id);
+        return (
+          <span
+            key={team.id}
+            className="inline-flex min-h-7 max-w-full items-center gap-1 rounded-md bg-slate-100 px-2 text-slate-700"
+          >
+            <span className="max-w-[11rem] truncate">{team.name}</span>
+            <span className="shrink-0 text-slate-950">
+              {recordText(record, loading)}
+            </span>
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -2411,6 +2608,23 @@ function divisionCompareOptions(
   });
 }
 
+function teamRecordsFromLeaders(
+  leaders: TeamScoringLeader[],
+): Map<string, TeamRecord> {
+  const records = new Map<string, TeamRecord>();
+  for (const leader of leaders) {
+    if (!leader.teamId) continue;
+    records.set(leader.teamId, {
+      wins: leader.wins,
+      losses: leader.losses,
+      ties: leader.ties,
+      gamesScored: leader.gamesScored,
+      totalPoints: leader.totalPoints,
+    });
+  }
+  return records;
+}
+
 const LEGACY_DIVISION_COMPARE_STORAGE_KEY =
   "courtwatch:points-division-compare";
 
@@ -2485,10 +2699,19 @@ function ordinalRank(value: number): string {
   }
 }
 
-function teamRecordLabel(leader: TeamScoringLeader): string {
-  return leader.ties > 0
-    ? `${leader.wins}-${leader.losses}-${leader.ties}`
-    : `${leader.wins}-${leader.losses}`;
+function teamRecordLabel(record: Pick<TeamRecord, "wins" | "losses" | "ties">): string {
+  return record.ties > 0
+    ? `${record.wins}-${record.losses}-${record.ties}`
+    : `${record.wins}-${record.losses}`;
+}
+
+function recordCaption(record?: Pick<TeamRecord, "ties">): string {
+  return record && record.ties > 0 ? "W-L-T" : "W-L";
+}
+
+function recordText(record: TeamRecord | undefined, loading = false): string {
+  if (record) return teamRecordLabel(record);
+  return loading ? "..." : "0-0";
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
