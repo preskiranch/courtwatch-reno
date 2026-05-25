@@ -182,7 +182,7 @@ function withEvent(path: string, eventId?: number | null): string {
 }
 
 function cacheStorageKey(cacheKey: CacheKey, path: string): string {
-  return `courtwatch-aau:v4:${cacheKey}:${path}`;
+  return `courtwatch-aau:v5:${cacheKey}:${path}`;
 }
 
 function preserveDashboardFollowsForMigration<T>(

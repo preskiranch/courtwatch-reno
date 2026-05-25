@@ -5,10 +5,12 @@ import type {
   GameChangeEvent,
   ProgramSummary,
   Team,
-  TeamRecordSummary,
 } from "./types.js";
 import { DISCLAIMER } from "./types.js";
-import { buildTeamScoringLeaders } from "./scoring-leaders.js";
+import {
+  attachTeamRecordsToGame,
+  buildTeamRecordSummaryMap,
+} from "./records.js";
 
 function compareStartsAt(left: Game, right: Game): number {
   return new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime();
@@ -74,8 +76,12 @@ export function buildProgramSummaries(
             record: records.get(team.id),
             matchType: match.matchType,
             matchConfidence: match.matchConfidence,
-            nextGame,
-            lastResult,
+            nextGame: nextGame
+              ? attachTeamRecordsToGame(nextGame, records)
+              : null,
+            lastResult: lastResult
+              ? attachTeamRecordsToGame(lastResult, records)
+              : null,
             liveStatus:
               nextGame?.status ?? lastResult?.status ?? "awaiting_bracket",
           };
@@ -117,8 +123,10 @@ export function buildProgramSummaries(
         program,
         aliases,
         teams,
-        nextGame,
-        latestResult,
+        nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
+        latestResult: latestResult
+          ? attachTeamRecordsToGame(latestResult, records)
+          : null,
         alertsCount,
         zeroStateMessage:
           teams.length === 0
@@ -128,45 +136,11 @@ export function buildProgramSummaries(
     });
 }
 
-function buildTeamRecordSummaryMap(
-  games: Game[],
-  teams: Team[],
-): Map<string, TeamRecordSummary> {
-  const leaders = buildTeamScoringLeaders(games, teams, {
-    includeUnscoredTeams: true,
-  });
-  const records = new Map<string, TeamRecordSummary>();
-
-  for (const leader of leaders) {
-    if (!leader.teamId) continue;
-    records.set(leader.teamId, {
-      wins: leader.wins,
-      losses: leader.losses,
-      ties: leader.ties,
-      gamesScored: leader.gamesScored,
-      totalPoints: leader.totalPoints,
-      finalGames: 0,
-      gamesSeen: 0,
-    });
-  }
-
-  for (const game of games) {
-    for (const teamId of [game.homeTeamId, game.awayTeamId]) {
-      if (!teamId) continue;
-      const record = records.get(teamId);
-      if (!record) continue;
-      record.gamesSeen += 1;
-      if (game.status === "final") record.finalGames += 1;
-    }
-  }
-
-  return records;
-}
-
 export function buildDashboard(
   snapshot: CourtWatchSnapshot,
   now = new Date(),
 ): DashboardResponse {
+  const records = buildTeamRecordSummaryMap(snapshot.games, snapshot.teams);
   const programs = buildProgramSummaries(snapshot, now);
   const watchedTeamIds = new Set(
     programs.flatMap((program) => program.teams.map((team) => team.id)),
@@ -204,7 +178,7 @@ export function buildDashboard(
   return {
     event: snapshot.event,
     events: snapshot.events,
-    nextGame,
+    nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
     programs,
     alerts: watchedAlerts
       .sort(

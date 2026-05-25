@@ -186,6 +186,8 @@ export interface Game {
   awayTeamNameSnapshot: string | null;
   homeScore: number | null;
   awayScore: number | null;
+  homeTeamRecord?: TeamRecordSummary;
+  awayTeamRecord?: TeamRecordSummary;
   status: GameStatus;
   officialUrl: string | null;
   streamingUrl: string | null;

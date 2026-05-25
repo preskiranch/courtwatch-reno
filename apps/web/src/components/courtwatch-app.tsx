@@ -2137,7 +2137,10 @@ function GameRecordsLine({
         Records
       </span>
       {teams.map((team) => {
-        const record = records.get(team.id);
+        const record =
+          team.id === game.homeTeamId
+            ? (game.homeTeamRecord ?? records.get(team.id))
+            : (game.awayTeamRecord ?? records.get(team.id));
         return (
           <span
             key={team.id}
