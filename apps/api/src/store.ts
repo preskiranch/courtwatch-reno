@@ -11,6 +11,7 @@ import {
   TournamentDiscoveryService,
   buildDashboard,
   buildDivisionResultGroups,
+  buildTeamScoringLeaders,
   detectGameChanges,
   deriveTournamentStatus,
   deriveDivisionResultsFromGames,
@@ -44,6 +45,7 @@ import type {
   ResultPlacement,
   ResultSource,
   Team,
+  TeamRecordSummary,
   PublicTournamentCandidate,
   TournamentEvent,
 } from "@courtwatch/core";
@@ -2336,6 +2338,7 @@ function filterTeamsForSearch(
   snapshot: CourtWatchSnapshot,
   normalizedSearch: string,
 ): Team[] {
+  const records = buildTeamRecordSummaryMap(snapshot.games, snapshot.teams);
   const activeProgramIds = new Set(
     snapshot.programs
       .filter((program) => program.active)
@@ -2359,6 +2362,7 @@ function filterTeamsForSearch(
       ...team,
       isFollowed: followedTeamIds.has(team.id),
       followerCount: team.followerCount ?? followerCounts.get(team.id) ?? 0,
+      record: records.get(team.id),
     }))
     .filter((team) => {
       if (!normalizedSearch) return true;
@@ -2369,6 +2373,40 @@ function filterTeamsForSearch(
       );
     })
     .sort(compareRegisteredTeams);
+}
+
+function buildTeamRecordSummaryMap(
+  games: Game[],
+  teams: Team[],
+): Map<string, TeamRecordSummary> {
+  const leaders = buildTeamScoringLeaders(games, teams, {
+    includeUnscoredTeams: true,
+  });
+  const records = new Map<string, TeamRecordSummary>();
+  for (const leader of leaders) {
+    if (!leader.teamId) continue;
+    records.set(leader.teamId, {
+      wins: leader.wins,
+      losses: leader.losses,
+      ties: leader.ties,
+      gamesScored: leader.gamesScored,
+      totalPoints: leader.totalPoints,
+      finalGames: 0,
+      gamesSeen: 0,
+    });
+  }
+
+  for (const game of games) {
+    for (const teamId of [game.homeTeamId, game.awayTeamId]) {
+      if (!teamId) continue;
+      const record = records.get(teamId);
+      if (!record) continue;
+      record.gamesSeen += 1;
+      if (game.status === "final") record.finalGames += 1;
+    }
+  }
+
+  return records;
 }
 
 function teamFollowerCounts(

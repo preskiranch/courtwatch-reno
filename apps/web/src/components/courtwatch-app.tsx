@@ -1636,7 +1636,7 @@ function TeamsScreen({
           <TeamSearchCard
             key={team.id}
             team={team}
-            record={records.get(team.id)}
+            record={teamRecordForTeam(team, records)}
             recordsLoading={recordsLoading}
             onFollow={() => followTeam.mutate(team.id)}
             onUnfollow={() => unfollowTeam.mutate(team.id)}
@@ -2632,6 +2632,13 @@ function buildTeamRecordMap(
     }
   }
   return records;
+}
+
+function teamRecordForTeam(
+  team: Team,
+  records: Map<string, TeamRecord>,
+): TeamRecord | undefined {
+  return team.record ?? records.get(team.id);
 }
 
 const LEGACY_DIVISION_COMPARE_STORAGE_KEY =

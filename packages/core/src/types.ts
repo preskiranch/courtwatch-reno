@@ -111,6 +111,17 @@ export interface Team {
   playerNames?: string[];
   isFollowed?: boolean;
   followerCount?: number;
+  record?: TeamRecordSummary;
+}
+
+export interface TeamRecordSummary {
+  wins: number;
+  losses: number;
+  ties: number;
+  gamesScored: number;
+  totalPoints: number;
+  finalGames: number;
+  gamesSeen: number;
 }
 
 export interface Player {
