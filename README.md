@@ -1,6 +1,6 @@
-# CourtWatch Reno
+# Court Watch AAU
 
-CourtWatch Reno is a mobile-first PWA for choosing and following registered teams at the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.
+Court Watch AAU is a mobile-first PWA for choosing and following registered teams across AAU basketball tournaments, including the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.
 
 It is an independent companion tracker and is not affiliated with Jam On It or Exposure Events. Official schedules and rulings come from tournament staff.
 
@@ -99,7 +99,7 @@ Render automation:
 
 ## Exposure API
 
-CourtWatch prefers the official Exposure API when `EXPOSURE_API_KEY` and `EXPOSURE_SECRET_KEY` are configured. The API client signs requests with the documented `Timestamp` and `Authentication` headers and keeps credentials server-side only.
+Court Watch AAU prefers the official Exposure API when `EXPOSURE_API_KEY` and `EXPOSURE_SECRET_KEY` are configured. The API client signs requests with the documented `Timestamp` and `Authentication` headers and keeps credentials server-side only.
 
 Team search is backed by Exposure teams. Player-name search is intentionally disabled because the public fallback does not expose private roster/player data and the official players endpoint requires Exposure API access.
 
@@ -238,7 +238,7 @@ If GitHub CLI is available:
 git init
 git branch -M main
 git add .
-git commit -m "Build CourtWatch Reno tournament tracker"
+git commit -m "Build Court Watch AAU tournament tracker"
 gh repo create courtwatch-reno --private --source=. --remote=origin --push
 ```
 

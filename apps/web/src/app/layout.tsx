@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CourtWatch Reno",
-  description: "Independent Reno Memorial Day Tournament tracker for selected teams.",
+  title: "Court Watch AAU",
+  description: "Independent AAU tournament tracker for selected teams.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "CourtWatch",
+    title: "Court Watch AAU",
     statusBarStyle: "black-translucent"
   }
 };

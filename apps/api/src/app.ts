@@ -318,13 +318,13 @@ export function createApp(
         ? await prismaClient.user.upsert({
             where: { clientId },
             update: {
-              displayName: body.displayName ?? "CourtWatch Device",
+              displayName: body.displayName ?? "Court Watch Device",
               timezone: body.timezone,
               pushSubscriptionJson: body.subscription as Prisma.InputJsonValue,
             },
             create: {
               clientId,
-              displayName: body.displayName ?? "CourtWatch Device",
+              displayName: body.displayName ?? "Court Watch Device",
               timezone: body.timezone,
               pushSubscriptionJson: body.subscription as Prisma.InputJsonValue,
             },
@@ -332,7 +332,7 @@ export function createApp(
         : (existing ??
           (await prismaClient.user.create({
             data: {
-              displayName: body.displayName ?? "CourtWatch User",
+              displayName: body.displayName ?? "Court Watch User",
               timezone: body.timezone,
               pushSubscriptionJson: body.subscription as Prisma.InputJsonValue,
             },
@@ -573,7 +573,7 @@ async function settingsUser(
       update: {},
       create: {
         clientId,
-        displayName: "CourtWatch Device",
+        displayName: "Court Watch Device",
         timezone: "America/Los_Angeles",
       },
     });
@@ -582,7 +582,7 @@ async function settingsUser(
     (await prismaClient.user.findFirst()) ??
     (await prismaClient.user.create({
       data: {
-        displayName: "CourtWatch User",
+        displayName: "Court Watch User",
         timezone: "America/Los_Angeles",
       },
     }))

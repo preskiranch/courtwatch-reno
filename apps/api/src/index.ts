@@ -8,5 +8,5 @@ const store = useDatabase ? new PrismaStore(prisma) : new MockStore();
 const app = createApp(store, useDatabase ? prisma : null);
 
 app.listen(config.PORT, () => {
-  console.log(`CourtWatch Reno API listening on ${config.PORT}`);
+  console.log(`Court Watch AAU API listening on ${config.PORT}`);
 });

@@ -26,7 +26,7 @@ export function preferenceKeyForEvent(eventType: ChangeEventType): string {
 }
 
 export function formatNotification(event: GameChangeEvent, game: Game | null, team: Team | null): { title: string; body: string } {
-  const teamName = team?.name ?? game?.homeTeamNameSnapshot ?? "CourtWatch Reno";
+  const teamName = team?.name ?? game?.homeTeamNameSnapshot ?? "Court Watch AAU";
   const court = game?.courtName ? ` on ${game.courtName}` : "";
   const opponent = game ? opponentForTeam(game, team?.id ?? null) : null;
 
@@ -54,7 +54,7 @@ export function formatNotification(event: GameChangeEvent, game: Game | null, te
     case "starting_soon":
       return { title: `${teamName} starts soon`, body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.` };
     default:
-      return { title: "CourtWatch Reno update", body: "A watched schedule item changed." };
+      return { title: "Court Watch AAU update", body: "A watched schedule item changed." };
   }
 }
 

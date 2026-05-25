@@ -111,7 +111,7 @@ export class PublicExposurePageClient {
     const response = await this.fetchImpl(url, {
       headers: {
         "User-Agent":
-          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
       },
     });
     if (!response.ok) {
@@ -250,7 +250,7 @@ export class PublicExposurePageClient {
         Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
         "User-Agent":
-          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
       },
     });
     if (!response.ok)
@@ -271,7 +271,7 @@ export class PublicExposurePageClient {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
         "User-Agent":
-          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
       },
       body: new URLSearchParams({
         divisionId: String(divisionId),
@@ -290,7 +290,7 @@ export class PublicExposurePageClient {
       headers: {
         Accept: "text/html",
         "User-Agent":
-          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
       },
     });
     if (!response.ok)

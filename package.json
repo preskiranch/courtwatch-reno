@@ -2,7 +2,7 @@
   "name": "courtwatch-reno",
   "version": "0.1.0",
   "private": true,
-  "description": "CourtWatch Reno tournament tracker for Jam On It / Exposure Basketball Events.",
+  "description": "Court Watch AAU tournament tracker for Jam On It / Exposure Basketball Events.",
   "workspaces": [
     "apps/*",
     "packages/*"

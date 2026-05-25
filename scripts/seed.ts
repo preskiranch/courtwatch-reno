@@ -4,7 +4,7 @@ import { PrismaStore } from "../apps/api/src/store.js";
 async function main() {
   const store = new PrismaStore(prisma);
   const result = await store.syncNow();
-  console.log(`Seeded CourtWatch Reno: ${result.teamsCount} teams, ${result.gamesCount} games, ${result.changesDetected} new changes.`);
+  console.log(`Seeded Court Watch AAU: ${result.teamsCount} teams, ${result.gamesCount} games, ${result.changesDetected} new changes.`);
 }
 
 main()

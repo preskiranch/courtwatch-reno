@@ -321,11 +321,11 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
           ? "text-center"
           : "flex max-w-[320px] items-center gap-3",
       )}
-      aria-label="Share CourtWatch Reno"
+      aria-label="Share Court Watch AAU"
     >
       <img
         src="/share/courtwatch-reno-qr.jpg"
-        alt="QR code for CourtWatch Reno"
+        alt="QR code for Court Watch AAU"
         className={clsx(
           "shrink-0 rounded-md border border-white bg-white object-contain",
           qrSize,
@@ -352,7 +352,7 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
           Share with your friends
         </p>
         <p className="mt-1 text-[11px] font-semibold leading-4 text-slate-300">
-          Scan to open CourtWatch Reno.
+          Scan to open Court Watch AAU.
         </p>
       </div>
     </section>
@@ -413,7 +413,7 @@ function AppHeader({
             {selectedEvent?.organizer ?? "Reno Memorial Day"}
           </div>
           <h1 className="mt-1 text-2xl font-black tracking-normal text-white">
-            CourtWatch Reno
+            Court Watch AAU
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -1312,7 +1312,7 @@ function ScheduleScreen({
           </h2>
           <p className="mt-2 text-sm font-semibold text-slate-600">
             {followedCount > 0
-              ? "CourtWatch is waiting for the real Exposure schedule feed for your selected teams. No placeholder games are shown."
+              ? "Court Watch AAU is waiting for the real Exposure schedule feed for your selected teams. No placeholder games are shown."
               : "Use Teams search to follow the registered teams you want on this schedule."}
           </p>
         </section>
@@ -2013,7 +2013,7 @@ function AlertList({
   if (alerts.length === 0) {
     return (
       <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">
-        No alerts yet. CourtWatch is monitoring for changes.
+        No alerts yet. Court Watch AAU is monitoring for changes.
       </p>
     );
   }
@@ -2655,7 +2655,7 @@ function alertDetail(
     case "starting_soon":
       return "Game is starting soon.";
     case "new_team_discovered":
-      return "A team you follow was added to CourtWatch.";
+      return "A team you follow was added to Court Watch AAU.";
     case "home_away_changed":
       return "Home and away assignment changed.";
     default:

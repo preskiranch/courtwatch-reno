@@ -309,4 +309,4 @@ export interface CourtWatchSnapshot {
 }
 
 export const DISCLAIMER =
-  "CourtWatch Reno is an independent companion tracker and is not affiliated with Jam On It, AAU, or Exposure Events. Official schedules and rulings come from tournament staff.";
+  "Court Watch AAU is an independent companion tracker and is not affiliated with Jam On It, AAU, or Exposure Events. Official schedules and rulings come from tournament staff.";

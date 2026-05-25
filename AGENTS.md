@@ -1,6 +1,6 @@
-# CourtWatch Reno Agent Rules
+# Court Watch AAU Agent Rules
 
-CourtWatch Reno is a tournament companion app for the 2026 Reno Memorial Day Tournament. Treat schedule accuracy, secret handling, and mobile usability as product-critical.
+Court Watch AAU is a tournament companion app that currently supports the 2026 Reno Memorial Day Tournament. Treat schedule accuracy, secret handling, and mobile usability as product-critical.
 
 ## Guardrails
 

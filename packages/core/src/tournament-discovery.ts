@@ -1437,7 +1437,7 @@ function escapeRegex(value: string): string {
 }
 
 function publicUserAgent(): string {
-  return "CourtWatchReno/0.1 (+independent companion tracker; public cache-backed tournament discovery)";
+  return "CourtWatchAAU/0.1 (+independent companion tracker; public cache-backed tournament discovery)";
 }
 
 function errorMessage(error: unknown): string {

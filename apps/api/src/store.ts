@@ -1419,7 +1419,7 @@ async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
       update: {},
       create: {
         clientId,
-        displayName: "CourtWatch Device",
+        displayName: "Court Watch Device",
         timezone: RENO_TIMEZONE,
       },
     });

@@ -1,7 +1,7 @@
 {
-  "name": "CourtWatch Reno",
-  "short_name": "CourtWatch",
-  "description": "Mobile tournament tracker for Arsenal and Splash City at the Reno Memorial Day Tournament.",
+  "name": "Court Watch AAU",
+  "short_name": "Court AAU",
+  "description": "Mobile AAU tournament tracker for selected teams.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

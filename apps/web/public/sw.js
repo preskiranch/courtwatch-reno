@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-reno-v8";
+const CACHE_NAME = "courtwatch-reno-v9";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -45,7 +45,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "CourtWatch Reno", body: "A watched tournament item changed.", url: "/" };
+  let payload = { title: "Court Watch AAU", body: "A watched tournament item changed.", url: "/" };
   try {
     payload = event.data ? event.data.json() : payload;
   } catch {
