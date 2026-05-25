@@ -737,7 +737,7 @@ function ProgramCard({
             </p>
             <div className="mt-2">
               <TeamRecordBadge
-                record={records.get(team.id)}
+                record={teamRecordForTeam(team, records)}
                 loading={recordsLoading}
               />
             </div>
@@ -1579,7 +1579,7 @@ function TeamsScreen({
                 key={team.id}
                 team={team}
                 eventId={eventId}
-                record={records.get(team.id)}
+                record={teamRecordForTeam(team, records)}
                 recordsLoading={recordsLoading}
                 focused={focusedTeamId === team.id}
                 onFocus={() => setFocusedTeamId(team.id)}
@@ -1598,7 +1598,7 @@ function TeamsScreen({
         <TeamFocusPanel
           team={focusedTeam}
           eventId={eventId}
-          record={records.get(focusedTeam.id)}
+          record={teamRecordForTeam(focusedTeam, records)}
           records={records}
           recordsLoading={recordsLoading}
         />
@@ -2645,7 +2645,7 @@ function buildTeamRecordMap(
 }
 
 function teamRecordForTeam(
-  team: Team,
+  team: Pick<Team, "id" | "record">,
   records: Map<string, TeamRecord>,
 ): TeamRecord | undefined {
   return team.record ?? records.get(team.id);
