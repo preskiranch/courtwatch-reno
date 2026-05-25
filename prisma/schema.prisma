@@ -24,15 +24,33 @@ model User {
 }
 
 model Event {
-  id              String    @id @default(cuid())
-  exposureEventId Int       @unique @map("exposure_event_id")
-  name            String
-  organizer       String
-  startDate       DateTime  @map("start_date") @db.Date
-  endDate         DateTime  @map("end_date") @db.Date
-  location        String
-  officialUrl     String    @map("official_url")
-  lastSyncedAt    DateTime? @map("last_synced_at")
+  id                  String    @id @default(cuid())
+  exposureEventId     Int       @unique @map("exposure_event_id")
+  externalProvider    String    @default("exposure_events") @map("external_provider")
+  externalId          String    @map("external_id")
+  sourceUrl           String?   @map("source_url")
+  name                String
+  organizer           String
+  sport               String    @default("basketball")
+  sanctioningTags     String[]  @default([]) @map("sanctioning_tags")
+  gender              String?
+  ageOrGradeDivisions String[]  @default([]) @map("age_or_grade_divisions")
+  venueName           String?   @map("venue_name")
+  city                String?
+  state               String?
+  region              String?
+  startDate           DateTime  @map("start_date") @db.Date
+  endDate             DateTime  @map("end_date") @db.Date
+  location            String
+  officialUrl         String    @map("official_url")
+  registeredTeamCount Int       @default(0) @map("registered_team_count")
+  hasPublicTeamList   Boolean   @default(false) @map("has_public_team_list")
+  lastCheckedAt       DateTime? @map("last_checked_at")
+  lastSyncedAt        DateTime? @map("last_synced_at")
+  lastTeamChangeAt    DateTime? @map("last_team_change_at")
+  status              String    @default("upcoming")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
   divisions       Division[]
   teams           Team[]
@@ -41,6 +59,8 @@ model Event {
   divisionResults DivisionResult[]
   syncRuns        SyncRun[]
 
+  @@unique([externalProvider, externalId])
+  @@index([status, startDate])
   @@map("events")
 }
 
@@ -103,9 +123,13 @@ model Team {
   clubName           String?  @map("club_name")
   normalizedClubName String?  @map("normalized_club_name")
   coachName          String?  @map("coach_name")
+  city               String?
+  state              String?
   sourceUrl          String?  @map("source_url")
   rawJson            Json?    @map("raw_json")
   lastSeenAt         DateTime @map("last_seen_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   event              Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   division           Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)

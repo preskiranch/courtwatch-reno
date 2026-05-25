@@ -53,6 +53,10 @@ services:
         value: https://courtwatch-reno-api.onrender.com
       - key: EXPOSURE_EVENT_ID
         value: "255539"
+      - key: EXPOSURE_EVENT_SLUG
+        value: 2026-reno-memorial-day-tournament
+      - key: DEFAULT_EXPOSURE_EVENT_ID
+        value: "255539"
       - key: EXPOSURE_API_KEY
         sync: false
       - key: EXPOSURE_SECRET_KEY
@@ -63,6 +67,16 @@ services:
         value: "false"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
         value: "125"
+      - key: TOURNAMENT_DISCOVERY_ENABLED
+        value: "true"
+      - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
+        value: "24"
+      - key: TOURNAMENT_DROPDOWN_CACHE_HOURS
+        value: "48"
+      - key: TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS
+        value: "125"
+      - key: TOURNAMENT_DISCOVERY_RESPECT_ROBOTS
+        value: "true"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA
@@ -106,6 +120,12 @@ services:
           envVarKey: ADMIN_SECRET
       - key: EXPOSURE_EVENT_ID
         value: "255539"
+      - key: EXPOSURE_EVENT_SLUG
+        value: 2026-reno-memorial-day-tournament
+      - key: DEFAULT_EXPOSURE_EVENT_ID
+        value: "255539"
+      - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
+        value: "24"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA

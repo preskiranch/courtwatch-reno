@@ -4,14 +4,14 @@ import { PublicExposurePageClient } from "./public-exposure-page-client.js";
 function jsonResponse(value: unknown) {
   return new Response(JSON.stringify(value), {
     status: 200,
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
   });
 }
 
 function htmlResponse(value: string) {
   return new Response(value, {
     status: 200,
-    headers: { "Content-Type": "text/html" }
+    headers: { "Content-Type": "text/html" },
   });
 }
 
@@ -25,21 +25,24 @@ describe("PublicExposurePageClient", () => {
             DivisionId: 1278469,
             Slug: "splash-city",
             Value: 5168259,
-            Name: "Splash City (Boys 2nd/3rd Level 3 Blue)"
-          }
+            Name: "Splash City (Boys 2nd/3rd Level 3 Blue)",
+          },
         ],
-        Players: []
-      })
+        Players: [],
+      }),
     ) as unknown as typeof fetch;
 
-    const result = await new PublicExposurePageClient({ baseUrl: "https://basketball.exposureevents.com", fetchImpl }).fetchTeams(255539);
+    const result = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchTeams(255539);
 
-    expect(result.divisions[0]?.id).toBe("division-1278469");
+    expect(result.divisions[0]?.id).toBe("division-255539-1278469");
     expect(result.teams[0]).toMatchObject({
-      id: "public-team-5168259",
+      id: "public-team-255539-5168259",
       exposureTeamId: "5168259",
       name: "Splash City",
-      divisionId: "division-1278469"
+      divisionId: "division-255539-1278469",
     });
   });
 
@@ -77,7 +80,7 @@ describe("PublicExposurePageClient", () => {
               TimeFormatted: "7:00 PM PDT",
               HomeTeamScoreDisplay: "",
               AwayTeamScoreDisplay: "",
-              Started: false
+              Started: false,
             },
             {
               Id: 40477620,
@@ -92,35 +95,43 @@ describe("PublicExposurePageClient", () => {
               TimeFormatted: "4:30 PM PDT",
               HomeTeamScoreDisplay: "42",
               AwayTeamScoreDisplay: "38",
-              HomeTeamIsWinner: true
-            }
-          ]
-        }
+              HomeTeamIsWinner: true,
+            },
+          ],
+        },
       ]);
     }) as unknown as typeof fetch;
 
-    const games = await new PublicExposurePageClient({ baseUrl: "https://basketball.exposureevents.com", fetchImpl }).fetchGames(255539, {
-      divisionIds: ["1278469"]
+    const games = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchGames(255539, {
+      divisionIds: ["1278469"],
     });
 
     expect(games[0]).toMatchObject({
       exposureGameId: "40477691",
       courtName: "Court CC1",
-      homeTeamId: "public-team-5104214",
-      awayTeamId: "public-team-5168259",
+      homeTeamId: "public-team-255539-5104214",
+      awayTeamId: "public-team-255539-5168259",
       homeScore: null,
       awayScore: null,
-      status: "upcoming"
+      status: "upcoming",
     });
     expect(games[1]).toMatchObject({
       courtName: "Court CC34",
       homeScore: 42,
       awayScore: 38,
-      status: "final"
+      status: "final",
     });
-    expect((games[1]?.rawJson as { BracketUrl?: string }).BracketUrl).toBe("https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213");
-    expect((games[0]?.rawJson as { DivisionBracketUrls?: Array<{ url: string }> }).DivisionBracketUrls?.[0]?.url).toBe(
-      "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213"
+    expect((games[1]?.rawJson as { BracketUrl?: string }).BracketUrl).toBe(
+      "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213",
+    );
+    expect(
+      (games[0]?.rawJson as { DivisionBracketUrls?: Array<{ url: string }> })
+        .DivisionBracketUrls?.[0]?.url,
+    ).toBe(
+      "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213",
     );
   });
 });

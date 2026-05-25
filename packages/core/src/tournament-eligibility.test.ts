@@ -1,0 +1,92 @@
+import { describe, expect, it } from "vitest";
+import type { TournamentEvent } from "./types.js";
+import { eligibleTournamentEvents } from "./tournament-eligibility.js";
+
+describe("eligibleTournamentEvents", () => {
+  it("keeps public team-list tournaments in the 90-day active/upcoming window even before teams post", () => {
+    const base = tournamentEvent(1, {});
+    const events = eligibleTournamentEvents(
+      [
+        base,
+        tournamentEvent(2, {
+          name: "More Than 30 Days",
+          startDate: "2026-06-25",
+          endDate: "2026-06-26",
+        }),
+        tournamentEvent(8, {
+          name: "More Than 90 Days",
+          startDate: "2026-08-25",
+          endDate: "2026-08-26",
+        }),
+        tournamentEvent(3, {
+          name: "No Public Teams",
+          hasPublicTeamList: false,
+        }),
+        tournamentEvent(4, { name: "Zero Teams", registeredTeamCount: 0 }),
+        tournamentEvent(5, {
+          name: "Completed",
+          startDate: "2026-05-01",
+          endDate: "2026-05-02",
+          status: "completed",
+        }),
+        tournamentEvent(6, { name: "Cancelled", status: "cancelled" }),
+        tournamentEvent(7, { name: "Unavailable", status: "unavailable" }),
+      ],
+      { todayKey: "2026-05-24", now: new Date("2026-05-24T12:00:00.000Z") },
+    );
+
+    expect(events.map((event) => event.name)).toEqual([
+      base.name,
+      "Zero Teams",
+      "More Than 30 Days",
+    ]);
+  });
+
+  it("dedupes repeated provider events", () => {
+    const events = eligibleTournamentEvents(
+      [
+        tournamentEvent(10, { name: "First Copy" }),
+        tournamentEvent(10, { id: "event-copy", name: "Second Copy" }),
+      ],
+      { todayKey: "2026-05-24", now: new Date("2026-05-24T12:00:00.000Z") },
+    );
+
+    expect(events.map((event) => event.name)).toEqual(["First Copy"]);
+  });
+});
+
+function tournamentEvent(
+  exposureEventId: number,
+  overrides: Partial<TournamentEvent>,
+): TournamentEvent {
+  return {
+    id: `event-${exposureEventId}`,
+    exposureEventId,
+    externalProvider: "exposure_events",
+    externalId: String(exposureEventId),
+    slug: `event-${exposureEventId}`,
+    sourceUrl: `https://basketball.exposureevents.com/${exposureEventId}/event-${exposureEventId}`,
+    name: `Tournament ${exposureEventId}`,
+    organizer: "Jam On It",
+    sport: "basketball",
+    sanctioningTags: ["Jam On It", "Exposure Events"],
+    gender: "Boys & Girls",
+    ageOrGradeDivisions: [],
+    venueName: null,
+    city: "Reno",
+    state: "NV",
+    region: "NV",
+    startDate: "2026-05-25",
+    endDate: "2026-05-26",
+    location: "Reno, NV",
+    officialUrl: `https://basketball.exposureevents.com/${exposureEventId}/event-${exposureEventId}`,
+    timezone: "America/Los_Angeles",
+    registeredTeamCount: 12,
+    hasPublicTeamList: true,
+    lastCheckedAt: "2026-05-24T12:00:00.000Z",
+    lastSyncedAt: "2026-05-24T12:00:00.000Z",
+    lastTeamChangeAt: "2026-05-24T12:00:00.000Z",
+    status: "upcoming",
+    ...overrides,
+  };
+}

@@ -1,7 +1,11 @@
-export const RENO_TIMEZONE = "America/Los_Angeles";
+export const DEFAULT_TOURNAMENT_TIMEZONE = "America/Los_Angeles";
+export const RENO_TIMEZONE = DEFAULT_TOURNAMENT_TIMEZONE;
 export const SELECTED_TEAMS_PROGRAM_ID = "program-selected-teams";
 export const SELECTED_TEAMS_PROGRAM_NAME = "My Teams";
-export const LEGACY_AUTO_PROGRAM_IDS = ["program-arsenal", "program-splash-city"];
+export const LEGACY_AUTO_PROGRAM_IDS = [
+  "program-arsenal",
+  "program-splash-city",
+];
 
 export type GameStatus =
   | "upcoming"
@@ -30,18 +34,46 @@ export type ChangeEventType =
 
 export type ResultPlacement = 1 | 2 | 3;
 export type ResultMedalLabel = "Gold" | "Silver" | "Bronze";
-export type ResultSource = "official_standings" | "bracket_final" | "manual_admin";
+export type ResultSource =
+  | "official_standings"
+  | "bracket_final"
+  | "manual_admin";
+export type TournamentEventStatus =
+  | "upcoming"
+  | "active"
+  | "completed"
+  | "unavailable"
+  | "cancelled";
 
 export interface TournamentEvent {
   id: string;
   exposureEventId: number;
+  externalProvider: string;
+  externalId: string;
+  slug: string;
+  sourceUrl: string;
   name: string;
   organizer: string;
+  sport: string;
+  sanctioningTags: string[];
+  gender: string | null;
+  ageOrGradeDivisions: string[];
+  venueName: string | null;
+  city: string | null;
+  state: string | null;
+  region: string | null;
   startDate: string;
   endDate: string;
   location: string;
   officialUrl: string;
+  timezone: string;
+  registeredTeamCount: number;
+  hasPublicTeamList: boolean;
+  lastCheckedAt: string | null;
   lastSyncedAt: string | null;
+  lastTeamChangeAt: string | null;
+  status: TournamentEventStatus;
+  dropdownGroup?: "tracked" | "upcoming";
 }
 
 export interface Division {
@@ -65,6 +97,8 @@ export interface Team {
   clubName: string | null;
   normalizedClubName: string | null;
   coachName: string | null;
+  city?: string | null;
+  state?: string | null;
   sourceUrl: string | null;
   divisionName?: string | null;
   gender?: string | null;
@@ -72,6 +106,8 @@ export interface Team {
   level?: string | null;
   rawJson?: unknown;
   lastSeenAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   playerNames?: string[];
   isFollowed?: boolean;
   followerCount?: number;
@@ -243,6 +279,7 @@ export interface ProgramSummary {
 
 export interface DashboardResponse {
   event: TournamentEvent;
+  events: TournamentEvent[];
   nextGame: Game | null;
   programs: ProgramSummary[];
   alerts: GameChangeEvent[];
@@ -258,6 +295,7 @@ export interface DashboardResponse {
 
 export interface CourtWatchSnapshot {
   event: TournamentEvent;
+  events: TournamentEvent[];
   divisions: Division[];
   teams: Team[];
   players: Player[];
@@ -271,4 +309,4 @@ export interface CourtWatchSnapshot {
 }
 
 export const DISCLAIMER =
-  "CourtWatch Reno is an independent companion tracker and is not affiliated with Jam On It or Exposure Events. Official schedules and rulings come from tournament staff.";
+  "CourtWatch Reno is an independent companion tracker and is not affiliated with Jam On It, AAU, or Exposure Events. Official schedules and rulings come from tournament staff.";

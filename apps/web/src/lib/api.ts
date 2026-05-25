@@ -1,9 +1,32 @@
-import type { DashboardResponse, DivisionResultGroup, Game, GameChangeEvent, ProgramAlias, ProgramSummary, ProgramTeamMatch, Team, TournamentEvent } from "@courtwatch/core";
+import type {
+  DashboardResponse,
+  DivisionResultGroup,
+  Game,
+  GameChangeEvent,
+  ProgramAlias,
+  ProgramSummary,
+  ProgramTeamMatch,
+  Team,
+  TournamentEvent,
+} from "@courtwatch/core";
 import { stableClientId } from "./client-id";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || "http://localhost:4000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.API_BASE_URL ||
+  "http://localhost:4000";
 
-type CacheKey = "dashboard" | "games" | "gamesAll" | "alerts" | "programs" | "event" | "results" | "resultsAll" | "teams";
+type CacheKey =
+  | "dashboard"
+  | "games"
+  | "gamesAll"
+  | "alerts"
+  | "programs"
+  | "event"
+  | "events"
+  | "results"
+  | "resultsAll"
+  | "teams";
 
 export type PresenceResponse = {
   activeUsers: number;
@@ -13,59 +36,134 @@ export type PresenceResponse = {
 };
 
 export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
+  const storageKey = cacheKey ? cacheStorageKey(cacheKey, path) : null;
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       headers: { Accept: "application/json", ...clientIdentityHeaders() },
-      cache: "no-store"
+      cache: "no-store",
     });
     if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
-    if (cacheKey && typeof window !== "undefined") {
-      preserveDashboardFollowsForMigration(cacheKey, window.localStorage.getItem(`courtwatch:${cacheKey}`), data);
-      window.localStorage.setItem(`courtwatch:${cacheKey}`, JSON.stringify({ data, savedAt: new Date().toISOString() }));
+    if (cacheKey && storageKey && typeof window !== "undefined") {
+      preserveDashboardFollowsForMigration(
+        cacheKey,
+        window.localStorage.getItem(storageKey) ??
+          window.localStorage.getItem(`courtwatch:${cacheKey}`),
+        data,
+      );
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({ data, savedAt: new Date().toISOString() }),
+      );
     }
     return data;
   } catch (error) {
-    if (cacheKey && typeof window !== "undefined") {
-      const cached = window.localStorage.getItem(`courtwatch:${cacheKey}`);
+    if (storageKey && typeof window !== "undefined") {
+      const cached =
+        window.localStorage.getItem(storageKey) ??
+        (cacheKey
+          ? window.localStorage.getItem(`courtwatch:${cacheKey}`)
+          : null);
       if (cached) return (JSON.parse(cached) as { data: T }).data;
     }
     throw error;
   }
 }
 
-export async function apiPost<T>(path: string, body: unknown, headers: Record<string, string> = {}): Promise<T> {
+export async function apiPost<T>(
+  path: string,
+  body: unknown,
+  headers: Record<string, string> = {},
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json", ...clientIdentityHeaders(), ...headers },
-    body: JSON.stringify(body)
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...clientIdentityHeaders(),
+      ...headers,
+    },
+    body: JSON.stringify(body),
   });
   if (!response.ok) throw new Error(await response.text());
   return (await response.json()) as T;
 }
 
 export async function apiDelete(path: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}${path}`, { method: "DELETE", headers: { Accept: "application/json", ...clientIdentityHeaders() } });
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "DELETE",
+    headers: { Accept: "application/json", ...clientIdentityHeaders() },
+  });
   if (!response.ok) throw new Error(await response.text());
 }
 
 export const CourtWatchApi = {
-  dashboard: () => apiGet<DashboardResponse>("/api/dashboard", "dashboard"),
-  event: () => apiGet<TournamentEvent>("/api/events/current", "event"),
-  programs: () => apiGet<ProgramSummary[]>("/api/programs", "programs"),
-  games: (query = "") => apiGet<Game[]>(`/api/games${query}`, "games"),
-  allGames: () => apiGet<Game[]>("/api/games?scope=all", "gamesAll"),
-  results: (scope: "watched" | "all" = "watched") => apiGet<DivisionResultGroup[]>(`/api/results?scope=${scope}`, scope === "all" ? "resultsAll" : "results"),
-  alerts: () => apiGet<GameChangeEvent[]>("/api/alerts", "alerts"),
-  teams: (search = "") => apiGet<Team[]>(`/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`, search ? undefined : "teams"),
+  events: () => apiGet<TournamentEvent[]>("/api/events", "events"),
+  dashboard: (eventId?: number | null) =>
+    apiGet<DashboardResponse>(
+      withEvent("/api/dashboard", eventId),
+      "dashboard",
+    ),
+  event: (eventId?: number | null) =>
+    apiGet<TournamentEvent>(withEvent("/api/events/current", eventId), "event"),
+  programs: (eventId?: number | null) =>
+    apiGet<ProgramSummary[]>(withEvent("/api/programs", eventId), "programs"),
+  games: (query = "", eventId?: number | null) =>
+    apiGet<Game[]>(withEvent(`/api/games${query}`, eventId), "games"),
+  allGames: (eventId?: number | null) =>
+    apiGet<Game[]>(withEvent("/api/games?scope=all", eventId), "gamesAll"),
+  results: (scope: "watched" | "all" = "watched", eventId?: number | null) =>
+    apiGet<DivisionResultGroup[]>(
+      withEvent(`/api/results?scope=${scope}`, eventId),
+      scope === "all" ? "resultsAll" : "results",
+    ),
+  alerts: (eventId?: number | null) =>
+    apiGet<GameChangeEvent[]>(withEvent("/api/alerts", eventId), "alerts"),
+  teams: (search = "", eventId?: number | null) =>
+    apiGet<Team[]>(
+      withEvent(
+        `/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+        eventId,
+      ),
+      search ? undefined : "teams",
+    ),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
-  presenceHeartbeat: (clientId: string, page: string) => apiPost<PresenceResponse>("/api/presence/heartbeat", { clientId, page }),
-  followTeam: (teamId: string) => apiPost<ProgramTeamMatch>(`/api/teams/${teamId}/follow`, {}),
+  presenceHeartbeat: (clientId: string, page: string) =>
+    apiPost<PresenceResponse>("/api/presence/heartbeat", { clientId, page }),
+  followTeam: (teamId: string) =>
+    apiPost<ProgramTeamMatch>(`/api/teams/${teamId}/follow`, {}),
   unfollowTeam: (teamId: string) => apiDelete(`/api/teams/${teamId}/follow`),
-  addAlias: (programId: string, alias: string) => apiPost<ProgramAlias>(`/api/programs/${programId}/aliases`, { alias }),
-  deleteAlias: (programId: string, aliasId: string) => apiDelete(`/api/programs/${programId}/aliases/${aliasId}`),
-  subscribePush: (subscription: PushSubscription, timezone: string) => apiPost<{ ok: boolean; userId?: string }>("/api/push/subscribe", { subscription, timezone }),
-  syncNow: (adminSecret: string) => apiPost<{ status: string; teamsCount: number; gamesCount: number; changesDetected: number }>("/api/admin/sync-now", {}, { "x-admin-secret": adminSecret })
+  addAlias: (programId: string, alias: string) =>
+    apiPost<ProgramAlias>(`/api/programs/${programId}/aliases`, { alias }),
+  deleteAlias: (programId: string, aliasId: string) =>
+    apiDelete(`/api/programs/${programId}/aliases/${aliasId}`),
+  subscribePush: (subscription: PushSubscription, timezone: string) =>
+    apiPost<{ ok: boolean; userId?: string }>("/api/push/subscribe", {
+      subscription,
+      timezone,
+    }),
+  syncNow: (adminSecret: string, eventId?: number | null) =>
+    apiPost<{
+      status: string;
+      teamsCount: number;
+      gamesCount: number;
+      changesDetected: number;
+    }>(
+      withEvent("/api/admin/sync-now", eventId),
+      {},
+      { "x-admin-secret": adminSecret },
+    ),
+  discoverTournaments: (adminSecret: string) =>
+    apiPost<{
+      status: string;
+      discoveredCount: number;
+      syncedCount: number;
+      failures: Array<{ provider: string; source: string; message: string }>;
+    }>(
+      "/api/admin/discover-tournaments",
+      {},
+      { "x-admin-secret": adminSecret },
+    ),
 };
 
 export function apiBaseUrl() {
@@ -77,12 +175,37 @@ function clientIdentityHeaders(): Record<string, string> {
   return clientId ? { "x-courtwatch-client-id": clientId } : {};
 }
 
-function preserveDashboardFollowsForMigration<T>(cacheKey: CacheKey, previousCache: string | null, nextData: T) {
-  if (cacheKey !== "dashboard" || !previousCache || typeof window === "undefined") return;
+function withEvent(path: string, eventId?: number | null): string {
+  if (!eventId) return path;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}eventId=${encodeURIComponent(String(eventId))}`;
+}
+
+function cacheStorageKey(cacheKey: CacheKey, path: string): string {
+  return `courtwatch-reno:${cacheKey}:${path}`;
+}
+
+function preserveDashboardFollowsForMigration<T>(
+  cacheKey: CacheKey,
+  previousCache: string | null,
+  nextData: T,
+) {
+  if (
+    cacheKey !== "dashboard" ||
+    !previousCache ||
+    typeof window === "undefined"
+  )
+    return;
   const previousTeamIds = dashboardTeamIdsFromUnknown(safeJson(previousCache));
   const nextTeamIds = dashboardTeamIdsFromUnknown(nextData);
   if (previousTeamIds.length > 0 && nextTeamIds.length === 0) {
-    window.localStorage.setItem("courtwatch:dashboard-follow-migration", JSON.stringify({ teamIds: previousTeamIds, savedAt: new Date().toISOString() }));
+    window.localStorage.setItem(
+      "courtwatch:dashboard-follow-migration",
+      JSON.stringify({
+        teamIds: previousTeamIds,
+        savedAt: new Date().toISOString(),
+      }),
+    );
   }
 }
 

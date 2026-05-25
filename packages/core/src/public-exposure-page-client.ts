@@ -3,7 +3,7 @@ import { fromZonedTime } from "date-fns-tz";
 import { extractDivisionMeta, normalizeName } from "./normalization.js";
 import { hashSource } from "./change-detection.js";
 import type { Division, Game, Team } from "./types.js";
-import { RENO_TIMEZONE } from "./types.js";
+import { DEFAULT_TOURNAMENT_TIMEZONE } from "./types.js";
 
 export interface PublicExposureTeamResult {
   divisions: Division[];
@@ -12,12 +12,19 @@ export interface PublicExposureTeamResult {
 
 export interface PublicExposureScheduleConfig {
   divisions: Array<{ Id: number; Name: string }>;
-  brackets: Array<{ Id: number; Name: string; DivisionId: number; CrossDivisionIds?: number[]; ShowStandings?: boolean }>;
+  brackets: Array<{
+    Id: number;
+    Name: string;
+    DivisionId: number;
+    CrossDivisionIds?: number[];
+    ShowStandings?: boolean;
+  }>;
 }
 
 export interface PublicExposureGameOptions {
   divisionIds?: string[];
   eventSlug?: string;
+  timezone?: string;
 }
 
 export interface PublicExposurePageClientOptions {
@@ -30,22 +37,33 @@ export class PublicExposurePageClient {
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: PublicExposurePageClientOptions = {}) {
-    this.baseUrl = options.baseUrl ?? process.env.EXPOSURE_PUBLIC_BASE_URL ?? "https://basketball.exposureevents.com";
+    this.baseUrl =
+      options.baseUrl ??
+      process.env.EXPOSURE_PUBLIC_BASE_URL ??
+      "https://basketball.exposureevents.com";
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
-  async fetchTeams(eventId: number, eventSlug = "2026-reno-memorial-day-tournament"): Promise<PublicExposureTeamResult> {
-    const searchResult = await this.fetchSearch(eventId, eventSlug).catch(() => null);
-    if (searchResult?.Teams?.length) {
+  async fetchTeams(
+    eventId: number,
+    eventSlug = "2026-reno-memorial-day-tournament",
+    timezone = DEFAULT_TOURNAMENT_TIMEZONE,
+  ): Promise<PublicExposureTeamResult> {
+    const searchResult = await this.fetchSearch(eventId, eventSlug).catch(
+      () => null,
+    );
+    if (Array.isArray(searchResult?.Teams)) {
       const divisions = new Map<string, Division>();
       const teams: Team[] = [];
 
       for (const sourceTeam of searchResult.Teams) {
         const divisionIdValue = String(sourceTeam.DivisionId ?? "");
-        const divisionName = cleanText(sourceTeam.Division ?? "Unknown Division");
+        const divisionName = cleanText(
+          sourceTeam.Division ?? "Unknown Division",
+        );
         if (!divisionIdValue || !sourceTeam.Value || !sourceTeam.Name) continue;
 
-        const divisionId = `division-${divisionIdValue}`;
+        const divisionId = `division-${eventId}-${divisionIdValue}`;
         const meta = extractDivisionMeta(divisionName);
         divisions.set(divisionId, {
           id: divisionId,
@@ -55,13 +73,16 @@ export class PublicExposurePageClient {
           gender: meta.gender,
           gradeLevel: meta.gradeLevel,
           level: meta.level,
-          rawJson: { source: "public_search", divisionId: divisionIdValue }
+          rawJson: { source: "public_search", divisionId: divisionIdValue },
         });
 
-        const name = stripDivisionSuffix(cleanText(sourceTeam.Name), divisionName);
+        const name = stripDivisionSuffix(
+          cleanText(sourceTeam.Name),
+          divisionName,
+        );
         const teamId = String(sourceTeam.Value);
         teams.push({
-          id: `public-team-${teamId}`,
+          id: `public-team-${eventId}-${teamId}`,
           eventId: `event-${eventId}`,
           divisionId,
           exposureTeamId: teamId,
@@ -70,13 +91,16 @@ export class PublicExposurePageClient {
           clubName: null,
           normalizedClubName: null,
           coachName: null,
-          sourceUrl: new URL(`/${eventId}/${eventSlug}/teams/${sourceTeam.Slug ?? ""}?divisionteamid=${teamId}`, this.baseUrl).toString(),
+          sourceUrl: new URL(
+            `/${eventId}/${eventSlug}/teams/${sourceTeam.Slug ?? ""}?divisionteamid=${teamId}`,
+            this.baseUrl,
+          ).toString(),
           divisionName,
           gender: meta.gender,
           gradeLevel: meta.gradeLevel,
           level: meta.level,
-          rawJson: { source: "public_search", ...sourceTeam },
-          lastSeenAt: new Date().toISOString()
+          rawJson: { source: "public_search", timezone, ...sourceTeam },
+          lastSeenAt: new Date().toISOString(),
         });
       }
 
@@ -86,11 +110,14 @@ export class PublicExposurePageClient {
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/teams`;
     const response = await this.fetchImpl(url, {
       headers: {
-        "User-Agent": "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)"
-      }
+        "User-Agent":
+          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+      },
     });
     if (!response.ok) {
-      throw new Error(`Public teams page request failed with ${response.status}`);
+      throw new Error(
+        `Public teams page request failed with ${response.status}`,
+      );
     }
 
     const html = await response.text();
@@ -110,9 +137,11 @@ export class PublicExposurePageClient {
       const name = node.text().replace(/\s+/g, " ").trim();
       if (!name || !href.includes("/teams/")) return;
 
-      const divisionTeamId = new URL(href, this.baseUrl).searchParams.get("divisionteamid");
+      const divisionTeamId = new URL(href, this.baseUrl).searchParams.get(
+        "divisionteamid",
+      );
       const divisionKey = normalizeName(currentDivisionName) || "unknown";
-      const divisionId = `public-division-${divisionKey.replace(/\s/g, "-")}`;
+      const divisionId = `public-division-${eventId}-${divisionKey.replace(/\s/g, "-")}`;
       const meta = extractDivisionMeta(currentDivisionName);
       divisions.set(divisionId, {
         id: divisionId,
@@ -122,11 +151,11 @@ export class PublicExposurePageClient {
         gender: meta.gender,
         gradeLevel: meta.gradeLevel,
         level: meta.level,
-        rawJson: { source: "public_page" }
+        rawJson: { source: "public_page" },
       });
 
       teams.push({
-        id: `public-team-${divisionTeamId ?? normalizeName(`${currentDivisionName}-${name}`).replace(/\s/g, "-")}`,
+        id: `public-team-${eventId}-${divisionTeamId ?? normalizeName(`${currentDivisionName}-${name}`).replace(/\s/g, "-")}`,
         eventId: `event-${eventId}`,
         divisionId,
         exposureTeamId: divisionTeamId,
@@ -140,38 +169,68 @@ export class PublicExposurePageClient {
         gender: meta.gender,
         gradeLevel: meta.gradeLevel,
         level: meta.level,
-        rawJson: { source: "public_page", href },
-        lastSeenAt: new Date().toISOString()
+        rawJson: { source: "public_page", href, timezone },
+        lastSeenAt: new Date().toISOString(),
       });
     });
 
     return { divisions: Array.from(divisions.values()), teams };
   }
 
-  async fetchScheduleConfig(eventId: number, eventSlug = "2026-reno-memorial-day-tournament"): Promise<PublicExposureScheduleConfig> {
-    const html = await this.fetchText(`${this.baseUrl}/${eventId}/${eventSlug}/schedule`);
+  async fetchScheduleConfig(
+    eventId: number,
+    eventSlug = "2026-reno-memorial-day-tournament",
+  ): Promise<PublicExposureScheduleConfig> {
+    const html = await this.fetchText(
+      `${this.baseUrl}/${eventId}/${eventSlug}/schedule`,
+    );
     return {
       divisions: parseJsonArrayAssignment(html, "divisions"),
-      brackets: parseJsonArrayAssignment(html, "brackets")
+      brackets: parseJsonArrayAssignment(html, "brackets"),
     };
   }
 
-  async fetchGames(eventId: number, options: PublicExposureGameOptions = {}): Promise<Game[]> {
+  async fetchGames(
+    eventId: number,
+    options: PublicExposureGameOptions = {},
+  ): Promise<Game[]> {
     const eventSlug = options.eventSlug ?? "2026-reno-memorial-day-tournament";
+    const timezone = options.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE;
     const config = await this.fetchScheduleConfig(eventId, eventSlug);
-    const selectedDivisionIds = new Set((options.divisionIds ?? []).map(String).filter(Boolean));
+    const selectedDivisionIds = new Set(
+      (options.divisionIds ?? []).map(String).filter(Boolean),
+    );
     const divisions = selectedDivisionIds.size
-      ? config.divisions.filter((division) => selectedDivisionIds.has(String(division.Id)))
+      ? config.divisions.filter((division) =>
+          selectedDivisionIds.has(String(division.Id)),
+        )
       : config.divisions;
-    const bracketsByDivision = groupBracketsByDivision(config.brackets, eventId, eventSlug, this.baseUrl);
+    const bracketsByDivision = groupBracketsByDivision(
+      config.brackets,
+      eventId,
+      eventSlug,
+      this.baseUrl,
+    );
     const games: Game[] = [];
 
     for (const division of divisions) {
-      const rawGroups = await this.fetchEventGames(eventId, eventSlug, division.Id);
+      const rawGroups = await this.fetchEventGames(
+        eventId,
+        eventSlug,
+        division.Id,
+      );
       for (const group of rawGroups) {
         if (!Array.isArray(group.Games)) continue;
         for (const rawGame of group.Games) {
-          const mapped = mapPublicExposureGame(rawGame, eventId, bracketsByDivision.get(String(rawGame.DivisionId ?? division.Id)) ?? [], eventSlug, this.baseUrl);
+          const mapped = mapPublicExposureGame(
+            rawGame,
+            eventId,
+            bracketsByDivision.get(String(rawGame.DivisionId ?? division.Id)) ??
+              [],
+            eventSlug,
+            this.baseUrl,
+            timezone,
+          );
           if (mapped) games.push(mapped);
         }
       }
@@ -181,20 +240,29 @@ export class PublicExposurePageClient {
     return games;
   }
 
-  private async fetchSearch(eventId: number, eventSlug: string): Promise<PublicExposureSearchResult> {
+  private async fetchSearch(
+    eventId: number,
+    eventSlug: string,
+  ): Promise<PublicExposureSearchResult> {
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/search?eventid=${eventId}&eventname=${eventSlug}`;
     const response = await this.fetchImpl(url, {
       headers: {
         Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)"
-      }
+        "User-Agent":
+          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+      },
     });
-    if (!response.ok) throw new Error(`Public search request failed with ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Public search request failed with ${response.status}`);
     return (await response.json()) as PublicExposureSearchResult;
   }
 
-  private async fetchEventGames(eventId: number, eventSlug: string, divisionId: number) {
+  private async fetchEventGames(
+    eventId: number,
+    eventSlug: string,
+    divisionId: number,
+  ) {
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/eventgames?divisionId=${divisionId}`;
     const response = await this.fetchImpl(url, {
       method: "POST",
@@ -202,11 +270,18 @@ export class PublicExposurePageClient {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)"
+        "User-Agent":
+          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
       },
-      body: new URLSearchParams({ divisionId: String(divisionId), sortBy: "0" }).toString()
+      body: new URLSearchParams({
+        divisionId: String(divisionId),
+        sortBy: "0",
+      }).toString(),
     });
-    if (!response.ok) throw new Error(`Public eventgames request failed with ${response.status} for division ${divisionId}`);
+    if (!response.ok)
+      throw new Error(
+        `Public eventgames request failed with ${response.status} for division ${divisionId}`,
+      );
     return (await response.json()) as PublicExposureGameGroup[];
   }
 
@@ -214,10 +289,12 @@ export class PublicExposurePageClient {
     const response = await this.fetchImpl(url, {
       headers: {
         Accept: "text/html",
-        "User-Agent": "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)"
-      }
+        "User-Agent":
+          "CourtWatchReno/0.1 (+independent companion tracker; respectful cache-backed polling)",
+      },
     });
-    if (!response.ok) throw new Error(`Public page request failed with ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Public page request failed with ${response.status}`);
     return response.text();
   }
 }
@@ -273,51 +350,69 @@ interface PublicExposureGameRaw {
   [key: string]: unknown;
 }
 
-function mapPublicExposureGame(raw: PublicExposureGameRaw, eventId: number, bracketLinks: PublicExposureBracketLink[], eventSlug: string, baseUrl: string): Game | null {
+function mapPublicExposureGame(
+  raw: PublicExposureGameRaw,
+  eventId: number,
+  bracketLinks: PublicExposureBracketLink[],
+  eventSlug: string,
+  baseUrl: string,
+  timezone: string,
+): Game | null {
   const id = stringOrNull(raw.Id);
   if (!id) return null;
 
   const date = stringOrNull(raw.DateFormatted) ?? "5/23/2026";
   const time = normalizeTime(stringOrNull(raw.TimeFormatted) ?? "12:00 PM");
-  const startsAt = parseRenoDateTime(date, time);
+  const startsAt = parseTournamentDateTime(date, time, timezone);
   const homeScore = parseScore(raw.HomeTeamScoreDisplay);
   const awayScore = parseScore(raw.AwayTeamScoreDisplay);
   const status = mapPublicStatus(raw, startsAt, homeScore, awayScore);
   const divisionExposureId = stringOrNull(raw.DivisionId);
-  const matchedBracket = matchBracketLink(stringOrNull(raw.GameTypeName), bracketLinks);
+  const matchedBracket = matchBracketLink(
+    stringOrNull(raw.GameTypeName),
+    bracketLinks,
+  );
   const rawJson = {
     source: "public_eventgames",
     ...raw,
     BracketUrl: matchedBracket?.url ?? null,
     BracketName: matchedBracket?.name ?? null,
-    DivisionBracketUrls: bracketLinks
+    DivisionBracketUrls: bracketLinks,
   };
 
   return {
-    id: `public-game-${id}`,
+    id: `public-game-${eventId}-${id}`,
     eventId: `event-${eventId}`,
-    divisionId: divisionExposureId ? `division-${divisionExposureId}` : null,
+    divisionId: divisionExposureId
+      ? `division-${eventId}-${divisionExposureId}`
+      : null,
     exposureGameId: id,
     gameNumber: stringOrNull(raw.Number),
-    gameType: stringOrNull(raw.GameTypeName) ?? stringOrNull(raw.GameType) ?? null,
+    gameType:
+      stringOrNull(raw.GameTypeName) ?? stringOrNull(raw.GameType) ?? null,
     scheduledDate: toIsoDate(date),
     scheduledTime: time,
     startsAt: startsAt.toISOString(),
-    timezone: RENO_TIMEZONE,
+    timezone,
     venueName: stringOrNull(raw.VenueName),
     courtName: stringOrNull(raw.CourtName),
-    homeTeamId: publicTeamId(raw.HomeDivisionTeamId),
-    awayTeamId: publicTeamId(raw.AwayDivisionTeamId),
+    homeTeamId: publicTeamId(raw.HomeDivisionTeamId, eventId),
+    awayTeamId: publicTeamId(raw.AwayDivisionTeamId, eventId),
     homeTeamNameSnapshot: stringOrNull(raw.HomeTeamName),
     awayTeamNameSnapshot: stringOrNull(raw.AwayTeamName),
     homeScore,
     awayScore,
     status,
-    officialUrl: new URL(`/${eventId}/${eventSlug}/schedule`, baseUrl).toString(),
-    streamingUrl: raw.StreamingId ? `https://www.ballertv.com/events/2026-reno-memorial-day-tournament/games/${raw.StreamingId}` : null,
+    officialUrl: new URL(
+      `/${eventId}/${eventSlug}/schedule`,
+      baseUrl,
+    ).toString(),
+    streamingUrl: raw.StreamingId
+      ? `https://www.ballertv.com/events/${eventSlug}/games/${raw.StreamingId}`
+      : null,
     updatedAt: new Date().toISOString(),
     sourceHash: hashSource(rawJson),
-    rawJson
+    rawJson,
   };
 }
 
@@ -337,12 +432,12 @@ function parseJsonArrayAssignment<T>(html: string, key: string): T[] {
         escaped = false;
       } else if (char === "\\") {
         escaped = true;
-      } else if (char === "\"") {
+      } else if (char === '"') {
         inString = false;
       }
       continue;
     }
-    if (char === "\"") inString = true;
+    if (char === '"') inString = true;
     if (char === "[") depth += 1;
     if (char === "]") {
       depth -= 1;
@@ -358,7 +453,7 @@ function groupBracketsByDivision(
   brackets: PublicExposureScheduleConfig["brackets"],
   eventId: number,
   eventSlug: string,
-  baseUrl: string
+  baseUrl: string,
 ): Map<string, PublicExposureBracketLink[]> {
   const grouped = new Map<string, PublicExposureBracketLink[]>();
   for (const bracket of brackets) {
@@ -368,26 +463,38 @@ function groupBracketsByDivision(
       {
         id: String(bracket.Id),
         name: bracket.Name,
-        url: new URL(`/${eventId}/${eventSlug}/bracket/${bracket.Id}`, baseUrl).toString()
-      }
+        url: new URL(
+          `/${eventId}/${eventSlug}/bracket/${bracket.Id}`,
+          baseUrl,
+        ).toString(),
+      },
     ]);
   }
   return grouped;
 }
 
-function matchBracketLink(gameTypeName: string | null, bracketLinks: PublicExposureBracketLink[]): PublicExposureBracketLink | null {
+function matchBracketLink(
+  gameTypeName: string | null,
+  bracketLinks: PublicExposureBracketLink[],
+): PublicExposureBracketLink | null {
   if (!gameTypeName) return null;
   const normalizedGameType = normalizeName(gameTypeName);
-  return bracketLinks.find((bracket) => normalizedGameType.startsWith(normalizeName(bracket.name))) ?? null;
+  return (
+    bracketLinks.find((bracket) =>
+      normalizedGameType.startsWith(normalizeName(bracket.name)),
+    ) ?? null
+  );
 }
 
-function publicTeamId(value: unknown): string | null {
+function publicTeamId(value: unknown, eventId: number): string | null {
   const id = stringOrNull(value);
-  return id ? `public-team-${id}` : null;
+  return id ? `public-team-${eventId}-${id}` : null;
 }
 
 function cleanText(value: unknown): string {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function stripDivisionSuffix(name: string, divisionName: string): string {
@@ -405,11 +512,22 @@ function parseScore(value: unknown): number | null {
   return Number(text);
 }
 
-function mapPublicStatus(raw: PublicExposureGameRaw, startsAt: Date, homeScore: number | null, awayScore: number | null): Game["status"] {
+function mapPublicStatus(
+  raw: PublicExposureGameRaw,
+  startsAt: Date,
+  homeScore: number | null,
+  awayScore: number | null,
+): Game["status"] {
   const statusText = normalizeName(raw.Status);
   const hasScores = homeScore !== null && awayScore !== null;
   const hasWinner = Boolean(raw.HomeTeamIsWinner || raw.AwayTeamIsWinner);
-  if (hasScores && (hasWinner || statusText.includes("final") || statusText.includes("complete"))) return "final";
+  if (
+    hasScores &&
+    (hasWinner ||
+      statusText.includes("final") ||
+      statusText.includes("complete"))
+  )
+    return "final";
   if (raw.Started || isProbablyInProgress(startsAt)) return "playing_now";
   return "upcoming";
 }
@@ -420,7 +538,11 @@ function isProbablyInProgress(startsAt: Date): boolean {
   return now >= start && now <= start + 1000 * 60 * 95;
 }
 
-function parseRenoDateTime(date: string, time: string): Date {
+function parseTournamentDateTime(
+  date: string,
+  time: string,
+  timezone: string,
+): Date {
   const [month = "5", day = "23", year = "2026"] = date.split("/");
   const match = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   let hour = Number(match?.[1] ?? 12);
@@ -429,7 +551,7 @@ function parseRenoDateTime(date: string, time: string): Date {
   if (meridiem === "PM" && hour < 12) hour += 12;
   if (meridiem === "AM" && hour === 12) hour = 0;
   const local = `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
-  return fromZonedTime(local, RENO_TIMEZONE);
+  return fromZonedTime(local, timezone);
 }
 
 function toIsoDate(date: string): string {

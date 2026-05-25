@@ -12,23 +12,47 @@ import type {
   ProgramWatchlist,
   SyncRun,
   Team,
-  TournamentEvent
+  TournamentEvent,
 } from "./types.js";
-import { SELECTED_TEAMS_PROGRAM_ID, SELECTED_TEAMS_PROGRAM_NAME } from "./types.js";
+import {
+  SELECTED_TEAMS_PROGRAM_ID,
+  SELECTED_TEAMS_PROGRAM_NAME,
+} from "./types.js";
 import { RENO_TIMEZONE } from "./types.js";
 
-const now = "2026-05-23T16:10:00.000Z";
+const now = new Date().toISOString();
 
 export const seedEvent: TournamentEvent = {
   id: "event-reno-2026",
   exposureEventId: 255539,
+  externalProvider: "exposure_events",
+  externalId: "255539",
+  slug: "2026-reno-memorial-day-tournament",
+  sourceUrl:
+    "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament",
   name: "2026 Reno Memorial Day Tournament",
   organizer: "Jam On It",
+  sport: "basketball",
+  sanctioningTags: ["Jam On It", "Exposure Events"],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: [],
+  venueName: null,
+  city: "Reno",
+  state: "Nevada",
+  region: "Nevada",
   startDate: "2026-05-23",
   endDate: "2026-05-25",
   location: "Reno, Nevada",
-  officialUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament",
-  lastSyncedAt: now
+  officialUrl:
+    "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament",
+  timezone: RENO_TIMEZONE,
+  registeredTeamCount: 9,
+  hasPublicTeamList: true,
+  lastCheckedAt: now,
+  lastSyncedAt: now,
+  lastTeamChangeAt: now,
+  status: "active",
+  dropdownGroup: "tracked",
 };
 
 export const seedPrograms: ProgramWatchlist[] = [
@@ -38,30 +62,128 @@ export const seedPrograms: ProgramWatchlist[] = [
     programName: SELECTED_TEAMS_PROGRAM_NAME,
     normalizedProgramName: normalizeProgramName(SELECTED_TEAMS_PROGRAM_NAME),
     active: true,
-    createdAt: now
-  }
+    createdAt: now,
+  },
 ];
 
 export const seedAliases: ProgramAlias[] = [];
 
 export const seedDivisions: Division[] = [
-  division("division-boys-3rd-orange", "5168259", "Boys 2nd/3rd Level 3 Orange", "Boys", "3RD", "Level 3 Orange"),
-  division("division-boys-4th-green", "5168257", "Boys 4th Level 2 Green", "Boys", "4TH", "Level 2 Green"),
-  division("division-boys-6th-blue", "5168258", "Boys 6th Level 2 Blue", "Boys", "6TH", "Level 2 Blue"),
-  division("division-girls-7th-gold", "arsenal-girls-7", "Girls 7th Level 1 Gold", "Girls", "7TH", "Level 1 Gold"),
-  division("division-boys-8th-black", "arsenal-boys-8", "Boys 8th Level 1 Black", "Boys", "8TH", "Level 1 Black")
+  division(
+    "division-boys-3rd-orange",
+    "5168259",
+    "Boys 2nd/3rd Level 3 Orange",
+    "Boys",
+    "3RD",
+    "Level 3 Orange",
+  ),
+  division(
+    "division-boys-4th-green",
+    "5168257",
+    "Boys 4th Level 2 Green",
+    "Boys",
+    "4TH",
+    "Level 2 Green",
+  ),
+  division(
+    "division-boys-6th-blue",
+    "5168258",
+    "Boys 6th Level 2 Blue",
+    "Boys",
+    "6TH",
+    "Level 2 Blue",
+  ),
+  division(
+    "division-girls-7th-gold",
+    "arsenal-girls-7",
+    "Girls 7th Level 1 Gold",
+    "Girls",
+    "7TH",
+    "Level 1 Gold",
+  ),
+  division(
+    "division-boys-8th-black",
+    "arsenal-boys-8",
+    "Boys 8th Level 1 Black",
+    "Boys",
+    "8TH",
+    "Level 1 Black",
+  ),
 ];
 
 export const seedTeams: Team[] = [
-  team("team-splash-3rd", "division-boys-3rd-orange", "5168259", "Splash City", "Splash City Basketball", "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/splash-city?divisionteamid=5168259"),
-  team("team-splash-4th", "division-boys-4th-green", "5168257", "Splash City", "Splash City Basketball", "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/splash-city?divisionteamid=5168257"),
-  team("team-splash-6th", "division-boys-6th-blue", "5168258", "Splash City", "SplashCity", "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/splash-city?divisionteamid=5168258"),
-  team("team-arsenal-girls-7", "division-girls-7th-gold", "arsenal-7001", "Arsenal 7th Grade Girls", "Arsenal Basketball", null),
-  team("team-arsenal-boys-8", "division-boys-8th-black", "arsenal-8001", "Team Arsenal 8th Black", "Team Arsenal", null),
-  team("team-premier-10u", "division-boys-4th-green", "opponent-10u", "Premier 10U Gold", null, null),
-  team("team-norcal-6", "division-boys-6th-blue", "opponent-norcal", "NorCal Elite Blue", null, null),
-  team("team-reno-girls", "division-girls-7th-gold", "opponent-reno", "Reno Ballers Girls 7th", null, null),
-  team("team-valley-8", "division-boys-8th-black", "opponent-valley", "Valley Kings 8th", null, null)
+  team(
+    "team-splash-3rd",
+    "division-boys-3rd-orange",
+    "5168259",
+    "Splash City",
+    "Splash City Basketball",
+    "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/splash-city?divisionteamid=5168259",
+  ),
+  team(
+    "team-splash-4th",
+    "division-boys-4th-green",
+    "5168257",
+    "Splash City",
+    "Splash City Basketball",
+    "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/splash-city?divisionteamid=5168257",
+  ),
+  team(
+    "team-splash-6th",
+    "division-boys-6th-blue",
+    "5168258",
+    "Splash City",
+    "SplashCity",
+    "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/splash-city?divisionteamid=5168258",
+  ),
+  team(
+    "team-arsenal-girls-7",
+    "division-girls-7th-gold",
+    "arsenal-7001",
+    "Arsenal 7th Grade Girls",
+    "Arsenal Basketball",
+    null,
+  ),
+  team(
+    "team-arsenal-boys-8",
+    "division-boys-8th-black",
+    "arsenal-8001",
+    "Team Arsenal 8th Black",
+    "Team Arsenal",
+    null,
+  ),
+  team(
+    "team-premier-10u",
+    "division-boys-4th-green",
+    "opponent-10u",
+    "Premier 10U Gold",
+    null,
+    null,
+  ),
+  team(
+    "team-norcal-6",
+    "division-boys-6th-blue",
+    "opponent-norcal",
+    "NorCal Elite Blue",
+    null,
+    null,
+  ),
+  team(
+    "team-reno-girls",
+    "division-girls-7th-gold",
+    "opponent-reno",
+    "Reno Ballers Girls 7th",
+    null,
+    null,
+  ),
+  team(
+    "team-valley-8",
+    "division-boys-8th-black",
+    "opponent-valley",
+    "Valley Kings 8th",
+    null,
+    null,
+  ),
 ];
 
 export const seedMatches: ProgramTeamMatch[] = [];
@@ -84,7 +206,7 @@ export const seedGames: Game[] = [
     awayTeamId: "team-premier-10u",
     homeTeamNameSnapshot: "Splash City 4th",
     awayTeamNameSnapshot: "Premier 10U Gold",
-    status: "upcoming"
+    status: "upcoming",
   }),
   game({
     id: "game-splash-3-final",
@@ -101,7 +223,7 @@ export const seedGames: Game[] = [
     awayTeamId: null,
     homeTeamNameSnapshot: "Splash City 3rd",
     awayTeamNameSnapshot: "Bay Area Impact 9U",
-    status: "upcoming"
+    status: "upcoming",
   }),
   game({
     id: "game-splash-6-changed",
@@ -118,7 +240,7 @@ export const seedGames: Game[] = [
     awayTeamId: "team-splash-6th",
     homeTeamNameSnapshot: "NorCal Elite Blue",
     awayTeamNameSnapshot: "Splash City 6th",
-    status: "schedule_changed"
+    status: "schedule_changed",
   }),
   game({
     id: "game-arsenal-girls-next",
@@ -135,7 +257,7 @@ export const seedGames: Game[] = [
     awayTeamId: "team-reno-girls",
     homeTeamNameSnapshot: "Arsenal 7th Grade Girls",
     awayTeamNameSnapshot: "Reno Ballers Girls 7th",
-    status: "upcoming"
+    status: "upcoming",
   }),
   game({
     id: "game-arsenal-bracket",
@@ -152,14 +274,38 @@ export const seedGames: Game[] = [
     awayTeamId: "team-valley-8",
     homeTeamNameSnapshot: "Team Arsenal 8th Black",
     awayTeamNameSnapshot: "Valley Kings 8th",
-    status: "awaiting_bracket"
-  })
+    status: "awaiting_bracket",
+  }),
 ];
 
 export const seedChangeEvents: GameChangeEvent[] = [
-  change("change-splash-6-court", "game-splash-6-changed", "team-splash-6th", null, "court_changed", "Court 18", "Court 31"),
-  change("change-arsenal-bracket", "game-arsenal-bracket", "team-arsenal-boys-8", null, "bracket_update", null, "Bracket Quarterfinal"),
-  change("change-splash-4-time", "game-splash-4-next", "team-splash-4th", null, "game_time_changed", "2026-05-23T21:30:00.000Z", "2026-05-23T21:40:00.000Z")
+  change(
+    "change-splash-6-court",
+    "game-splash-6-changed",
+    "team-splash-6th",
+    null,
+    "court_changed",
+    "Court 18",
+    "Court 31",
+  ),
+  change(
+    "change-arsenal-bracket",
+    "game-arsenal-bracket",
+    "team-arsenal-boys-8",
+    null,
+    "bracket_update",
+    null,
+    "Bracket Quarterfinal",
+  ),
+  change(
+    "change-splash-4-time",
+    "game-splash-4-next",
+    "team-splash-4th",
+    null,
+    "game_time_changed",
+    "2026-05-23T21:30:00.000Z",
+    "2026-05-23T21:40:00.000Z",
+  ),
 ];
 
 export const seedSyncRuns: SyncRun[] = [
@@ -173,12 +319,13 @@ export const seedSyncRuns: SyncRun[] = [
     teamsCount: seedTeams.length,
     gamesCount: seedGames.length,
     changesDetected: seedChangeEvents.length,
-    errorMessage: null
-  }
+    errorMessage: null,
+  },
 ];
 
 export const seedSnapshot: CourtWatchSnapshot = {
   event: seedEvent,
+  events: [seedEvent],
   divisions: seedDivisions,
   teams: seedTeams,
   players: seedPlayers,
@@ -188,20 +335,31 @@ export const seedSnapshot: CourtWatchSnapshot = {
   matches: seedMatches,
   games: seedGames,
   changeEvents: seedChangeEvents,
-  syncRuns: seedSyncRuns
+  syncRuns: seedSyncRuns,
 };
 
-function alias(id: string, programWatchlistId: string, aliasValue: string): ProgramAlias {
+function alias(
+  id: string,
+  programWatchlistId: string,
+  aliasValue: string,
+): ProgramAlias {
   return {
     id,
     programWatchlistId,
     alias: aliasValue,
     normalizedAlias: normalizeProgramName(aliasValue),
-    createdAt: now
+    createdAt: now,
   };
 }
 
-function division(id: string, exposureDivisionId: string, name: string, gender: string, gradeLevel: string, level: string): Division {
+function division(
+  id: string,
+  exposureDivisionId: string,
+  name: string,
+  gender: string,
+  gradeLevel: string,
+  level: string,
+): Division {
   return {
     id,
     eventId: seedEvent.id,
@@ -210,11 +368,18 @@ function division(id: string, exposureDivisionId: string, name: string, gender: 
     gender,
     gradeLevel,
     level,
-    rawJson: { seeded: true }
+    rawJson: { seeded: true },
   };
 }
 
-function team(id: string, divisionId: string, exposureTeamId: string, name: string, clubName: string | null, sourceUrl: string | null): Team {
+function team(
+  id: string,
+  divisionId: string,
+  exposureTeamId: string,
+  name: string,
+  clubName: string | null,
+  sourceUrl: string | null,
+): Team {
   const divisionItem = seedDivisions.find((item) => item.id === divisionId);
   return {
     id,
@@ -232,11 +397,17 @@ function team(id: string, divisionId: string, exposureTeamId: string, name: stri
     gradeLevel: divisionItem?.gradeLevel ?? null,
     level: divisionItem?.level ?? null,
     rawJson: { seeded: true },
-    lastSeenAt: now
+    lastSeenAt: now,
   };
 }
 
-function match(id: string, programWatchlistId: string, teamId: string, matchType: ProgramTeamMatch["matchType"], matchConfidence: number): ProgramTeamMatch {
+function match(
+  id: string,
+  programWatchlistId: string,
+  teamId: string,
+  matchType: ProgramTeamMatch["matchType"],
+  matchConfidence: number,
+): ProgramTeamMatch {
   return {
     id,
     programWatchlistId,
@@ -244,11 +415,25 @@ function match(id: string, programWatchlistId: string, teamId: string, matchType
     matchType,
     matchConfidence,
     active: true,
-    createdAt: now
+    createdAt: now,
   };
 }
 
-function game(input: Omit<Game, "eventId" | "timezone" | "homeScore" | "awayScore" | "officialUrl" | "streamingUrl" | "updatedAt" | "sourceHash" | "rawJson"> & Partial<Pick<Game, "homeScore" | "awayScore">>): Game {
+function game(
+  input: Omit<
+    Game,
+    | "eventId"
+    | "timezone"
+    | "homeScore"
+    | "awayScore"
+    | "officialUrl"
+    | "streamingUrl"
+    | "updatedAt"
+    | "sourceHash"
+    | "rawJson"
+  > &
+    Partial<Pick<Game, "homeScore" | "awayScore">>,
+): Game {
   const rawJson = { seeded: true, id: input.id };
   return {
     eventId: seedEvent.id,
@@ -260,7 +445,7 @@ function game(input: Omit<Game, "eventId" | "timezone" | "homeScore" | "awayScor
     updatedAt: now,
     sourceHash: hashSource(rawJson),
     rawJson,
-    ...input
+    ...input,
   };
 }
 
@@ -271,7 +456,7 @@ function change(
   affectedProgramWatchlistId: string | null,
   eventType: GameChangeEvent["eventType"],
   previousValue: unknown,
-  newValue: unknown
+  newValue: unknown,
 ): GameChangeEvent {
   return {
     id,
@@ -283,6 +468,6 @@ function change(
     newValue,
     createdAt: now,
     notificationSent: false,
-    dedupeKey: `${gameId}:${eventType}:${hashSource({ previousValue, newValue }).slice(0, 16)}`
+    dedupeKey: `${gameId}:${eventType}:${hashSource({ previousValue, newValue }).slice(0, 16)}`,
   };
 }
