@@ -2744,9 +2744,8 @@ function recordCaption(
 }
 
 function recordText(record: TeamRecord | undefined, loading = false): string {
-  if (record && record.gamesSeen === 0) return "Updating";
   if (record) return teamRecordLabel(record);
-  return loading ? "..." : "Updating";
+  return loading ? "..." : "W-L TBD";
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
