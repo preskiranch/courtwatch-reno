@@ -45,16 +45,20 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
     if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
     if (cacheKey && storageKey && typeof window !== "undefined") {
+      const previousCache =
+        window.localStorage.getItem(storageKey) ??
+        window.localStorage.getItem(`courtwatch:${cacheKey}`);
       preserveDashboardFollowsForMigration(
         cacheKey,
-        window.localStorage.getItem(storageKey) ??
-          window.localStorage.getItem(`courtwatch:${cacheKey}`),
+        previousCache,
         data,
       );
-      window.localStorage.setItem(
-        storageKey,
-        JSON.stringify({ data, savedAt: new Date().toISOString() }),
-      );
+      if (shouldPersistCacheData(cacheKey, data)) {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify({ data, savedAt: new Date().toISOString() }),
+        );
+      }
     }
     return data;
   } catch (error) {
@@ -182,7 +186,11 @@ function withEvent(path: string, eventId?: number | null): string {
 }
 
 function cacheStorageKey(cacheKey: CacheKey, path: string): string {
-  return `courtwatch-aau:v8:${cacheKey}:${path}`;
+  return `courtwatch-aau:v9:${cacheKey}:${path}`;
+}
+
+function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {
+  return !(cacheKey === "events" && Array.isArray(data) && data.length === 0);
 }
 
 function preserveDashboardFollowsForMigration<T>(

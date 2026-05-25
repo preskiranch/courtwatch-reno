@@ -73,6 +73,7 @@ const tabs: Array<{
 
 const LIVE_DATA_REFETCH_MS = 60_000;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
+const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
 export function CourtWatchApp() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -86,18 +87,20 @@ export function CourtWatchApp() {
     queryFn: CourtWatchApi.events,
     staleTime: 5 * 60_000,
   });
+  const fetchedEvents = eventsQuery.data ?? [];
   const activeEventId =
-    selectedEventId ?? eventsQuery.data?.[0]?.exposureEventId ?? null;
-  const activeEvent =
-    eventsQuery.data?.find(
-      (event) => event.exposureEventId === activeEventId,
-    ) ?? null;
+    selectedEventId ??
+    fetchedEvents[0]?.exposureEventId ??
+    DEFAULT_TRACKED_EXPOSURE_EVENT_ID;
+  const fetchedActiveEvent =
+    fetchedEvents.find((event) => event.exposureEventId === activeEventId) ??
+    null;
   const todayKey = useTournamentTodayKey(
-    activeEvent?.timezone ?? DEFAULT_TOURNAMENT_TIME_ZONE,
+    fetchedActiveEvent?.timezone ?? DEFAULT_TOURNAMENT_TIME_ZONE,
   );
-  const dataRefetchInterval = activeEvent
-    ? dataRefetchIntervalForEvent(activeEvent, todayKey)
-    : false;
+  const dataRefetchInterval = fetchedActiveEvent
+    ? dataRefetchIntervalForEvent(fetchedActiveEvent, todayKey)
+    : LIVE_DATA_REFETCH_MS;
   const lastTodayKeyRef = useRef(todayKey);
   const dashboardQuery = useQuery({
     queryKey: ["dashboard", presenceClientId, activeEventId],
@@ -234,8 +237,15 @@ export function CourtWatchApp() {
   };
 
   const dashboard = dashboardQuery.data;
+  const fallbackEvents = dashboard?.events?.length
+    ? dashboard.events
+    : dashboard?.event
+      ? [dashboard.event]
+      : [];
+  const displayEvents =
+    fetchedEvents.length > 0 ? fetchedEvents : fallbackEvents;
   const hasNoEvents =
-    !eventsQuery.isLoading && (eventsQuery.data?.length ?? 0) === 0;
+    !eventsQuery.isLoading && displayEvents.length === 0 && !dashboard;
   const isLoading =
     !presenceClientId ||
     eventsQuery.isLoading ||
@@ -249,7 +259,7 @@ export function CourtWatchApp() {
       <main className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
         <AppHeader
           dashboard={dashboard}
-          events={eventsQuery.data ?? dashboard?.events ?? []}
+          events={displayEvents}
           selectedEventId={activeEventId}
           offline={offline}
           activeUsers={presenceQuery.data?.activeUsers ?? null}
