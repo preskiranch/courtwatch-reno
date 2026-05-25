@@ -755,12 +755,11 @@ function PointsLeadersSection({
   const displayLeaders = mode === "compare" ? compareLeaders : leaders;
   const searchedDivisions = useMemo(() => {
     const query = deferredDivisionSearch.trim().toLowerCase();
-    const options = query
+    return query
       ? divisionOptions.filter((division) =>
           division.divisionName.toLowerCase().includes(query),
         )
       : divisionOptions;
-    return options.slice(0, 24);
   }, [deferredDivisionSearch, divisionOptions]);
   const badgeText = loading
     ? "..."
@@ -931,6 +930,9 @@ function PointsLeadersSection({
             className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2"
             data-testid="division-compare-options"
           >
+            <p className="px-1 pb-1 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">
+              {searchedDivisions.length} of {divisionOptions.length} divisions
+            </p>
             {searchedDivisions.map((division) => {
               const selected = selectedDivisionKeys.includes(
                 division.divisionKey,
@@ -964,6 +966,11 @@ function PointsLeadersSection({
                 </button>
               );
             })}
+            {searchedDivisions.length === 0 ? (
+              <p className="rounded-md bg-white p-3 text-sm font-semibold text-slate-600">
+                No divisions match that search.
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
