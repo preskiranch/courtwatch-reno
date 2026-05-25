@@ -116,7 +116,10 @@ describe("CourtWatch API", () => {
         homeScore: 42,
         awayScore: 38,
         status: "final",
-        rawJson: { BracketUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test" }
+        rawJson: {
+          BracketUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test",
+          OfficialPlacement: true
+        }
       } satisfies Game
     ];
     const app = createApp(new MockStore(snapshot), null);

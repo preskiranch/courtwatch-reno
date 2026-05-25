@@ -19,7 +19,16 @@ export function deriveDivisionResultsFromGames(snapshot: Pick<CourtWatchSnapshot
   const gamesByDivision = new Map<string, Game[]>();
 
   for (const game of snapshot.games) {
-    if (!game.divisionId || game.status !== "final" || game.homeScore === null || game.awayScore === null || game.homeScore === game.awayScore) continue;
+    if (
+      !game.divisionId ||
+      game.status !== "final" ||
+      game.homeScore === null ||
+      game.awayScore === null ||
+      game.homeScore === game.awayScore ||
+      !hasOfficialPlacementSignal(game.rawJson)
+    ) {
+      continue;
+    }
     const games = gamesByDivision.get(game.divisionId) ?? [];
     games.push(game);
     gamesByDivision.set(game.divisionId, games);
@@ -179,11 +188,19 @@ function resultKey(result: DivisionResult): string {
 }
 
 function isTrustedStoredResult(result: DivisionResult): boolean {
+  if (result.isOfficial) return true;
   if (result.source !== "bracket_final") return true;
+  if (!hasOfficialPlacementSignal(result.rawJson)) return false;
   const type = normalizeGameType(result.bracketLabel);
   if (result.placement === 3) return type.includes("bronze") || type.includes("third") || type.includes("3rd");
   if (["semi", "quarter", "play in", "consolation", "bronze", "third", "3rd", "silver"].some((blocked) => type.includes(blocked))) return false;
   return type.includes("championship") || type.includes("champion") || type.includes("1st place") || type.includes("first place") || type.includes("final");
+}
+
+function hasOfficialPlacementSignal(rawJson: unknown): boolean {
+  if (!rawJson || typeof rawJson !== "object" || Array.isArray(rawJson)) return false;
+  const raw = rawJson as Record<string, unknown>;
+  return ["OfficialPlacement", "officialPlacement", "IsOfficialPlacement", "isOfficialPlacement"].some((key) => raw[key] === true);
 }
 
 function maxIso(left: string | null, right: string | null): string | null {

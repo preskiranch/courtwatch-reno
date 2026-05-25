@@ -4,7 +4,7 @@ import { seedGames, seedSnapshot } from "./seed-data.js";
 import type { CourtWatchSnapshot, Game } from "./types.js";
 
 describe("final division results", () => {
-  it("derives 1st/gold, 2nd/silver, and 3rd/bronze from completed official bracket finals", () => {
+  it("derives 1st/gold, 2nd/silver, and 3rd/bronze only from bracket finals with an official placement signal", () => {
     const snapshot = snapshotWithFinals();
     const results = deriveDivisionResultsFromGames(snapshot);
 
@@ -15,6 +15,25 @@ describe("final division results", () => {
     ]);
     expect(results[0]?.source).toBe("bracket_final");
     expect(results[0]?.isOfficial).toBe(false);
+  });
+
+  it("does not infer champions from completed bracket games that only have scores", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      finalGame({
+        id: "game-unsignaled-championship",
+        gameType: "Championship (G2)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 51,
+        awayScore: 38,
+        officialPlacement: false
+      })
+    ];
+
+    expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
   });
 
   it("does not treat silver bracket champions as overall champions", () => {
@@ -87,6 +106,36 @@ describe("final division results", () => {
 
     expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
   });
+
+  it("hides previously stored bracket final placements without an official placement signal", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [];
+    snapshot.divisionResults = [
+      {
+        id: "stored-unsignaled-championship",
+        eventId: snapshot.event.id,
+        divisionId: "division-boys-4th-green",
+        divisionName: "Boys 4th Green",
+        gender: "Boys",
+        gradeLevel: "4TH",
+        level: "Green",
+        teamId: "team-splash-4th",
+        teamNameSnapshot: "Splash City",
+        teamSourceUrl: null,
+        placement: 1,
+        medalLabel: "Gold",
+        bracketLabel: "Championship (G2)",
+        source: "bracket_final",
+        sourceUrl: null,
+        isOfficial: false,
+        sourceHash: "stored",
+        rawJson: { homeScore: 51, awayScore: 38 },
+        lastSeenAt: "2026-05-24T00:00:00.000Z"
+      }
+    ];
+
+    expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
+  });
 });
 
 function snapshotWithFinals(): CourtWatchSnapshot {
@@ -125,6 +174,7 @@ function finalGame(input: {
   awayTeamNameSnapshot: string;
   homeScore: number;
   awayScore: number;
+  officialPlacement?: boolean;
 }): Game {
   return {
     ...seedGames[0]!,
@@ -141,7 +191,8 @@ function finalGame(input: {
     awayScore: input.awayScore,
     status: "final",
     rawJson: {
-      BracketUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test"
+      BracketUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test",
+      OfficialPlacement: input.officialPlacement ?? true
     }
   };
 }
