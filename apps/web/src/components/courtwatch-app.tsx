@@ -2624,6 +2624,7 @@ function buildTeamRecordMap(
   for (const leader of leaders) {
     if (!leader.teamId) continue;
     if (records.has(leader.teamId)) continue;
+    if (leader.gamesScored <= 0) continue;
     records.set(leader.teamId, {
       wins: leader.wins,
       losses: leader.losses,
@@ -2651,7 +2652,23 @@ function teamRecordForTeam(
   team: Pick<Team, "id" | "record">,
   records: Map<string, TeamRecord>,
 ): TeamRecord | undefined {
-  return team.record ?? records.get(team.id);
+  const serverRecord = team.record;
+  const computedRecord = records.get(team.id);
+  if (hasRecordActivity(serverRecord)) return serverRecord;
+  if (hasRecordActivity(computedRecord)) return computedRecord;
+  return undefined;
+}
+
+function hasRecordActivity(
+  record:
+    | Pick<TeamRecord, "gamesSeen" | "gamesScored" | "finalGames">
+    | null
+    | undefined,
+): boolean {
+  return Boolean(
+    record &&
+    (record.gamesSeen > 0 || record.gamesScored > 0 || record.finalGames > 0),
+  );
 }
 
 const LEGACY_DIVISION_COMPARE_STORAGE_KEY =
@@ -2744,7 +2761,7 @@ function recordCaption(
 }
 
 function recordText(record: TeamRecord | undefined, loading = false): string {
-  if (record) return teamRecordLabel(record);
+  if (record && hasRecordActivity(record)) return teamRecordLabel(record);
   return loading ? "..." : "W-L TBD";
 }
 

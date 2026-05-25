@@ -2385,6 +2385,7 @@ function buildTeamRecordSummaryMap(
   const records = new Map<string, TeamRecordSummary>();
   for (const leader of leaders) {
     if (!leader.teamId) continue;
+    if (leader.gamesScored <= 0) continue;
     records.set(leader.teamId, {
       wins: leader.wins,
       losses: leader.losses,

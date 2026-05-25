@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-reno-v19";
+const CACHE_NAME = "courtwatch-reno-v20";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",

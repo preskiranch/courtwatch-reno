@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildTeamRecordSummaryMap } from "./records.js";
 import { ScheduleService } from "./services.js";
 import { seedGames, seedSnapshot, seedTeams } from "./seed-data.js";
 
@@ -34,5 +35,22 @@ describe("game record enrichment", () => {
       losses: 1,
       gamesSeen: 1,
     });
+  });
+
+  it("does not publish a 0-0 record when no games have been scored", () => {
+    const records = buildTeamRecordSummaryMap(
+      [
+        {
+          ...seedGames[0]!,
+          status: "upcoming",
+          homeScore: null,
+          awayScore: null,
+        },
+      ],
+      seedTeams,
+    );
+
+    expect(records.has("team-splash-4th")).toBe(false);
+    expect(records.has("team-premier-10u")).toBe(false);
   });
 });
