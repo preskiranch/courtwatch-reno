@@ -1,6 +1,6 @@
 "use client";
 
-import { buildTeamScoringLeaders, type DashboardResponse, type DivisionResult, type DivisionResultGroup, type Game, type GameChangeEvent, type ProgramSummary, type Team, type TeamScoringLeader } from "@courtwatch/core";
+import { buildTeamScoringLeaders, filterTeamScoringLeadersByDivisionIds, type DashboardResponse, type DivisionResult, type DivisionResultGroup, type Game, type GameChangeEvent, type ProgramSummary, type Team, type TeamScoringLeader } from "@courtwatch/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import {
@@ -34,6 +34,7 @@ import { RENO_TIME_ZONE, dateKeyInReno, scheduleDateSectionLabel } from "../lib/
 import { requestPushSubscription } from "../lib/push";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
+type PointsLeaderMode = "overall" | "compare";
 
 const tabs: Array<{ id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
   { id: "dashboard", label: "Dashboard", icon: Home },
@@ -399,15 +400,49 @@ function ProgramCard({ program }: { program: ProgramSummary }) {
 }
 
 function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader[]; loading: boolean }) {
+  const [mode, setMode] = useState<PointsLeaderMode>("overall");
+  const [divisionSearch, setDivisionSearch] = useState("");
+  const [selectedDivisionKeys, setSelectedDivisionKeys] = useState<string[]>(loadStoredDivisionCompareKeys);
+  const deferredDivisionSearch = useDeferredValue(divisionSearch);
+  const divisionOptions = useMemo(() => divisionCompareOptions(leaders), [leaders]);
+  const validDivisionKeys = useMemo(() => new Set(divisionOptions.map((division) => division.divisionKey)), [divisionOptions]);
+  const selectedDivisions = useMemo(() => divisionOptions.filter((division) => selectedDivisionKeys.includes(division.divisionKey)), [divisionOptions, selectedDivisionKeys]);
+  const selectedDivisionIds = useMemo(() => selectedDivisions.flatMap((division) => division.divisionIds), [selectedDivisions]);
+  const compareLeaders = useMemo(() => filterTeamScoringLeadersByDivisionIds(leaders, selectedDivisionIds), [leaders, selectedDivisionIds]);
+  const displayLeaders = mode === "compare" ? compareLeaders : leaders;
+  const searchedDivisions = useMemo(() => {
+    const query = deferredDivisionSearch.trim().toLowerCase();
+    const options = query ? divisionOptions.filter((division) => division.divisionName.toLowerCase().includes(query)) : divisionOptions;
+    return options.slice(0, 24);
+  }, [deferredDivisionSearch, divisionOptions]);
+  const badgeText = loading ? "..." : mode === "compare" ? `${selectedDivisions.length} selected` : `${leaders.length} teams`;
+
+  useEffect(() => {
+    if (divisionOptions.length === 0) return;
+    setSelectedDivisionKeys((current) => {
+      const next = current.filter((divisionKey) => validDivisionKeys.has(divisionKey));
+      return next.length === current.length ? current : next;
+    });
+  }, [divisionOptions.length, validDivisionKeys]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("courtwatch:points-division-compare", JSON.stringify(selectedDivisionKeys));
+  }, [selectedDivisionKeys]);
+
+  const toggleDivision = (divisionKey: string) => {
+    setSelectedDivisionKeys((current) => (current.includes(divisionKey) ? current.filter((key) => key !== divisionKey) : [...current, divisionKey]));
+  };
+
   return (
     <section className="court-card p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">Points Leaders</p>
-          <h2 className="mt-1 text-xl font-black text-slate-950">All teams by points</h2>
+          <h2 className="mt-1 text-xl font-black text-slate-950">{mode === "compare" ? "Compare divisions by points" : "All teams by points"}</h2>
         </div>
         <span className="shrink-0 rounded-md bg-slate-950 px-2 py-1 text-xs font-black text-white">
-          {loading ? "..." : `${leaders.length} teams`}
+          {badgeText}
         </span>
       </div>
 
@@ -417,8 +452,86 @@ function PointsLeadersSection({ leaders, loading }: { leaders: TeamScoringLeader
       ) : null}
 
       {!loading && leaders.length > 0 ? (
+        <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
+          {(["overall", "compare"] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setMode(item)}
+              className={clsx(
+                "min-h-11 rounded-md px-3 text-sm font-black transition active:scale-[0.98]",
+                mode === item ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"
+              )}
+            >
+              {item === "overall" ? "Overall" : "Compare"}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {!loading && leaders.length > 0 && mode === "compare" ? (
+        <div className="mb-3 space-y-2">
+          <label className="flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <input
+              value={divisionSearch}
+              onChange={(event) => setDivisionSearch(event.target.value)}
+              placeholder="Search divisions"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+            />
+          </label>
+
+          {selectedDivisions.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {selectedDivisions.map((division) => (
+                <button
+                  key={division.divisionKey}
+                  type="button"
+                  onClick={() => toggleDivision(division.divisionKey)}
+                  className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-md bg-orange-100 px-2.5 text-xs font-black text-orange-800"
+                >
+                  <span className="truncate">{division.divisionName}</span>
+                  <X className="h-3.5 w-3.5 shrink-0" />
+                </button>
+              ))}
+              <button type="button" onClick={() => setSelectedDivisionKeys([])} className="min-h-9 rounded-md bg-slate-100 px-2.5 text-xs font-black text-slate-600">
+                Clear
+              </button>
+            </div>
+          ) : null}
+
+          <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2" data-testid="division-compare-options">
+            {searchedDivisions.map((division) => {
+              const selected = selectedDivisionKeys.includes(division.divisionKey);
+              return (
+                <button
+                  key={division.divisionKey}
+                  type="button"
+                  onClick={() => toggleDivision(division.divisionKey)}
+                  className={clsx(
+                    "flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-3 text-left transition active:scale-[0.99]",
+                    selected ? "bg-slate-950 text-white" : "bg-white text-slate-900"
+                  )}
+                  data-testid="division-compare-option"
+                >
+                  <span className="min-w-0 text-sm font-black leading-snug">{division.divisionName}</span>
+                  <span className={clsx("shrink-0 rounded-md px-2 py-1 text-[11px] font-black", selected ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-600")}>
+                    {division.teamCount}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {!loading && leaders.length > 0 && mode === "compare" && selectedDivisionKeys.length === 0 ? (
+        <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">Choose divisions to compare.</p>
+      ) : null}
+
+      {!loading && displayLeaders.length > 0 ? (
         <div className="max-h-[590px] space-y-2 overflow-y-auto pr-1" data-testid="points-leaders-list">
-          {leaders.map((leader) => (
+          {displayLeaders.map((leader) => (
             <PointLeaderRow key={leader.teamKey} leader={leader} />
           ))}
         </div>
@@ -825,6 +938,14 @@ function TeamsScreen({ dashboard }: { dashboard: DashboardResponse }) {
 type DivisionTotal = {
   divisionName: string;
   count: number;
+};
+
+type DivisionCompareOption = {
+  divisionKey: string;
+  divisionIds: string[];
+  divisionName: string;
+  teamCount: number;
+  totalPoints: number;
 };
 
 function DivisionTotalsPanel({ totals, loading }: { totals: DivisionTotal[]; loading: boolean }) {
@@ -1321,6 +1442,48 @@ function divisionTotalsForTeams(teams: Team[]): DivisionTotal[] {
   return Array.from(counts.entries())
     .map(([divisionName, count]) => ({ divisionName, count }))
     .sort((left, right) => divisionSortKey(left.divisionName).localeCompare(divisionSortKey(right.divisionName), "en-US", { numeric: true, sensitivity: "base" }));
+}
+
+function divisionCompareOptions(leaders: TeamScoringLeader[]): DivisionCompareOption[] {
+  const divisions = new Map<string, DivisionCompareOption>();
+  for (const leader of leaders) {
+    if (!leader.divisionId) continue;
+    const divisionKey = stableDivisionKey(leader.divisionName);
+    const existing = divisions.get(divisionKey);
+    if (existing) {
+      existing.teamCount += 1;
+      existing.totalPoints += leader.totalPoints;
+      if (!existing.divisionIds.includes(leader.divisionId)) existing.divisionIds.push(leader.divisionId);
+      continue;
+    }
+    divisions.set(divisionKey, {
+      divisionKey,
+      divisionIds: [leader.divisionId],
+      divisionName: leader.divisionName,
+      teamCount: 1,
+      totalPoints: leader.totalPoints
+    });
+  }
+  return Array.from(divisions.values()).sort((left, right) => {
+    return (
+      divisionSortKey(left.divisionName).localeCompare(divisionSortKey(right.divisionName), "en-US", { numeric: true, sensitivity: "base" }) ||
+      right.totalPoints - left.totalPoints
+    );
+  });
+}
+
+function loadStoredDivisionCompareKeys(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem("courtwatch:points-division-compare") ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function stableDivisionKey(divisionName: string): string {
+  return divisionName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
 function divisionSortKey(divisionName: string): string {

@@ -5,6 +5,7 @@ export interface TeamScoringLeader {
   teamKey: string;
   teamId: string | null;
   teamName: string;
+  divisionId: string | null;
   divisionName: string;
   totalPoints: number;
   gamesScored: number;
@@ -18,6 +19,7 @@ interface TeamScoringAccumulator {
   teamKey: string;
   teamId: string | null;
   teamName: string;
+  divisionId: string | null;
   divisionName: string;
   totalPoints: number;
   gamesScored: number;
@@ -40,6 +42,7 @@ export function buildTeamScoringLeaders(games: Game[], teams: Team[], options: T
         teamKey,
         teamId: team.id,
         teamName: team.name,
+        divisionId: team.divisionId,
         divisionName: team.divisionName ?? "Division TBD",
         totalPoints: 0,
         gamesScored: 0
@@ -47,18 +50,13 @@ export function buildTeamScoringLeaders(games: Game[], teams: Team[], options: T
     }
   }
 
-  let previousPoints: number | null = null;
-  let currentRank = 0;
-  return Array.from(totals.values())
-    .filter((leader) => options.includeUnscoredTeams || leader.gamesScored > 0)
-    .sort(compareLeaders)
-    .map((leader, index) => {
-      if (leader.totalPoints !== previousPoints) {
-        currentRank = index + 1;
-        previousPoints = leader.totalPoints;
-      }
-      return { ...leader, rank: currentRank };
-    });
+  return rankScoringRows(Array.from(totals.values()).filter((leader) => options.includeUnscoredTeams || leader.gamesScored > 0));
+}
+
+export function filterTeamScoringLeadersByDivisionIds(leaders: TeamScoringLeader[], divisionIds: Iterable<string>): TeamScoringLeader[] {
+  const selected = new Set(Array.from(divisionIds).filter(Boolean));
+  if (selected.size === 0) return [];
+  return rankScoringRows(leaders.filter((leader) => leader.divisionId !== null && selected.has(leader.divisionId)));
 }
 
 function addTeamPoints(
@@ -88,9 +86,22 @@ function addTeamPoints(
     teamKey,
     teamId: team?.id ?? teamId,
     teamName,
+    divisionId: team?.divisionId ?? game.divisionId,
     divisionName: team?.divisionName ?? divisionNameFromGame(game) ?? "Division TBD",
     totalPoints: score,
     gamesScored: 1
+  });
+}
+
+function rankScoringRows(rows: TeamScoringAccumulator[]): TeamScoringLeader[] {
+  let previousPoints: number | null = null;
+  let currentRank = 0;
+  return [...rows].sort(compareLeaders).map((leader, index) => {
+    if (leader.totalPoints !== previousPoints) {
+      currentRank = index + 1;
+      previousPoints = leader.totalPoints;
+    }
+    return { ...leader, rank: currentRank };
   });
 }
 

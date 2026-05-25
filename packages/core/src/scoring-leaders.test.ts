@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTeamScoringLeaders } from "./scoring-leaders.js";
+import { buildTeamScoringLeaders, filterTeamScoringLeadersByDivisionIds } from "./scoring-leaders.js";
 import { seedGames, seedTeams } from "./seed-data.js";
 import type { Game } from "./types.js";
 
@@ -57,6 +57,27 @@ describe("team scoring leaders", () => {
     expect(leaders).toHaveLength(seedTeams.length);
     expect(leaders.find((leader) => leader.teamId === "team-splash-4th")).toMatchObject({ totalPoints: 34, gamesScored: 1 });
     expect(leaders.find((leader) => leader.teamId === "team-arsenal-girls-7")).toMatchObject({ totalPoints: 0, gamesScored: 0 });
+  });
+
+  it("can compare selected divisions and rerank only those teams", () => {
+    const leaders = buildTeamScoringLeaders(
+      [
+        scoredGame("game-1", "team-splash-4th", "Splash City", 34, "team-premier-10u", "Premier 10U Gold", 20),
+        scoredGame("game-2", "team-splash-6th", "Splash City", 28, "team-norcal-6", "NorCal Elite Blue", 35)
+      ],
+      seedTeams,
+      { includeUnscoredTeams: true }
+    );
+
+    const compared = filterTeamScoringLeadersByDivisionIds(leaders, ["division-boys-4th-green", "division-boys-6th-blue"]);
+
+    expect(compared).toHaveLength(4);
+    expect(compared.map((leader) => [leader.rank, leader.totalPoints, leader.teamId, leader.divisionId])).toEqual([
+      [1, 35, "team-norcal-6", "division-boys-6th-blue"],
+      [2, 34, "team-splash-4th", "division-boys-4th-green"],
+      [3, 28, "team-splash-6th", "division-boys-6th-blue"],
+      [4, 20, "team-premier-10u", "division-boys-4th-green"]
+    ]);
   });
 });
 
