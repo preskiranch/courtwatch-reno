@@ -71,6 +71,9 @@ const tabs: Array<{
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
+const LIVE_DATA_REFETCH_MS = 60_000;
+const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
+
 export function CourtWatchApp() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [toast, setToast] = useState<string | null>(null);
@@ -92,21 +95,33 @@ export function CourtWatchApp() {
   const todayKey = useTournamentTodayKey(
     activeEvent?.timezone ?? DEFAULT_TOURNAMENT_TIME_ZONE,
   );
+  const dataRefetchInterval = activeEvent
+    ? dataRefetchIntervalForEvent(activeEvent, todayKey)
+    : false;
   const lastTodayKeyRef = useRef(todayKey);
   const dashboardQuery = useQuery({
     queryKey: ["dashboard", presenceClientId, activeEventId],
     queryFn: () => CourtWatchApi.dashboard(activeEventId),
     enabled: clientReady && Boolean(activeEventId),
+    refetchInterval: dataRefetchInterval,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const gamesQuery = useQuery({
     queryKey: ["games", presenceClientId, activeEventId],
     queryFn: () => CourtWatchApi.games("", activeEventId),
     enabled: clientReady && Boolean(activeEventId),
+    refetchInterval: dataRefetchInterval,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const alertsQuery = useQuery({
     queryKey: ["alerts", presenceClientId, activeEventId],
     queryFn: () => CourtWatchApi.alerts(activeEventId),
     enabled: clientReady && Boolean(activeEventId),
+    refetchInterval: dataRefetchInterval,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const presenceQuery = useQuery({
     queryKey: ["presence", presenceClientId, activeTab],
@@ -2533,6 +2548,15 @@ function useTournamentTodayKey(timeZone: string): string {
   }, [timeZone]);
 
   return todayKey;
+}
+
+function dataRefetchIntervalForEvent(
+  event: Pick<TournamentEvent, "startDate" | "endDate">,
+  todayKey: string,
+): number {
+  return todayKey >= event.startDate && todayKey <= event.endDate
+    ? LIVE_DATA_REFETCH_MS
+    : PASSIVE_DATA_REFETCH_MS;
 }
 
 function groupGamesByDate(games: Game[], todayKey: string, timeZone: string) {
