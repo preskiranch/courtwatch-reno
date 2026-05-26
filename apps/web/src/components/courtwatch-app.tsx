@@ -203,7 +203,7 @@ export function CourtWatchApp() {
       window.localStorage.setItem(migrationKey, "complete");
       return;
     }
-    const teamIds = dashboardFollowMigrationTeamIds();
+    const teamIds = dashboardFollowMigrationTeamIds(presenceClientId);
     if (teamIds.length === 0) {
       window.localStorage.setItem(migrationKey, "complete");
       return;
@@ -657,7 +657,7 @@ function DashboardScreen({
         clientId={clientId}
       />
 
-      <FinalResultsSection eventId={eventId} />
+      <FinalResultsSection clientId={clientId} eventId={eventId} />
 
       <section className="court-card p-4">
         <div className="mb-3 flex items-center justify-between">
@@ -1139,12 +1139,19 @@ function latestPointLeaderScoreLabel(leader: TeamScoringLeader): string | null {
   return `Latest: ${leader.latestScore}-${leader.latestOpponentScore}${opponent}`;
 }
 
-function FinalResultsSection({ eventId }: { eventId: number | null }) {
+function FinalResultsSection({
+  clientId,
+  eventId,
+}: {
+  clientId: string;
+  eventId: number | null;
+}) {
   const [scope, setScope] = useState<"watched" | "all">("watched");
   const { records, loading: recordsLoading } = useTeamRecords(eventId);
   const resultsQuery = useQuery({
-    queryKey: ["results", scope, eventId],
+    queryKey: ["results", clientId, scope, eventId],
     queryFn: () => CourtWatchApi.results(scope, eventId),
+    enabled: Boolean(clientId && eventId),
     staleTime: 60_000,
     refetchInterval: 60_000,
     refetchIntervalInBackground: true,
@@ -2968,11 +2975,12 @@ function dashboardTeamIds(dashboard: DashboardResponse): string[] {
   );
 }
 
-function dashboardFollowMigrationTeamIds(): string[] {
+function dashboardFollowMigrationTeamIds(clientId: string): string[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(
-    "courtwatch:dashboard-follow-migration",
-  );
+  const raw =
+    window.localStorage.getItem(
+      `courtwatch:dashboard-follow-migration:${encodeURIComponent(clientId)}`,
+    ) ?? window.localStorage.getItem("courtwatch:dashboard-follow-migration");
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as { teamIds?: unknown };

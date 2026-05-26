@@ -28,6 +28,17 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
+const CACHE_VERSION = "v14";
+const LEGACY_CACHE_VERSION = "v13";
+const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
+  "dashboard",
+  "games",
+  "alerts",
+  "programs",
+  "results",
+  "teams",
+]);
+
 export type PresenceResponse = {
   activeUsers: number;
   pages: Record<string, number>;
@@ -36,18 +47,26 @@ export type PresenceResponse = {
 };
 
 export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
-  const storageKey = cacheKey ? cacheStorageKey(cacheKey, path) : null;
+  const clientId = stableClientId();
+  const storageKey = cacheKey
+    ? cacheStorageKey(cacheKey, path, clientId)
+    : null;
+  const cacheKeys = cacheKey
+    ? cacheLookupKeys(cacheKey, path, clientId)
+    : [];
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: { Accept: "application/json", ...clientIdentityHeaders() },
+      headers: {
+        Accept: "application/json",
+        ...clientIdentityHeaders(clientId),
+      },
       cache: "no-store",
     });
     if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
     const previousCache =
       cacheKey && storageKey && typeof window !== "undefined"
-        ? (window.localStorage.getItem(storageKey) ??
-          window.localStorage.getItem(`courtwatch:${cacheKey}`))
+        ? firstCachedValue(cacheKeys)
         : null;
     const dataToStore = mergeCacheData(
       cacheKey,
@@ -59,6 +78,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
         cacheKey,
         previousCache,
         dataToStore,
+        clientId,
       );
       if (shouldPersistCacheData(cacheKey, dataToStore)) {
         window.localStorage.setItem(
@@ -73,11 +93,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
     return dataToStore;
   } catch (error) {
     if (storageKey && typeof window !== "undefined") {
-      const cached =
-        window.localStorage.getItem(storageKey) ??
-        (cacheKey
-          ? window.localStorage.getItem(`courtwatch:${cacheKey}`)
-          : null);
+      const cached = firstCachedValue(cacheKeys);
       if (cached) return (JSON.parse(cached) as { data: T }).data;
     }
     throw error;
@@ -184,8 +200,9 @@ export function apiBaseUrl() {
   return API_BASE_URL;
 }
 
-function clientIdentityHeaders(): Record<string, string> {
-  const clientId = stableClientId();
+function clientIdentityHeaders(
+  clientId: string | null = stableClientId(),
+): Record<string, string> {
   return clientId ? { "x-courtwatch-client-id": clientId } : {};
 }
 
@@ -195,8 +212,40 @@ function withEvent(path: string, eventId?: number | null): string {
   return `${path}${separator}eventId=${encodeURIComponent(String(eventId))}`;
 }
 
-function cacheStorageKey(cacheKey: CacheKey, path: string): string {
-  return `courtwatch-aau:v13:${cacheKey}:${path}`;
+function cacheStorageKey(
+  cacheKey: CacheKey,
+  path: string,
+  clientId: string | null,
+): string {
+  const scope =
+    clientId && DEVICE_SCOPED_CACHE_KEYS.has(cacheKey)
+      ? `:${encodeURIComponent(clientId)}`
+      : "";
+  return `courtwatch-aau:${CACHE_VERSION}${scope}:${cacheKey}:${path}`;
+}
+
+function cacheLookupKeys(
+  cacheKey: CacheKey,
+  path: string,
+  clientId: string | null,
+): string[] {
+  const keys = [cacheStorageKey(cacheKey, path, clientId)];
+  if (!DEVICE_SCOPED_CACHE_KEYS.has(cacheKey) || cacheKey === "dashboard") {
+    keys.push(
+      `courtwatch-aau:${LEGACY_CACHE_VERSION}:${cacheKey}:${path}`,
+      `courtwatch:${cacheKey}`,
+    );
+  }
+  return keys;
+}
+
+function firstCachedValue(keys: string[]): string | null {
+  if (typeof window === "undefined") return null;
+  for (const key of keys) {
+    const value = window.localStorage.getItem(key);
+    if (value) return value;
+  }
+  return null;
 }
 
 function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {
@@ -271,10 +320,12 @@ function preserveDashboardFollowsForMigration<T>(
   cacheKey: CacheKey,
   previousCache: string | null,
   nextData: T,
+  clientId: string | null,
 ) {
   if (
     cacheKey !== "dashboard" ||
     !previousCache ||
+    !clientId ||
     typeof window === "undefined"
   )
     return;
@@ -282,7 +333,7 @@ function preserveDashboardFollowsForMigration<T>(
   const nextTeamIds = dashboardTeamIdsFromUnknown(nextData);
   if (previousTeamIds.length > 0 && nextTeamIds.length === 0) {
     window.localStorage.setItem(
-      "courtwatch:dashboard-follow-migration",
+      `courtwatch:dashboard-follow-migration:${encodeURIComponent(clientId)}`,
       JSON.stringify({
         teamIds: previousTeamIds,
         savedAt: new Date().toISOString(),

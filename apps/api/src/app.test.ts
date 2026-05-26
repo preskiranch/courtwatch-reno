@@ -213,6 +213,68 @@ describe("CourtWatch API", () => {
     ).toEqual(["team-splash-4th"]);
   });
 
+  it("keeps final-results My divisions separate by browser client id", async () => {
+    const snapshot = structuredClone(seedSnapshot);
+    snapshot.games = [
+      {
+        ...seedGames[0]!,
+        id: "game-alpha-gold-final",
+        exposureGameId: "game-alpha-gold-final",
+        divisionId: "division-boys-4th-green",
+        gameType: "Gold Championship",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 42,
+        awayScore: 38,
+        status: "final",
+      } satisfies Game,
+      {
+        ...seedGames[2]!,
+        id: "game-beta-gold-final",
+        exposureGameId: "game-beta-gold-final",
+        divisionId: "division-boys-6th-blue",
+        gameType: "Gold Championship",
+        homeTeamId: "team-norcal-6",
+        awayTeamId: "team-splash-6th",
+        homeTeamNameSnapshot: "NorCal Elite Blue",
+        awayTeamNameSnapshot: "Splash City 6th",
+        homeScore: 35,
+        awayScore: 28,
+        status: "final",
+      } satisfies Game,
+    ];
+    const app = createApp(new MockStore(snapshot), null);
+
+    await request(app)
+      .post("/api/teams/team-splash-4th/follow")
+      .set("x-courtwatch-client-id", "client-results-alpha")
+      .expect(201);
+    await request(app)
+      .post("/api/teams/team-splash-6th/follow")
+      .set("x-courtwatch-client-id", "client-results-beta")
+      .expect(201);
+
+    const alphaResults = await request(app)
+      .get("/api/results")
+      .set("x-courtwatch-client-id", "client-results-alpha")
+      .expect(200);
+    const betaResults = await request(app)
+      .get("/api/results")
+      .set("x-courtwatch-client-id", "client-results-beta")
+      .expect(200);
+
+    expect(
+      alphaResults.body.map(
+        (group: { divisionId: string }) => group.divisionId,
+      ),
+    ).toEqual(["division-boys-4th-green"]);
+    expect(
+      betaResults.body.map((group: { divisionId: string }) => group.divisionId),
+    ).toEqual(["division-boys-6th-blue"]);
+  });
+
   it("tracks active online users with a heartbeat", async () => {
     const app = createApp(new MockStore(), null);
     const response = await request(app)
