@@ -133,7 +133,7 @@ services:
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
         value: "24"
       - key: WORKER_API_TIMEOUT_MS
-        value: "120000"
+        value: "300000"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA
