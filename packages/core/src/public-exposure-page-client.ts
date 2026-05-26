@@ -31,11 +31,13 @@ export interface PublicExposureGameOptions {
 export interface PublicExposurePageClientOptions {
   baseUrl?: string;
   fetchImpl?: typeof fetch;
+  timeoutMs?: number;
 }
 
 export class PublicExposurePageClient {
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
+  private readonly timeoutMs: number;
 
   constructor(options: PublicExposurePageClientOptions = {}) {
     this.baseUrl =
@@ -43,6 +45,9 @@ export class PublicExposurePageClient {
       process.env.EXPOSURE_PUBLIC_BASE_URL ??
       "https://basketball.exposureevents.com";
     this.fetchImpl = options.fetchImpl ?? fetch;
+    this.timeoutMs =
+      options.timeoutMs ??
+      Number(process.env.EXPOSURE_PUBLIC_TIMEOUT_MS ?? 12_000);
   }
 
   async fetchTeams(
@@ -109,7 +114,7 @@ export class PublicExposurePageClient {
     }
 
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/teams`;
-    const response = await this.fetchImpl(url, {
+    const response = await this.fetchWithTimeout(url, {
       headers: {
         "User-Agent":
           "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
@@ -246,7 +251,7 @@ export class PublicExposurePageClient {
     eventSlug: string,
   ): Promise<PublicExposureSearchResult> {
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/search?eventid=${eventId}&eventname=${eventSlug}`;
-    const response = await this.fetchImpl(url, {
+    const response = await this.fetchWithTimeout(url, {
       headers: {
         Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
@@ -265,7 +270,7 @@ export class PublicExposurePageClient {
     divisionId: number,
   ) {
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/eventgames?divisionId=${divisionId}`;
-    const response = await this.fetchImpl(url, {
+    const response = await this.fetchWithTimeout(url, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -287,7 +292,7 @@ export class PublicExposurePageClient {
   }
 
   private async fetchText(url: string) {
-    const response = await this.fetchImpl(url, {
+    const response = await this.fetchWithTimeout(url, {
       headers: {
         Accept: "text/html",
         "User-Agent":
@@ -297,6 +302,23 @@ export class PublicExposurePageClient {
     if (!response.ok)
       throw new Error(`Public page request failed with ${response.status}`);
     return response.text();
+  }
+
+  private async fetchWithTimeout(
+    input: string | URL | Request,
+    init: RequestInit = {},
+  ): Promise<Response> {
+    if (init.signal || this.timeoutMs <= 0) return this.fetchImpl(input, init);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      return await this.fetchImpl(input, {
+        ...init,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
   }
 }
 
