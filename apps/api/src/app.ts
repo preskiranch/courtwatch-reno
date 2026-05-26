@@ -1,6 +1,11 @@
 import { Prisma } from "@courtwatch/db";
 import type { PrismaClient } from "@courtwatch/db";
-import { RenderHealthCheckService } from "@courtwatch/core";
+import {
+  normalizeProgramName,
+  RenderHealthCheckService,
+  SELECTED_TEAMS_PROGRAM_ID,
+  SELECTED_TEAMS_PROGRAM_NAME,
+} from "@courtwatch/core";
 import cors from "cors";
 import { randomUUID } from "node:crypto";
 import express from "express";
@@ -62,21 +67,14 @@ export function createApp(
   );
   app.use((pinoHttp as unknown as () => express.Handler)());
 
-  app.get("/api/health", async (req, res, next) => {
-    try {
-      const snapshot = await store.snapshot(requestExposureEventId(req));
-      const lastSyncAt =
-        snapshot.syncRuns[0]?.completedAt ?? snapshot.event.lastSyncedAt;
-      res.json(
-        new RenderHealthCheckService().check({
-          dbConfigured: isDatabaseConfigured(),
-          sourceConfigured: isExposureConfigured(),
-          lastSyncAt,
-        }),
-      );
-    } catch (error) {
-      next(error);
-    }
+  app.get("/api/health", async (_req, res) => {
+    res.json(
+      new RenderHealthCheckService().check({
+        dbConfigured: isDatabaseConfigured(),
+        sourceConfigured: isExposureConfigured(),
+        lastSyncAt: null,
+      }),
+    );
   });
 
   app.get("/api/events", async (_req, res, next) => {
@@ -219,6 +217,18 @@ export function createApp(
 
   app.post("/api/teams/:teamId/follow", async (req, res, next) => {
     try {
+      if (prismaClient) {
+        res
+          .status(201)
+          .json(
+            await followTeamDirect(
+              prismaClient,
+              req.params.teamId,
+              requestClientId(req),
+            ),
+          );
+        return;
+      }
       res
         .status(201)
         .json(await store.followTeam(req.params.teamId, requestClientId(req)));
@@ -561,6 +571,96 @@ function requestExposureEventId(req: express.Request): number | null {
   if (!raw) return null;
   const parsed = Number(raw);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+async function followTeamDirect(
+  prismaClient: PrismaClient,
+  teamId: string,
+  clientId: string | null,
+) {
+  const team = await prismaClient.team.findUnique({ where: { id: teamId } });
+  if (!team) throw new Error("Team not found");
+
+  const normalizedProgramName = normalizeProgramName(
+    SELECTED_TEAMS_PROGRAM_NAME,
+  );
+  const program = clientId
+    ? await ensureSelectedProgramForClient(
+        prismaClient,
+        clientId,
+        normalizedProgramName,
+      )
+    : await prismaClient.programWatchlist.upsert({
+        where: { id: SELECTED_TEAMS_PROGRAM_ID },
+        update: {
+          programName: SELECTED_TEAMS_PROGRAM_NAME,
+          active: true,
+        },
+        create: {
+          id: SELECTED_TEAMS_PROGRAM_ID,
+          programName: SELECTED_TEAMS_PROGRAM_NAME,
+          normalizedProgramName,
+          active: true,
+        },
+      });
+
+  const match = await prismaClient.programTeamMatch.upsert({
+    where: {
+      programWatchlistId_teamId: { programWatchlistId: program.id, teamId },
+    },
+    update: { active: true, matchType: "manual", matchConfidence: 1 },
+    create: {
+      programWatchlistId: program.id,
+      teamId,
+      matchType: "manual",
+      matchConfidence: 1,
+    },
+  });
+
+  return {
+    id: match.id,
+    programWatchlistId: match.programWatchlistId,
+    teamId: match.teamId,
+    matchType: match.matchType,
+    matchConfidence: Number(match.matchConfidence),
+    active: match.active,
+    createdAt: match.createdAt.toISOString(),
+  };
+}
+
+async function ensureSelectedProgramForClient(
+  prismaClient: PrismaClient,
+  clientId: string,
+  normalizedProgramName: string,
+) {
+  const user = await prismaClient.user.upsert({
+    where: { clientId },
+    update: {},
+    create: {
+      clientId,
+      displayName: "Court Watch Device",
+      timezone: "America/Los_Angeles",
+    },
+  });
+
+  return prismaClient.programWatchlist.upsert({
+    where: {
+      userId_normalizedProgramName: {
+        userId: user.id,
+        normalizedProgramName,
+      },
+    },
+    update: {
+      programName: SELECTED_TEAMS_PROGRAM_NAME,
+      active: true,
+    },
+    create: {
+      userId: user.id,
+      programName: SELECTED_TEAMS_PROGRAM_NAME,
+      normalizedProgramName,
+      active: true,
+    },
+  });
 }
 
 async function settingsUser(
