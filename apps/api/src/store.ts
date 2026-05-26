@@ -28,6 +28,7 @@ import {
   seedPrograms,
   seedSnapshot,
   seedTeams,
+  withEffectiveGameStatus,
 } from "@courtwatch/core";
 import type {
   CourtWatchSnapshot,
@@ -178,7 +179,7 @@ export class MockStore implements CourtWatchStore {
     const game = snapshot.games.find((item) => item.id === gameId);
     return game
       ? {
-          ...game,
+          ...withEffectiveGameStatus(game),
           changeHistory: snapshot.changeEvents.filter(
             (event) => event.gameId === gameId,
           ),
@@ -663,7 +664,7 @@ export class PrismaStore implements CourtWatchStore {
       orderBy: { createdAt: "desc" },
     });
     return {
-      ...prismaGameToCore(game),
+      ...withEffectiveGameStatus(prismaGameToCore(game)),
       changeHistory: changeEvents.map(toCoreChange),
     };
   }

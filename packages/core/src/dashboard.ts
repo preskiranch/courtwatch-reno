@@ -8,6 +8,10 @@ import type {
 } from "./types.js";
 import { DISCLAIMER } from "./types.js";
 import {
+  isCurrentOrFutureGame,
+  withEffectiveGameStatuses,
+} from "./game-status.js";
+import {
   attachTeamRecordsToGame,
   buildTeamRecordSummaryMap,
 } from "./records.js";
@@ -29,11 +33,7 @@ export function nextGameForTeam(
 ): Game | null {
   return (
     teamGames(team, games)
-      .filter(
-        (game) =>
-          new Date(game.startsAt).getTime() >= now.getTime() &&
-          game.status !== "final",
-      )
+      .filter((game) => isCurrentOrFutureGame(game, now))
       .sort(compareStartsAt)[0] ?? null
   );
 }
@@ -54,7 +54,8 @@ export function buildProgramSummaries(
   snapshot: CourtWatchSnapshot,
   now = new Date(),
 ): ProgramSummary[] {
-  const records = buildTeamRecordSummaryMap(snapshot.games, snapshot.teams);
+  const games = withEffectiveGameStatuses(snapshot.games, now);
+  const records = buildTeamRecordSummaryMap(games, snapshot.teams);
 
   return snapshot.programs
     .filter((program) => program.active)
@@ -69,8 +70,8 @@ export function buildProgramSummaries(
         .map((match) => {
           const team = snapshot.teams.find((item) => item.id === match.teamId);
           if (!team) return null;
-          const nextGame = nextGameForTeam(team, snapshot.games, now);
-          const lastResult = lastResultForTeam(team, snapshot.games, now);
+          const nextGame = nextGameForTeam(team, games, now);
+          const lastResult = lastResultForTeam(team, games, now);
           return {
             ...team,
             record: records.get(team.id),
@@ -95,19 +96,13 @@ export function buildProgramSummaries(
 
       const programGameIds = new Set(
         teams.flatMap((team) =>
-          teamGames(team, snapshot.games).map((game) => game.id),
+          teamGames(team, games).map((game) => game.id),
         ),
       );
-      const programGames = snapshot.games.filter((game) =>
-        programGameIds.has(game.id),
-      );
+      const programGames = games.filter((game) => programGameIds.has(game.id));
       const nextGame =
         programGames
-          .filter(
-            (game) =>
-              new Date(game.startsAt).getTime() >= now.getTime() &&
-              game.status !== "final",
-          )
+          .filter((game) => isCurrentOrFutureGame(game, now))
           .sort(compareStartsAt)[0] ?? null;
       const latestResult =
         programGames
@@ -140,12 +135,19 @@ export function buildDashboard(
   snapshot: CourtWatchSnapshot,
   now = new Date(),
 ): DashboardResponse {
-  const records = buildTeamRecordSummaryMap(snapshot.games, snapshot.teams);
-  const programs = buildProgramSummaries(snapshot, now);
+  const effectiveSnapshot = {
+    ...snapshot,
+    games: withEffectiveGameStatuses(snapshot.games, now),
+  };
+  const records = buildTeamRecordSummaryMap(
+    effectiveSnapshot.games,
+    effectiveSnapshot.teams,
+  );
+  const programs = buildProgramSummaries(effectiveSnapshot, now);
   const watchedTeamIds = new Set(
     programs.flatMap((program) => program.teams.map((team) => team.id)),
   );
-  const watchedGames = snapshot.games.filter(
+  const watchedGames = effectiveSnapshot.games.filter(
     (game) =>
       watchedTeamIds.has(game.homeTeamId ?? "") ||
       watchedTeamIds.has(game.awayTeamId ?? ""),
@@ -156,11 +158,7 @@ export function buildDashboard(
   );
   const nextGame =
     watchedGames
-      .filter(
-        (game) =>
-          new Date(game.startsAt).getTime() >= now.getTime() &&
-          game.status !== "final",
-      )
+      .filter((game) => isCurrentOrFutureGame(game, now))
       .sort(compareStartsAt)[0] ?? null;
   const lastRun =
     [...snapshot.syncRuns].sort(

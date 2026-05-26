@@ -53,4 +53,28 @@ describe("game record enrichment", () => {
     expect(records.has("team-splash-4th")).toBe(false);
     expect(records.has("team-premier-10u")).toBe(false);
   });
+
+  it("promotes started watched games to LIVE for schedule filters", () => {
+    const service = new ScheduleService();
+    const games = service.listWatchedGames(
+      {
+        ...seedSnapshot,
+        games: [
+          {
+            ...seedGames[0]!,
+            startsAt: "2026-05-25T23:30:00.000Z",
+            scheduledDate: "2026-05-25",
+            scheduledTime: "4:30 PM",
+            status: "upcoming",
+          },
+        ],
+        teams: seedTeams,
+      },
+      { scope: "all", status: "playing_now" },
+      new Date("2026-05-26T00:58:00.000Z"),
+    );
+
+    expect(games).toHaveLength(1);
+    expect(games[0]?.status).toBe("playing_now");
+  });
 });

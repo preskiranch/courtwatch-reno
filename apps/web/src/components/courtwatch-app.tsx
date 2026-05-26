@@ -3,6 +3,8 @@
 import {
   buildTeamScoringLeaders,
   filterTeamScoringLeadersByDivisionIds,
+  withEffectiveGameStatus,
+  withEffectiveGameStatuses,
   type DashboardResponse,
   type DivisionResult,
   type DivisionResultGroup,
@@ -98,6 +100,7 @@ export function CourtWatchApp() {
   const todayKey = useTournamentTodayKey(
     fetchedActiveEvent?.timezone ?? DEFAULT_TOURNAMENT_TIME_ZONE,
   );
+  const liveStatusNow = useLiveStatusNow();
   const dataRefetchInterval = fetchedActiveEvent
     ? dataRefetchIntervalForEvent(fetchedActiveEvent, todayKey)
     : LIVE_DATA_REFETCH_MS;
@@ -236,7 +239,20 @@ export function CourtWatchApp() {
     window.setTimeout(() => setToast(null), 2200);
   };
 
-  const dashboard = dashboardQuery.data;
+  const dashboard = useMemo(
+    () =>
+      dashboardQuery.data
+        ? dashboardWithEffectiveGameStatuses(
+            dashboardQuery.data,
+            liveStatusNow,
+          )
+        : undefined,
+    [dashboardQuery.data, liveStatusNow],
+  );
+  const games = useMemo(
+    () => withEffectiveGameStatuses(gamesQuery.data ?? [], liveStatusNow),
+    [gamesQuery.data, liveStatusNow],
+  );
   const fallbackEvents = dashboard?.events?.length
     ? dashboard.events
     : dashboard?.event
@@ -288,7 +304,7 @@ export function CourtWatchApp() {
             <DashboardScreen
               dashboard={dashboard}
               alerts={alertsQuery.data ?? dashboard.alerts}
-              games={gamesQuery.data ?? []}
+              games={games}
               clientId={presenceClientId}
               onRefresh={refresh}
               eventId={activeEventId}
@@ -296,7 +312,7 @@ export function CourtWatchApp() {
           ) : null}
           {!isLoading && dashboard && activeTab === "schedule" ? (
             <ScheduleScreen
-              games={gamesQuery.data ?? []}
+              games={games}
               programs={dashboard.programs}
               todayKey={todayKey}
               timezone={dashboard.event.timezone}
@@ -309,7 +325,7 @@ export function CourtWatchApp() {
           {!isLoading && dashboard && activeTab === "alerts" ? (
             <AlertsScreen
               alerts={alertsQuery.data ?? dashboard.alerts}
-              games={gamesQuery.data ?? []}
+              games={games}
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "settings" ? (
@@ -2560,6 +2576,24 @@ function useTournamentTodayKey(timeZone: string): string {
   return todayKey;
 }
 
+function useLiveStatusNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const update = () => setNow(new Date());
+    const intervalId = window.setInterval(update, 30_000);
+    window.addEventListener("focus", update);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", update);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
+
+  return now;
+}
+
 function dataRefetchIntervalForEvent(
   event: Pick<TournamentEvent, "startDate" | "endDate">,
   todayKey: string,
@@ -2797,6 +2831,47 @@ function recordCaption(
 function recordText(record: TeamRecord | undefined, loading = false): string {
   if (record && hasRecordActivity(record)) return teamRecordLabel(record);
   return loading ? "..." : "W-L TBD";
+}
+
+function dashboardWithEffectiveGameStatuses(
+  dashboard: DashboardResponse,
+  now: Date,
+): DashboardResponse {
+  return {
+    ...dashboard,
+    nextGame: dashboard.nextGame
+      ? withEffectiveGameStatus(dashboard.nextGame, now)
+      : dashboard.nextGame,
+    programs: dashboard.programs.map((program) => {
+      const nextGame = program.nextGame
+        ? withEffectiveGameStatus(program.nextGame, now)
+        : program.nextGame;
+      const latestResult = program.latestResult
+        ? withEffectiveGameStatus(program.latestResult, now)
+        : program.latestResult;
+
+      return {
+        ...program,
+        nextGame,
+        latestResult,
+        teams: program.teams.map((team) => {
+          const teamNextGame = team.nextGame
+            ? withEffectiveGameStatus(team.nextGame, now)
+            : team.nextGame;
+          const teamLastResult = team.lastResult
+            ? withEffectiveGameStatus(team.lastResult, now)
+            : team.lastResult;
+          return {
+            ...team,
+            nextGame: teamNextGame,
+            lastResult: teamLastResult,
+            liveStatus:
+              teamNextGame?.status ?? teamLastResult?.status ?? team.liveStatus,
+          };
+        }),
+      };
+    }),
+  };
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {

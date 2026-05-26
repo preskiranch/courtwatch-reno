@@ -1,5 +1,6 @@
 import { buildDashboard } from "./dashboard.js";
 import { detectGameChanges } from "./change-detection.js";
+import { withEffectiveGameStatuses } from "./game-status.js";
 import { findProgramMatches, matchTeamToProgram } from "./matcher.js";
 import {
   attachTeamRecordsToGame,
@@ -51,10 +52,12 @@ export class ScheduleService {
       division?: string;
       scope?: string;
     } = {},
+    now = new Date(),
   ) {
-    const records = buildTeamRecordSummaryMap(snapshot.games, snapshot.teams);
+    const games = withEffectiveGameStatuses(snapshot.games, now);
+    const records = buildTeamRecordSummaryMap(games, snapshot.teams);
     if (filters.scope === "division" && filters.division) {
-      return snapshot.games
+      return games
         .filter((game) => game.divisionId === filters.division)
         .filter((game) => !filters.status || game.status === filters.status)
         .filter((game) => !filters.court || game.courtName === filters.court)
@@ -67,7 +70,7 @@ export class ScheduleService {
     }
 
     if (filters.scope === "all") {
-      return snapshot.games
+      return games
         .filter((game) => !filters.status || game.status === filters.status)
         .filter((game) => !filters.court || game.courtName === filters.court)
         .filter(
@@ -99,7 +102,7 @@ export class ScheduleService {
     );
 
     const gamesById = new Map<string, Game>();
-    for (const game of snapshot.games) {
+    for (const game of games) {
       if (
         !watchedTeamIds.has(game.homeTeamId ?? "") &&
         !watchedTeamIds.has(game.awayTeamId ?? "")

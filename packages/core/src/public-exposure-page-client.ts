@@ -1,7 +1,8 @@
 import * as cheerio from "cheerio";
 import { fromZonedTime } from "date-fns-tz";
-import { extractDivisionMeta, normalizeName } from "./normalization.js";
 import { hashSource } from "./change-detection.js";
+import { deriveEffectiveGameStatus } from "./game-status.js";
+import { extractDivisionMeta, normalizeName } from "./normalization.js";
 import type { Division, Game, Team } from "./types.js";
 import { DEFAULT_TOURNAMENT_TIMEZONE } from "./types.js";
 
@@ -528,14 +529,11 @@ function mapPublicStatus(
       statusText.includes("complete"))
   )
     return "final";
-  if (raw.Started || isProbablyInProgress(startsAt)) return "playing_now";
-  return "upcoming";
-}
-
-function isProbablyInProgress(startsAt: Date): boolean {
-  const now = Date.now();
-  const start = startsAt.getTime();
-  return now >= start && now <= start + 1000 * 60 * 95;
+  if (raw.Started) return "playing_now";
+  return deriveEffectiveGameStatus({
+    startsAt: startsAt.toISOString(),
+    status: "upcoming",
+  });
 }
 
 function parseTournamentDateTime(

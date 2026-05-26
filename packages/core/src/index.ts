@@ -7,6 +7,7 @@ export * from "./polling.js";
 export * from "./dashboard.js";
 export * from "./final-results.js";
 export * from "./records.js";
+export * from "./game-status.js";
 export * from "./scoring-leaders.js";
 export * from "./seed-data.js";
 export * from "./exposure-client.js";
