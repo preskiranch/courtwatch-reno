@@ -1,4 +1,5 @@
 import type { TournamentEvent, TournamentEventStatus } from "./types.js";
+import { DEFAULT_TOURNAMENT_TIMEZONE } from "./types.js";
 
 export const UPCOMING_PUBLIC_TOURNAMENT_LOOKAHEAD_DAYS = 183;
 export const UPCOMING_TOURNAMENT_WINDOW_DAYS =
@@ -13,7 +14,10 @@ export interface TournamentDropdownEligibilityOptions {
 }
 
 export function tournamentTodayKey(now = new Date()): string {
-  return process.env.COURTWATCH_TODAY?.trim() || now.toISOString().slice(0, 10);
+  return (
+    process.env.COURTWATCH_TODAY?.trim() ||
+    dateKeyInTimeZone(now, DEFAULT_TOURNAMENT_TIMEZONE)
+  );
 }
 
 export function tournamentWindowEndKey(
@@ -114,6 +118,19 @@ function addDaysToDateKey(dateKey: string, days: number): string {
   return new Date(Date.UTC(year, month - 1, day + days, 12))
     .toISOString()
     .slice(0, 10);
+}
+
+function dateKeyInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
 }
 
 function normalizeKey(value: string): string {

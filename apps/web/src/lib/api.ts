@@ -186,7 +186,7 @@ function withEvent(path: string, eventId?: number | null): string {
 }
 
 function cacheStorageKey(cacheKey: CacheKey, path: string): string {
-  return `courtwatch-aau:v10:${cacheKey}:${path}`;
+  return `courtwatch-aau:v11:${cacheKey}:${path}`;
 }
 
 function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {

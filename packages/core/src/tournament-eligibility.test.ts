@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { TournamentEvent } from "./types.js";
-import { eligibleTournamentEvents } from "./tournament-eligibility.js";
+import {
+  eligibleTournamentEvents,
+  tournamentTodayKey,
+} from "./tournament-eligibility.js";
 
 describe("eligibleTournamentEvents", () => {
   it("keeps public team-list tournaments in the six-month active/upcoming window even before teams post", () => {
@@ -58,6 +61,12 @@ describe("eligibleTournamentEvents", () => {
     );
 
     expect(events.map((event) => event.name)).toEqual(["First Copy"]);
+  });
+
+  it("uses the Pacific tournament day instead of UTC for dropdown eligibility", () => {
+    expect(tournamentTodayKey(new Date("2026-05-26T00:30:00.000Z"))).toBe(
+      "2026-05-25",
+    );
   });
 });
 
