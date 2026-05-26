@@ -91,7 +91,7 @@ export function buildDivisionResultGroups(
   const divisionIds =
     scope === "watched"
       ? watchedDivisionIds(snapshot)
-      : new Set(snapshot.divisions.map((division) => division.id));
+      : registeredDivisionIds(snapshot);
   if (scope === "watched" && divisionIds.size === 0) return [];
 
   const results = Array.from(resultsByKey.values()).filter((result) =>
@@ -99,9 +99,8 @@ export function buildDivisionResultGroups(
   );
 
   const groups = new Map<string, DivisionResultGroup>();
-  for (const division of snapshot.divisions) {
-    if (!divisionIds.has(division.id)) continue;
-    groups.set(division.id, emptyResultGroup(snapshot, division.id));
+  for (const divisionId of divisionIds) {
+    groups.set(divisionId, emptyResultGroup(snapshot, divisionId));
   }
 
   for (const result of results.sort(compareResults)) {
@@ -158,20 +157,35 @@ function watchedDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
   );
 }
 
+function registeredDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
+  const teamDivisionIds = new Set(
+    snapshot.teams
+      .map((team) => team.divisionId)
+      .filter((divisionId): divisionId is string => Boolean(divisionId)),
+  );
+  return teamDivisionIds.size > 0
+    ? teamDivisionIds
+    : new Set(snapshot.divisions.map((division) => division.id));
+}
+
 function emptyResultGroup(
-  snapshot: Pick<CourtWatchSnapshot, "divisions" | "games">,
+  snapshot: Pick<CourtWatchSnapshot, "divisions" | "games" | "teams">,
   divisionId: string,
 ): DivisionResultGroup {
   const division = snapshot.divisions.find((item) => item.id === divisionId);
+  const divisionTeam = snapshot.teams.find(
+    (team) => team.divisionId === divisionId,
+  );
   const divisionGames = snapshot.games.filter(
     (game) => game.divisionId === divisionId,
   );
   return {
     divisionId,
-    divisionName: division?.name ?? "Division TBD",
-    gender: division?.gender ?? null,
-    gradeLevel: division?.gradeLevel ?? null,
-    level: division?.level ?? null,
+    divisionName:
+      division?.name ?? divisionTeam?.divisionName ?? "Division TBD",
+    gender: division?.gender ?? divisionTeam?.gender ?? null,
+    gradeLevel: division?.gradeLevel ?? divisionTeam?.gradeLevel ?? null,
+    level: division?.level ?? divisionTeam?.level ?? null,
     sourceUrl: sourceUrlForDivision(divisionGames),
     lastUpdatedAt: divisionGames.reduce<string | null>(
       (latest, game) => maxIso(latest, game.updatedAt),
