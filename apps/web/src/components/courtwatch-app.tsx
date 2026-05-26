@@ -1141,6 +1141,7 @@ function latestPointLeaderScoreLabel(leader: TeamScoringLeader): string | null {
 
 function FinalResultsSection({ eventId }: { eventId: number | null }) {
   const [scope, setScope] = useState<"watched" | "all">("watched");
+  const { records, loading: recordsLoading } = useTeamRecords(eventId);
   const resultsQuery = useQuery({
     queryKey: ["results", scope, eventId],
     queryFn: () => CourtWatchApi.results(scope, eventId),
@@ -1205,14 +1206,27 @@ function FinalResultsSection({ eventId }: { eventId: number | null }) {
         data-testid="final-results-list"
       >
         {resultGroups.map((group) => (
-          <DivisionResultCard key={group.divisionId} group={group} />
+          <DivisionResultCard
+            key={group.divisionId}
+            group={group}
+            records={records}
+            recordsLoading={recordsLoading}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function DivisionResultCard({ group }: { group: DivisionResultGroup }) {
+function DivisionResultCard({
+  group,
+  records,
+  recordsLoading,
+}: {
+  group: DivisionResultGroup;
+  records: Map<string, TeamRecord>;
+  recordsLoading: boolean;
+}) {
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-3">
       <div className="mb-3 flex items-start justify-between gap-3">
@@ -1242,6 +1256,8 @@ function DivisionResultCard({ group }: { group: DivisionResultGroup }) {
           <DivisionResultRow
             key={`${result.divisionId}-${result.placement}`}
             result={result}
+            record={resultRecordForTeam(result, records)}
+            recordsLoading={recordsLoading}
           />
         ))}
       </div>
@@ -1265,7 +1281,15 @@ function DivisionResultCard({ group }: { group: DivisionResultGroup }) {
   );
 }
 
-function DivisionResultRow({ result }: { result: DivisionResult }) {
+function DivisionResultRow({
+  result,
+  record,
+  recordsLoading,
+}: {
+  result: DivisionResult;
+  record: TeamRecord | undefined;
+  recordsLoading: boolean;
+}) {
   const isChampion = result.placement === 1;
   return (
     <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2">
@@ -1289,9 +1313,12 @@ function DivisionResultRow({ result }: { result: DivisionResult }) {
         <p className="text-[11px] font-black uppercase text-slate-500">
           {resultPlacementLabel(result)}
         </p>
-        <p className="truncate text-sm font-black text-slate-950">
-          {result.teamNameSnapshot}
-        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <p className="min-w-0 flex-1 truncate text-sm font-black text-slate-950">
+            {result.teamNameSnapshot}
+          </p>
+          <TeamRecordBadge record={record} loading={recordsLoading} />
+        </div>
       </div>
     </div>
   );
@@ -2761,6 +2788,13 @@ function teamRecordForTeam(
   if (hasRecordActivity(serverRecord)) return serverRecord;
   if (hasRecordActivity(computedRecord)) return computedRecord;
   return undefined;
+}
+
+function resultRecordForTeam(
+  result: Pick<DivisionResult, "teamId">,
+  records: Map<string, TeamRecord>,
+): TeamRecord | undefined {
+  return result.teamId ? records.get(result.teamId) : undefined;
 }
 
 function hasRecordActivity(
