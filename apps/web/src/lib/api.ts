@@ -30,8 +30,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v15";
-const LEGACY_CACHE_VERSION = "v14";
+const CACHE_VERSION = "v16";
+const LEGACY_CACHE_VERSION = "v15";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -162,7 +162,6 @@ export const CourtWatchApi = {
   pointsLeaders: (eventId?: number | null) =>
     apiGet<TeamScoringLeader[]>(
       withEvent("/api/points-leaders", eventId),
-      "pointsLeaders",
     ),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
   presenceHeartbeat: (clientId: string, page: string) =>

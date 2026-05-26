@@ -173,6 +173,21 @@ describe("CourtWatch API", () => {
     });
   });
 
+  it("includes points leaders in the dashboard payload", async () => {
+    const app = createApp(new MockStore(), null);
+    const response = await request(app)
+      .get("/api/dashboard")
+      .set("x-courtwatch-client-id", "client-points-dashboard")
+      .expect(200);
+    expect(response.body.pointsLeaders.length).toBe(seedSnapshot.teams.length);
+    expect(response.body.pointsLeaders[0]).toMatchObject({
+      teamName: expect.any(String),
+      totalPoints: expect.any(Number),
+      wins: expect.any(Number),
+      losses: expect.any(Number),
+    });
+  });
+
   it("returns final results without changing saved followed teams", async () => {
     const snapshot = structuredClone(seedSnapshot);
     snapshot.games = [

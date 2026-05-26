@@ -15,6 +15,7 @@ import {
   attachTeamRecordsToGame,
   buildTeamRecordSummaryMap,
 } from "./records.js";
+import { buildTeamScoringLeaders } from "./scoring-leaders.js";
 
 function compareStartsAt(left: Game, right: Game): number {
   return new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime();
@@ -178,6 +179,11 @@ export function buildDashboard(
     events: snapshot.events,
     nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
     programs,
+    pointsLeaders: buildTeamScoringLeaders(
+      effectiveSnapshot.games,
+      effectiveSnapshot.teams,
+      { includeUnscoredTeams: true },
+    ),
     alerts: watchedAlerts
       .sort(
         (left, right) =>

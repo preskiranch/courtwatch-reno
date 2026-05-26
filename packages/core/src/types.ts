@@ -1,3 +1,5 @@
+import type { TeamScoringLeader } from "./scoring-leaders.js";
+
 export const DEFAULT_TOURNAMENT_TIMEZONE = "America/Los_Angeles";
 export const RENO_TIMEZONE = DEFAULT_TOURNAMENT_TIMEZONE;
 export const SELECTED_TEAMS_PROGRAM_ID = "program-selected-teams";
@@ -295,6 +297,7 @@ export interface DashboardResponse {
   events: TournamentEvent[];
   nextGame: Game | null;
   programs: ProgramSummary[];
+  pointsLeaders: TeamScoringLeader[];
   alerts: GameChangeEvent[];
   lastUpdated: string | null;
   sourceStatus: {

@@ -633,9 +633,12 @@ function DashboardScreen({
       return team ? { ...leader, teamName: teamDisplayName(team) } : leader;
     });
   }, [allGamesQuery.data, teamsQuery.data]);
+  const dashboardPointLeaders = dashboard.pointsLeaders ?? [];
   const pointLeaders =
     pointsLeadersQuery.data && pointsLeadersQuery.data.length > 0
       ? pointsLeadersQuery.data
+      : dashboardPointLeaders.length > 0
+        ? dashboardPointLeaders
       : fallbackPointLeaders;
   const teamRecords = useMemo(
     () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsQuery.data ?? []),
@@ -670,7 +673,9 @@ function DashboardScreen({
       <PointsLeadersSection
         leaders={pointLeaders}
         loading={
-          pointsLeadersQuery.isLoading && fallbackPointLeaders.length === 0
+          pointsLeadersQuery.isLoading &&
+          dashboardPointLeaders.length === 0 &&
+          fallbackPointLeaders.length === 0
         }
         clientId={clientId}
       />
