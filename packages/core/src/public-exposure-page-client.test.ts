@@ -250,6 +250,9 @@ describe("PublicExposurePageClient", () => {
           </div>
         `);
       }
+      if (url.includes("/standings")) {
+        return jsonResponse([]);
+      }
       throw new Error(`Unexpected URL ${url}`);
     }) as unknown as typeof fetch;
 
@@ -275,6 +278,174 @@ describe("PublicExposurePageClient", () => {
       expect.stringContaining("/bracket/794195"),
       expect.anything(),
     );
+  });
+
+  it("fills bronze from completed standings when playoff standings match the bracket finalists", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1430119,"Name":"9U/3rd Grade"}],
+              brackets: [
+                {"Id":795250,"Name":"Playoffs","DivisionId":1430119,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/795250")) {
+        return htmlResponse(`
+          <div class="bracket-winner" style="left: 300px; top: 279px;">
+            <div class="winner-source"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/paytons-place-elite?divisionteamid=5301985">Payton's Place Elite</a></span></div>
+            <div>Champion</div>
+          </div>
+          <div class="bracket-part" style="left: 305px; top: 198px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/lakeshow-elite?divisionteamid=5301984">Lakeshow Elite</a></span>(23)</div>
+            </div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">3</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/paytons-place-elite?divisionteamid=5301985">Payton's Place Elite</a></span>(37)</div>
+            </div>
+          </div>
+        `);
+      }
+      if (url.includes("/standings")) {
+        return jsonResponse([
+          {
+            PoolName: "A",
+            Teams: [
+              {
+                Name: "Payton's Place Elite",
+                TeamLink:
+                  "/252014/g365-memorial-day-challenge/teams/paytons-place-elite?divisionteamid=5301985",
+                Place: "1st",
+                Wins: 2,
+                Losses: 0,
+                Complete: true,
+              },
+              {
+                Name: "Lakeshow Elite",
+                TeamLink:
+                  "/252014/g365-memorial-day-challenge/teams/lakeshow-elite?divisionteamid=5301984",
+                Place: "2nd",
+                Wins: 1,
+                Losses: 1,
+                Complete: true,
+              },
+              {
+                Name: "San Jose Spartans",
+                TeamLink:
+                  "/252014/g365-memorial-day-challenge/teams/san-jose-spartans?divisionteamid=5301983",
+                Place: "3rd",
+                Wins: 0,
+                Losses: 2,
+                Complete: true,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(252014, {
+      eventSlug: "g365-memorial-day-challenge",
+    });
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.source,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [1, "Payton's Place Elite", "bracket_final", "Playoffs"],
+      [2, "Lakeshow Elite", "bracket_final", "Playoffs"],
+      [3, "San Jose Spartans", "official_standings", "Standings"],
+    ]);
+  });
+
+  it("infers bronze from the completed playoff path when no explicit third-place label is posted", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1430131,"Name":"16U EAST"}],
+              brackets: [
+                {"Id":794194,"Name":"Playoffs","DivisionId":1430131,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/794194")) {
+        return htmlResponse(`
+          <div class="bracket-winner" style="left: 300px; top: 279px;">
+            <div class="winner-source"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/ema-leaders-16u-blue?divisionteamid=5302051">EMA L.E.A.D.E.R.S. 16u Blue</a></span></div>
+            <div>Champion</div>
+          </div>
+          <div class="bracket-part" style="left: 0px; top: 205px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/mavericks-aau?divisionteamid=5302055">Mavericks AAU</a></span>(48)</div>
+            </div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">1</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/ema-leaders-16u-blue?divisionteamid=5302051">EMA L.E.A.D.E.R.S. 16u Blue</a></span>(51)</div>
+            </div>
+          </div>
+          <div class="bracket-part" style="left: 0px; top: 285px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/248-elite-academy?divisionteamid=5302052">24/8 Elite Academy</a></span>(0)</div>
+            </div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">2</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/all-in-premier?divisionteamid=5302053">All-In Premier</a></span>(15)</div>
+            </div>
+          </div>
+          <div class="bracket-part" style="left: 150px; top: 231px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/ema-leaders-16u-blue?divisionteamid=5302051">EMA L.E.A.D.E.R.S. 16u Blue</a></span>(74)</div>
+            </div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">3</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/all-in-premier?divisionteamid=5302053">All-In Premier</a></span>(37)</div>
+            </div>
+          </div>
+        `);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(252014, {
+      eventSlug: "g365-memorial-day-challenge",
+    });
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.source,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [1, "EMA L.E.A.D.E.R.S. 16u Blue", "bracket_final", "Playoffs"],
+      [2, "All-In Premier", "bracket_final", "Playoffs"],
+      [3, "Mavericks AAU", "bracket_final", "Playoffs"],
+    ]);
   });
 
   it("uses completed division standings when a division has no primary bracket", async () => {

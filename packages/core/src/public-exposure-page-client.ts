@@ -297,23 +297,39 @@ export class PublicExposurePageClient {
     }
 
     for (const division of config.divisions) {
-      if (hasAnyDivisionResult(results, eventId, String(division.Id))) continue;
+      const hasBracketResults = hasAnyDivisionResult(
+        results,
+        eventId,
+        String(division.Id),
+      );
+      if (
+        hasBracketResults &&
+        hasDivisionPlacement(results, eventId, String(division.Id), 3)
+      )
+        continue;
       const standings = await this.fetchDivisionStandings(
         eventId,
         eventSlug,
         String(division.Id),
       );
-      addDivisionResults(
-        results,
-        parseStandingPlacementResults({
-          standings,
+      const standingResults = parseStandingPlacementResults({
+        standings,
+        eventId,
+        eventSlug,
+        divisionId: String(division.Id),
+        divisionName: division.Name,
+        baseUrl: this.baseUrl,
+      });
+      if (hasBracketResults) {
+        addCompatibleStandingBronze(
+          results,
+          standingResults,
           eventId,
-          eventSlug,
-          divisionId: String(division.Id),
-          divisionName: division.Name,
-          baseUrl: this.baseUrl,
-        }),
-      );
+          String(division.Id),
+        );
+      } else {
+        addDivisionResults(results, standingResults);
+      }
       await sleep(Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125));
     }
 
@@ -632,6 +648,7 @@ function parseBracketPlacementResults(input: {
   const meta = extractDivisionMeta(input.divisionName);
   const results = new Map<ResultPlacement, DivisionResult>();
   const now = new Date().toISOString();
+  const bracketGames = parseBracketGames($, input.eventId, input.url);
 
   $(".bracket-winner").each((_, element) => {
     const node = $(element);
@@ -656,7 +673,7 @@ function parseBracketPlacementResults(input: {
 
   const champion = results.get(1);
   if (champion && !results.has(2)) {
-    const finalGame = parseBracketGames($, input.eventId, input.url)
+    const finalGame = bracketGames
       .filter((game) =>
         game.teams.some((team) => bracketTeamMatchesResult(team, champion)),
       )
@@ -687,6 +704,25 @@ function parseBracketPlacementResults(input: {
           placement: 2,
           placementText: "Runner-up from official bracket final",
           finalGame,
+          now,
+        }),
+      );
+    }
+  }
+
+  const runnerUp = results.get(2);
+  if (champion && runnerUp && !results.has(3)) {
+    const bronze = inferBracketBronzeTeam(bracketGames, champion, runnerUp);
+    if (bronze) {
+      results.set(
+        3,
+        makePublicBracketResult({
+          input,
+          meta,
+          team: bronze.team,
+          placement: 3,
+          placementText: "Bronze inferred from official bracket path",
+          finalGame: bronze.game,
           now,
         }),
       );
@@ -865,6 +901,91 @@ function hasScores(game: ParsedBracketGame | undefined): boolean {
   return Boolean(game?.teams.every((team) => team.score !== null));
 }
 
+function inferBracketBronzeTeam(
+  games: ParsedBracketGame[],
+  champion: DivisionResult,
+  runnerUp: DivisionResult,
+): { team: ParsedBracketTeam; game: ParsedBracketGame } | null {
+  const candidates = new Map<
+    string,
+    {
+      team: ParsedBracketTeam;
+      game: ParsedBracketGame;
+      count: number;
+      lostToChampion: boolean;
+      margin: number;
+    }
+  >();
+
+  for (const game of games) {
+    if (game.teams.length !== 2 || !hasScores(game)) continue;
+    const winner = gameWinnerTeam(game);
+    const loser = gameLoserTeam(game);
+    if (!winner || !loser) continue;
+    const winnerIsChampion = bracketTeamMatchesResult(winner, champion);
+    const winnerIsRunnerUp = bracketTeamMatchesResult(winner, runnerUp);
+    if (!winnerIsChampion && !winnerIsRunnerUp) continue;
+    if (
+      bracketTeamMatchesResult(loser, champion) ||
+      bracketTeamMatchesResult(loser, runnerUp)
+    )
+      continue;
+
+    const key = loser.teamId ?? normalizeName(loser.name);
+    const existing = candidates.get(key);
+    const margin = Math.abs((winner.score ?? 0) - (loser.score ?? 0));
+    const lostToChampion = winnerIsChampion;
+    if (!existing) {
+      candidates.set(key, {
+        team: loser,
+        game,
+        count: 1,
+        lostToChampion,
+        margin,
+      });
+      continue;
+    }
+    existing.count += 1;
+    if (
+      Number(lostToChampion) > Number(existing.lostToChampion) ||
+      (lostToChampion === existing.lostToChampion &&
+        (margin < existing.margin ||
+          (margin === existing.margin &&
+            compareBracketGamesForFinal(game, existing.game) < 0)))
+    ) {
+      existing.game = game;
+      existing.lostToChampion = lostToChampion;
+      existing.margin = margin;
+    }
+  }
+
+  return (
+    Array.from(candidates.values()).sort(
+      (left, right) =>
+        right.count - left.count ||
+        Number(right.lostToChampion) - Number(left.lostToChampion) ||
+        left.margin - right.margin ||
+        compareBracketGamesForFinal(left.game, right.game),
+    )[0] ?? null
+  );
+}
+
+function gameWinnerTeam(game: ParsedBracketGame): ParsedBracketTeam | null {
+  const [left, right] = game.teams;
+  if (!left || !right || left.score === null || right.score === null)
+    return null;
+  if (left.score === right.score) return null;
+  return left.score > right.score ? left : right;
+}
+
+function gameLoserTeam(game: ParsedBracketGame): ParsedBracketTeam | null {
+  const [left, right] = game.teams;
+  if (!left || !right || left.score === null || right.score === null)
+    return null;
+  if (left.score === right.score) return null;
+  return left.score < right.score ? left : right;
+}
+
 function addDivisionResults(
   results: Map<string, DivisionResult>,
   nextResults: DivisionResult[],
@@ -883,6 +1004,56 @@ function hasAnyDivisionResult(
   const mappedDivisionId = `division-${eventId}-${divisionId}`;
   return Array.from(results.keys()).some((key) =>
     key.startsWith(`${mappedDivisionId}:`),
+  );
+}
+
+function hasDivisionPlacement(
+  results: Map<string, DivisionResult>,
+  eventId: number,
+  divisionId: string,
+  placement: ResultPlacement,
+): boolean {
+  return results.has(`division-${eventId}-${divisionId}:${placement}`);
+}
+
+function addCompatibleStandingBronze(
+  results: Map<string, DivisionResult>,
+  standingResults: DivisionResult[],
+  eventId: number,
+  divisionId: string,
+) {
+  if (hasDivisionPlacement(results, eventId, divisionId, 3)) return;
+  const mappedDivisionId = `division-${eventId}-${divisionId}`;
+  const bracketGold = results.get(`${mappedDivisionId}:1`);
+  const bracketSilver = results.get(`${mappedDivisionId}:2`);
+  const standingGold = standingResults.find((result) => result.placement === 1);
+  const standingSilver = standingResults.find(
+    (result) => result.placement === 2,
+  );
+  const standingBronze = standingResults.find(
+    (result) => result.placement === 3,
+  );
+  if (
+    bracketGold &&
+    bracketSilver &&
+    standingGold &&
+    standingSilver &&
+    standingBronze &&
+    resultsMatchTeam(bracketGold, standingGold) &&
+    resultsMatchTeam(bracketSilver, standingSilver)
+  ) {
+    addDivisionResults(results, [standingBronze]);
+  }
+}
+
+function resultsMatchTeam(
+  left: DivisionResult,
+  right: DivisionResult,
+): boolean {
+  return Boolean(
+    (left.teamId && right.teamId && left.teamId === right.teamId) ||
+    normalizeName(left.teamNameSnapshot) ===
+      normalizeName(right.teamNameSnapshot),
   );
 }
 
