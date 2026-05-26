@@ -1200,7 +1200,10 @@ function FinalResultsSection({ eventId }: { eventId: number | null }) {
         </p>
       ) : null}
 
-      <div className="space-y-3">
+      <div
+        className="max-h-[560px] space-y-3 overflow-y-auto pr-1 md:max-h-[680px]"
+        data-testid="final-results-list"
+      >
         {resultGroups.map((group) => (
           <DivisionResultCard key={group.divisionId} group={group} />
         ))}

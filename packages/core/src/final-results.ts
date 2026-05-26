@@ -60,7 +60,8 @@ export function deriveDivisionResultsFromGames(
     }
 
     const bronzeFinal =
-      games.filter(isBronzeFinalGame).sort(compareStartsAtDesc)[0] ?? null;
+      games.filter(isExplicitBronzeFinalGame).sort(compareStartsAtDesc)[0] ??
+      fallbackBronzeFinalGame(games, goldFinal);
     if (bronzeFinal) {
       const bronze = resultTeamFromGame(bronzeFinal, snapshot.teams, "winner");
       if (bronze)
@@ -255,7 +256,64 @@ function isBronzeFinalGame(game: Game): boolean {
   if (["semi", "quarter", "play in"].some((blocked) => type.includes(blocked)))
     return false;
   return (
+    type.includes("bronze") ||
+    type.includes("third") ||
+    type.includes("3rd") ||
+    type.includes("consolation")
+  );
+}
+
+function isExplicitBronzeFinalGame(game: Game): boolean {
+  const type = normalizeGameType(game.gameType);
+  if (!type || type.includes("pool")) return false;
+  if (["semi", "quarter", "play in"].some((blocked) => type.includes(blocked)))
+    return false;
+  return (
     type.includes("bronze") || type.includes("third") || type.includes("3rd")
+  );
+}
+
+function fallbackBronzeFinalGame(
+  games: Game[],
+  goldFinal: Game | null,
+): Game | null {
+  if (!goldFinal) return null;
+  const candidates = games
+    .filter((game) => game.id !== goldFinal.id)
+    .filter(isFallbackPlacementFinalGame)
+    .sort(compareStartsAtDesc);
+  const goldFinalistIds = new Set(
+    [goldFinal.homeTeamId, goldFinal.awayTeamId].filter(Boolean),
+  );
+  return (
+    candidates.find(
+      (game) => !gameTeams(game).some((id) => goldFinalistIds.has(id)),
+    ) ??
+    candidates[0] ??
+    null
+  );
+}
+
+function isFallbackPlacementFinalGame(game: Game): boolean {
+  const type = normalizeGameType(game.gameType);
+  if (!type || type.includes("pool")) return false;
+  if (
+    ["semi", "quarter", "play in", "silver"].some((blocked) =>
+      type.includes(blocked),
+    )
+  )
+    return false;
+  return (
+    type.includes("championship") ||
+    type.includes("champion") ||
+    type.includes("final") ||
+    type.includes("consolation")
+  );
+}
+
+function gameTeams(game: Game): string[] {
+  return [game.homeTeamId, game.awayTeamId].filter((id): id is string =>
+    Boolean(id),
   );
 }
 

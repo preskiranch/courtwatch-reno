@@ -53,6 +53,57 @@ describe("final division results", () => {
     ]);
   });
 
+  it("uses the secondary completed placement final as bronze when the public feed labels it championship", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      finalGame({
+        id: "game-earlier-championship",
+        gameType: "Championship (G2)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-norcal-6",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "NorCal Elite Blue",
+        homeScore: 51,
+        awayScore: 38,
+        startsAt: "2026-05-25T18:00:00.000Z",
+      }),
+      finalGame({
+        id: "game-secondary-placement",
+        gameType: "Championship (G4)",
+        homeTeamId: "team-norcal-6",
+        awayTeamId: "team-arsenal-boys-8",
+        homeTeamNameSnapshot: "NorCal Elite Blue",
+        awayTeamNameSnapshot: "Team Arsenal 8th Black",
+        homeScore: 49,
+        awayScore: 13,
+        startsAt: "2026-05-25T21:00:00.000Z",
+      }),
+      finalGame({
+        id: "game-gold-championship",
+        gameType: "Championship (G3)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 36,
+        awayScore: 16,
+        startsAt: "2026-05-25T23:30:00.000Z",
+      }),
+    ];
+
+    expect(
+      deriveDivisionResultsFromGames(snapshot).map((result) => [
+        result.placement,
+        result.medalLabel,
+        result.teamId,
+      ]),
+    ).toEqual([
+      [1, "Gold", "team-splash-4th"],
+      [2, "Silver", "team-premier-10u"],
+      [3, "Bronze", "team-norcal-6"],
+    ]);
+  });
+
   it("does not infer champions from non-placement bracket games that only have scores", () => {
     const snapshot = snapshotWithFinals();
     snapshot.games = [
@@ -212,6 +263,7 @@ function finalGame(input: {
   awayTeamNameSnapshot: string;
   homeScore: number;
   awayScore: number;
+  startsAt?: string;
   officialPlacement?: boolean;
 }): Game {
   return {
@@ -227,6 +279,7 @@ function finalGame(input: {
     awayTeamNameSnapshot: input.awayTeamNameSnapshot,
     homeScore: input.homeScore,
     awayScore: input.awayScore,
+    startsAt: input.startsAt ?? seedGames[0]!.startsAt,
     status: "final",
     rawJson: {
       BracketUrl:
