@@ -55,6 +55,7 @@ export interface ExposureClientOptions {
   secretKey?: string | null;
   baseUrl?: string;
   fetchImpl?: typeof fetch;
+  timeoutMs?: number;
 }
 
 export class ExposureClient {
@@ -62,12 +63,15 @@ export class ExposureClient {
   private readonly secretKey: string | null;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
+  private readonly timeoutMs: number;
 
   constructor(options: ExposureClientOptions = {}) {
     this.apiKey = options.apiKey ?? process.env.EXPOSURE_API_KEY ?? null;
     this.secretKey = options.secretKey ?? process.env.EXPOSURE_SECRET_KEY ?? null;
     this.baseUrl = options.baseUrl ?? process.env.EXPOSURE_PUBLIC_BASE_URL ?? "https://basketball.exposureevents.com";
     this.fetchImpl = options.fetchImpl ?? fetch;
+    this.timeoutMs =
+      options.timeoutMs ?? Number(process.env.EXPOSURE_API_TIMEOUT_MS ?? 12_000);
   }
 
   get configured(): boolean {
@@ -121,7 +125,7 @@ export class ExposureClient {
     const url = new URL(path, this.baseUrl);
     Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
 
-    const response = await this.fetchImpl(url, {
+    const response = await this.fetchWithTimeout(url, {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -135,6 +139,23 @@ export class ExposureClient {
     }
 
     return (await response.json()) as Record<string, unknown>;
+  }
+
+  private async fetchWithTimeout(
+    input: string | URL | Request,
+    init: RequestInit = {},
+  ): Promise<Response> {
+    if (init.signal || this.timeoutMs <= 0) return this.fetchImpl(input, init);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      return await this.fetchImpl(input, {
+        ...init,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   sign(verb: string, timestamp: string, relativeUri: string): string {
