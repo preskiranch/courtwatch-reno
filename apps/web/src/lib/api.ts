@@ -30,8 +30,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v14";
-const LEGACY_CACHE_VERSION = "v13";
+const CACHE_VERSION = "v15";
+const LEGACY_CACHE_VERSION = "v14";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -256,7 +256,14 @@ function firstCachedValue(keys: string[]): string | null {
 }
 
 function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {
-  return !(cacheKey === "events" && Array.isArray(data) && data.length === 0);
+  if (!Array.isArray(data)) return true;
+  if (cacheKey === "events") return data.length > 0;
+  if (
+    ["pointsLeaders", "teams", "gamesAll", "resultsAll"].includes(cacheKey)
+  ) {
+    return data.length > 0;
+  }
+  return true;
 }
 
 function mergeCacheData<T>(

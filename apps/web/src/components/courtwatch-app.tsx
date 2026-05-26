@@ -1330,6 +1330,7 @@ function DivisionResultRow({
   recordsLoading: boolean;
 }) {
   const isChampion = result.placement === 1;
+  const displayedRecord = resultRecordFromOfficialRow(result) ?? record;
   return (
     <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2">
       <div
@@ -1356,7 +1357,7 @@ function DivisionResultRow({
           <p className="min-w-0 flex-1 truncate text-sm font-black text-slate-950">
             {result.teamNameSnapshot}
           </p>
-          <TeamRecordBadge record={record} loading={recordsLoading} />
+          <TeamRecordBadge record={displayedRecord} loading={recordsLoading} />
         </div>
       </div>
     </div>
@@ -2835,6 +2836,55 @@ function resultRecordForTeam(
   records: Map<string, TeamRecord>,
 ): TeamRecord | undefined {
   return result.teamId ? records.get(result.teamId) : undefined;
+}
+
+function resultRecordFromOfficialRow(
+  result: Pick<DivisionResult, "rawJson">,
+): TeamRecord | undefined {
+  const raw = result.rawJson;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const wins = numberFromUnknown(
+    (raw as Record<string, unknown>).Wins ??
+      (raw as Record<string, unknown>).wins,
+  );
+  const losses = numberFromUnknown(
+    (raw as Record<string, unknown>).Losses ??
+      (raw as Record<string, unknown>).losses,
+  );
+  const ties = numberFromUnknown(
+    (raw as Record<string, unknown>).Ties ??
+      (raw as Record<string, unknown>).ties,
+  );
+  if (wins === null && losses === null && ties === null) return undefined;
+  const totalPoints =
+    numberFromUnknown(
+      (raw as Record<string, unknown>).PointsScored ??
+        (raw as Record<string, unknown>).pointsScored ??
+        (raw as Record<string, unknown>).TotalPoints ??
+        (raw as Record<string, unknown>).totalPoints,
+    ) ?? 0;
+  const normalizedWins = wins ?? 0;
+  const normalizedLosses = losses ?? 0;
+  const normalizedTies = ties ?? 0;
+  const gamesScored = normalizedWins + normalizedLosses + normalizedTies;
+  return {
+    wins: normalizedWins,
+    losses: normalizedLosses,
+    ties: normalizedTies,
+    gamesScored,
+    totalPoints,
+    finalGames: gamesScored,
+    gamesSeen: gamesScored,
+  };
+}
+
+function numberFromUnknown(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
 }
 
 function hasRecordActivity(
