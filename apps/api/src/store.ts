@@ -770,7 +770,6 @@ export class PrismaStore implements CourtWatchStore {
         matchConfidence: 1,
       },
     });
-    await this.syncNow();
     return prismaMatchToCore(match);
   }
 
@@ -797,7 +796,6 @@ export class PrismaStore implements CourtWatchStore {
         normalizedAlias: normalizeProgramName(aliasValue),
       },
     });
-    await this.syncNow();
     return {
       id: alias.id,
       programWatchlistId: alias.programWatchlistId,
@@ -811,7 +809,6 @@ export class PrismaStore implements CourtWatchStore {
     await this.prisma.programAlias.deleteMany({
       where: { id: aliasId, programWatchlistId: programId },
     });
-    await this.syncNow();
   }
 
   async syncNow(exposureEventId?: number | null) {
