@@ -7,7 +7,7 @@ const EnvSchema = z.object({
   ADMIN_SECRET: z.string().optional(),
   NODE_ENV: z.string().default("development"),
   TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(24),
-  WORKER_API_TIMEOUT_MS: z.coerce.number().default(120_000),
+  WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
 });
 
 const env = EnvSchema.parse(process.env);
