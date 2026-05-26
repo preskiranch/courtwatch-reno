@@ -88,33 +88,22 @@ export function buildDivisionResultGroups(
     resultsByKey.set(resultKey(result), result);
   }
 
-  let results = Array.from(resultsByKey.values());
-  if (scope === "watched") {
-    const activeProgramIds = new Set(
-      snapshot.programs
-        .filter((program) => program.active)
-        .map((program) => program.id),
-    );
-    const watchedTeamIds = new Set(
-      snapshot.matches
-        .filter(
-          (match) =>
-            match.active && activeProgramIds.has(match.programWatchlistId),
-        )
-        .map((match) => match.teamId),
-    );
-    const watchedDivisionIds = new Set(
-      snapshot.teams
-        .filter((team) => watchedTeamIds.has(team.id) && team.divisionId)
-        .map((team) => team.divisionId as string),
-    );
-    if (watchedDivisionIds.size === 0) return [];
-    results = results.filter((result) =>
-      watchedDivisionIds.has(result.divisionId),
-    );
-  }
+  const divisionIds =
+    scope === "watched"
+      ? watchedDivisionIds(snapshot)
+      : new Set(snapshot.divisions.map((division) => division.id));
+  if (scope === "watched" && divisionIds.size === 0) return [];
+
+  const results = Array.from(resultsByKey.values()).filter((result) =>
+    divisionIds.has(result.divisionId),
+  );
 
   const groups = new Map<string, DivisionResultGroup>();
+  for (const division of snapshot.divisions) {
+    if (!divisionIds.has(division.id)) continue;
+    groups.set(division.id, emptyResultGroup(snapshot, division.id));
+  }
+
   for (const result of results.sort(compareResults)) {
     const existing = groups.get(result.divisionId);
     if (existing) {
@@ -146,6 +135,59 @@ export function buildDivisionResultGroups(
       sensitivity: "base",
     }),
   );
+}
+
+function watchedDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
+  const activeProgramIds = new Set(
+    snapshot.programs
+      .filter((program) => program.active)
+      .map((program) => program.id),
+  );
+  const watchedTeamIds = new Set(
+    snapshot.matches
+      .filter(
+        (match) =>
+          match.active && activeProgramIds.has(match.programWatchlistId),
+      )
+      .map((match) => match.teamId),
+  );
+  return new Set(
+    snapshot.teams
+      .filter((team) => watchedTeamIds.has(team.id) && team.divisionId)
+      .map((team) => team.divisionId as string),
+  );
+}
+
+function emptyResultGroup(
+  snapshot: Pick<CourtWatchSnapshot, "divisions" | "games">,
+  divisionId: string,
+): DivisionResultGroup {
+  const division = snapshot.divisions.find((item) => item.id === divisionId);
+  const divisionGames = snapshot.games.filter(
+    (game) => game.divisionId === divisionId,
+  );
+  return {
+    divisionId,
+    divisionName: division?.name ?? "Division TBD",
+    gender: division?.gender ?? null,
+    gradeLevel: division?.gradeLevel ?? null,
+    level: division?.level ?? null,
+    sourceUrl: sourceUrlForDivision(divisionGames),
+    lastUpdatedAt: divisionGames.reduce<string | null>(
+      (latest, game) => maxIso(latest, game.updatedAt),
+      null,
+    ),
+    isOfficial: false,
+    rows: [],
+  };
+}
+
+function sourceUrlForDivision(games: Game[]): string | null {
+  for (const game of games) {
+    const sourceUrl = bracketUrlFromGame(game) ?? game.officialUrl;
+    if (sourceUrl) return sourceUrl;
+  }
+  return null;
 }
 
 function makeResult(

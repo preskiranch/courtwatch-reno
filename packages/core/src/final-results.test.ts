@@ -139,8 +139,11 @@ describe("final division results", () => {
     );
 
     const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
+    const resultGroup = groups.find(
+      (group) => group.divisionId === "division-boys-4th-green",
+    );
     expect(
-      groups[0]?.rows.map((result) => [result.placement, result.teamId]),
+      resultGroup?.rows.map((result) => [result.placement, result.teamId]),
     ).toEqual([
       [1, "team-splash-4th"],
       [2, "team-premier-10u"],
@@ -193,7 +196,11 @@ describe("final division results", () => {
       },
     ];
 
-    expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
+    const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
+    expect(
+      groups.find((group) => group.divisionId === "division-boys-4th-green")
+        ?.rows,
+    ).toEqual([]);
   });
 
   it("hides previously stored bracket final placements without an official placement signal", () => {
@@ -223,7 +230,49 @@ describe("final division results", () => {
       },
     ];
 
-    expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
+    const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
+    expect(
+      groups.find((group) => group.divisionId === "division-boys-4th-green")
+        ?.rows,
+    ).toEqual([]);
+  });
+
+  it("includes every tournament division in all-results scope", () => {
+    const snapshot = snapshotWithFinals();
+    const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
+    const placementGroup = groups.find(
+      (group) => group.divisionId === "division-boys-4th-green",
+    );
+    const pendingGroup = groups.find(
+      (group) => group.divisionId === "division-boys-3rd-orange",
+    );
+
+    expect(groups).toHaveLength(snapshot.divisions.length);
+    expect(placementGroup?.rows).toHaveLength(3);
+    expect(pendingGroup).toMatchObject({
+      divisionName: "Boys 2nd/3rd Level 3 Orange",
+      rows: [],
+    });
+  });
+
+  it("includes watched divisions even before final placements are posted", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.matches = [
+      {
+        id: "match-pending-division",
+        programWatchlistId: snapshot.programs[0]!.id,
+        teamId: "team-splash-3rd",
+        matchType: "manual",
+        matchConfidence: 1,
+        active: true,
+        createdAt: "2026-05-23T00:00:00.000Z",
+      },
+    ];
+
+    expect(
+      buildDivisionResultGroups(snapshot).map((group) => group.divisionId),
+    ).toEqual(["division-boys-3rd-orange"]);
+    expect(buildDivisionResultGroups(snapshot)[0]?.rows).toEqual([]);
   });
 });
 
