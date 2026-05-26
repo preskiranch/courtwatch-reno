@@ -1,23 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { buildDivisionResultGroups, deriveDivisionResultsFromGames } from "./final-results.js";
+import {
+  buildDivisionResultGroups,
+  deriveDivisionResultsFromGames,
+} from "./final-results.js";
 import { seedGames, seedSnapshot } from "./seed-data.js";
 import type { CourtWatchSnapshot, Game } from "./types.js";
 
 describe("final division results", () => {
-  it("derives 1st/gold, 2nd/silver, and 3rd/bronze only from bracket finals with an official placement signal", () => {
+  it("derives 1st/gold, 2nd/silver, and 3rd/bronze from final scored placement games", () => {
     const snapshot = snapshotWithFinals();
     const results = deriveDivisionResultsFromGames(snapshot);
 
-    expect(results.map((result) => [result.placement, result.medalLabel, result.teamId])).toEqual([
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.medalLabel,
+        result.teamId,
+      ]),
+    ).toEqual([
       [1, "Gold", "team-splash-4th"],
       [2, "Silver", "team-premier-10u"],
-      [3, "Bronze", "team-norcal-6"]
+      [3, "Bronze", "team-norcal-6"],
     ]);
     expect(results[0]?.source).toBe("bracket_final");
     expect(results[0]?.isOfficial).toBe(false);
   });
 
-  it("does not infer champions from completed bracket games that only have scores", () => {
+  it("derives championship placements even when the public feed omits the official placement flag", () => {
     const snapshot = snapshotWithFinals();
     snapshot.games = [
       finalGame({
@@ -29,8 +38,35 @@ describe("final division results", () => {
         awayTeamNameSnapshot: "Premier 10U Gold",
         homeScore: 51,
         awayScore: 38,
-        officialPlacement: false
-      })
+        officialPlacement: false,
+      }),
+    ];
+
+    expect(
+      deriveDivisionResultsFromGames(snapshot).map((result) => [
+        result.placement,
+        result.teamId,
+      ]),
+    ).toEqual([
+      [1, "team-splash-4th"],
+      [2, "team-premier-10u"],
+    ]);
+  });
+
+  it("does not infer champions from non-placement bracket games that only have scores", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      finalGame({
+        id: "game-unsignaled-generic-final",
+        gameType: "Gold (G12)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 51,
+        awayScore: 38,
+        officialPlacement: false,
+      }),
     ];
 
     expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
@@ -47,15 +83,17 @@ describe("final division results", () => {
         homeTeamNameSnapshot: "Premier 10U Gold",
         awayTeamNameSnapshot: "NorCal Elite Blue",
         homeScore: 39,
-        awayScore: 38
-      })
+        awayScore: 38,
+      }),
     );
 
     const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
-    expect(groups[0]?.rows.map((result) => [result.placement, result.teamId])).toEqual([
+    expect(
+      groups[0]?.rows.map((result) => [result.placement, result.teamId]),
+    ).toEqual([
       [1, "team-splash-4th"],
       [2, "team-premier-10u"],
-      [3, "team-norcal-6"]
+      [3, "team-norcal-6"],
     ]);
   });
 
@@ -70,8 +108,8 @@ describe("final division results", () => {
         homeTeamNameSnapshot: "Splash City",
         awayTeamNameSnapshot: "Premier 10U Gold",
         homeScore: 42,
-        awayScore: 38
-      })
+        awayScore: 38,
+      }),
     ];
 
     expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
@@ -100,8 +138,8 @@ describe("final division results", () => {
         isOfficial: false,
         sourceHash: "stored",
         rawJson: {},
-        lastSeenAt: "2026-05-24T00:00:00.000Z"
-      }
+        lastSeenAt: "2026-05-24T00:00:00.000Z",
+      },
     ];
 
     expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
@@ -130,8 +168,8 @@ describe("final division results", () => {
         isOfficial: false,
         sourceHash: "stored",
         rawJson: { homeScore: 51, awayScore: 38 },
-        lastSeenAt: "2026-05-24T00:00:00.000Z"
-      }
+        lastSeenAt: "2026-05-24T00:00:00.000Z",
+      },
     ];
 
     expect(buildDivisionResultGroups(snapshot, { scope: "all" })).toEqual([]);
@@ -149,7 +187,7 @@ function snapshotWithFinals(): CourtWatchSnapshot {
       homeTeamNameSnapshot: "Splash City",
       awayTeamNameSnapshot: "Premier 10U Gold",
       homeScore: 42,
-      awayScore: 38
+      awayScore: 38,
     }),
     finalGame({
       id: "game-bronze-final",
@@ -159,8 +197,8 @@ function snapshotWithFinals(): CourtWatchSnapshot {
       homeTeamNameSnapshot: "NorCal Elite Blue",
       awayTeamNameSnapshot: "Team Arsenal 8th Black",
       homeScore: 35,
-      awayScore: 31
-    })
+      awayScore: 31,
+    }),
   ];
   return snapshot;
 }
@@ -191,8 +229,9 @@ function finalGame(input: {
     awayScore: input.awayScore,
     status: "final",
     rawJson: {
-      BracketUrl: "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test",
-      OfficialPlacement: input.officialPlacement ?? true
-    }
+      BracketUrl:
+        "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/test",
+      OfficialPlacement: input.officialPlacement ?? true,
+    },
   };
 }

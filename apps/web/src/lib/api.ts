@@ -44,23 +44,33 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
     });
     if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
+    const previousCache =
+      cacheKey && storageKey && typeof window !== "undefined"
+        ? (window.localStorage.getItem(storageKey) ??
+          window.localStorage.getItem(`courtwatch:${cacheKey}`))
+        : null;
+    const dataToStore = mergeCacheData(
+      cacheKey,
+      cachedDataFromString(previousCache),
+      data,
+    );
     if (cacheKey && storageKey && typeof window !== "undefined") {
-      const previousCache =
-        window.localStorage.getItem(storageKey) ??
-        window.localStorage.getItem(`courtwatch:${cacheKey}`);
       preserveDashboardFollowsForMigration(
         cacheKey,
         previousCache,
-        data,
+        dataToStore,
       );
-      if (shouldPersistCacheData(cacheKey, data)) {
+      if (shouldPersistCacheData(cacheKey, dataToStore)) {
         window.localStorage.setItem(
           storageKey,
-          JSON.stringify({ data, savedAt: new Date().toISOString() }),
+          JSON.stringify({
+            data: dataToStore,
+            savedAt: new Date().toISOString(),
+          }),
         );
       }
     }
-    return data;
+    return dataToStore;
   } catch (error) {
     if (storageKey && typeof window !== "undefined") {
       const cached =
@@ -186,11 +196,75 @@ function withEvent(path: string, eventId?: number | null): string {
 }
 
 function cacheStorageKey(cacheKey: CacheKey, path: string): string {
-  return `courtwatch-aau:v12:${cacheKey}:${path}`;
+  return `courtwatch-aau:v13:${cacheKey}:${path}`;
 }
 
 function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {
   return !(cacheKey === "events" && Array.isArray(data) && data.length === 0);
+}
+
+function mergeCacheData<T>(
+  cacheKey: CacheKey | undefined,
+  previousData: unknown,
+  nextData: T,
+): T {
+  if (cacheKey !== "events" || !Array.isArray(nextData)) return nextData;
+  return mergeTournamentEvents(previousData, nextData) as T;
+}
+
+function mergeTournamentEvents(
+  previousData: unknown,
+  nextData: unknown[],
+): TournamentEvent[] {
+  const previousEvents = Array.isArray(previousData)
+    ? previousData.filter(isTournamentEvent)
+    : [];
+  const nextEvents = nextData.filter(isTournamentEvent);
+  const merged = new Map<number, TournamentEvent>();
+  for (const event of previousEvents) {
+    if (eventStillSelectable(event)) merged.set(event.exposureEventId, event);
+  }
+  for (const event of nextEvents) {
+    if (eventStillSelectable(event)) merged.set(event.exposureEventId, event);
+  }
+  return Array.from(merged.values()).sort(compareTournamentEvents);
+}
+
+function eventStillSelectable(event: TournamentEvent): boolean {
+  if (event.status === "cancelled" || event.status === "unavailable")
+    return false;
+  const today = localDateKey();
+  const oldestVisibleEnd = addDaysToDateKey(today, -7);
+  const newestVisibleStart = addDaysToDateKey(today, 183);
+  return (
+    event.endDate >= oldestVisibleEnd && event.startDate <= newestVisibleStart
+  );
+}
+
+function compareTournamentEvents(
+  left: TournamentEvent,
+  right: TournamentEvent,
+): number {
+  return (
+    left.startDate.localeCompare(right.startDate) ||
+    left.name.localeCompare(right.name, "en-US", {
+      numeric: true,
+      sensitivity: "base",
+    })
+  );
+}
+
+function localDateKey(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addDaysToDateKey(dateKey: string, days: number): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!year || !month || !day) return dateKey;
+  return localDateKey(new Date(year, month - 1, day + days, 12));
 }
 
 function preserveDashboardFollowsForMigration<T>(
@@ -240,4 +314,21 @@ function safeJson(value: string): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function cachedDataFromString(value: string | null): unknown {
+  if (!value) return null;
+  const parsed = safeJson(value);
+  return isRecord(parsed) && "data" in parsed ? parsed.data : parsed;
+}
+
+function isTournamentEvent(value: unknown): value is TournamentEvent {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.exposureEventId === "number" &&
+    typeof value.name === "string" &&
+    typeof value.startDate === "string" &&
+    typeof value.endDate === "string"
+  );
 }

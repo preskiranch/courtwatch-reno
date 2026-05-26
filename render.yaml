@@ -78,7 +78,7 @@ services:
       - key: TOURNAMENT_DISCOVERY_WINDOW_DAYS
         value: "183"
       - key: TOURNAMENT_DROPDOWN_CACHE_HOURS
-        value: "48"
+        value: "720"
       - key: TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS
         value: "125"
       - key: TOURNAMENT_DISCOVERY_RESPECT_ROBOTS

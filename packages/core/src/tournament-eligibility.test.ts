@@ -39,11 +39,18 @@ describe("eligibleTournamentEvents", () => {
         }),
         tournamentEvent(6, { name: "Cancelled", status: "cancelled" }),
         tournamentEvent(7, { name: "Unavailable", status: "unavailable" }),
+        tournamentEvent(11, {
+          name: "Recent Completed",
+          startDate: "2026-05-22",
+          endDate: "2026-05-23",
+          status: "completed",
+        }),
       ],
       { todayKey: "2026-05-24", now: new Date("2026-05-24T12:00:00.000Z") },
     );
 
     expect(events.map((event) => event.name)).toEqual([
+      "Recent Completed",
       base.name,
       "Zero Teams",
       "More Than 30 Days",

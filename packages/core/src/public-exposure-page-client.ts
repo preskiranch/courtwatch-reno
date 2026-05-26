@@ -3,6 +3,7 @@ import { fromZonedTime } from "date-fns-tz";
 import { hashSource } from "./change-detection.js";
 import { deriveEffectiveGameStatus } from "./game-status.js";
 import { extractDivisionMeta, normalizeName } from "./normalization.js";
+import { sanitizeBasketballScore } from "./score-utils.js";
 import type { Division, Game, Team } from "./types.js";
 import { DEFAULT_TOURNAMENT_TIMEZONE } from "./types.js";
 
@@ -532,7 +533,7 @@ function normalizeTime(time: string): string {
 function parseScore(value: unknown): number | null {
   const text = stringOrNull(value);
   if (!text || !/^\d{1,3}$/.test(text)) return null;
-  return Number(text);
+  return sanitizeBasketballScore(Number(text));
 }
 
 function mapPublicStatus(

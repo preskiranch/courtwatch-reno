@@ -88,6 +88,9 @@ export function CourtWatchApp() {
     queryKey: ["events"],
     queryFn: CourtWatchApi.events,
     staleTime: 5 * 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const fetchedEvents = eventsQuery.data ?? [];
   const activeEventId =
@@ -242,10 +245,7 @@ export function CourtWatchApp() {
   const dashboard = useMemo(
     () =>
       dashboardQuery.data
-        ? dashboardWithEffectiveGameStatuses(
-            dashboardQuery.data,
-            liveStatusNow,
-          )
+        ? dashboardWithEffectiveGameStatuses(dashboardQuery.data, liveStatusNow)
         : undefined,
     [dashboardQuery.data, liveStatusNow],
   );
@@ -600,11 +600,16 @@ function DashboardScreen({
     queryFn: () => CourtWatchApi.allGames(eventId),
     staleTime: 60_000,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const teamsQuery = useQuery({
     queryKey: ["teams", "all", eventId],
     queryFn: () => CourtWatchApi.teams("", eventId),
     staleTime: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const pointLeaders = useMemo(() => {
     const teams = teamsQuery.data ?? [];
@@ -1080,9 +1085,10 @@ function PointsLeadersSection({
 }
 
 function PointLeaderRow({ leader }: { leader: TeamScoringLeader }) {
+  const latestScore = latestPointLeaderScoreLabel(leader);
   return (
     <div
-      className="grid grid-cols-[2.75rem_4.25rem_3.4rem_minmax(0,1fr)] items-center gap-1.5 rounded-lg border border-slate-200 bg-white p-2"
+      className="grid grid-cols-[2.6rem_4.1rem_3.35rem_minmax(0,1fr)] items-start gap-1.5 rounded-lg border border-slate-200 bg-white p-2"
       data-testid="points-leader-row"
     >
       <div
@@ -1116,9 +1122,21 @@ function PointLeaderRow({ leader }: { leader: TeamScoringLeader }) {
         <p className="truncate text-[11px] font-semibold text-slate-500">
           {leader.divisionName}
         </p>
+        <p className="truncate text-[10px] font-black text-slate-600">
+          {latestScore ?? `${leader.gamesScored} scored games`}
+        </p>
       </div>
     </div>
   );
+}
+
+function latestPointLeaderScoreLabel(leader: TeamScoringLeader): string | null {
+  if (leader.latestScore === null || leader.latestOpponentScore === null)
+    return null;
+  const opponent = leader.latestOpponentName
+    ? ` vs ${leader.latestOpponentName}`
+    : "";
+  return `Latest: ${leader.latestScore}-${leader.latestOpponentScore}${opponent}`;
 }
 
 function FinalResultsSection({ eventId }: { eventId: number | null }) {
@@ -1127,6 +1145,9 @@ function FinalResultsSection({ eventId }: { eventId: number | null }) {
     queryKey: ["results", scope, eventId],
     queryFn: () => CourtWatchApi.results(scope, eventId),
     staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const resultGroups = resultsQuery.data ?? [];
 
@@ -1531,12 +1552,19 @@ function TeamsScreen({
   const teamsQuery = useQuery({
     queryKey: ["teams", deferredSearch, eventId],
     queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
+    staleTime: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const allTeamsQuery = useQuery({
     queryKey: ["teams", "registered-totals", eventId],
     queryFn: () => CourtWatchApi.teams("", eventId),
     enabled: Boolean(deferredSearch),
     staleTime: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const refreshSelection = () => {
     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -1715,12 +1743,17 @@ function useTeamRecords(eventId: number | null): {
     enabled: Boolean(eventId),
     staleTime: 60_000,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const teamsQuery = useQuery({
     queryKey: ["teams", "all", eventId],
     queryFn: () => CourtWatchApi.teams("", eventId),
     enabled: Boolean(eventId),
     staleTime: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
   const records = useMemo(
     () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsQuery.data ?? []),
