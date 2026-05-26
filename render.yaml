@@ -67,6 +67,10 @@ services:
         value: "true"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
         value: "125"
+      - key: EXPOSURE_PUBLIC_TIMEOUT_MS
+        value: "12000"
+      - key: EXPOSURE_API_TIMEOUT_MS
+        value: "12000"
       - key: TOURNAMENT_DISCOVERY_ENABLED
         value: "true"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
@@ -128,6 +132,8 @@ services:
         value: "255539"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
         value: "24"
+      - key: WORKER_API_TIMEOUT_MS
+        value: "120000"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA
