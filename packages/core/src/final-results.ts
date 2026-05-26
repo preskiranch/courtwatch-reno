@@ -79,13 +79,13 @@ export function buildDivisionResultGroups(
   const scope = options.scope ?? "watched";
   const resultsByKey = new Map<string, DivisionResult>();
 
+  for (const result of deriveDivisionResultsFromGames(snapshot)) {
+    resultsByKey.set(resultKey(result), result);
+  }
   for (const result of snapshot.divisionResults) {
     if (isTrustedStoredResult(result)) {
       resultsByKey.set(resultKey(result), result);
     }
-  }
-  for (const result of deriveDivisionResultsFromGames(snapshot)) {
-    resultsByKey.set(resultKey(result), result);
   }
 
   const divisionIds =

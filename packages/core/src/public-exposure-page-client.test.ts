@@ -134,4 +134,163 @@ describe("PublicExposurePageClient", () => {
       "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/bracket/784213",
     );
   });
+
+  it("reads official placement rows from primary bracket pages", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1278429,"Name":"Boys 5th Level 3 Blue"}],
+              brackets: [
+                {"Id":783010,"Name":"Gold","DivisionId":1278429,"CrossDivisionIds":[],"ShowStandings":false},
+                {"Id":783012,"Name":"Silver","DivisionId":1278429,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/783010")) {
+        return htmlResponse(`
+          <div class="bracket-winner">
+            <div class="winner-source"><span class="name"><a href="/255539/2026-reno-memorial-day-tournament/teams/trust-basketball?divisionteamid=5097040">TRUST BASKETBALL</a></span></div>
+            <div>1st Place</div>
+          </div>
+          <div class="bracket-winner">
+            <div class="winner-source"><span class="name"><a href="/255539/2026-reno-memorial-day-tournament/teams/hui-basketball-club?divisionteamid=5109798">HUI Basketball Club</a></span></div>
+            <div>2nd Place</div>
+          </div>
+          <div class="bracket-winner">
+            <div class="winner-source"><span class="name"><a href="/255539/2026-reno-memorial-day-tournament/teams/utah-titans-5?divisionteamid=5026411">Utah Titans 5</a></span></div>
+            <div>3rd Place</div>
+          </div>
+        `);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(255539);
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamId,
+        result.teamNameSnapshot,
+        result.teamSourceUrl,
+      ]),
+    ).toEqual([
+      [
+        1,
+        "public-team-255539-5097040",
+        "TRUST BASKETBALL",
+        "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/trust-basketball?divisionteamid=5097040",
+      ],
+      [
+        2,
+        "public-team-255539-5109798",
+        "HUI Basketball Club",
+        "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/hui-basketball-club?divisionteamid=5109798",
+      ],
+      [
+        3,
+        "public-team-255539-5026411",
+        "Utah Titans 5",
+        "https://basketball.exposureevents.com/255539/2026-reno-memorial-day-tournament/teams/utah-titans-5?divisionteamid=5026411",
+      ],
+    ]);
+    expect(results[0]).toMatchObject({
+      divisionId: "division-255539-1278429",
+      divisionName: "Boys 5th Level 3 Blue",
+      medalLabel: "Gold",
+      bracketLabel: "Gold",
+      isOfficial: true,
+    });
+    expect(fetchImpl).not.toHaveBeenCalledWith(
+      expect.stringContaining("/bracket/783012"),
+      expect.anything(),
+    );
+  });
+
+  it("uses completed division standings when a division has no primary bracket", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1425898,"Name":"Boys 2nd/3rd Level 3 Red"}],
+              brackets: [],
+              standingsUrl: "/255539/2026-reno-memorial-day-tournament/standings?eventid=255539",
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/standings")) {
+        return jsonResponse([
+          {
+            PoolName: "A",
+            Teams: [
+              {
+                Name: "REIGN CITY",
+                TeamLink:
+                  "/255539/2026-reno-memorial-day-tournament/teams/reign-city?divisionteamid=5106272",
+                Place: "1st",
+                Complete: true,
+                Wins: 4,
+                Losses: 0,
+              },
+              {
+                Name: "Olympic Club (Ian)",
+                TeamLink:
+                  "/255539/2026-reno-memorial-day-tournament/teams/olympic-club-ian?divisionteamid=5129757",
+                Place: "2nd",
+                Complete: true,
+                Wins: 2,
+                Losses: 2,
+              },
+              {
+                Name: "NorCal Elite - White",
+                TeamLink:
+                  "/255539/2026-reno-memorial-day-tournament/teams/norcal-elite-white?divisionteamid=5106274",
+                Place: "3rd",
+                Complete: true,
+                Wins: 2,
+                Losses: 2,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(255539);
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.source,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [1, "REIGN CITY", "official_standings", "Standings"],
+      [2, "Olympic Club (Ian)", "official_standings", "Standings"],
+      [3, "NorCal Elite - White", "official_standings", "Standings"],
+    ]);
+    expect(results[0]?.rawJson).toMatchObject({
+      OfficialPlacement: true,
+      Wins: 4,
+      Losses: 0,
+    });
+  });
 });

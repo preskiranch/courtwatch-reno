@@ -1008,6 +1008,13 @@ export class PrismaStore implements CourtWatchStore {
       for (const result of deriveDivisionResultsFromGames(resultSnapshot)) {
         await upsertDivisionResult(this.prisma, result);
       }
+      for (const result of await fetchSourceDivisionResults(
+        tournament,
+        teamMap,
+        divisionIdMap,
+      )) {
+        await upsertDivisionResult(this.prisma, result);
+      }
 
       const after = await this.snapshot(tournament.exposureEventId);
       teamsCount = after.teams.length;
@@ -1536,9 +1543,45 @@ async function fetchSourceGames(
   });
 }
 
+async function fetchSourceDivisionResults(
+  tournament: TournamentSource,
+  teamMap: Map<string, Team>,
+  divisionIdMap: Map<string, string>,
+): Promise<DivisionResult[]> {
+  if (
+    tournament.externalProvider !== "exposure_events" ||
+    !shouldFetchPublicDivisionResults(tournament)
+  )
+    return [];
+
+  try {
+    const results = await new PublicExposurePageClient().fetchDivisionResults(
+      tournament.exposureEventId,
+      { eventSlug: tournament.slug },
+    );
+    return results.map((result) =>
+      mapPublicDivisionResult(result, teamMap, divisionIdMap),
+    );
+  } catch (error) {
+    console.warn("Public bracket result fetch skipped", {
+      eventId: tournament.exposureEventId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return [];
+  }
+}
+
 function shouldFetchAllPublicGames(tournament: TournamentSource): boolean {
   if (process.env.EXPOSURE_PUBLIC_FETCH_ALL_GAMES === "true") return true;
   return hasTournamentStarted(tournament);
+}
+
+function shouldFetchPublicDivisionResults(tournament: TournamentSource) {
+  if (process.env.EXPOSURE_PUBLIC_FETCH_RESULTS === "true") return true;
+  const todayKey =
+    process.env.COURTWATCH_TODAY ??
+    dateKeyInTournamentTimeZone(new Date(), tournament.timezone);
+  return todayKey >= tournament.endDate;
 }
 
 function hasTournamentStarted(tournament: TournamentSource): boolean {
@@ -1559,6 +1602,36 @@ function dateKeyInTournamentTimeZone(date: Date, timeZone: string): string {
     parts.map((part) => [part.type, part.value]),
   );
   return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function mapPublicDivisionResult(
+  result: DivisionResult,
+  teamMap: Map<string, Team>,
+  divisionIdMap: Map<string, string>,
+): DivisionResult {
+  const raw = isRecord(result.rawJson) ? result.rawJson : {};
+  const divisionExposureId = stringOrNull(raw.DivisionId);
+  const divisionId =
+    (divisionExposureId ? divisionIdMap.get(divisionExposureId) : null) ??
+    divisionIdMap.get(result.divisionId) ??
+    result.divisionId;
+  const divisionTeamId = stringOrNull(raw.DivisionTeamId);
+  const team =
+    (divisionTeamId ? teamMap.get(divisionTeamId) : null) ??
+    (result.teamId ? teamMap.get(result.teamId) : null) ??
+    null;
+
+  return {
+    ...result,
+    divisionId,
+    divisionName: team?.divisionName ?? result.divisionName,
+    gender: team?.gender ?? result.gender,
+    gradeLevel: team?.gradeLevel ?? result.gradeLevel,
+    level: team?.level ?? result.level,
+    teamId: team?.id ?? result.teamId,
+    teamNameSnapshot: team?.name ?? result.teamNameSnapshot,
+    teamSourceUrl: team?.sourceUrl ?? result.teamSourceUrl,
+  };
 }
 
 function dedupeSourceTeams(source: { divisions: Division[]; teams: Team[] }): {
