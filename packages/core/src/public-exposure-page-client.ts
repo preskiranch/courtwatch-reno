@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { fromZonedTime } from "date-fns-tz";
+import type { AnyNode } from "domhandler";
 import { hashSource } from "./change-detection.js";
 import { deriveEffectiveGameStatus } from "./game-status.js";
 import { extractDivisionMeta, normalizeName } from "./normalization.js";
@@ -269,15 +270,10 @@ export class PublicExposurePageClient {
     const divisionsById = new Map(
       config.divisions.map((division) => [String(division.Id), division]),
     );
-    const primaryBrackets = config.brackets.filter((bracket) =>
-      isPrimaryResultBracketName(bracket.Name),
-    );
-    const primaryBracketDivisionIds = new Set(
-      primaryBrackets.map((bracket) => String(bracket.DivisionId)),
-    );
-    const results: DivisionResult[] = [];
+    const resultBrackets = selectResultBrackets(config.brackets, divisionsById);
+    const results = new Map<string, DivisionResult>();
 
-    for (const bracket of primaryBrackets) {
+    for (const bracket of resultBrackets) {
       const division = divisionsById.get(String(bracket.DivisionId));
       if (!division) continue;
       const url = new URL(
@@ -285,8 +281,9 @@ export class PublicExposurePageClient {
         this.baseUrl,
       ).toString();
       const html = await this.fetchText(url);
-      results.push(
-        ...parseBracketPlacementResults({
+      addDivisionResults(
+        results,
+        parseBracketPlacementResults({
           html,
           url,
           eventId,
@@ -300,14 +297,15 @@ export class PublicExposurePageClient {
     }
 
     for (const division of config.divisions) {
-      if (primaryBracketDivisionIds.has(String(division.Id))) continue;
+      if (hasAnyDivisionResult(results, eventId, String(division.Id))) continue;
       const standings = await this.fetchDivisionStandings(
         eventId,
         eventSlug,
         String(division.Id),
       );
-      results.push(
-        ...parseStandingPlacementResults({
+      addDivisionResults(
+        results,
+        parseStandingPlacementResults({
           standings,
           eventId,
           eventSlug,
@@ -319,7 +317,13 @@ export class PublicExposurePageClient {
       await sleep(Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125));
     }
 
-    return results;
+    return Array.from(results.values()).sort(
+      (left, right) =>
+        left.divisionName.localeCompare(right.divisionName, "en-US", {
+          numeric: true,
+          sensitivity: "base",
+        }) || left.placement - right.placement,
+    );
   }
 
   private async fetchSearch(
@@ -635,60 +639,307 @@ function parseBracketPlacementResults(input: {
     const placement = placementFromText(text);
     if (!placement) return;
 
-    const name = cleanText(node.find(".name").first().text());
-    if (!name) return;
-    const href = node.find("a").first().attr("href") ?? null;
-    const sourceUrl = href ? new URL(href, input.url).toString() : null;
-    const divisionTeamId = href
-      ? new URL(href, input.url).searchParams.get("divisionteamid")
-      : null;
-    const teamId = divisionTeamId
-      ? `public-team-${input.eventId}-${divisionTeamId}`
-      : null;
-    const divisionId = `division-${input.eventId}-${input.divisionId}`;
-    const rawJson = {
-      source: "public_bracket_page",
-      OfficialPlacement: true,
-      DivisionId: input.divisionId,
-      DivisionTeamId: divisionTeamId,
-      BracketId: input.bracketId,
-      BracketName: input.bracketName,
-      BracketUrl: input.url,
-      PlacementText: text,
-    };
-    const sourceHash = hashSource({
+    const team = bracketTeamFromNode(node, input.eventId, input.url);
+    if (!team) return;
+    results.set(
       placement,
-      teamId,
-      teamNameSnapshot: name,
-      sourceUrl: input.url,
-      rawJson,
-    });
-
-    results.set(placement, {
-      id: `public-result-${input.eventId}-${input.divisionId}-${placement}`,
-      eventId: `event-${input.eventId}`,
-      divisionId,
-      divisionName: input.divisionName,
-      gender: meta.gender,
-      gradeLevel: meta.gradeLevel,
-      level: meta.level,
-      teamId,
-      teamNameSnapshot: name,
-      teamSourceUrl: sourceUrl,
-      placement,
-      medalLabel: placementMedals[placement],
-      bracketLabel: input.bracketName,
-      source: "bracket_final",
-      sourceUrl: input.url,
-      isOfficial: true,
-      sourceHash,
-      rawJson,
-      lastSeenAt: now,
-    });
+      makePublicBracketResult({
+        input,
+        meta,
+        team,
+        placement,
+        placementText: text,
+        now,
+      }),
+    );
   });
+
+  const champion = results.get(1);
+  if (champion && !results.has(2)) {
+    const finalGame = parseBracketGames($, input.eventId, input.url)
+      .filter((game) =>
+        game.teams.some((team) => bracketTeamMatchesResult(team, champion)),
+      )
+      .filter((game) => game.teams.length === 2)
+      .sort(compareBracketGamesForFinal)[0];
+    const runnerUp =
+      finalGame?.teams.find(
+        (team) => !bracketTeamMatchesResult(team, champion),
+      ) ?? null;
+    const championTeam =
+      finalGame?.teams.find((team) =>
+        bracketTeamMatchesResult(team, champion),
+      ) ?? null;
+    if (
+      runnerUp &&
+      (!hasScores(finalGame) ||
+        !championTeam ||
+        championTeam.score === null ||
+        runnerUp.score === null ||
+        championTeam.score > runnerUp.score)
+    ) {
+      results.set(
+        2,
+        makePublicBracketResult({
+          input,
+          meta,
+          team: runnerUp,
+          placement: 2,
+          placementText: "Runner-up from official bracket final",
+          finalGame,
+          now,
+        }),
+      );
+    }
+  }
 
   return Array.from(results.values()).sort(
     (left, right) => left.placement - right.placement,
+  );
+}
+
+function makePublicBracketResult(input: {
+  input: {
+    url: string;
+    eventId: number;
+    divisionId: string;
+    divisionName: string;
+    bracketId: string;
+    bracketName: string;
+  };
+  meta: ReturnType<typeof extractDivisionMeta>;
+  team: ParsedBracketTeam;
+  placement: ResultPlacement;
+  placementText: string;
+  finalGame?: ParsedBracketGame;
+  now: string;
+}): DivisionResult {
+  const divisionId = `division-${input.input.eventId}-${input.input.divisionId}`;
+  const rawJson = {
+    source: "public_bracket_page",
+    OfficialPlacement: true,
+    DivisionId: input.input.divisionId,
+    DivisionTeamId: input.team.divisionTeamId,
+    BracketId: input.input.bracketId,
+    BracketName: input.input.bracketName,
+    BracketUrl: input.input.url,
+    PlacementText: input.placementText,
+    FinalGameNumber: input.finalGame?.gameNumber ?? null,
+    FinalGameScores:
+      input.finalGame?.teams.map((team) => ({
+        name: team.name,
+        score: team.score,
+      })) ?? null,
+  };
+  const sourceHash = hashSource({
+    placement: input.placement,
+    teamId: input.team.teamId,
+    teamNameSnapshot: input.team.name,
+    sourceUrl: input.input.url,
+    rawJson,
+  });
+
+  return {
+    id: `public-result-${input.input.eventId}-${input.input.divisionId}-${input.placement}`,
+    eventId: `event-${input.input.eventId}`,
+    divisionId,
+    divisionName: input.input.divisionName,
+    gender: input.meta.gender,
+    gradeLevel: input.meta.gradeLevel,
+    level: input.meta.level,
+    teamId: input.team.teamId,
+    teamNameSnapshot: input.team.name,
+    teamSourceUrl: input.team.sourceUrl,
+    placement: input.placement,
+    medalLabel: placementMedals[input.placement],
+    bracketLabel: input.input.bracketName,
+    source: "bracket_final",
+    sourceUrl: input.input.url,
+    isOfficial: true,
+    sourceHash,
+    rawJson,
+    lastSeenAt: input.now,
+  };
+}
+
+interface ParsedBracketTeam {
+  name: string;
+  href: string | null;
+  sourceUrl: string | null;
+  divisionTeamId: string | null;
+  teamId: string | null;
+  score: number | null;
+}
+
+interface ParsedBracketGame {
+  left: number;
+  top: number;
+  gameNumber: number;
+  teams: ParsedBracketTeam[];
+}
+
+function parseBracketGames(
+  $: cheerio.CheerioAPI,
+  eventId: number,
+  baseUrl: string,
+): ParsedBracketGame[] {
+  const games: ParsedBracketGame[] = [];
+  $(".bracket-part").each((_, element) => {
+    const node = $(element);
+    const teams: ParsedBracketTeam[] = [];
+    node.find(".away-team, .home-team").each((__, teamElement) => {
+      const team = bracketTeamFromNode($(teamElement), eventId, baseUrl);
+      if (team) teams.push(team);
+    });
+    if (teams.length === 0) return;
+    games.push({
+      left: stylePixelValue(node.attr("style"), "left"),
+      top: stylePixelValue(node.attr("style"), "top"),
+      gameNumber:
+        Number(cleanText(node.find(".game-number .number").first().text())) ||
+        0,
+      teams,
+    });
+  });
+  return games;
+}
+
+function bracketTeamFromNode(
+  node: cheerio.Cheerio<AnyNode>,
+  eventId: number,
+  baseUrl: string,
+): ParsedBracketTeam | null {
+  const name = cleanText(node.find(".name").first().text());
+  if (!name) return null;
+  const href = node.find("a").first().attr("href") ?? null;
+  const sourceUrl = href ? new URL(href, baseUrl).toString() : null;
+  const divisionTeamId = href
+    ? new URL(href, baseUrl).searchParams.get("divisionteamid")
+    : null;
+  return {
+    name,
+    href,
+    sourceUrl,
+    divisionTeamId,
+    teamId: divisionTeamId ? `public-team-${eventId}-${divisionTeamId}` : null,
+    score: scoreFromBracketParticipantText(cleanText(node.text())),
+  };
+}
+
+function scoreFromBracketParticipantText(text: string): number | null {
+  const scores = Array.from(text.matchAll(/\((\d{1,3})\)/g));
+  const rawScore = scores.at(-1)?.[1];
+  return rawScore ? sanitizeBasketballScore(Number(rawScore)) : null;
+}
+
+function stylePixelValue(
+  style: string | null | undefined,
+  key: string,
+): number {
+  const match = style?.match(new RegExp(`${key}\\s*:\\s*(-?\\d+)px`, "i"));
+  return match?.[1] ? Number(match[1]) : 0;
+}
+
+function bracketTeamMatchesResult(
+  team: ParsedBracketTeam,
+  result: DivisionResult,
+): boolean {
+  return Boolean(
+    (team.teamId && result.teamId && team.teamId === result.teamId) ||
+    normalizeName(team.name) === normalizeName(result.teamNameSnapshot),
+  );
+}
+
+function compareBracketGamesForFinal(
+  left: ParsedBracketGame,
+  right: ParsedBracketGame,
+): number {
+  return (
+    right.left - left.left ||
+    right.gameNumber - left.gameNumber ||
+    right.top - left.top
+  );
+}
+
+function hasScores(game: ParsedBracketGame | undefined): boolean {
+  return Boolean(game?.teams.every((team) => team.score !== null));
+}
+
+function addDivisionResults(
+  results: Map<string, DivisionResult>,
+  nextResults: DivisionResult[],
+) {
+  for (const result of nextResults) {
+    const key = divisionResultKey(result);
+    if (!results.has(key)) results.set(key, result);
+  }
+}
+
+function hasAnyDivisionResult(
+  results: Map<string, DivisionResult>,
+  eventId: number,
+  divisionId: string,
+): boolean {
+  const mappedDivisionId = `division-${eventId}-${divisionId}`;
+  return Array.from(results.keys()).some((key) =>
+    key.startsWith(`${mappedDivisionId}:`),
+  );
+}
+
+function divisionResultKey(result: DivisionResult): string {
+  return `${result.divisionId}:${result.placement}`;
+}
+
+function selectResultBrackets(
+  brackets: PublicExposureScheduleConfig["brackets"],
+  divisionsById: Map<string, { Id: number; Name: string }>,
+) {
+  const grouped = new Map<string, PublicExposureScheduleConfig["brackets"]>();
+  for (const bracket of brackets) {
+    const divisionId = String(bracket.DivisionId);
+    grouped.set(divisionId, [...(grouped.get(divisionId) ?? []), bracket]);
+  }
+
+  const selected: PublicExposureScheduleConfig["brackets"] = [];
+  for (const [divisionId, divisionBrackets] of grouped.entries()) {
+    const primary = divisionBrackets.filter((bracket) =>
+      isPrimaryResultBracketName(bracket.Name),
+    );
+    selected.push(
+      ...(primary.length > 0
+        ? primary
+        : divisionBrackets.filter((bracket) =>
+            isFallbackResultBracketName(
+              bracket.Name,
+              divisionsById.get(divisionId)?.Name ?? "",
+            ),
+          )),
+    );
+  }
+
+  return selected;
+}
+
+function isFallbackResultBracketName(
+  bracketName: string,
+  divisionName: string,
+): boolean {
+  const normalized = normalizeName(bracketName);
+  if (!normalized) return false;
+  if (
+    ["consolation", "play in"].some((blocked) => normalized.includes(blocked))
+  )
+    return false;
+  if (
+    ["silver", "bronze"].some((blocked) => normalized === blocked) &&
+    !normalizeName(divisionName).includes(normalized)
+  )
+    return false;
+  return (
+    normalized.includes("playoff") ||
+    normalized.includes("championship") ||
+    normalized.includes("gold") ||
+    normalized === "bracket"
   );
 }
 
@@ -782,6 +1033,7 @@ function isPrimaryResultBracketName(name: string): boolean {
 
 function placementFromText(text: string): ResultPlacement | null {
   const normalized = text.toLowerCase();
+  if (/\bchampion\b/.test(normalized)) return 1;
   if (/^\s*(1st|first)\s*$/.test(normalized)) return 1;
   if (/^\s*(2nd|second)\s*$/.test(normalized)) return 2;
   if (/^\s*(3rd|third)\s*$/.test(normalized)) return 3;

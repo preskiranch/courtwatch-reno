@@ -216,6 +216,67 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("uses completed playoff bracket champion pages when tournaments do not label brackets Gold", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1430131,"Name":"16U EAST"}],
+              brackets: [
+                {"Id":794194,"Name":"Playoffs","DivisionId":1430131,"CrossDivisionIds":[],"ShowStandings":false},
+                {"Id":794195,"Name":"Consolation Games","DivisionId":1430131,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/794194")) {
+        return htmlResponse(`
+          <div class="bracket-winner" style="left: 300px; top: 279px;">
+            <div class="winner-source"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/ema-leaders-16u-blue?divisionteamid=5302051">EMA L.E.A.D.E.R.S. 16u Blue</a></span></div>
+            <div>Champion</div>
+          </div>
+          <div class="bracket-part" style="left: 150px; top: 231px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/ema-leaders-16u-blue?divisionteamid=5302051">EMA L.E.A.D.E.R.S. 16u Blue</a></span>(74)</div>
+            </div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">3</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"><a href="/252014/g365-memorial-day-challenge/teams/all-in-premier?divisionteamid=5302053">All-In Premier</a></span>(37)</div>
+            </div>
+          </div>
+        `);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(252014, {
+      eventSlug: "g365-memorial-day-challenge",
+    });
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.source,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [1, "EMA L.E.A.D.E.R.S. 16u Blue", "bracket_final", "Playoffs"],
+      [2, "All-In Premier", "bracket_final", "Playoffs"],
+    ]);
+    expect(fetchImpl).not.toHaveBeenCalledWith(
+      expect.stringContaining("/bracket/794195"),
+      expect.anything(),
+    );
+  });
+
   it("uses completed division standings when a division has no primary bracket", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

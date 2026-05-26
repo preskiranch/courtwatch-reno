@@ -423,12 +423,19 @@ export class PrismaStore implements CourtWatchStore {
   }
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
-    const tournament = tournamentForExposureEventId(exposureEventId);
+    const requestedTournament = tournamentForExposureEventId(exposureEventId);
     const event = await this.prisma.event.findUnique({
-      where: { exposureEventId: tournament.exposureEventId },
+      where: { exposureEventId: requestedTournament.exposureEventId },
     });
     if (!event)
-      return emptySnapshotForTournament(tournament, await this.events());
+      return emptySnapshotForTournament(
+        requestedTournament,
+        await this.events(),
+      );
+    const tournament =
+      configuredTournaments().find(
+        (source) => source.exposureEventId === event.exposureEventId,
+      ) ?? prismaEventToCore(event);
 
     const [
       divisions,
@@ -813,9 +820,8 @@ export class PrismaStore implements CourtWatchStore {
   }
 
   async syncNow(exposureEventId?: number | null) {
-    const tournaments = exposureEventId
-      ? [tournamentForExposureEventId(exposureEventId)]
-      : configuredTournaments();
+    await this.markCompletedEvents();
+    const tournaments = await this.syncTournamentTargets(exposureEventId);
     const results = [];
     for (const tournament of tournaments) {
       results.push(await this.syncTournament(tournament));
@@ -846,6 +852,40 @@ export class PrismaStore implements CourtWatchStore {
       syncedCount: syncResults.length,
       failures: result.failures,
     };
+  }
+
+  private async syncTournamentTargets(
+    exposureEventId?: number | null,
+  ): Promise<TournamentSource[]> {
+    if (exposureEventId)
+      return [await this.tournamentSourceForSync(exposureEventId)];
+
+    const byExposureId = new Map<number, TournamentSource>();
+    for (const tournament of configuredTournaments()) {
+      byExposureId.set(tournament.exposureEventId, tournament);
+    }
+    for (const event of await this.events()) {
+      if (!byExposureId.has(event.exposureEventId)) {
+        byExposureId.set(event.exposureEventId, event);
+      }
+    }
+    return sortTournamentEvents(Array.from(byExposureId.values()));
+  }
+
+  private async tournamentSourceForSync(
+    exposureEventId: number,
+  ): Promise<TournamentSource> {
+    const configured = configuredTournaments().find(
+      (event) => event.exposureEventId === exposureEventId,
+    );
+    if (configured) return configured;
+
+    const event = await this.prisma.event.findUnique({
+      where: { exposureEventId },
+    });
+    if (event) return prismaEventToCore(event);
+
+    return tournamentForExposureEventId(exposureEventId);
   }
 
   private async markCompletedEvents() {
