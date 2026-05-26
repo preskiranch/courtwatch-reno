@@ -1010,6 +1010,7 @@ export class PrismaStore implements CourtWatchStore {
       }
       for (const result of await fetchSourceDivisionResults(
         tournament,
+        event.id,
         teamMap,
         divisionIdMap,
       )) {
@@ -1545,6 +1546,7 @@ async function fetchSourceGames(
 
 async function fetchSourceDivisionResults(
   tournament: TournamentSource,
+  eventId: string,
   teamMap: Map<string, Team>,
   divisionIdMap: Map<string, string>,
 ): Promise<DivisionResult[]> {
@@ -1560,7 +1562,7 @@ async function fetchSourceDivisionResults(
       { eventSlug: tournament.slug },
     );
     return results.map((result) =>
-      mapPublicDivisionResult(result, teamMap, divisionIdMap),
+      mapPublicDivisionResult(result, eventId, teamMap, divisionIdMap),
     );
   } catch (error) {
     console.warn("Public bracket result fetch skipped", {
@@ -1606,6 +1608,7 @@ function dateKeyInTournamentTimeZone(date: Date, timeZone: string): string {
 
 function mapPublicDivisionResult(
   result: DivisionResult,
+  eventId: string,
   teamMap: Map<string, Team>,
   divisionIdMap: Map<string, string>,
 ): DivisionResult {
@@ -1623,6 +1626,7 @@ function mapPublicDivisionResult(
 
   return {
     ...result,
+    eventId,
     divisionId,
     divisionName: team?.divisionName ?? result.divisionName,
     gender: team?.gender ?? result.gender,
