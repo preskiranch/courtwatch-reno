@@ -7,6 +7,7 @@ const EnvSchema = z.object({
   ADMIN_SECRET: z.string().optional(),
   NODE_ENV: z.string().default("development"),
   TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(24),
+  WORKER_API_TIMEOUT_MS: z.coerce.number().default(120_000),
 });
 
 const env = EnvSchema.parse(process.env);
@@ -34,7 +35,7 @@ async function syncOnce() {
       "tournament discovery failed; continuing with normal sync",
     );
   }
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     new URL("/api/admin/sync-now", env.API_BASE_URL),
     {
       method: "POST",
@@ -63,7 +64,7 @@ async function syncOnce() {
 async function discoverTournamentsIfDue() {
   const intervalMs = env.TOURNAMENT_DISCOVERY_INTERVAL_HOURS * 60 * 60 * 1000;
   if (Date.now() - lastDiscoveryAt < intervalMs) return;
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     new URL("/api/admin/discover-tournaments", env.API_BASE_URL),
     {
       method: "POST",
@@ -105,6 +106,20 @@ async function loop() {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithTimeout(
+  input: string | URL | Request,
+  init: RequestInit = {},
+) {
+  if (init.signal || env.WORKER_API_TIMEOUT_MS <= 0) return fetch(input, init);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), env.WORKER_API_TIMEOUT_MS);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 logger.info({ apiBaseUrl: env.API_BASE_URL }, "starting worker");
