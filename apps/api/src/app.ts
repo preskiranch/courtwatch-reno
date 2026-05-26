@@ -202,6 +202,19 @@ export function createApp(
     }
   });
 
+  app.get("/api/points-leaders", async (req, res, next) => {
+    try {
+      res.json(
+        await store.scoringLeaders(
+          requestClientId(req),
+          requestExposureEventId(req),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/teams/:teamId", async (req, res, next) => {
     try {
       const team = await store.team(req.params.teamId);

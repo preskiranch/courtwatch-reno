@@ -47,6 +47,7 @@ import type {
   ResultPlacement,
   ResultSource,
   Team,
+  TeamScoringLeader,
   TeamRecordSummary,
   PublicTournamentCandidate,
   TournamentEvent,
@@ -92,6 +93,10 @@ export interface CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
   ): Promise<Team[]>;
+  scoringLeaders(
+    clientId?: string | null,
+    exposureEventId?: number | null,
+  ): Promise<TeamScoringLeader[]>;
   team(teamId: string): Promise<Team | null>;
   results(
     clientId?: string | null,
@@ -196,6 +201,16 @@ export class MockStore implements CourtWatchStore {
     const normalized = normalizeName(search);
     const snapshot = this.snapshotForClient(clientId, exposureEventId);
     return filterTeamsForSearch(snapshot, normalized);
+  }
+
+  async scoringLeaders(
+    clientId?: string | null,
+    exposureEventId?: number | null,
+  ) {
+    const snapshot = this.snapshotForClient(clientId, exposureEventId);
+    return buildTeamScoringLeaders(snapshot.games, snapshot.teams, {
+      includeUnscoredTeams: true,
+    });
   }
 
   async team(teamId: string) {
@@ -685,6 +700,16 @@ export class PrismaStore implements CourtWatchStore {
     const snapshot = await this.snapshotForClient(clientId, exposureEventId);
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
+  }
+
+  async scoringLeaders(
+    clientId?: string | null,
+    exposureEventId?: number | null,
+  ) {
+    const snapshot = await this.snapshotForClient(clientId, exposureEventId);
+    return buildTeamScoringLeaders(snapshot.games, snapshot.teams, {
+      includeUnscoredTeams: true,
+    });
   }
 
   async results(

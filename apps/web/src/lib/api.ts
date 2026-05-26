@@ -7,6 +7,7 @@ import type {
   ProgramSummary,
   ProgramTeamMatch,
   Team,
+  TeamScoringLeader,
   TournamentEvent,
 } from "@courtwatch/core";
 import { stableClientId } from "./client-id";
@@ -22,6 +23,7 @@ type CacheKey =
   | "gamesAll"
   | "alerts"
   | "programs"
+  | "pointsLeaders"
   | "event"
   | "events"
   | "results"
@@ -156,6 +158,11 @@ export const CourtWatchApi = {
         eventId,
       ),
       search ? undefined : "teams",
+    ),
+  pointsLeaders: (eventId?: number | null) =>
+    apiGet<TeamScoringLeader[]>(
+      withEvent("/api/points-leaders", eventId),
+      "pointsLeaders",
     ),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
   presenceHeartbeat: (clientId: string, page: string) =>

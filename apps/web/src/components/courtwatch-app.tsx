@@ -187,6 +187,7 @@ export function CourtWatchApp() {
       queryClient.invalidateQueries({ queryKey: ["alerts"] }),
       queryClient.invalidateQueries({ queryKey: ["events"] }),
       queryClient.invalidateQueries({ queryKey: ["results"] }),
+      queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
     ]);
   }, [queryClient, todayKey]);
 
@@ -219,6 +220,7 @@ export function CourtWatchApp() {
         queryClient.invalidateQueries({ queryKey: ["alerts"] });
         queryClient.invalidateQueries({ queryKey: ["events"] });
         queryClient.invalidateQueries({ queryKey: ["teams"] });
+        queryClient.invalidateQueries({ queryKey: ["points-leaders"] });
         window.localStorage.setItem(migrationKey, "complete");
       })
       .catch(() => {
@@ -237,6 +239,7 @@ export function CourtWatchApp() {
       queryClient.invalidateQueries({ queryKey: ["alerts"] }),
       queryClient.invalidateQueries({ queryKey: ["events"] }),
       queryClient.invalidateQueries({ queryKey: ["results"] }),
+      queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
     ]);
     setToast("Schedule refreshed");
     window.setTimeout(() => setToast(null), 2200);
@@ -611,7 +614,16 @@ function DashboardScreen({
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
-  const pointLeaders = useMemo(() => {
+  const pointsLeadersQuery = useQuery({
+    queryKey: ["points-leaders", eventId],
+    queryFn: () => CourtWatchApi.pointsLeaders(eventId),
+    enabled: Boolean(eventId),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+  });
+  const fallbackPointLeaders = useMemo(() => {
     const teams = teamsQuery.data ?? [];
     const teamsById = new Map(teams.map((team) => [team.id, team]));
     return buildTeamScoringLeaders(allGamesQuery.data ?? [], teams, {
@@ -621,6 +633,10 @@ function DashboardScreen({
       return team ? { ...leader, teamName: teamDisplayName(team) } : leader;
     });
   }, [allGamesQuery.data, teamsQuery.data]);
+  const pointLeaders =
+    pointsLeadersQuery.data && pointsLeadersQuery.data.length > 0
+      ? pointsLeadersQuery.data
+      : fallbackPointLeaders;
   const teamRecords = useMemo(
     () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsQuery.data ?? []),
     [allGamesQuery.data, teamsQuery.data],
@@ -653,7 +669,9 @@ function DashboardScreen({
 
       <PointsLeadersSection
         leaders={pointLeaders}
-        loading={allGamesQuery.isLoading || teamsQuery.isLoading}
+        loading={
+          pointsLeadersQuery.isLoading && fallbackPointLeaders.length === 0
+        }
         clientId={clientId}
       />
 
@@ -1624,6 +1642,7 @@ function TeamsScreen({
     queryClient.invalidateQueries({ queryKey: ["events"] });
     queryClient.invalidateQueries({ queryKey: ["results"] });
     queryClient.invalidateQueries({ queryKey: ["teams"] });
+    queryClient.invalidateQueries({ queryKey: ["points-leaders"] });
   };
   const followTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.followTeam(teamId),
