@@ -30,10 +30,20 @@ export function mergeStoredFollowedTeams(
   clientId: string | null,
   eventId: number | null,
   teams: Team[],
+  options: { onlyExistingWhenStored?: boolean } = {},
 ): Team[] {
-  const followedTeams = teams.filter((team) => team.isFollowed);
+  const current = loadStoredFollowedTeams(clientId, eventId);
+  const currentIds = new Set(current.map((team) => team.id));
+  const followedTeams = teams
+    .filter((team) => team.isFollowed)
+    .filter(
+      (team) =>
+        !options.onlyExistingWhenStored ||
+        currentIds.size === 0 ||
+        currentIds.has(team.id),
+    );
   if (followedTeams.length === 0) {
-    return loadStoredFollowedTeams(clientId, eventId);
+    return current;
   }
   return writeStoredFollowedTeams(clientId, eventId, (current) =>
     mergeTeamLists(current, followedTeams.map(markFollowed)),

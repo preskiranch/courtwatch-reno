@@ -613,6 +613,7 @@ function DashboardScreen({
   onRefresh: () => void;
   eventId: number | null;
 }) {
+  const queryClient = useQueryClient();
   const allGamesQuery = useQuery({
     queryKey: ["games", "all", eventId],
     queryFn: () => CourtWatchApi.allGames(eventId),
@@ -671,9 +672,14 @@ function DashboardScreen({
     eventId,
     observedFollowedTeams,
   );
-  const teamsForFollowState = useMemo(
-    () => mergeTeamLists(teamsQuery.data ?? [], storedFollowedTeams),
+  const trustedRegisteredTeams = useMemo(
+    () =>
+      teamsWithTrustedFollowState(teamsQuery.data ?? [], storedFollowedTeams),
     [storedFollowedTeams, teamsQuery.data],
+  );
+  const teamsForFollowState = useMemo(
+    () => mergeTeamLists(trustedRegisteredTeams, storedFollowedTeams),
+    [storedFollowedTeams, trustedRegisteredTeams],
   );
   const teamRecords = useMemo(
     () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsForFollowState),
@@ -690,6 +696,38 @@ function DashboardScreen({
       ),
     [allGamesQuery.data, dashboard, teamRecords, teamsForFollowState],
   );
+  const finalResultFollowedTeams =
+    storedFollowedTeams.length > 0
+      ? storedFollowedTeams
+      : effectiveDashboard.programs.flatMap((program) => program.teams);
+
+  useEffect(() => {
+    if (storedFollowedTeams.length === 0 || dashboardFollowedTeams.length === 0)
+      return;
+    const storedIds = new Set(storedFollowedTeams.map((team) => team.id));
+    const staleServerTeamIds = dashboardFollowedTeams
+      .map((team) => team.id)
+      .filter((teamId) => !storedIds.has(teamId));
+    if (staleServerTeamIds.length === 0) return;
+
+    let cancelled = false;
+    void Promise.all(
+      staleServerTeamIds.map((teamId) => CourtWatchApi.unfollowTeam(teamId)),
+    )
+      .then(() => {
+        if (cancelled) return;
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["games"] });
+        queryClient.invalidateQueries({ queryKey: ["alerts"] });
+        queryClient.invalidateQueries({ queryKey: ["results"] });
+        queryClient.invalidateQueries({ queryKey: ["teams"] });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dashboardFollowedTeams, queryClient, storedFollowedTeams]);
 
   return (
     <div className="space-y-4">
@@ -725,7 +763,11 @@ function DashboardScreen({
         clientId={clientId}
       />
 
-      <FinalResultsSection clientId={clientId} eventId={eventId} />
+      <FinalResultsSection
+        clientId={clientId}
+        eventId={eventId}
+        followedTeams={finalResultFollowedTeams}
+      />
 
       <section className="court-card p-4">
         <div className="mb-3 flex items-center justify-between">
@@ -1210,9 +1252,11 @@ function latestPointLeaderScoreLabel(leader: TeamScoringLeader): string | null {
 function FinalResultsSection({
   clientId,
   eventId,
+  followedTeams,
 }: {
   clientId: string;
   eventId: number | null;
+  followedTeams: Team[];
 }) {
   const [scope, setScope] = useState<"watched" | "all">("watched");
   const {
@@ -1222,15 +1266,25 @@ function FinalResultsSection({
     teams: recordTeams,
   } = useTeamRecords(eventId);
   const resultsQuery = useQuery({
-    queryKey: ["results", clientId, scope, eventId],
-    queryFn: () => CourtWatchApi.results(scope, eventId),
+    queryKey: ["results", "all", eventId],
+    queryFn: () => CourtWatchApi.results("all", eventId),
     enabled: Boolean(clientId && eventId),
     staleTime: 60_000,
     refetchInterval: 60_000,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
-  const resultGroups = resultsQuery.data ?? [];
+  const resultGroups = useMemo(
+    () =>
+      scope === "all"
+        ? (resultsQuery.data ?? [])
+        : followedFinalResultGroups(resultsQuery.data ?? [], followedTeams),
+    [followedTeams, resultsQuery.data, scope],
+  );
+  const emptyMessage =
+    scope === "all"
+      ? "Final placements will appear here after official bracket finals are posted."
+      : "No followed teams are listed in official final placements yet.";
 
   return (
     <section className="court-card p-4">
@@ -1276,8 +1330,7 @@ function FinalResultsSection({
       ) : null}
       {!resultsQuery.isLoading && resultGroups.length === 0 ? (
         <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">
-          Final placements will appear here after official bracket finals are
-          posted.
+          {emptyMessage}
         </p>
       ) : null}
 
@@ -1725,10 +1778,18 @@ function TeamsScreen({
     rememberFollowedTeam,
     forgetFollowedTeamById,
   } = useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
-  const followStateTeams = useMemo(
+  const registeredTeamPool = useMemo(
+    () => mergeTeamLists(recordTeams, teamsQuery.data ?? []),
+    [recordTeams, teamsQuery.data],
+  );
+  const trustedRegisteredTeamPool = useMemo(
     () =>
-      mergeTeamLists(recordTeams, teamsQuery.data ?? [], storedFollowedTeams),
-    [recordTeams, storedFollowedTeams, teamsQuery.data],
+      teamsWithTrustedFollowState(registeredTeamPool, storedFollowedTeams),
+    [registeredTeamPool, storedFollowedTeams],
+  );
+  const followStateTeams = useMemo(
+    () => mergeTeamLists(trustedRegisteredTeamPool, storedFollowedTeams),
+    [storedFollowedTeams, trustedRegisteredTeamPool],
   );
   const selectedProgram = useMemo(
     () =>
@@ -1774,13 +1835,13 @@ function TeamsScreen({
             teamMatchesSearch(team, deferredSearch),
           )
         : storedFollowedTeams;
-      return mergeTeamLists(teamsQuery.data ?? [], matchingStoredTeams);
+      return mergeTeamLists(trustedRegisteredTeamPool, matchingStoredTeams);
     },
-    [deferredSearch, storedFollowedTeams, teamsQuery.data],
+    [deferredSearch, storedFollowedTeams, trustedRegisteredTeamPool],
   );
   const registeredTeams = deferredSearch
     ? allTeamsQuery.data?.length
-      ? allTeamsQuery.data
+      ? teamsWithTrustedFollowState(allTeamsQuery.data, storedFollowedTeams)
       : teams
     : teams;
   const registeredCountLoading = deferredSearch
@@ -1998,7 +2059,9 @@ function useStoredFollowedTeams(
     if (!clientId || !eventId || observedFollowedSignature.length === 0)
       return;
     setStoredFollowedTeams(
-      mergeStoredFollowedTeams(clientId, eventId, observedTeams),
+      mergeStoredFollowedTeams(clientId, eventId, observedTeams, {
+        onlyExistingWhenStored: true,
+      }),
     );
   }, [clientId, eventId, observedFollowedSignature, observedTeams]);
 
@@ -2013,6 +2076,18 @@ function useStoredFollowedTeams(
         forgetStoredFollowedTeam(clientId, eventId, teamId),
       ),
   };
+}
+
+function teamsWithTrustedFollowState(
+  teams: Team[],
+  storedFollowedTeams: Team[],
+): Team[] {
+  if (storedFollowedTeams.length === 0) return teams;
+  const storedFollowedIds = new Set(storedFollowedTeams.map((team) => team.id));
+  return teams.map((team) => ({
+    ...team,
+    isFollowed: storedFollowedIds.has(team.id),
+  }));
 }
 
 function DivisionTotalsPanel({
@@ -2498,6 +2573,58 @@ function OfficialTeamPageLink({
       Official team page
       <ChevronRight className="h-4 w-4" />
     </a>
+  );
+}
+
+function followedFinalResultGroups(
+  groups: DivisionResultGroup[],
+  followedTeams: Team[],
+): DivisionResultGroup[] {
+  if (followedTeams.length === 0) return [];
+  const followedTeamIds = new Set(followedTeams.map((team) => team.id));
+  const followedSourceUrls = new Set(
+    followedTeams
+      .map((team) => normalizeUrl(team.sourceUrl))
+      .filter(Boolean),
+  );
+  const followedNameDivisionKeys = new Set(
+    followedTeams.map(
+      (team) =>
+        `${team.divisionId ?? ""}:${normalizeTeamMatchName(
+          teamDisplayName(team),
+        )}`,
+    ),
+  );
+
+  return groups.flatMap((group) => {
+    const rows = group.rows.filter((result) =>
+      resultMatchesFollowedTeam(result, {
+        followedTeamIds,
+        followedSourceUrls,
+        followedNameDivisionKeys,
+      }),
+    );
+    return rows.length > 0 ? [{ ...group, rows }] : [];
+  });
+}
+
+function resultMatchesFollowedTeam(
+  result: Pick<
+    DivisionResult,
+    "divisionId" | "teamId" | "teamNameSnapshot" | "teamSourceUrl"
+  >,
+  followed: {
+    followedTeamIds: Set<string>;
+    followedSourceUrls: Set<string>;
+    followedNameDivisionKeys: Set<string>;
+  },
+): boolean {
+  if (result.teamId && followed.followedTeamIds.has(result.teamId))
+    return true;
+  const sourceUrl = normalizeUrl(result.teamSourceUrl);
+  if (sourceUrl && followed.followedSourceUrls.has(sourceUrl)) return true;
+  return followed.followedNameDivisionKeys.has(
+    `${result.divisionId}:${normalizeTeamMatchName(result.teamNameSnapshot)}`,
   );
 }
 
