@@ -7,7 +7,6 @@ import {
   withEffectiveGameStatuses,
   type DashboardResponse,
   type DivisionResult,
-  type DivisionResultGroup,
   type Game,
   type GameChangeEvent,
   type ProgramSummary,
@@ -53,6 +52,10 @@ import {
   dashboardWithRegisteredFollows,
   programWithRegisteredFollows,
 } from "../lib/followed-team-reconciliation";
+import {
+  finalResultGroupsForFollowedTeams,
+  type FollowedFinalResultGroup,
+} from "../lib/final-result-groups";
 import {
   forgetStoredFollowedTeam,
   loadStoredFollowedTeams,
@@ -1277,10 +1280,22 @@ function FinalResultsSection({
   const resultGroups = useMemo(
     () =>
       scope === "all"
-        ? (resultsQuery.data ?? [])
-        : followedFinalResultGroups(resultsQuery.data ?? [], followedTeams),
+        ? (resultsQuery.data ?? []).map((group) => ({
+            ...group,
+            followedTeamsWithoutPlacement: [],
+            hasPostedPlacements: group.rows.length > 0,
+          }))
+        : finalResultGroupsForFollowedTeams(
+            resultsQuery.data ?? [],
+            followedTeams,
+          ),
     [followedTeams, resultsQuery.data, scope],
   );
+  const resultCountLabel = resultsQuery.isLoading
+    ? "..."
+    : scope === "watched"
+      ? `${followedTeams.length} teams`
+      : `${resultGroups.length} divisions`;
   const emptyMessage =
     scope === "all"
       ? "Final placements will appear here after official bracket finals are posted."
@@ -1298,7 +1313,7 @@ function FinalResultsSection({
           </h2>
         </div>
         <span className="shrink-0 rounded-md bg-orange-100 px-2 py-1 text-xs font-black text-orange-700">
-          {resultsQuery.isLoading ? "..." : `${resultGroups.length} divisions`}
+          {resultCountLabel}
         </span>
       </div>
 
@@ -1335,7 +1350,7 @@ function FinalResultsSection({
       ) : null}
 
       <div
-        className="max-h-[560px] space-y-3 overflow-y-auto pr-1 md:max-h-[680px]"
+        className="max-h-[62vh] space-y-3 overflow-y-auto overscroll-contain pb-2 pr-1 md:max-h-[680px]"
         data-testid="final-results-list"
       >
         {resultGroups.map((group) => (
@@ -1360,14 +1375,15 @@ function DivisionResultCard({
   teams,
   recordsLoading,
 }: {
-  group: DivisionResultGroup;
+  group: FollowedFinalResultGroup;
   records: Map<string, TeamRecord>;
   games: Game[];
   teams: Team[];
   recordsLoading: boolean;
 }) {
+  const unplacedFollowedTeams = group.followedTeamsWithoutPlacement ?? [];
   const resultStatusLabel =
-    group.rows.length === 0
+    !group.hasPostedPlacements && group.rows.length === 0
       ? "Pending"
       : group.isOfficial
         ? "Official"
@@ -1408,11 +1424,21 @@ function DivisionResultCard({
               recordsLoading={recordsLoading}
             />
           ))
-        ) : (
+        ) : null}
+        {unplacedFollowedTeams.map((team) => (
+          <FollowedTeamFinalStatusRow
+            key={team.id}
+            team={team}
+            hasPostedPlacements={group.hasPostedPlacements}
+            record={followedTeamRecord(team, records, games)}
+            recordsLoading={recordsLoading}
+          />
+        ))}
+        {group.rows.length === 0 && unplacedFollowedTeams.length === 0 ? (
           <p className="rounded-lg bg-slate-50 p-3 text-sm font-black text-slate-600">
             Final placements not posted yet for this division.
           </p>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
@@ -1431,6 +1457,42 @@ function DivisionResultCard({
         ) : null}
       </div>
     </article>
+  );
+}
+
+function FollowedTeamFinalStatusRow({
+  team,
+  hasPostedPlacements,
+  record,
+  recordsLoading,
+}: {
+  team: Team;
+  hasPostedPlacements: boolean;
+  record: TeamRecord | undefined;
+  recordsLoading: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2">
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-200 text-slate-600">
+        <Users className="h-5 w-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-black uppercase text-slate-500">
+          Followed team
+        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <p className="min-w-0 flex-1 truncate text-sm font-black text-slate-950">
+            {teamDisplayName(team)}
+          </p>
+          <TeamRecordBadge record={record} loading={recordsLoading} />
+        </div>
+        <p className="mt-1 text-[11px] font-black text-slate-500">
+          {hasPostedPlacements
+            ? "Not listed in posted gold, silver, or bronze."
+            : "Final placement pending."}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -2576,57 +2638,6 @@ function OfficialTeamPageLink({
   );
 }
 
-function followedFinalResultGroups(
-  groups: DivisionResultGroup[],
-  followedTeams: Team[],
-): DivisionResultGroup[] {
-  if (followedTeams.length === 0) return [];
-  const followedTeamIds = new Set(followedTeams.map((team) => team.id));
-  const followedSourceUrls = new Set(
-    followedTeams
-      .map((team) => normalizeUrl(team.sourceUrl))
-      .filter(Boolean),
-  );
-  const followedNameDivisionKeys = new Set(
-    followedTeams.map(
-      (team) =>
-        `${team.divisionId ?? ""}:${normalizeTeamMatchName(
-          teamDisplayName(team),
-        )}`,
-    ),
-  );
-
-  return groups.filter((group) =>
-    group.rows.some((result) =>
-      resultMatchesFollowedTeam(result, {
-        followedTeamIds,
-        followedSourceUrls,
-        followedNameDivisionKeys,
-      }),
-    ),
-  );
-}
-
-function resultMatchesFollowedTeam(
-  result: Pick<
-    DivisionResult,
-    "divisionId" | "teamId" | "teamNameSnapshot" | "teamSourceUrl"
-  >,
-  followed: {
-    followedTeamIds: Set<string>;
-    followedSourceUrls: Set<string>;
-    followedNameDivisionKeys: Set<string>;
-  },
-): boolean {
-  if (result.teamId && followed.followedTeamIds.has(result.teamId))
-    return true;
-  const sourceUrl = normalizeUrl(result.teamSourceUrl);
-  if (sourceUrl && followed.followedSourceUrls.has(sourceUrl)) return true;
-  return followed.followedNameDivisionKeys.has(
-    `${result.divisionId}:${normalizeTeamMatchName(result.teamNameSnapshot)}`,
-  );
-}
-
 function AlertsScreen({
   alerts,
   games,
@@ -3174,6 +3185,18 @@ function resultRecordForTeam(
 
   const namedRecord = recordFromGamesForTeamName(result, games);
   return hasRecordActivity(namedRecord) ? namedRecord : undefined;
+}
+
+function followedTeamRecord(
+  team: Team,
+  records: Map<string, TeamRecord>,
+  games: Game[],
+): TeamRecord | undefined {
+  const storedRecord = teamRecordForTeam(team, records);
+  if (hasRecordActivity(storedRecord)) return storedRecord;
+
+  const gameRecord = recordFromGamesForTeamId(team.id, games);
+  return hasRecordActivity(gameRecord) ? gameRecord : undefined;
 }
 
 function resultRecordFromOfficialRow(
