@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-reno-v35";
+const CACHE_NAME = "courtwatch-reno-v36";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -35,7 +35,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   if (request.url.includes("/api/")) {
-    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    event.respondWith(fetch(request));
     return;
   }
 
@@ -55,6 +55,12 @@ self.addEventListener("fetch", (event) => {
         caches.match(request).then((cached) => cached || caches.match("/")),
       ),
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("push", (event) => {

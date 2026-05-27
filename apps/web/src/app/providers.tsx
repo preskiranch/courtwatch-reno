@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { pruneStaleApiCaches } from "../lib/api";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -18,8 +19,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
+    pruneStaleApiCaches();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          void registration.update();
+          registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+        })
+        .catch(() => undefined);
     }
   }, []);
 

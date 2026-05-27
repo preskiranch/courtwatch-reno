@@ -260,6 +260,7 @@ export interface DivisionResult {
   sourceHash: string;
   rawJson?: unknown;
   lastSeenAt: string;
+  record?: TeamRecordSummary;
 }
 
 export interface DivisionResultGroup {

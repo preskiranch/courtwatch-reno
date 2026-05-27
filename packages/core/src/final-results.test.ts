@@ -149,6 +149,17 @@ describe("final division results", () => {
       [2, "team-premier-10u"],
       [3, "team-norcal-6"],
     ]);
+    expect(
+      resultGroup?.rows.map((result) => [
+        result.teamId,
+        result.record?.wins,
+        result.record?.losses,
+      ]),
+    ).toEqual([
+      ["team-splash-4th", 1, 0],
+      ["team-premier-10u", 1, 1],
+      ["team-norcal-6", 1, 1],
+    ]);
   });
 
   it("does not treat generic gold bracket games as final placements", () => {

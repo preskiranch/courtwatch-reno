@@ -15,6 +15,7 @@ import { stableClientId } from "./client-id";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.API_BASE_URL ||
+  renderApiFallbackUrl() ||
   "http://localhost:4000";
 
 type CacheKey =
@@ -30,8 +31,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v17";
-const LEGACY_CACHE_VERSION = "v16";
+const CACHE_VERSION = "v18";
+const LEGACY_CACHE_VERSION = "v17";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -204,6 +205,30 @@ export const CourtWatchApi = {
 
 export function apiBaseUrl() {
   return API_BASE_URL;
+}
+
+export function pruneStaleApiCaches() {
+  if (typeof window === "undefined") return;
+  const dataVersionKey = "courtwatch-aau:data-version";
+  const dataVersion = "v18";
+  if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+    if (!key) continue;
+    if (!key.startsWith("courtwatch-aau:v")) continue;
+    if (key.includes(":followed-teams:")) continue;
+    window.localStorage.removeItem(key);
+  }
+
+  window.localStorage.setItem(dataVersionKey, dataVersion);
+}
+
+function renderApiFallbackUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.location.hostname.endsWith(".onrender.com")
+    ? "https://courtwatch-reno-api.onrender.com"
+    : null;
 }
 
 function clientIdentityHeaders(

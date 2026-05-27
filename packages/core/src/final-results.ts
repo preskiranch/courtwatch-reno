@@ -8,6 +8,7 @@ import type {
   ResultMedalLabel,
   ResultPlacement,
   Team,
+  TeamRecordSummary,
 } from "./types.js";
 
 const placementMedals: Record<ResultPlacement, ResultMedalLabel> = {
@@ -78,6 +79,10 @@ export function buildDivisionResultGroups(
 ): DivisionResultGroup[] {
   const scope = options.scope ?? "watched";
   const resultsByKey = new Map<string, DivisionResult>();
+  const recordsByTeamId = buildTeamRecordSummaries(
+    snapshot.games,
+    snapshot.teams,
+  );
 
   for (const result of deriveDivisionResultsFromGames(snapshot)) {
     resultsByKey.set(resultKey(result), result);
@@ -94,9 +99,9 @@ export function buildDivisionResultGroups(
       : registeredDivisionIds(snapshot);
   if (scope === "watched" && divisionIds.size === 0) return [];
 
-  const results = Array.from(resultsByKey.values()).filter((result) =>
-    divisionIds.has(result.divisionId),
-  );
+  const results = Array.from(resultsByKey.values())
+    .filter((result) => divisionIds.has(result.divisionId))
+    .map((result) => withResultRecord(result, recordsByTeamId));
 
   const groups = new Map<string, DivisionResultGroup>();
   for (const divisionId of divisionIds) {
@@ -392,6 +397,104 @@ function compareResults(left: DivisionResult, right: DivisionResult): number {
 
 function resultKey(result: DivisionResult): string {
   return `${result.divisionId}:${result.placement}`;
+}
+
+function withResultRecord(
+  result: DivisionResult,
+  recordsByTeamId: Map<string, TeamRecordSummary>,
+): DivisionResult {
+  if (!result.teamId) return result;
+  const record = recordsByTeamId.get(result.teamId);
+  return record ? { ...result, record } : result;
+}
+
+function buildTeamRecordSummaries(
+  games: Game[],
+  teams: Team[],
+): Map<string, TeamRecordSummary> {
+  const records = new Map<string, TeamRecordSummary>();
+
+  for (const team of teams) {
+    records.set(team.id, team.record ? { ...team.record } : emptyRecord());
+  }
+
+  const teamsWithServerRecords = new Set(
+    teams
+      .filter((team) => team.record && hasTeamRecordActivity(team.record))
+      .map((team) => team.id),
+  );
+
+  for (const game of games) {
+    addGameRecord(records, teamsWithServerRecords, game, "home");
+    addGameRecord(records, teamsWithServerRecords, game, "away");
+  }
+
+  for (const [teamId, record] of records) {
+    if (!hasTeamRecordActivity(record)) records.delete(teamId);
+  }
+
+  return records;
+}
+
+function addGameRecord(
+  records: Map<string, TeamRecordSummary>,
+  teamsWithServerRecords: Set<string>,
+  game: Game,
+  side: "home" | "away",
+) {
+  const teamId = side === "home" ? game.homeTeamId : game.awayTeamId;
+  if (!teamId || teamsWithServerRecords.has(teamId)) return;
+
+  const teamScore = sanitizeBasketballScore(
+    side === "home" ? game.homeScore : game.awayScore,
+  );
+  const opponentScore = sanitizeBasketballScore(
+    side === "home" ? game.awayScore : game.homeScore,
+  );
+  if (teamScore === null) return;
+
+  const record = records.get(teamId) ?? emptyRecord();
+  record.gamesSeen += 1;
+  record.gamesScored += 1;
+  record.totalPoints += teamScore;
+
+  if (game.status === "final") {
+    record.finalGames += 1;
+    if (opponentScore !== null) {
+      if (teamScore > opponentScore) record.wins += 1;
+      else if (teamScore < opponentScore) record.losses += 1;
+      else record.ties += 1;
+    }
+  }
+
+  records.set(teamId, record);
+}
+
+function emptyRecord(): TeamRecordSummary {
+  return {
+    wins: 0,
+    losses: 0,
+    ties: 0,
+    gamesScored: 0,
+    totalPoints: 0,
+    finalGames: 0,
+    gamesSeen: 0,
+  };
+}
+
+function hasTeamRecordActivity(
+  record: TeamRecordSummary | null | undefined,
+): record is TeamRecordSummary {
+  return Boolean(
+    record &&
+      (record.gamesSeen > 0 ||
+        record.gamesScored > 0 ||
+        record.finalGames > 0 ||
+        record.wins > 0 ||
+        record.losses > 0 ||
+        record.ties > 0 ||
+        record.totalPoints > 0),
+  );
 }
 
 function isTrustedStoredResult(result: DivisionResult): boolean {

@@ -3013,12 +3013,19 @@ function teamRecordForTeam(
 function resultRecordForTeam(
   result: Pick<
     DivisionResult,
-    "divisionId" | "rawJson" | "teamId" | "teamNameSnapshot" | "teamSourceUrl"
+    | "divisionId"
+    | "rawJson"
+    | "record"
+    | "teamId"
+    | "teamNameSnapshot"
+    | "teamSourceUrl"
   >,
   records: Map<string, TeamRecord>,
   games: Game[],
   teams: Team[],
 ): TeamRecord | undefined {
+  if (hasRecordActivity(result.record)) return result.record;
+
   const officialRecord = resultRecordFromOfficialRow(result);
   if (hasRecordActivity(officialRecord)) return officialRecord;
 
