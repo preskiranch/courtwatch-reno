@@ -12,6 +12,7 @@ It is an independent companion tracker and is not affiliated with Jam On It or E
 - Lets you follow or unfollow any registered team, then builds a unified schedule and alert feed from your choices.
 - Shows dashboard, team selection, unified schedule, per-team court/bracket focus, game status, alerts, settings, and admin sync.
 - Supports browser push notifications with VAPID.
+- Adds an optional voice interface for speech-to-text commands and text-to-speech screen reading.
 - Keeps the last saved schedule visible when the source temporarily fails.
 - Provides a Render Blueprint with web, API, worker, and Postgres.
 
@@ -23,6 +24,7 @@ apps/api       Express REST API
 apps/worker    Render background sync worker
 packages/core  matching, sync helpers, source clients, seed data, tests
 packages/db    Prisma client wrapper
+packages/voice reusable browser speech-to-text and text-to-speech layer
 prisma         schema and migrations
 scripts        seed script
 ```
@@ -181,6 +183,20 @@ Set these in Render:
 - `PUSH_CONTACT_EMAIL=mailto:you@example.com`
 
 The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push/subscribe`. Notification logs use dedupe keys so repeated source data does not resend identical updates.
+
+## Voice Interface
+
+The web app imports `@courtwatch/voice`, a reusable browser voice package that wraps the Web Speech API for speech-to-text and `speechSynthesis` for text-to-speech. It does not require server secrets or expose tournament credentials.
+
+Supported commands include:
+
+- `open schedule`, `open teams`, `open alerts`, `open settings`
+- `search Splash City 12U`
+- `refresh`
+- `read screen`
+- `stop speaking`
+
+Voice settings are saved per browser/device in local storage. Users can choose language, installed system/browser voices, speech speed, and whether command confirmations are read aloud. Browsers without speech recognition still keep the read-aloud path when text-to-speech is available.
 
 ## API Routes
 
