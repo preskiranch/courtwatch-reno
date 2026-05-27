@@ -15,7 +15,6 @@ import {
   type TeamScoringLeader,
   type TournamentEvent,
 } from "@courtwatch/core";
-import type { VoiceCommandIntent } from "@courtwatch/voice";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import {
@@ -42,14 +41,7 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
 import { stableClientId } from "../lib/client-id";
 import {
@@ -58,10 +50,8 @@ import {
   scheduleDateSectionLabel,
 } from "../lib/date-labels";
 import { requestPushSubscription } from "../lib/push";
-import { VoiceInterfaceControl } from "./voice-interface-control";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
-type VoiceTeamSearchRequest = { id: number; query: string };
 type PointsLeaderMode = "overall" | "compare";
 type TeamRecord = Pick<
   TeamScoringLeader,
@@ -92,8 +82,6 @@ export function CourtWatchApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [voiceTeamSearchRequest, setVoiceTeamSearchRequest] =
-    useState<VoiceTeamSearchRequest | null>(null);
   const queryClient = useQueryClient();
   const clientReady = Boolean(presenceClientId);
   const eventsQuery = useQuery({
@@ -244,7 +232,7 @@ export function CourtWatchApp() {
     };
   }, [dashboardQuery.data, presenceClientId, queryClient]);
 
-  const refresh = useCallback(async () => {
+  const refresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
       queryClient.invalidateQueries({ queryKey: ["games"] }),
@@ -255,7 +243,7 @@ export function CourtWatchApp() {
     ]);
     setToast("Schedule refreshed");
     window.setTimeout(() => setToast(null), 2200);
-  }, [queryClient]);
+  };
 
   const dashboard = useMemo(
     () =>
@@ -267,37 +255,6 @@ export function CourtWatchApp() {
   const games = useMemo(
     () => withEffectiveGameStatuses(gamesQuery.data ?? [], liveStatusNow),
     [gamesQuery.data, liveStatusNow],
-  );
-  const voiceReadableText = useMemo(
-    () =>
-      voiceReadableTextForTab({
-        activeTab,
-        dashboard,
-        games,
-        alerts: alertsQuery.data ?? dashboard?.alerts ?? [],
-        event: fetchedActiveEvent ?? dashboard?.event ?? null,
-      }),
-    [activeTab, alertsQuery.data, dashboard, fetchedActiveEvent, games],
-  );
-  const handleVoiceCommand = useCallback(
-    (intent: VoiceCommandIntent) => {
-      if (intent.type === "navigate") {
-        setActiveTab(intent.target);
-        return;
-      }
-      if (intent.type === "search" || intent.type === "dictation") {
-        const query =
-          intent.type === "search" ? intent.query.trim() : intent.text.trim();
-        if (!query) return;
-        setActiveTab("teams");
-        setVoiceTeamSearchRequest({ id: Date.now(), query });
-        return;
-      }
-      if (intent.type === "refresh") {
-        void refresh();
-      }
-    },
-    [refresh],
   );
   const fallbackEvents = dashboard?.events?.length
     ? dashboard.events
@@ -340,7 +297,7 @@ export function CourtWatchApp() {
           </div>
         ) : null}
 
-        <section className="mt-4 flex-1" data-voice-readable="true">
+        <section className="mt-4 flex-1">
           {isLoading ? <SkeletonDashboard /> : null}
           {!isLoading && hasNoEvents ? <NoTournamentEvents /> : null}
           {!isLoading &&
@@ -366,11 +323,7 @@ export function CourtWatchApp() {
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "teams" ? (
-            <TeamsScreen
-              dashboard={dashboard}
-              eventId={activeEventId}
-              voiceSearchRequest={voiceTeamSearchRequest}
-            />
+            <TeamsScreen dashboard={dashboard} eventId={activeEventId} />
           ) : null}
           {!isLoading && dashboard && activeTab === "alerts" ? (
             <AlertsScreen
@@ -388,11 +341,6 @@ export function CourtWatchApp() {
         </section>
 
         <BottomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        <VoiceInterfaceControl
-          activeTab={activeTab}
-          readableText={voiceReadableText}
-          onCommand={handleVoiceCommand}
-        />
       </main>
     </>
   );
@@ -633,48 +581,6 @@ function compactTournamentDate(
     month: "short",
     timeZone,
   }).format(new Date(`${dateKey}T12:00:00.000Z`));
-}
-
-function voiceReadableTextForTab({
-  activeTab,
-  dashboard,
-  games,
-  alerts,
-  event,
-}: {
-  activeTab: Tab;
-  dashboard: DashboardResponse | undefined;
-  games: Game[];
-  alerts: GameChangeEvent[];
-  event: TournamentEvent | null;
-}) {
-  const eventName = event?.name ?? dashboard?.event.name ?? "selected event";
-  const followedTeams =
-    dashboard?.programs.reduce(
-      (total, program) => total + program.teams.length,
-      0,
-    ) ?? 0;
-  const nextGame = dashboard?.nextGame;
-  const nextGameText = nextGame
-    ? `Next game is ${gameMatchupDisplayName(nextGame)} at ${nextGame.scheduledTime} on ${nextGame.courtName ?? "court to be announced"}.`
-    : "No next followed-team game is currently posted.";
-  const pointsLeader = dashboard?.pointsLeaders?.[0];
-  const leaderText = pointsLeader
-    ? `The current points leader is ${pointsLeader.teamName} with ${pointsLeader.totalPoints} points.`
-    : "Points leaders will appear after scored games sync.";
-
-  switch (activeTab) {
-    case "dashboard":
-      return `Court Watch AAU dashboard for ${eventName}. You are following ${followedTeams} teams. ${nextGameText} ${leaderText} There are ${alerts.length} recent alerts.`;
-    case "schedule":
-      return `Schedule for ${eventName}. ${games.length} games are loaded for the selected tournament. ${nextGameText}`;
-    case "teams":
-      return `Teams screen for ${eventName}. Search registered teams, then follow the teams you want saved on this device. You currently follow ${followedTeams} teams.`;
-    case "alerts":
-      return `Alerts screen for ${eventName}. There are ${alerts.length} recent updates.`;
-    case "settings":
-      return `Settings screen for ${eventName}. Notification preferences, source status, and admin sync controls are available here.`;
-  }
 }
 
 function DashboardScreen({
@@ -1708,11 +1614,9 @@ function GameRow({
 function TeamsScreen({
   dashboard,
   eventId,
-  voiceSearchRequest,
 }: {
   dashboard: DashboardResponse;
   eventId: number | null;
-  voiceSearchRequest: VoiceTeamSearchRequest | null;
 }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -1768,12 +1672,6 @@ function TeamsScreen({
   );
   const focusedTeam =
     selectedProgram?.teams.find((team) => team.id === focusedTeamId) ?? null;
-
-  useEffect(() => {
-    if (!voiceSearchRequest?.query) return;
-    setSearch(voiceSearchRequest.query);
-    setFocusedTeamId(null);
-  }, [voiceSearchRequest?.id, voiceSearchRequest?.query]);
 
   return (
     <div className="space-y-4">

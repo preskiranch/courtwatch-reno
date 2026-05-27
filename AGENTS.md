@@ -32,5 +32,4 @@ Court Watch AAU is a tournament companion app that currently supports the 2026 R
 - `apps/worker`: Render worker that triggers syncs.
 - `packages/core`: shared matching, source clients, change detection, seed data, and typed service helpers.
 - `packages/db`: Prisma client wrapper.
-- `packages/voice`: reusable browser voice layer for speech-to-text commands and text-to-speech output.
 - `prisma`: schema and migrations.

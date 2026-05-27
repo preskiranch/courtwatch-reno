@@ -12,7 +12,7 @@ services:
     repo: https://github.com/preskiranch/courtwatch-reno
     branch: main
     rootDir: .
-    buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/voice && npm run build --workspace @courtwatch/web
+    buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
     startCommand: npm run start --workspace @courtwatch/web
     autoDeploy: true
     envVars:
