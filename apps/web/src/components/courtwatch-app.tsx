@@ -1215,7 +1215,12 @@ function FinalResultsSection({
   eventId: number | null;
 }) {
   const [scope, setScope] = useState<"watched" | "all">("watched");
-  const { records, loading: recordsLoading } = useTeamRecords(eventId);
+  const {
+    records,
+    loading: recordsLoading,
+    games: recordGames,
+    teams: recordTeams,
+  } = useTeamRecords(eventId);
   const resultsQuery = useQuery({
     queryKey: ["results", clientId, scope, eventId],
     queryFn: () => CourtWatchApi.results(scope, eventId),
@@ -1285,6 +1290,8 @@ function FinalResultsSection({
             key={group.divisionId}
             group={group}
             records={records}
+            games={recordGames}
+            teams={recordTeams}
             recordsLoading={recordsLoading}
           />
         ))}
@@ -1296,10 +1303,14 @@ function FinalResultsSection({
 function DivisionResultCard({
   group,
   records,
+  games,
+  teams,
   recordsLoading,
 }: {
   group: DivisionResultGroup;
   records: Map<string, TeamRecord>;
+  games: Game[];
+  teams: Team[];
   recordsLoading: boolean;
 }) {
   const resultStatusLabel =
@@ -1340,7 +1351,7 @@ function DivisionResultCard({
             <DivisionResultRow
               key={`${result.divisionId}-${result.placement}`}
               result={result}
-              record={resultRecordForTeam(result, records)}
+              record={resultRecordForTeam(result, records, games, teams)}
               recordsLoading={recordsLoading}
             />
           ))
@@ -3000,10 +3011,36 @@ function teamRecordForTeam(
 }
 
 function resultRecordForTeam(
-  result: Pick<DivisionResult, "teamId">,
+  result: Pick<
+    DivisionResult,
+    "divisionId" | "rawJson" | "teamId" | "teamNameSnapshot" | "teamSourceUrl"
+  >,
   records: Map<string, TeamRecord>,
+  games: Game[],
+  teams: Team[],
 ): TeamRecord | undefined {
-  return result.teamId ? records.get(result.teamId) : undefined;
+  const officialRecord = resultRecordFromOfficialRow(result);
+  if (hasRecordActivity(officialRecord)) return officialRecord;
+
+  if (result.teamId) {
+    const storedRecord = records.get(result.teamId);
+    if (hasRecordActivity(storedRecord)) return storedRecord;
+
+    const gameRecord = recordFromGamesForTeamId(result.teamId, games);
+    if (hasRecordActivity(gameRecord)) return gameRecord;
+  }
+
+  const matchedTeam = findResultTeam(result, teams);
+  if (matchedTeam) {
+    const matchedRecord = teamRecordForTeam(matchedTeam, records);
+    if (hasRecordActivity(matchedRecord)) return matchedRecord;
+
+    const matchedGameRecord = recordFromGamesForTeamId(matchedTeam.id, games);
+    if (hasRecordActivity(matchedGameRecord)) return matchedGameRecord;
+  }
+
+  const namedRecord = recordFromGamesForTeamName(result, games);
+  return hasRecordActivity(namedRecord) ? namedRecord : undefined;
 }
 
 function resultRecordFromOfficialRow(
@@ -3053,6 +3090,114 @@ function numberFromUnknown(value: unknown): number | null {
     if (Number.isFinite(parsed)) return parsed;
   }
   return null;
+}
+
+function findResultTeam(
+  result: Pick<
+    DivisionResult,
+    "divisionId" | "teamNameSnapshot" | "teamSourceUrl"
+  >,
+  teams: Team[],
+): Team | undefined {
+  if (result.teamSourceUrl) {
+    const bySourceUrl = teams.find(
+      (team) => normalizeUrl(team.sourceUrl) === normalizeUrl(result.teamSourceUrl),
+    );
+    if (bySourceUrl) return bySourceUrl;
+  }
+
+  const normalizedName = normalizeTeamMatchName(result.teamNameSnapshot);
+  return teams.find(
+    (team) =>
+      team.divisionId === result.divisionId &&
+      normalizeTeamMatchName(teamDisplayName(team)) === normalizedName,
+  );
+}
+
+function recordFromGamesForTeamId(
+  teamId: string,
+  games: Game[],
+): TeamRecord | undefined {
+  return recordFromGames(
+    games.filter(
+      (game) =>
+        game.status === "final" &&
+        (game.homeTeamId === teamId || game.awayTeamId === teamId),
+    ),
+    (game) => (game.homeTeamId === teamId ? "home" : "away"),
+  );
+}
+
+function recordFromGamesForTeamName(
+  result: Pick<DivisionResult, "divisionId" | "teamNameSnapshot">,
+  games: Game[],
+): TeamRecord | undefined {
+  const normalizedName = normalizeTeamMatchName(result.teamNameSnapshot);
+  return recordFromGames(
+    games.filter(
+      (game) =>
+        game.status === "final" &&
+        game.divisionId === result.divisionId &&
+        (normalizeTeamMatchName(game.homeTeamNameSnapshot) === normalizedName ||
+          normalizeTeamMatchName(game.awayTeamNameSnapshot) === normalizedName),
+    ),
+    (game) =>
+      normalizeTeamMatchName(game.homeTeamNameSnapshot) === normalizedName
+        ? "home"
+        : "away",
+  );
+}
+
+function recordFromGames(
+  games: Game[],
+  sideForGame: (game: Game) => "home" | "away",
+): TeamRecord | undefined {
+  if (games.length === 0) return undefined;
+  const record: TeamRecord = {
+    wins: 0,
+    losses: 0,
+    ties: 0,
+    gamesScored: 0,
+    totalPoints: 0,
+    finalGames: 0,
+    gamesSeen: games.length,
+  };
+
+  for (const game of games) {
+    const side = sideForGame(game);
+    const teamScore = side === "home" ? game.homeScore : game.awayScore;
+    const opponentScore = side === "home" ? game.awayScore : game.homeScore;
+    if (teamScore === null || opponentScore === null) continue;
+
+    record.gamesScored += 1;
+    record.finalGames += 1;
+    record.totalPoints += teamScore;
+    if (teamScore > opponentScore) record.wins += 1;
+    else if (teamScore < opponentScore) record.losses += 1;
+    else record.ties += 1;
+  }
+
+  return hasRecordActivity(record) ? record : undefined;
+}
+
+function normalizeTeamMatchName(value: string | null | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/\b(splash city)\s*(\d+u)\b/g, "$1 $2")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeUrl(value: string | null | undefined): string {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return value.trim();
+  }
 }
 
 function hasRecordActivity(
