@@ -2,7 +2,10 @@
 
 import {
   buildTeamScoringLeaders,
+  attachTeamRecordsToGame,
   filterTeamScoringLeadersByDivisionIds,
+  lastResultForTeam,
+  nextGameForTeam,
   withEffectiveGameStatus,
   withEffectiveGameStatuses,
   type DashboardResponse,
@@ -645,10 +648,20 @@ function DashboardScreen({
     [allGamesQuery.data, teamsQuery.data],
   );
   const recordsLoading = allGamesQuery.isLoading || teamsQuery.isLoading;
+  const effectiveDashboard = useMemo(
+    () =>
+      dashboardWithRegisteredFollows(
+        dashboard,
+        teamsQuery.data ?? [],
+        allGamesQuery.data ?? [],
+        teamRecords,
+      ),
+    [allGamesQuery.data, dashboard, teamRecords, teamsQuery.data],
+  );
 
   return (
     <div className="space-y-4">
-      <NextGameBanner game={dashboard.nextGame} records={teamRecords} />
+      <NextGameBanner game={effectiveDashboard.nextGame} records={teamRecords} />
 
       <button
         type="button"
@@ -660,7 +673,7 @@ function DashboardScreen({
       </button>
 
       <div className="grid gap-3 md:grid-cols-2">
-        {dashboard.programs.map((program) => (
+        {effectiveDashboard.programs.map((program) => (
           <ProgramCard
             key={program.program.id}
             program={program}
@@ -1622,8 +1635,22 @@ function TeamsScreen({
   const [search, setSearch] = useState("");
   const [focusedTeamId, setFocusedTeamId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
-  const selectedProgram = dashboard.programs[0];
-  const { records, loading: recordsLoading } = useTeamRecords(eventId);
+  const {
+    records,
+    loading: recordsLoading,
+    games: recordGames,
+    teams: recordTeams,
+  } = useTeamRecords(eventId);
+  const selectedProgram = useMemo(
+    () =>
+      programWithRegisteredFollows(
+        dashboard.programs[0],
+        recordTeams,
+        recordGames,
+        records,
+      ),
+    [dashboard.programs, recordGames, recordTeams, records],
+  );
   const teamsQuery = useQuery({
     queryKey: ["teams", deferredSearch, eventId],
     queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
@@ -1812,6 +1839,8 @@ type DivisionCompareOption = {
 function useTeamRecords(eventId: number | null): {
   records: Map<string, TeamRecord>;
   loading: boolean;
+  games: Game[];
+  teams: Team[];
 } {
   const allGamesQuery = useQuery({
     queryKey: ["games", "all", eventId],
@@ -1838,6 +1867,8 @@ function useTeamRecords(eventId: number | null): {
   return {
     records,
     loading: allGamesQuery.isLoading || teamsQuery.isLoading,
+    games: allGamesQuery.data ?? [],
+    teams: teamsQuery.data ?? [],
   };
 }
 
@@ -2996,6 +3027,125 @@ function recordCaption(
 function recordText(record: TeamRecord | undefined, loading = false): string {
   if (record && hasRecordActivity(record)) return teamRecordLabel(record);
   return loading ? "..." : "W-L TBD";
+}
+
+function dashboardWithRegisteredFollows(
+  dashboard: DashboardResponse,
+  registeredTeams: Team[],
+  games: Game[],
+  records: Map<string, TeamRecord>,
+): DashboardResponse {
+  const primaryProgram = programWithRegisteredFollows(
+    dashboard.programs[0],
+    registeredTeams,
+    games,
+    records,
+  );
+  if (!primaryProgram || primaryProgram === dashboard.programs[0])
+    return dashboard;
+
+  return {
+    ...dashboard,
+    nextGame: primaryProgram.nextGame ?? dashboard.nextGame,
+    programs: [primaryProgram, ...dashboard.programs.slice(1)],
+  };
+}
+
+function programWithRegisteredFollows(
+  program: ProgramSummary | undefined,
+  registeredTeams: Team[],
+  games: Game[],
+  records: Map<string, TeamRecord>,
+): ProgramSummary | undefined {
+  if (!program) return program;
+  const followedTeams = registeredTeams.filter((team) => team.isFollowed);
+  if (followedTeams.length === 0) return program;
+
+  const currentTeamIds = new Set(program.teams.map((team) => team.id));
+  const hasMissingFollowedTeam = followedTeams.some(
+    (team) => !currentTeamIds.has(team.id),
+  );
+  if (!hasMissingFollowedTeam) return program;
+
+  const currentTeamsById = new Map(program.teams.map((team) => [team.id, team]));
+  const effectiveGames = withEffectiveGameStatuses(games);
+  const now = new Date();
+  const teams = followedTeams
+    .map((team) =>
+      enrichFollowedTeam(
+        currentTeamsById.get(team.id) ?? team,
+        effectiveGames,
+        records,
+        now,
+      ),
+    )
+    .sort(
+      (left, right) =>
+        (left.divisionName ?? "").localeCompare(
+          right.divisionName ?? "",
+          "en-US",
+          { numeric: true, sensitivity: "base" },
+        ) || teamDisplayName(left).localeCompare(teamDisplayName(right)),
+    );
+
+  const nextGame =
+    teams
+      .map((team) => team.nextGame)
+      .filter((game): game is Game => Boolean(game))
+      .sort(
+        (left, right) =>
+          new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime(),
+      )[0] ?? null;
+  const latestResult =
+    teams
+      .map((team) => team.lastResult)
+      .filter((game): game is Game => Boolean(game))
+      .sort(
+        (left, right) =>
+          new Date(right.startsAt).getTime() - new Date(left.startsAt).getTime(),
+      )[0] ?? null;
+
+  return {
+    ...program,
+    teams,
+    nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
+    latestResult: latestResult
+      ? attachTeamRecordsToGame(latestResult, records)
+      : null,
+    zeroStateMessage: undefined,
+  };
+}
+
+function enrichFollowedTeam(
+  team: Team | ProgramSummary["teams"][number],
+  games: Game[],
+  records: Map<string, TeamRecord>,
+  now: Date,
+): ProgramSummary["teams"][number] {
+  const nextGame = nextGameForTeam(team, games, now);
+  const lastResult = lastResultForTeam(team, games, now);
+  const existing =
+    "matchType" in team
+      ? team
+      : {
+          ...team,
+          matchType: "manual" as const,
+          matchConfidence: 1,
+          nextGame: null,
+          lastResult: null,
+          liveStatus: "awaiting_bracket" as const,
+        };
+
+  return {
+    ...existing,
+    record: team.record ?? records.get(team.id),
+    matchType: existing.matchType,
+    matchConfidence: existing.matchConfidence,
+    nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
+    lastResult: lastResult ? attachTeamRecordsToGame(lastResult, records) : null,
+    liveStatus:
+      nextGame?.status ?? lastResult?.status ?? existing.liveStatus,
+  };
 }
 
 function dashboardWithEffectiveGameStatuses(
