@@ -6,6 +6,7 @@ import type {
   Team,
 } from "@courtwatch/core";
 import { dashboardWithRegisteredFollows } from "../lib/followed-team-reconciliation";
+import { mergeTeamLists } from "../lib/followed-team-storage";
 
 const event = {
   id: "event-test",
@@ -162,5 +163,14 @@ describe("dashboard followed-team reconciliation", () => {
     expect(reconciled.programs[0]?.zeroStateMessage).toContain(
       "no teams selected",
     );
+  });
+
+  it("keeps a local followed flag when a stale team cache says not followed", () => {
+    const stale = team("team-splash-9u", "Splash City 9U");
+    stale.isFollowed = false;
+    const localFollowed = team("team-splash-9u", "Splash City 9U");
+    localFollowed.isFollowed = true;
+
+    expect(mergeTeamLists([stale], [localFollowed])[0]?.isFollowed).toBe(true);
   });
 });

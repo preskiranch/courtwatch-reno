@@ -157,7 +157,7 @@ export const CourtWatchApi = {
         `/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`,
         eventId,
       ),
-      search ? undefined : "teams",
+      "teams",
     ),
   pointsLeaders: (eventId?: number | null) =>
     apiGet<TeamScoringLeader[]>(

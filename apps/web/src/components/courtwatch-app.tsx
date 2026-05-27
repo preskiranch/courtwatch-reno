@@ -53,6 +53,13 @@ import {
   dashboardWithRegisteredFollows,
   programWithRegisteredFollows,
 } from "../lib/followed-team-reconciliation";
+import {
+  forgetStoredFollowedTeam,
+  loadStoredFollowedTeams,
+  mergeStoredFollowedTeams,
+  mergeTeamLists,
+  rememberStoredFollowedTeam,
+} from "../lib/followed-team-storage";
 import { requestPushSubscription } from "../lib/push";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
@@ -327,7 +334,11 @@ export function CourtWatchApp() {
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "teams" ? (
-            <TeamsScreen dashboard={dashboard} eventId={activeEventId} />
+            <TeamsScreen
+              dashboard={dashboard}
+              eventId={activeEventId}
+              clientId={presenceClientId}
+            />
           ) : null}
           {!isLoading && dashboard && activeTab === "alerts" ? (
             <AlertsScreen
@@ -644,20 +655,40 @@ function DashboardScreen({
       : dashboardPointLeaders.length > 0
         ? dashboardPointLeaders
       : fallbackPointLeaders;
+  const dashboardFollowedTeams = useMemo(
+    () =>
+      dashboard.programs.flatMap((program) =>
+        program.teams.map((team) => ({ ...team, isFollowed: true })),
+      ),
+    [dashboard.programs],
+  );
+  const observedFollowedTeams = useMemo(
+    () => mergeTeamLists(teamsQuery.data ?? [], dashboardFollowedTeams),
+    [dashboardFollowedTeams, teamsQuery.data],
+  );
+  const { storedFollowedTeams } = useStoredFollowedTeams(
+    clientId,
+    eventId,
+    observedFollowedTeams,
+  );
+  const teamsForFollowState = useMemo(
+    () => mergeTeamLists(teamsQuery.data ?? [], storedFollowedTeams),
+    [storedFollowedTeams, teamsQuery.data],
+  );
   const teamRecords = useMemo(
-    () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsQuery.data ?? []),
-    [allGamesQuery.data, teamsQuery.data],
+    () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsForFollowState),
+    [allGamesQuery.data, teamsForFollowState],
   );
   const recordsLoading = allGamesQuery.isLoading || teamsQuery.isLoading;
   const effectiveDashboard = useMemo(
     () =>
       dashboardWithRegisteredFollows(
         dashboard,
-        teamsQuery.data ?? [],
+        teamsForFollowState,
         allGamesQuery.data ?? [],
         teamRecords,
       ),
-    [allGamesQuery.data, dashboard, teamRecords, teamsQuery.data],
+    [allGamesQuery.data, dashboard, teamRecords, teamsForFollowState],
   );
 
   return (
@@ -1628,9 +1659,11 @@ function GameRow({
 function TeamsScreen({
   dashboard,
   eventId,
+  clientId,
 }: {
   dashboard: DashboardResponse;
   eventId: number | null;
+  clientId: string;
 }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -1642,16 +1675,6 @@ function TeamsScreen({
     games: recordGames,
     teams: recordTeams,
   } = useTeamRecords(eventId);
-  const selectedProgram = useMemo(
-    () =>
-      programWithRegisteredFollows(
-        dashboard.programs[0],
-        recordTeams,
-        recordGames,
-        records,
-      ),
-    [dashboard.programs, recordGames, recordTeams, records],
-  );
   const teamsQuery = useQuery({
     queryKey: ["teams", deferredSearch, eventId],
     queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
@@ -1669,6 +1692,43 @@ function TeamsScreen({
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
+  const dashboardFollowedTeams = useMemo(
+    () =>
+      (dashboard.programs[0]?.teams ?? []).map((team) => ({
+        ...team,
+        isFollowed: true,
+      })),
+    [dashboard.programs],
+  );
+  const observedFollowedTeams = useMemo(
+    () =>
+      mergeTeamLists(
+        recordTeams,
+        teamsQuery.data ?? [],
+        dashboardFollowedTeams,
+      ),
+    [dashboardFollowedTeams, recordTeams, teamsQuery.data],
+  );
+  const {
+    storedFollowedTeams,
+    rememberFollowedTeam,
+    forgetFollowedTeamById,
+  } = useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
+  const followStateTeams = useMemo(
+    () =>
+      mergeTeamLists(recordTeams, teamsQuery.data ?? [], storedFollowedTeams),
+    [recordTeams, storedFollowedTeams, teamsQuery.data],
+  );
+  const selectedProgram = useMemo(
+    () =>
+      programWithRegisteredFollows(
+        dashboard.programs[0],
+        followStateTeams,
+        recordGames,
+        records,
+      ),
+    [dashboard.programs, followStateTeams, recordGames, records],
+  );
   const refreshSelection = () => {
     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     queryClient.invalidateQueries({ queryKey: ["games"] });
@@ -1678,19 +1738,47 @@ function TeamsScreen({
     queryClient.invalidateQueries({ queryKey: ["teams"] });
     queryClient.invalidateQueries({ queryKey: ["points-leaders"] });
   };
+  const knownTeamsById = useMemo(
+    () => new Map(followStateTeams.map((team) => [team.id, team])),
+    [followStateTeams],
+  );
   const followTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.followTeam(teamId),
-    onSuccess: refreshSelection,
+    onSuccess: (_match, teamId) => {
+      rememberFollowedTeam(knownTeamsById.get(teamId));
+      refreshSelection();
+    },
   });
   const unfollowTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.unfollowTeam(teamId),
-    onSuccess: refreshSelection,
+    onSuccess: (_unused, teamId) => {
+      forgetFollowedTeamById(teamId);
+      refreshSelection();
+    },
   });
-  const teams = teamsQuery.data ?? [];
-  const registeredTeams = deferredSearch ? (allTeamsQuery.data ?? []) : teams;
+  const teams = useMemo(
+    () => {
+      const matchingStoredTeams = deferredSearch
+        ? storedFollowedTeams.filter((team) =>
+            teamMatchesSearch(team, deferredSearch),
+          )
+        : storedFollowedTeams;
+      return mergeTeamLists(teamsQuery.data ?? [], matchingStoredTeams);
+    },
+    [deferredSearch, storedFollowedTeams, teamsQuery.data],
+  );
+  const registeredTeams = deferredSearch
+    ? allTeamsQuery.data?.length
+      ? allTeamsQuery.data
+      : teams
+    : teams;
   const registeredCountLoading = deferredSearch
-    ? allTeamsQuery.isLoading
+    ? allTeamsQuery.isLoading && teams.length === 0
     : teamsQuery.isLoading;
+  const registeredCountLabel =
+    deferredSearch && !(allTeamsQuery.data?.length)
+      ? `${teams.length} results`
+      : `${registeredTeams.length} registered`;
   const divisionTotals = useMemo(
     () => divisionTotalsForTeams(registeredTeams),
     [registeredTeams],
@@ -1783,9 +1871,7 @@ function TeamsScreen({
             {deferredSearch ? "Search Results" : "Registered Teams"}
           </h2>
           <span className="shrink-0 rounded-md bg-white/10 px-2.5 py-1 text-xs font-black text-white">
-            {registeredCountLoading
-              ? "..."
-              : `${registeredTeams.length} registered`}
+            {registeredCountLoading ? "..." : registeredCountLabel}
           </span>
         </div>
         <DivisionTotalsPanel
@@ -1870,6 +1956,51 @@ function useTeamRecords(eventId: number | null): {
     loading: allGamesQuery.isLoading || teamsQuery.isLoading,
     games: allGamesQuery.data ?? [],
     teams: teamsQuery.data ?? [],
+  };
+}
+
+function useStoredFollowedTeams(
+  clientId: string | null,
+  eventId: number | null,
+  observedTeams: Team[],
+): {
+  storedFollowedTeams: Team[];
+  rememberFollowedTeam: (team: Team | undefined) => void;
+  forgetFollowedTeamById: (teamId: string) => void;
+} {
+  const [storedFollowedTeams, setStoredFollowedTeams] = useState<Team[]>([]);
+  const observedFollowedSignature = useMemo(
+    () =>
+      observedTeams
+        .filter((team) => team.isFollowed)
+        .map((team) => `${team.id}:${team.followerCount ?? ""}`)
+        .sort()
+        .join("|"),
+    [observedTeams],
+  );
+
+  useEffect(() => {
+    setStoredFollowedTeams(loadStoredFollowedTeams(clientId, eventId));
+  }, [clientId, eventId]);
+
+  useEffect(() => {
+    if (!clientId || !eventId || observedFollowedSignature.length === 0)
+      return;
+    setStoredFollowedTeams(
+      mergeStoredFollowedTeams(clientId, eventId, observedTeams),
+    );
+  }, [clientId, eventId, observedFollowedSignature, observedTeams]);
+
+  return {
+    storedFollowedTeams,
+    rememberFollowedTeam: (team) =>
+      setStoredFollowedTeams(
+        rememberStoredFollowedTeam(clientId, eventId, team),
+      ),
+    forgetFollowedTeamById: (teamId) =>
+      setStoredFollowedTeams(
+        forgetStoredFollowedTeam(clientId, eventId, teamId),
+      ),
   };
 }
 
@@ -3309,6 +3440,22 @@ function teamDisplayName(team: TeamNameDisplayInput): string {
     team.gradeLevel,
   );
   return ageLabel ? `Splash City ${ageLabel}` : team.name;
+}
+
+function teamMatchesSearch(team: Team, search: string): boolean {
+  const needle = search.trim().toLowerCase();
+  if (!needle) return true;
+  return [
+    team.name,
+    teamDisplayName(team),
+    team.clubName,
+    team.divisionName,
+    team.gender,
+    team.gradeLevel,
+    team.level,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .some((value) => value.toLowerCase().includes(needle));
 }
 
 function gameMatchupDisplayName(game: Game): string {
