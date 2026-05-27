@@ -2596,16 +2596,15 @@ function followedFinalResultGroups(
     ),
   );
 
-  return groups.flatMap((group) => {
-    const rows = group.rows.filter((result) =>
+  return groups.filter((group) =>
+    group.rows.some((result) =>
       resultMatchesFollowedTeam(result, {
         followedTeamIds,
         followedSourceUrls,
         followedNameDivisionKeys,
       }),
-    );
-    return rows.length > 0 ? [{ ...group, rows }] : [];
-  });
+    ),
+  );
 }
 
 function resultMatchesFollowedTeam(
