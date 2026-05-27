@@ -118,7 +118,7 @@ describe("finalResultGroupsForFollowedTeams", () => {
     expect(groups[0]?.followedTeamsWithoutPlacement).toEqual([]);
   });
 
-  it("keeps a followed team visible when it is not on the posted podium", () => {
+  it("shows the full podium and keeps a followed team visible when it did not place", () => {
     const podium = group({
       divisionId: "division-blue",
       rows: [
@@ -149,7 +149,11 @@ describe("finalResultGroupsForFollowedTeams", () => {
     );
 
     expect(groups).toHaveLength(1);
-    expect(groups[0]?.rows).toEqual([]);
+    expect(groups[0]?.rows.map((row) => row.teamNameSnapshot)).toEqual([
+      "PMA KNIGHTS",
+      "Team Locked In 12u",
+      "HDMD",
+    ]);
     expect(groups[0]?.hasPostedPlacements).toBe(true);
     expect(
       groups[0]?.followedTeamsWithoutPlacement.map((item) => item.id),

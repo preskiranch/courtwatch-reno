@@ -25,14 +25,10 @@ export function finalResultGroupsForFollowedTeams(
       (team) =>
         !group.rows.some((result) => resultMatchesFollowedTeam(result, team)),
     );
-    const hasFollowedPlacement = teamsInDivision.some((team) =>
-      group.rows.some((result) => resultMatchesFollowedTeam(result, team)),
-    );
-
     return [
       {
         ...group,
-        rows: hasFollowedPlacement ? group.rows : [],
+        rows: group.rows,
         followedTeamsWithoutPlacement,
         hasPostedPlacements: group.rows.length > 0,
       },
