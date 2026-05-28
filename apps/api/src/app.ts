@@ -14,6 +14,21 @@ import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { z } from "zod";
 import {
+  accountClientId,
+  createResetToken,
+  hashPassword,
+  normalizeEmail,
+  publicAccountUser,
+  registeredAccountCount,
+  resetTokenExpiresAt,
+  sendPasswordResetEmail,
+  shouldExposeResetToken,
+  signAccountToken,
+  tokenHash,
+  verifyAccountToken,
+  verifyPassword,
+} from "./auth.js";
+import {
   config,
   isDatabaseConfigured,
   isExposureConfigured,
@@ -82,6 +97,214 @@ export function createApp(
     );
   });
 
+  app.get("/api/accounts/stats", async (_req, res, next) => {
+    try {
+      res.json({
+        registeredUsers: await registeredAccountCount(prismaClient),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/auth/me", async (req, res, next) => {
+    try {
+      const session = requestAccountSession(req);
+      if (!session || !prismaClient) {
+        res.status(401).json({ error: "Not signed in" });
+        return;
+      }
+      const user = await prismaClient.user.findUnique({
+        where: { id: session.userId },
+      });
+      if (!user?.email) {
+        res.status(401).json({ error: "Not signed in" });
+        return;
+      }
+      res.json({
+        user: publicAccountUser(user),
+        totalRegisteredUsers: await registeredAccountCount(prismaClient),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res, next) => {
+    try {
+      if (!prismaClient) {
+        res.status(503).json({ error: "Accounts require a database" });
+        return;
+      }
+      const body = z
+        .object({
+          email: z.string().trim().email().max(180),
+          password: z.string().min(8).max(160),
+          displayName: z.string().trim().min(1).max(80).optional(),
+          timezone: z.string().trim().max(80).optional(),
+        })
+        .parse(req.body ?? {});
+      const email = normalizeEmail(body.email);
+      const existing = await prismaClient.user.findUnique({
+        where: { email },
+      });
+      if (existing) {
+        res.status(409).json({ error: "An account already exists" });
+        return;
+      }
+      const user = await prismaClient.user.create({
+        data: {
+          email,
+          passwordHash: hashPassword(body.password),
+          displayName: body.displayName ?? email.split("@")[0],
+          timezone: body.timezone ?? "America/Los_Angeles",
+        },
+      });
+      await prismaClient.notificationPreference.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: { userId: user.id },
+      });
+      res.status(201).json({
+        token: signAccountToken(user),
+        user: publicAccountUser(user),
+        totalRegisteredUsers: await registeredAccountCount(prismaClient),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res, next) => {
+    try {
+      if (!prismaClient) {
+        res.status(503).json({ error: "Accounts require a database" });
+        return;
+      }
+      const body = z
+        .object({
+          email: z.string().trim().email().max(180),
+          password: z.string().min(1).max(160),
+        })
+        .parse(req.body ?? {});
+      const user = await prismaClient.user.findUnique({
+        where: { email: normalizeEmail(body.email) },
+      });
+      if (
+        !user?.passwordHash ||
+        !verifyPassword(body.password, user.passwordHash)
+      ) {
+        res.status(401).json({ error: "Invalid email or password" });
+        return;
+      }
+      res.json({
+        token: signAccountToken(user),
+        user: publicAccountUser(user),
+        totalRegisteredUsers: await registeredAccountCount(prismaClient),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/auth/forgot-password", async (req, res, next) => {
+    try {
+      if (!prismaClient) {
+        res.status(503).json({ error: "Accounts require a database" });
+        return;
+      }
+      const body = z
+        .object({ email: z.string().trim().email().max(180) })
+        .parse(req.body ?? {});
+      const email = normalizeEmail(body.email);
+      const user = await prismaClient.user.findUnique({ where: { email } });
+      let emailSent = false;
+      let resetToken: string | null = null;
+      if (user?.email) {
+        resetToken = createResetToken();
+        await prismaClient.passwordResetToken.create({
+          data: {
+            userId: user.id,
+            tokenHash: tokenHash(resetToken),
+            expiresAt: resetTokenExpiresAt(),
+          },
+        });
+        emailSent = await sendPasswordResetEmail({ email, resetToken });
+      }
+      res.json({
+        ok: true,
+        emailSent,
+        message:
+          "If an account exists, reset instructions have been generated.",
+        resetToken: shouldExposeResetToken() ? resetToken : undefined,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res, next) => {
+    try {
+      if (!prismaClient) {
+        res.status(503).json({ error: "Accounts require a database" });
+        return;
+      }
+      const body = z
+        .object({
+          token: z.string().trim().min(16).max(200),
+          password: z.string().min(8).max(160),
+        })
+        .parse(req.body ?? {});
+      const resetToken = await prismaClient.passwordResetToken.findUnique({
+        where: { tokenHash: tokenHash(body.token) },
+      });
+      if (
+        !resetToken ||
+        resetToken.usedAt ||
+        resetToken.expiresAt.getTime() < Date.now()
+      ) {
+        res.status(400).json({ error: "Reset code is invalid or expired" });
+        return;
+      }
+      await prismaClient.$transaction([
+        prismaClient.user.update({
+          where: { id: resetToken.userId },
+          data: { passwordHash: hashPassword(body.password) },
+        }),
+        prismaClient.passwordResetToken.update({
+          where: { id: resetToken.id },
+          data: { usedAt: new Date() },
+        }),
+      ]);
+      res.json({ ok: true });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/account/sync-followed-teams", async (req, res, next) => {
+    try {
+      const session = requestAccountSession(req);
+      if (!session || !prismaClient) {
+        res.status(401).json({ error: "Sign in to sync followed teams" });
+        return;
+      }
+      const body = z
+        .object({
+          teamIds: z.array(z.string().trim().min(1)).max(500),
+        })
+        .parse(req.body ?? {});
+      const identity = accountClientId(session.userId);
+      const synced = [];
+      for (const teamId of Array.from(new Set(body.teamIds))) {
+        synced.push(await followTeamDirect(prismaClient, teamId, identity));
+      }
+      res.json({ ok: true, syncedCount: synced.length });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/events", async (_req, res, next) => {
     try {
       res.json(await store.events());
@@ -102,7 +325,7 @@ export function createApp(
     try {
       res.json(
         await store.dashboard(
-          requestClientId(req),
+          requestClientIdentity(req),
           requestExposureEventId(req),
         ),
       );
@@ -141,7 +364,7 @@ export function createApp(
       res.json(
         (
           await store.dashboard(
-            requestClientId(req),
+            requestClientIdentity(req),
             requestExposureEventId(req),
           )
         ).programs,
@@ -155,7 +378,7 @@ export function createApp(
     try {
       const program = await store.program(
         req.params.programId,
-        requestClientId(req),
+        requestClientIdentity(req),
         requestExposureEventId(req),
       );
       if (!program) {
@@ -198,7 +421,7 @@ export function createApp(
       res.json(
         await store.teams(
           typeof req.query.search === "string" ? req.query.search : undefined,
-          requestClientId(req),
+          requestClientIdentity(req),
           requestExposureEventId(req),
         ),
       );
@@ -211,7 +434,7 @@ export function createApp(
     try {
       res.json(
         await store.scoringLeaders(
-          requestClientId(req),
+          requestClientIdentity(req),
           requestExposureEventId(req),
         ),
       );
@@ -242,14 +465,16 @@ export function createApp(
             await followTeamDirect(
               prismaClient,
               req.params.teamId,
-              requestClientId(req),
+              requestClientIdentity(req),
             ),
           );
         return;
       }
       res
         .status(201)
-        .json(await store.followTeam(req.params.teamId, requestClientId(req)));
+        .json(
+          await store.followTeam(req.params.teamId, requestClientIdentity(req)),
+        );
     } catch (error) {
       next(error);
     }
@@ -257,7 +482,7 @@ export function createApp(
 
   app.delete("/api/teams/:teamId/follow", async (req, res, next) => {
     try {
-      await store.unfollowTeam(req.params.teamId, requestClientId(req));
+      await store.unfollowTeam(req.params.teamId, requestClientIdentity(req));
       res.status(204).end();
     } catch (error) {
       next(error);
@@ -275,7 +500,7 @@ export function createApp(
             division: stringQuery(req.query.division),
             scope: stringQuery(req.query.scope),
           },
-          requestClientId(req),
+          requestClientIdentity(req),
           requestExposureEventId(req),
         ),
       );
@@ -302,7 +527,7 @@ export function createApp(
       const scope = stringQuery(req.query.scope) === "all" ? "all" : "watched";
       res.json(
         await store.results(
-          requestClientId(req),
+          requestClientIdentity(req),
           scope,
           requestExposureEventId(req),
         ),
@@ -315,7 +540,10 @@ export function createApp(
   app.get("/api/alerts", async (req, res, next) => {
     try {
       res.json(
-        await store.alerts(requestClientId(req), requestExposureEventId(req)),
+        await store.alerts(
+          requestClientIdentity(req),
+          requestExposureEventId(req),
+        ),
       );
     } catch (error) {
       next(error);
@@ -336,7 +564,7 @@ export function createApp(
         })
         .parse(req.body);
       const endpoint = String(body.subscription.endpoint ?? "");
-      const clientId = requestClientId(req);
+      const clientId = requestClientIdentity(req);
       const existing = await prismaClient.user.findFirst({
         where: {
           pushSubscriptionJson: { path: ["endpoint"], equals: endpoint },
@@ -384,13 +612,11 @@ export function createApp(
         update: {},
         create: { userId: user.id },
       });
-      res
-        .status(201)
-        .json({
-          ok: true,
-          userId: user.id,
-          vapidPublicKey: config.VAPID_PUBLIC_KEY ?? null,
-        });
+      res.status(201).json({
+        ok: true,
+        userId: user.id,
+        vapidPublicKey: config.VAPID_PUBLIC_KEY ?? null,
+      });
     } catch (error) {
       next(error);
     }
@@ -425,7 +651,7 @@ export function createApp(
         res.json(defaultNotificationPreferences());
         return;
       }
-      const user = await settingsUser(prismaClient, requestClientId(req));
+      const user = await settingsUser(prismaClient, requestClientIdentity(req));
       const preference = await prismaClient.notificationPreference.upsert({
         where: { userId: user.id },
         update: {},
@@ -462,7 +688,7 @@ export function createApp(
         const body = schema.parse(req.body);
         const user = body.userId
           ? await prismaClient.user.findUnique({ where: { id: body.userId } })
-          : await settingsUser(prismaClient, requestClientId(req));
+          : await settingsUser(prismaClient, requestClientIdentity(req));
         if (!user) {
           res.status(404).json({ error: "User not found" });
           return;
@@ -580,6 +806,20 @@ function requestClientId(req: express.Request): string | null {
   const clientId = raw.trim();
   if (clientId.length < 8 || clientId.length > 160) return null;
   return clientId;
+}
+
+function requestClientIdentity(req: express.Request): string | null {
+  const session = requestAccountSession(req);
+  return session ? accountClientId(session.userId) : requestClientId(req);
+}
+
+function requestAccountSession(req: express.Request): {
+  userId: string;
+  email: string;
+} | null {
+  const authorization = req.headers.authorization;
+  if (!authorization?.startsWith("Bearer ")) return null;
+  return verifyAccountToken(authorization.slice("Bearer ".length).trim());
 }
 
 function requestExposureEventId(req: express.Request): number | null {

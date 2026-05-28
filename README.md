@@ -95,6 +95,12 @@ Push notifications:
 - `PUSH_CONTACT_EMAIL`
 - `EXPO_ACCESS_TOKEN` for future Expo support
 
+Optional free account password reset:
+
+- `RESEND_API_KEY`
+- `PASSWORD_RESET_FROM_EMAIL` such as `Court Watch AAU <support@yourdomain.com>`
+- `PASSWORD_RESET_EXPOSE_TOKEN=false` in production
+
 Render automation:
 
 - `RENDER_API_KEY` only if you later script Render API calls. Never commit it.
@@ -167,6 +173,12 @@ No teams are followed by default; use the Teams screen to choose them. When the 
 
 Following a team triggers a limited schedule sync for that team's division so the schedule tab and focused-team bracket panel can populate without waiting for the next worker poll.
 
+## Free Account Sync
+
+Saved teams remain per device by default. Users can create a free account from Settings to sync followed teams across their phone, tablet, and computer. Signing in uploads that device's saved teams into the account; it does not erase the device copy.
+
+Forgot password uses `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Configure Resend with `RESEND_API_KEY` and `PASSWORD_RESET_FROM_EMAIL` so reset codes can be emailed. Do not enable `PASSWORD_RESET_EXPOSE_TOKEN` in production.
+
 ## Push Notifications
 
 Generate VAPID keys:
@@ -188,6 +200,13 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 
 - `GET /api/health`
 - `GET /api/events/current`
+- `GET /api/accounts/stats`
+- `GET /api/auth/me`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+- `POST /api/account/sync-followed-teams`
 - `GET /api/programs`
 - `GET /api/programs/:programId`
 - `POST /api/programs/:programId/aliases`

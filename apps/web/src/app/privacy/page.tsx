@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const privacySections = [
   {
     title: "Information the app stores",
-    body: "Court Watch AAU stores a random device identifier, followed team choices, notification preferences, push subscription data if enabled, and basic active-user presence counts.",
+    body: "Court Watch AAU stores a random device identifier, followed team choices, notification preferences, push subscription data if enabled, and basic active-user presence counts. If you create a free account, the app also stores your email address and a password hash.",
   },
   {
     title: "Tournament data",
@@ -29,8 +29,8 @@ const privacySections = [
     body: "If push notifications are enabled, the app stores the browser push subscription needed to send schedule, score, court, and bracket alerts to that device.",
   },
   {
-    title: "Per-device saved teams",
-    body: "Followed teams are scoped to the current device. One user's saved teams should not change another user's saved teams.",
+    title: "Saved teams",
+    body: "Followed teams are scoped to the current device unless you sign in. Free account sync lets one person carry their saved teams across devices without changing another user's saved teams.",
   },
   {
     title: "Contact",

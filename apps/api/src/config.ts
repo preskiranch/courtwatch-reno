@@ -28,6 +28,9 @@ const ConfigSchema = z.object({
   PUSH_CONTACT_EMAIL: z.string().default("mailto:admin@example.com"),
   JWT_SECRET: z.string().optional(),
   ADMIN_SECRET: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  PASSWORD_RESET_FROM_EMAIL: z.string().optional(),
+  PASSWORD_RESET_EXPOSE_TOKEN: z.coerce.boolean().default(false),
 });
 
 export const config = ConfigSchema.parse(process.env);

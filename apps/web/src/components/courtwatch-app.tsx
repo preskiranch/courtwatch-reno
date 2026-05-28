@@ -26,6 +26,9 @@ import {
   Gauge,
   Globe2,
   Home,
+  KeyRound,
+  LogIn,
+  Mail,
   MapPin,
   Medal,
   Radio,
@@ -36,12 +39,19 @@ import {
   ShieldAlert,
   Smartphone,
   Trophy,
+  UserPlus,
   Users,
   WifiOff,
   X,
 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
+import {
+  clearAccountSession,
+  loadAccountSession,
+  saveAccountSession,
+  type AccountSession,
+} from "../lib/account-session";
 import { stableClientId } from "../lib/client-id";
 import {
   DEFAULT_TOURNAMENT_TIME_ZONE,
@@ -103,8 +113,15 @@ export function CourtWatchApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [accountSession, setAccountSession] = useState<AccountSession | null>(
+    null,
+  );
+  const [authReady, setAuthReady] = useState(false);
   const queryClient = useQueryClient();
-  const clientReady = Boolean(presenceClientId);
+  const accountScope = accountSession
+    ? `account:${accountSession.user.id}`
+    : presenceClientId;
+  const clientReady = Boolean(presenceClientId && authReady);
   const eventsQuery = useQuery({
     queryKey: ["events"],
     queryFn: CourtWatchApi.events,
@@ -130,7 +147,7 @@ export function CourtWatchApp() {
     : LIVE_DATA_REFETCH_MS;
   const lastTodayKeyRef = useRef(todayKey);
   const dashboardQuery = useQuery({
-    queryKey: ["dashboard", presenceClientId, activeEventId],
+    queryKey: ["dashboard", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.dashboard(activeEventId),
     enabled: clientReady && Boolean(activeEventId),
     refetchInterval: dataRefetchInterval,
@@ -138,7 +155,7 @@ export function CourtWatchApp() {
     refetchOnWindowFocus: "always",
   });
   const gamesQuery = useQuery({
-    queryKey: ["games", presenceClientId, activeEventId],
+    queryKey: ["games", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.games("", activeEventId),
     enabled: clientReady && Boolean(activeEventId),
     refetchInterval: dataRefetchInterval,
@@ -146,7 +163,7 @@ export function CourtWatchApp() {
     refetchOnWindowFocus: "always",
   });
   const alertsQuery = useQuery({
-    queryKey: ["alerts", presenceClientId, activeEventId],
+    queryKey: ["alerts", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.alerts(activeEventId),
     enabled: clientReady && Boolean(activeEventId),
     refetchInterval: dataRefetchInterval,
@@ -164,9 +181,21 @@ export function CourtWatchApp() {
     refetchInterval: 25_000,
     staleTime: 20_000,
   });
+  const accountStatsQuery = useQuery({
+    queryKey: ["account-stats"],
+    queryFn: CourtWatchApi.accountStats,
+    staleTime: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+  });
 
   useEffect(() => {
     setPresenceClientId(stableClientId());
+  }, []);
+
+  useEffect(() => {
+    setAccountSession(loadAccountSession());
+    setAuthReady(true);
   }, []);
 
   useEffect(() => {
@@ -250,6 +279,64 @@ export function CourtWatchApp() {
     };
   }, [dashboardQuery.data, presenceClientId, queryClient]);
 
+  useEffect(() => {
+    if (
+      !accountSession ||
+      !presenceClientId ||
+      !accountScope ||
+      !activeEventId ||
+      typeof window === "undefined"
+    )
+      return;
+
+    const deviceTeams = loadStoredFollowedTeams(
+      presenceClientId,
+      activeEventId,
+    );
+    if (deviceTeams.length === 0) return;
+
+    const syncKey = `courtwatch-aau:account-sync:${accountSession.user.id}:${encodeURIComponent(
+      presenceClientId,
+    )}:${activeEventId}`;
+    if (window.localStorage.getItem(syncKey) === "complete") return;
+
+    let cancelled = false;
+    window.localStorage.setItem(syncKey, "running");
+    CourtWatchApi.syncFollowedTeams(
+      deviceTeams.map((team) => team.id),
+      activeEventId,
+    )
+      .then(() => {
+        if (cancelled) return;
+        mergeStoredFollowedTeams(accountScope, activeEventId, deviceTeams);
+        window.localStorage.setItem(syncKey, "complete");
+        void Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+          queryClient.invalidateQueries({ queryKey: ["games"] }),
+          queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+          queryClient.invalidateQueries({ queryKey: ["events"] }),
+          queryClient.invalidateQueries({ queryKey: ["results"] }),
+          queryClient.invalidateQueries({ queryKey: ["teams"] }),
+          queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
+        ]);
+        setToast("Saved teams synced to your account");
+        window.setTimeout(() => setToast(null), 2200);
+      })
+      .catch(() => {
+        window.localStorage.removeItem(syncKey);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    accountScope,
+    accountSession,
+    activeEventId,
+    presenceClientId,
+    queryClient,
+  ]);
+
   const refresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
@@ -258,6 +345,7 @@ export function CourtWatchApp() {
       queryClient.invalidateQueries({ queryKey: ["events"] }),
       queryClient.invalidateQueries({ queryKey: ["results"] }),
       queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
+      queryClient.invalidateQueries({ queryKey: ["account-stats"] }),
     ]);
     setToast("Schedule refreshed");
     window.setTimeout(() => setToast(null), 2200);
@@ -300,6 +388,11 @@ export function CourtWatchApp() {
           selectedEventId={activeEventId}
           offline={offline}
           activeUsers={presenceQuery.data?.activeUsers ?? null}
+          registeredUsers={
+            accountStatsQuery.data?.registeredUsers ??
+            accountSession?.totalRegisteredUsers ??
+            null
+          }
           onRefresh={refresh}
           refreshing={dashboardQuery.isFetching || gamesQuery.isFetching}
           onSelectEvent={selectEvent}
@@ -326,7 +419,7 @@ export function CourtWatchApp() {
               dashboard={dashboard}
               alerts={alertsQuery.data ?? dashboard.alerts}
               games={games}
-              clientId={presenceClientId}
+              clientId={accountScope ?? presenceClientId}
               onRefresh={refresh}
               eventId={activeEventId}
             />
@@ -344,7 +437,7 @@ export function CourtWatchApp() {
             <TeamsScreen
               dashboard={dashboard}
               eventId={activeEventId}
-              clientId={presenceClientId}
+              clientId={accountScope ?? presenceClientId}
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "alerts" ? (
@@ -358,6 +451,9 @@ export function CourtWatchApp() {
               dashboard={dashboard}
               onRefresh={refresh}
               eventId={activeEventId}
+              clientId={presenceClientId}
+              accountSession={accountSession}
+              onAccountSessionChange={setAccountSession}
             />
           ) : null}
         </section>
@@ -440,6 +536,7 @@ function AppHeader({
   selectedEventId,
   offline,
   activeUsers,
+  registeredUsers,
   onRefresh,
   refreshing,
   onSelectEvent,
@@ -449,6 +546,7 @@ function AppHeader({
   selectedEventId: number | null;
   offline: boolean;
   activeUsers: number | null;
+  registeredUsers: number | null;
   onRefresh: () => void;
   refreshing: boolean;
   onSelectEvent: (eventId: number) => void;
@@ -568,21 +666,33 @@ function AppHeader({
         </select>
       </label>
       <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-300">
-        <span className="flex items-center gap-1.5">
-          {offline ? (
-            <WifiOff className="h-3.5 w-3.5 text-orange-300" />
-          ) : (
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-          )}
-          {offline
-            ? "Offline cache"
-            : (dashboard?.sourceStatus.message ?? "Loading source")}
+        <span className="min-w-0 flex-1 items-center gap-1.5 sm:flex">
+          <span className="inline-flex items-center gap-1.5">
+            {offline ? (
+              <WifiOff className="h-3.5 w-3.5 shrink-0 text-orange-300" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-300" />
+            )}
+            <span className="line-clamp-2">
+              {offline
+                ? "Offline cache"
+                : (dashboard?.sourceStatus.message ?? "Loading source")}
+            </span>
+          </span>
         </span>
-        <span>
+        <span className="hidden shrink-0 items-center gap-1.5 rounded-md bg-white/8 px-2 py-1 text-[11px] font-black text-white min-[390px]:inline-flex">
+          <Users className="h-3.5 w-3.5 text-orange-300" />
+          {registeredUsers ?? "-"} registered
+        </span>
+        <span className="shrink-0 text-right">
           {dashboard?.lastUpdated
             ? `Updated ${formatShortTime(dashboard.lastUpdated, dashboard.event.timezone)}`
             : "Sync pending"}
         </span>
+      </div>
+      <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-white/8 px-2 py-1 text-[11px] font-black text-white min-[390px]:hidden">
+        <Users className="h-3.5 w-3.5 text-orange-300" />
+        {registeredUsers ?? "-"} registered users
       </div>
     </header>
   );
@@ -653,7 +763,7 @@ function DashboardScreen({
     refetchOnWindowFocus: "always",
   });
   const teamsQuery = useQuery({
-    queryKey: ["teams", "all", eventId],
+    queryKey: ["teams", "all", clientId, eventId],
     queryFn: () => CourtWatchApi.teams("", eventId),
     staleTime: 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
@@ -1832,7 +1942,7 @@ function TeamsScreen({
     teams: recordTeams,
   } = useTeamRecords(eventId);
   const teamsQuery = useQuery({
-    queryKey: ["teams", deferredSearch, eventId],
+    queryKey: ["teams", clientId, deferredSearch, eventId],
     queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
     staleTime: 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
@@ -1840,7 +1950,7 @@ function TeamsScreen({
     refetchOnWindowFocus: "always",
   });
   const allTeamsQuery = useQuery({
-    queryKey: ["teams", "registered-totals", eventId],
+    queryKey: ["teams", "registered-totals", clientId, eventId],
     queryFn: () => CourtWatchApi.teams("", eventId),
     enabled: Boolean(deferredSearch),
     staleTime: 60_000,
@@ -1959,10 +2069,9 @@ function TeamsScreen({
   ]);
   const registeredCountLoading =
     teamsQuery.isLoading && visibleTeams.length === 0;
-  const registeredCountLabel =
-    searchActive
-      ? `${visibleTeams.length} results`
-      : `${visibleTeams.length} registered`;
+  const registeredCountLabel = searchActive
+    ? `${visibleTeams.length} results`
+    : `${visibleTeams.length} registered`;
   const divisionTotals = useMemo(
     () => divisionTotalsForTeams(visibleTeams),
     [visibleTeams],
@@ -2791,10 +2900,16 @@ function SettingsScreen({
   dashboard,
   onRefresh,
   eventId,
+  clientId,
+  accountSession,
+  onAccountSessionChange,
 }: {
   dashboard: DashboardResponse;
   onRefresh: () => void;
   eventId: number | null;
+  clientId: string | null;
+  accountSession: AccountSession | null;
+  onAccountSessionChange: (session: AccountSession | null) => void;
 }) {
   const [adminSecret, setAdminSecret] = useState("");
   const [pushMessage, setPushMessage] = useState<string | null>(null);
@@ -2835,6 +2950,14 @@ function SettingsScreen({
 
   return (
     <div className="space-y-4">
+      <AccountPanel
+        clientId={clientId}
+        eventId={eventId}
+        accountSession={accountSession}
+        onAccountSessionChange={onAccountSessionChange}
+        onRefresh={onRefresh}
+      />
+
       <section className="court-card p-4">
         <h2 className="text-2xl font-black text-slate-950">Settings</h2>
         <div className="mt-4 space-y-3">
@@ -2913,6 +3036,347 @@ function SettingsScreen({
       </section>
     </div>
   );
+}
+
+function AccountPanel({
+  clientId,
+  eventId,
+  accountSession,
+  onAccountSessionChange,
+  onRefresh,
+}: {
+  clientId: string | null;
+  eventId: number | null;
+  accountSession: AccountSession | null;
+  onAccountSessionChange: (session: AccountSession | null) => void;
+  onRefresh: () => void;
+}) {
+  const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [accountMessage, setAccountMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = new URLSearchParams(window.location.search).get("resetToken");
+    if (!token) return;
+    setMode("forgot");
+    setResetToken(token);
+    setAccountMessage("Paste a new password to finish the reset.");
+  }, []);
+
+  const syncDeviceTeams = async (messagePrefix = "Account ready") => {
+    const teams = loadStoredFollowedTeams(clientId, eventId);
+    if (teams.length === 0) {
+      setAccountMessage(`${messagePrefix}. No device-saved teams to sync.`);
+      onRefresh();
+      return;
+    }
+    const result = await CourtWatchApi.syncFollowedTeams(
+      teams.map((team) => team.id),
+      eventId,
+    );
+    setAccountMessage(
+      `${messagePrefix}. Synced ${result.syncedCount} saved teams from this device.`,
+    );
+    onRefresh();
+  };
+
+  const applySession = async (response: AccountSession) => {
+    const session = saveAccountSession(response);
+    onAccountSessionChange(session);
+    await syncDeviceTeams("Signed in");
+  };
+
+  const registerMutation = useMutation({
+    mutationFn: () =>
+      CourtWatchApi.registerAccount({
+        email,
+        password,
+        displayName: displayName.trim() || undefined,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }),
+    onSuccess: (response) => {
+      void applySession(response);
+    },
+    onError: (error) => setAccountMessage(errorText(error)),
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: () => CourtWatchApi.loginAccount({ email, password }),
+    onSuccess: (response) => {
+      void applySession(response);
+    },
+    onError: (error) => setAccountMessage(errorText(error)),
+  });
+
+  const forgotMutation = useMutation({
+    mutationFn: () => CourtWatchApi.forgotPassword(resetEmail || email),
+    onSuccess: (response) => {
+      if (response.resetToken) {
+        setResetToken(response.resetToken);
+        setAccountMessage("Reset code created. Enter a new password below.");
+        return;
+      }
+      setAccountMessage(
+        response.emailSent
+          ? "Check your email for the reset code."
+          : "If that account exists, reset instructions were created. Email delivery is not configured yet.",
+      );
+    },
+    onError: (error) => setAccountMessage(errorText(error)),
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: () =>
+      CourtWatchApi.resetPassword({
+        token: resetToken,
+        password: resetPassword,
+      }),
+    onSuccess: () => {
+      setPassword("");
+      setResetPassword("");
+      setResetToken("");
+      setMode("login");
+      setAccountMessage("Password updated. Sign in with the new password.");
+    },
+    onError: (error) => setAccountMessage(errorText(error)),
+  });
+
+  const manualSyncMutation = useMutation({
+    mutationFn: () => syncDeviceTeams("Synced"),
+    onError: (error) => setAccountMessage(errorText(error)),
+  });
+
+  const busy =
+    registerMutation.isPending ||
+    loginMutation.isPending ||
+    forgotMutation.isPending ||
+    resetMutation.isPending ||
+    manualSyncMutation.isPending;
+
+  const signOut = () => {
+    clearAccountSession();
+    onAccountSessionChange(null);
+    setAccountMessage(
+      "Signed out. Saved teams on this device are still kept here.",
+    );
+    onRefresh();
+  };
+  const accountModes: Array<{
+    id: "login" | "register" | "forgot";
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }> = [
+    { id: "login", label: "Sign in", icon: LogIn },
+    { id: "register", label: "Create", icon: UserPlus },
+    { id: "forgot", label: "Forgot", icon: KeyRound },
+  ];
+
+  return (
+    <section className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">
+            Free Account Sync
+          </p>
+          <h2 className="mt-1 text-2xl font-black text-slate-950">
+            Save teams across devices
+          </h2>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+            Sign in to share your followed teams across phone, tablet, and
+            computer. If you skip this, teams stay saved on this device only.
+          </p>
+        </div>
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-slate-950 text-orange-300">
+          <Users className="h-5 w-5" />
+        </div>
+      </div>
+
+      {accountSession ? (
+        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+            Signed in
+          </p>
+          <p className="mt-1 break-all text-sm font-black text-slate-950">
+            {accountSession.user.email}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => manualSyncMutation.mutate()}
+              disabled={busy}
+              className="min-h-11 rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-60"
+            >
+              Sync this device
+            </button>
+            <button
+              type="button"
+              onClick={signOut}
+              disabled={busy}
+              className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm font-black text-slate-800 active:scale-[0.99] disabled:opacity-60"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="mt-4 grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+            {accountModes.map(({ id, label, icon: TabIcon }) => {
+              const active = mode === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setMode(id)}
+                  className={clsx(
+                    "flex min-h-10 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-black transition active:scale-[0.98]",
+                    active ? "bg-slate-950 text-white" : "text-slate-600",
+                  )}
+                >
+                  <TabIcon className="h-3.5 w-3.5" />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {mode === "login" || mode === "register" ? (
+            <div className="mt-3 space-y-2">
+              <AccountInput
+                icon={Mail}
+                value={email}
+                onChange={setEmail}
+                placeholder="Email"
+                type="email"
+              />
+              {mode === "register" ? (
+                <AccountInput
+                  icon={Users}
+                  value={displayName}
+                  onChange={setDisplayName}
+                  placeholder="Name optional"
+                />
+              ) : null}
+              <AccountInput
+                icon={KeyRound}
+                value={password}
+                onChange={setPassword}
+                placeholder="Password"
+                type="password"
+              />
+              <button
+                type="button"
+                disabled={busy || !email || password.length < 8}
+                onClick={() =>
+                  mode === "register"
+                    ? registerMutation.mutate()
+                    : loginMutation.mutate()
+                }
+                className="min-h-11 w-full rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-50"
+              >
+                {busy
+                  ? "Working..."
+                  : mode === "register"
+                    ? "Create free account"
+                    : "Sign in"}
+              </button>
+            </div>
+          ) : null}
+
+          {mode === "forgot" ? (
+            <div className="mt-3 space-y-2">
+              <AccountInput
+                icon={Mail}
+                value={resetEmail}
+                onChange={setResetEmail}
+                placeholder="Account email"
+                type="email"
+              />
+              <button
+                type="button"
+                disabled={busy || !(resetEmail || email)}
+                onClick={() => forgotMutation.mutate()}
+                className="min-h-11 w-full rounded-lg bg-slate-950 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-50"
+              >
+                Send reset code
+              </button>
+              <AccountInput
+                icon={KeyRound}
+                value={resetToken}
+                onChange={setResetToken}
+                placeholder="Reset code"
+              />
+              <AccountInput
+                icon={KeyRound}
+                value={resetPassword}
+                onChange={setResetPassword}
+                placeholder="New password"
+                type="password"
+              />
+              <button
+                type="button"
+                disabled={busy || !resetToken || resetPassword.length < 8}
+                onClick={() => resetMutation.mutate()}
+                className="min-h-11 w-full rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-50"
+              >
+                Reset password
+              </button>
+            </div>
+          ) : null}
+        </>
+      )}
+
+      {accountMessage ? (
+        <p className="mt-3 rounded-lg bg-slate-100 p-3 text-sm font-semibold leading-6 text-slate-700">
+          {accountMessage}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function AccountInput({
+  icon: Icon,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  type?: string;
+}) {
+  return (
+    <label className="flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 focus-within:border-orange-500">
+      <Icon className="h-4 w-4 shrink-0 text-slate-400" />
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        type={type}
+        className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+      />
+    </label>
+  );
+}
+
+function errorText(error: unknown): string {
+  if (!(error instanceof Error)) return "Something went wrong.";
+  try {
+    const parsed = JSON.parse(error.message) as { error?: unknown };
+    if (typeof parsed.error === "string") return parsed.error;
+  } catch {
+    // The API sometimes returns plain text from proxies.
+  }
+  return error.message;
 }
 
 function SettingsLink({ href, title }: { href: string; title: string }) {

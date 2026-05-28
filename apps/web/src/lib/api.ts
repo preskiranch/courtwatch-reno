@@ -10,6 +10,12 @@ import type {
   TeamScoringLeader,
   TournamentEvent,
 } from "@courtwatch/core";
+import {
+  accountAuthToken,
+  loadAccountSession,
+  type AccountSession,
+  type AccountUser,
+} from "./account-session";
 import { stableClientId } from "./client-id";
 import { dashboardFollowMigrationStorageKey } from "./storage-keys";
 
@@ -26,6 +32,7 @@ type CacheKey =
   | "alerts"
   | "programs"
   | "pointsLeaders"
+  | "accountStats"
   | "event"
   | "events"
   | "results"
@@ -50,12 +57,23 @@ export type PresenceResponse = {
   updatedAt: string;
 };
 
+export type AccountStatsResponse = {
+  registeredUsers: number;
+};
+
+export type AuthResponse = AccountSession & {
+  totalRegisteredUsers: number;
+};
+
 export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
   const clientId = stableClientId();
+  const cacheClientId = cacheScopeClientId(clientId);
   const storageKey = cacheKey
-    ? cacheStorageKey(cacheKey, path, clientId)
+    ? cacheStorageKey(cacheKey, path, cacheClientId)
     : null;
-  const cacheKeys = cacheKey ? cacheLookupKeys(cacheKey, path, clientId) : [];
+  const cacheKeys = cacheKey
+    ? cacheLookupKeys(cacheKey, path, cacheClientId)
+    : [];
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       headers: {
@@ -161,6 +179,32 @@ export const CourtWatchApi = {
     ),
   pointsLeaders: (eventId?: number | null) =>
     apiGet<TeamScoringLeader[]>(withEvent("/api/points-leaders", eventId)),
+  accountStats: () =>
+    apiGet<AccountStatsResponse>("/api/accounts/stats", "accountStats"),
+  accountMe: () =>
+    apiGet<{ user: AccountUser; totalRegisteredUsers: number }>("/api/auth/me"),
+  registerAccount: (input: {
+    email: string;
+    password: string;
+    displayName?: string;
+    timezone?: string;
+  }) => apiPost<AuthResponse>("/api/auth/register", input),
+  loginAccount: (input: { email: string; password: string }) =>
+    apiPost<AuthResponse>("/api/auth/login", input),
+  forgotPassword: (email: string) =>
+    apiPost<{
+      ok: boolean;
+      emailSent: boolean;
+      message: string;
+      resetToken?: string | null;
+    }>("/api/auth/forgot-password", { email }),
+  resetPassword: (input: { token: string; password: string }) =>
+    apiPost<{ ok: boolean }>("/api/auth/reset-password", input),
+  syncFollowedTeams: (teamIds: string[], eventId?: number | null) =>
+    apiPost<{ ok: boolean; syncedCount: number }>(
+      withEvent("/api/account/sync-followed-teams", eventId),
+      { teamIds },
+    ),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
   presenceHeartbeat: (clientId: string, page: string) =>
     apiPost<PresenceResponse>("/api/presence/heartbeat", { clientId, page }),
@@ -231,7 +275,16 @@ function renderApiFallbackUrl(): string | null {
 function clientIdentityHeaders(
   clientId: string | null = stableClientId(),
 ): Record<string, string> {
-  return clientId ? { "x-courtwatch-client-id": clientId } : {};
+  const token = accountAuthToken();
+  return {
+    ...(clientId ? { "x-courtwatch-client-id": clientId } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+function cacheScopeClientId(clientId: string | null): string | null {
+  const session = loadAccountSession();
+  return session ? `account:${session.user.id}` : clientId;
 }
 
 function withEvent(path: string, eventId?: number | null): string {

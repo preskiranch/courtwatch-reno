@@ -103,6 +103,12 @@ services:
         generateValue: true
       - key: EXPO_ACCESS_TOKEN
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: PASSWORD_RESET_FROM_EMAIL
+        sync: false
+      - key: PASSWORD_RESET_EXPOSE_TOKEN
+        value: "false"
 
   - type: worker
     name: courtwatch-reno-sync-worker

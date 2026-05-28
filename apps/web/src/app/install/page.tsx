@@ -76,17 +76,17 @@ export default function InstallPage() {
       <WhiteCard>
         <TrophyHeading
           title="Saved teams"
-          body="Followed teams are stored per device, so your list does not overwrite another parent's list."
+          body="Followed teams stay per device unless you choose to sign in."
         />
         <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="text-lg font-black text-slate-950">
             Using more than one device
           </h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
-            Today, saved teams stay on the phone, tablet, or computer where
-            they were followed. A free account sync option can be added so one
-            person can sign in across devices and carry the same saved teams
-            with them.
+            Create a free account in Settings to carry followed teams across
+            your phone, tablet, and computer. Without signing in, saved teams
+            remain on the device where they were followed and do not overwrite
+            anyone else's list.
           </p>
         </div>
         <div className="mt-4">
