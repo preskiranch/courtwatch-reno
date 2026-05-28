@@ -1874,17 +1874,39 @@ function TeamsScreen({
   );
   const { storedFollowedTeams, rememberFollowedTeam, forgetFollowedTeamById } =
     useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
-  const registeredTeamPool = useMemo(
-    () => mergeTeamLists(recordTeams, teamsQuery.data ?? []),
-    [recordTeams, teamsQuery.data],
+  const searchActive = Boolean(deferredSearch);
+  const matchingStoredTeams = useMemo(
+    () =>
+      searchActive
+        ? storedFollowedTeams.filter((team) =>
+            teamMatchesSearch(team, deferredSearch),
+          )
+        : storedFollowedTeams,
+    [deferredSearch, searchActive, storedFollowedTeams],
   );
-  const trustedRegisteredTeamPool = useMemo(
-    () => teamsWithTrustedFollowState(registeredTeamPool, storedFollowedTeams),
-    [registeredTeamPool, storedFollowedTeams],
+  const matchingRecordTeams = useMemo(
+    () =>
+      searchActive
+        ? recordTeams.filter((team) => teamMatchesSearch(team, deferredSearch))
+        : recordTeams,
+    [deferredSearch, recordTeams, searchActive],
+  );
+  const knownTeamPool = useMemo(
+    () =>
+      mergeTeamLists(
+        recordTeams,
+        teamsQuery.data ?? [],
+        allTeamsQuery.data ?? [],
+      ),
+    [allTeamsQuery.data, recordTeams, teamsQuery.data],
+  );
+  const trustedKnownTeamPool = useMemo(
+    () => teamsWithTrustedFollowState(knownTeamPool, storedFollowedTeams),
+    [knownTeamPool, storedFollowedTeams],
   );
   const followStateTeams = useMemo(
-    () => mergeTeamLists(trustedRegisteredTeamPool, storedFollowedTeams),
-    [storedFollowedTeams, trustedRegisteredTeamPool],
+    () => mergeTeamLists(trustedKnownTeamPool, storedFollowedTeams),
+    [storedFollowedTeams, trustedKnownTeamPool],
   );
   const selectedProgram = useMemo(
     () =>
@@ -1923,35 +1945,84 @@ function TeamsScreen({
       refreshSelection();
     },
   });
-  const teams = useMemo(() => {
-    const matchingStoredTeams = deferredSearch
-      ? storedFollowedTeams.filter((team) =>
-          teamMatchesSearch(team, deferredSearch),
+  const visibleTeams = useMemo(() => {
+    const visiblePool = searchActive
+      ? mergeTeamLists(
+          teamsQuery.data ?? [],
+          matchingRecordTeams,
+          matchingStoredTeams,
         )
-      : storedFollowedTeams;
-    return mergeTeamLists(trustedRegisteredTeamPool, matchingStoredTeams);
-  }, [deferredSearch, storedFollowedTeams, trustedRegisteredTeamPool]);
-  const registeredTeams = deferredSearch
-    ? allTeamsQuery.data?.length
-      ? teamsWithTrustedFollowState(allTeamsQuery.data, storedFollowedTeams)
-      : teams
-    : teams;
-  const registeredCountLoading = deferredSearch
-    ? allTeamsQuery.isLoading && teams.length === 0
-    : teamsQuery.isLoading;
+      : followStateTeams;
+    return sortTeamsForDisplay(
+      teamsWithTrustedFollowState(visiblePool, storedFollowedTeams),
+    );
+  }, [
+    followStateTeams,
+    matchingRecordTeams,
+    matchingStoredTeams,
+    searchActive,
+    storedFollowedTeams,
+    teamsQuery.data,
+  ]);
+  const registeredCountLoading =
+    teamsQuery.isLoading && visibleTeams.length === 0;
   const registeredCountLabel =
-    deferredSearch && !allTeamsQuery.data?.length
-      ? `${teams.length} results`
-      : `${registeredTeams.length} registered`;
+    searchActive
+      ? `${visibleTeams.length} results`
+      : `${visibleTeams.length} registered`;
   const divisionTotals = useMemo(
-    () => divisionTotalsForTeams(registeredTeams),
-    [registeredTeams],
+    () => divisionTotalsForTeams(visibleTeams),
+    [visibleTeams],
   );
   const pendingTeamId = String(
     followTeam.variables ?? unfollowTeam.variables ?? "",
   );
   const focusedTeam =
     selectedProgram?.teams.find((team) => team.id === focusedTeamId) ?? null;
+
+  const teamResultsSection = (
+    <section className="space-y-2">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h2 className="text-sm font-black uppercase tracking-[0.16em] text-orange-300">
+          {searchActive ? "Search Results" : "Registered Teams"}
+        </h2>
+        <span className="shrink-0 rounded-md bg-white/10 px-2.5 py-1 text-xs font-black text-white">
+          {registeredCountLoading ? "..." : registeredCountLabel}
+        </span>
+      </div>
+      <DivisionTotalsPanel
+        totals={divisionTotals}
+        loading={registeredCountLoading}
+      />
+      {registeredCountLoading ? (
+        <div className="h-28 animate-pulse rounded-lg bg-white/12" />
+      ) : null}
+      {!registeredCountLoading && visibleTeams.length === 0 ? (
+        <div className="court-card p-4">
+          <h3 className="text-lg font-black text-slate-950">
+            No matches found
+          </h3>
+          <p className="mt-1 text-sm font-semibold text-slate-600">
+            Try a team name, club name, or division.
+          </p>
+        </div>
+      ) : null}
+      {visibleTeams.map((team) => (
+        <TeamSearchCard
+          key={team.id}
+          team={team}
+          record={teamRecordForTeam(team, records)}
+          recordsLoading={recordsLoading}
+          onFollow={() => followTeam.mutate(team.id)}
+          onUnfollow={() => unfollowTeam.mutate(team.id)}
+          pending={
+            (followTeam.isPending || unfollowTeam.isPending) &&
+            pendingTeamId === team.id
+          }
+        />
+      ))}
+    </section>
+  );
 
   return (
     <div className="space-y-4">
@@ -1989,6 +2060,8 @@ function TeamsScreen({
           ) : null}
         </label>
       </section>
+
+      {searchActive ? teamResultsSection : null}
 
       {selectedProgram && selectedProgram.teams.length > 0 ? (
         <section className="court-card p-4">
@@ -2029,47 +2102,7 @@ function TeamsScreen({
         />
       ) : null}
 
-      <section className="space-y-2">
-        <div className="flex items-center justify-between gap-3 px-1">
-          <h2 className="text-sm font-black uppercase tracking-[0.16em] text-orange-300">
-            {deferredSearch ? "Search Results" : "Registered Teams"}
-          </h2>
-          <span className="shrink-0 rounded-md bg-white/10 px-2.5 py-1 text-xs font-black text-white">
-            {registeredCountLoading ? "..." : registeredCountLabel}
-          </span>
-        </div>
-        <DivisionTotalsPanel
-          totals={divisionTotals}
-          loading={registeredCountLoading}
-        />
-        {teamsQuery.isLoading ? (
-          <div className="h-28 animate-pulse rounded-lg bg-white/12" />
-        ) : null}
-        {!teamsQuery.isLoading && teams.length === 0 ? (
-          <div className="court-card p-4">
-            <h3 className="text-lg font-black text-slate-950">
-              No matches found
-            </h3>
-            <p className="mt-1 text-sm font-semibold text-slate-600">
-              Try a team name, club name, or division.
-            </p>
-          </div>
-        ) : null}
-        {teams.map((team) => (
-          <TeamSearchCard
-            key={team.id}
-            team={team}
-            record={teamRecordForTeam(team, records)}
-            recordsLoading={recordsLoading}
-            onFollow={() => followTeam.mutate(team.id)}
-            onUnfollow={() => unfollowTeam.mutate(team.id)}
-            pending={
-              (followTeam.isPending || unfollowTeam.isPending) &&
-              pendingTeamId === team.id
-            }
-          />
-        ))}
-      </section>
+      {!searchActive ? teamResultsSection : null}
     </div>
   );
 }
@@ -3107,6 +3140,23 @@ function divisionTotalsForTeams(teams: Team[]): DivisionTotal[] {
         { numeric: true, sensitivity: "base" },
       ),
     );
+}
+
+function sortTeamsForDisplay(teams: Team[]): Team[] {
+  return [...teams].sort((left, right) => {
+    return (
+      teamDisplayName(left).localeCompare(teamDisplayName(right), "en-US", {
+        numeric: true,
+        sensitivity: "base",
+      }) ||
+      (left.divisionName ?? "").localeCompare(
+        right.divisionName ?? "",
+        "en-US",
+        { numeric: true, sensitivity: "base" },
+      ) ||
+      left.id.localeCompare(right.id)
+    );
+  });
 }
 
 function divisionCompareOptions(
