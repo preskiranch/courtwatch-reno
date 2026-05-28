@@ -78,6 +78,17 @@ export default function InstallPage() {
           title="Saved teams"
           body="Followed teams are stored per device, so your list does not overwrite another parent's list."
         />
+        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="text-lg font-black text-slate-950">
+            Using more than one device
+          </h2>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+            Today, saved teams stay on the phone, tablet, or computer where
+            they were followed. A free account sync option can be added so one
+            person can sign in across devices and carry the same saved teams
+            with them.
+          </p>
+        </div>
         <div className="mt-4">
           <SourceNote />
         </div>
