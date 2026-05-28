@@ -258,9 +258,9 @@ To connect a custom domain in Render:
 6. Add those records at the domain registrar or DNS host.
 7. Wait for Render to issue HTTPS certificates.
 8. Update Render environment variables:
-   - Web service: `NEXT_PUBLIC_SITE_URL=https://courtwatchaau.com`
+   - Web service: `NEXT_PUBLIC_SITE_URL=https://app.courtwatchaau.com` until the bare domain certificate is issued, then optionally switch to `https://courtwatchaau.com`
    - API service: `WEB_ALLOWED_ORIGINS=https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com,https://app.courtwatchaau.com`
-   - API service: keep `WEB_BASE_URL` on the Render URL until the domain is fully live, then change it to `https://courtwatchaau.com` if push notification links should open the branded domain.
+   - API service: set `WEB_BASE_URL=https://app.courtwatchaau.com` while the branded app subdomain is the primary live URL.
 9. Redeploy the web and API services.
 
 Keep the Render URL working during the transition so families with the older shared link can still open the tracker.
