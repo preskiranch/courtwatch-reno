@@ -26,7 +26,6 @@ import {
   Gauge,
   Globe2,
   Home,
-  Instagram,
   MapPin,
   Medal,
   Radio,
@@ -363,6 +362,7 @@ export function CourtWatchApp() {
           ) : null}
         </section>
 
+        <AppFooterCredit />
         <BottomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       </main>
     </>
@@ -466,21 +466,6 @@ function AppHeader({
     trackedEvents.length > 0 && discoveredEvents.length > 0;
   return (
     <header className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#07111f]/92 px-4 pb-3 pt-3 backdrop-blur">
-      <div className="mb-3 flex justify-center">
-        <div className="inline-flex max-w-full items-center gap-2 rounded-lg border border-white/10 bg-white/8 px-3 py-1.5 text-[11px] font-bold text-slate-200">
-          <span className="whitespace-nowrap">Designed by PreskiRanch LLC</span>
-          <span className="h-3 w-px bg-white/20" />
-          <a
-            href="https://www.instagram.com/PreskiRanch"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 whitespace-nowrap text-orange-300"
-          >
-            <Instagram className="h-3.5 w-3.5" />
-            @PreskiRanch
-          </a>
-        </div>
-      </div>
       <nav
         aria-label="Court Watch AAU website links"
         className="mb-3 flex justify-center gap-2 overflow-x-auto text-[11px] font-black text-slate-200 no-scrollbar"
@@ -600,6 +585,14 @@ function AppHeader({
         </span>
       </div>
     </header>
+  );
+}
+
+function AppFooterCredit() {
+  return (
+    <footer className="mt-8 pb-2 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+      Designed by Preski Ranch LLC
+    </footer>
   );
 }
 

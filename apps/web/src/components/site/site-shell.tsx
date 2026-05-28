@@ -1,9 +1,6 @@
 import {
   Bell,
-  ChevronRight,
   Home,
-  Instagram,
-  Mail,
   ShieldCheck,
   Smartphone,
   Trophy,
@@ -93,16 +90,7 @@ export function SiteShell({
 
       <footer className="mt-8 rounded-lg border border-white/12 bg-white/8 p-4 text-sm font-semibold text-slate-300">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p>Court Watch AAU by PreskiRanch LLC</p>
-          <a
-            href="https://www.instagram.com/PreskiRanch"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 text-orange-300"
-          >
-            <Instagram className="h-4 w-4" />
-            @PreskiRanch
-          </a>
+          <p>Designed by Preski Ranch LLC</p>
         </div>
         <p className="mt-3 text-xs leading-5 text-slate-400">
           Court Watch AAU is an independent companion tracker and is not
@@ -167,21 +155,6 @@ export function SiteStepList({
         </li>
       ))}
     </ol>
-  );
-}
-
-export function ContactLink() {
-  return (
-    <a
-      href="https://www.instagram.com/PreskiRanch"
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-orange-500 px-4 text-sm font-black text-white"
-    >
-      <Mail className="h-4 w-4" />
-      Contact PreskiRanch
-      <ChevronRight className="h-4 w-4" />
-    </a>
   );
 }
 

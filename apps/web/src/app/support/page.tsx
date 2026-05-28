@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import {
-  ContactLink,
   SiteShell,
   SiteStepList,
   SourceNote,
@@ -54,9 +53,10 @@ export default function SupportPage() {
           title="Report an issue"
           body="Send the tournament name, team name, division, and a screenshot if possible."
         />
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <ContactLink />
-        </div>
+        <p className="mt-4 rounded-lg bg-slate-100 p-3 text-sm font-semibold leading-6 text-slate-600">
+          Include the tournament name, team name, division, device type, and a
+          screenshot so the issue can be checked quickly.
+        </p>
       </WhiteCard>
 
       <WhiteCard>

@@ -34,7 +34,7 @@ const privacySections = [
   },
   {
     title: "Contact",
-    body: "For privacy questions, contact PreskiRanch LLC through @PreskiRanch on Instagram.",
+    body: "For privacy questions, use the Support page and include the device, tournament, and team details if the request is about saved team data.",
   },
 ];
 
