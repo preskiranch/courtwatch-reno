@@ -72,6 +72,8 @@ Required for production:
 - `WEB_BASE_URL` (Blueprint defaults to `https://courtwatch-reno-web.onrender.com`)
 - `API_BASE_URL` (Blueprint defaults to `https://courtwatch-reno-api.onrender.com`)
 - `NEXT_PUBLIC_API_BASE_URL` (Blueprint defaults to `https://courtwatch-reno-api.onrender.com`)
+- `NEXT_PUBLIC_SITE_URL` (set to the public website URL for metadata, robots, and sitemap)
+- `WEB_ALLOWED_ORIGINS` (comma-separated extra browser origins allowed to call the API)
 - `ADMIN_SECRET`
 - `JWT_SECRET`
 - `EXPOSURE_EVENT_ID=255539`
@@ -229,6 +231,39 @@ Render service URLs should be wired like:
 - `WEB_BASE_URL=https://courtwatch-reno-web.onrender.com`
 - `API_BASE_URL=https://courtwatch-reno-api.onrender.com`
 - `NEXT_PUBLIC_API_BASE_URL=https://courtwatch-reno-api.onrender.com`
+- `NEXT_PUBLIC_SITE_URL=https://courtwatch-reno-web.onrender.com`
+
+## Official Website And Custom Domain
+
+The web app includes domain-ready public pages:
+
+- `/install`
+- `/support`
+- `/privacy`
+- `/terms`
+- `/sitemap.xml`
+- `/robots.txt`
+
+Recommended domain: `courtwatchaau.com`.
+
+To connect a custom domain in Render:
+
+1. Buy the domain from a registrar. Cloudflare Registrar is a good low-cost option because it sells domains at wholesale registry pricing when the domain is eligible.
+2. In Render, open `courtwatch-reno-web`.
+3. Go to **Settings > Custom Domains**.
+4. Add both:
+   - `courtwatchaau.com`
+   - `www.courtwatchaau.com`
+5. Copy the DNS records Render shows.
+6. Add those records at the domain registrar or DNS host.
+7. Wait for Render to issue HTTPS certificates.
+8. Update Render environment variables:
+   - Web service: `NEXT_PUBLIC_SITE_URL=https://courtwatchaau.com`
+   - API service: `WEB_ALLOWED_ORIGINS=https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com`
+   - API service: keep `WEB_BASE_URL` on the Render URL until the domain is fully live, then change it to `https://courtwatchaau.com` if push notification links should open the branded domain.
+9. Redeploy the web and API services.
+
+Keep the Render URL working during the transition so families with the older shared link can still open the tracker.
 
 ## GitHub
 

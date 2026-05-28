@@ -10,6 +10,7 @@ const ConfigSchema = z.object({
   PORT: z.coerce.number().default(4000),
   DATABASE_URL: z.string().optional(),
   WEB_BASE_URL: z.string().default("http://localhost:3000"),
+  WEB_ALLOWED_ORIGINS: z.string().optional(),
   API_BASE_URL: z.string().default("http://localhost:4000"),
   EXPOSURE_API_KEY: z.string().optional(),
   EXPOSURE_SECRET_KEY: z.string().optional(),

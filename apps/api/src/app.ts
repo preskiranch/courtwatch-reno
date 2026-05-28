@@ -41,18 +41,20 @@ export function createApp(
 
   app.set("trust proxy", 1);
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+  const allowedWebOrigins =
+    config.WEB_BASE_URL === "*"
+      ? true
+      : [
+          config.WEB_BASE_URL,
+          ...allowedOriginsFromEnv(config.WEB_ALLOWED_ORIGINS),
+          "http://localhost:3000",
+          "http://localhost:3001",
+          "http://localhost:3002",
+          "http://localhost:3003",
+        ];
   app.use(
     cors({
-      origin:
-        config.WEB_BASE_URL === "*"
-          ? true
-          : [
-              config.WEB_BASE_URL,
-              "http://localhost:3000",
-              "http://localhost:3001",
-              "http://localhost:3002",
-              "http://localhost:3003",
-            ],
+      origin: allowedWebOrigins,
       credentials: true,
     }),
   );
@@ -530,6 +532,14 @@ export function createApp(
   );
 
   return app;
+}
+
+function allowedOriginsFromEnv(value: string | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 }
 
 function prunePresence(now = Date.now()) {

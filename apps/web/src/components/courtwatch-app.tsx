@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Clock3,
   Gauge,
+  Globe2,
   Home,
   Instagram,
   MapPin,
@@ -476,6 +477,35 @@ function AppHeader({
           </a>
         </div>
       </div>
+      <nav
+        aria-label="Court Watch AAU website links"
+        className="mb-3 flex justify-center gap-2 overflow-x-auto text-[11px] font-black text-slate-200 no-scrollbar"
+      >
+        <a
+          href="/install"
+          className="whitespace-nowrap rounded-lg border border-white/10 bg-white/8 px-3 py-1.5"
+        >
+          Install
+        </a>
+        <a
+          href="/support"
+          className="whitespace-nowrap rounded-lg border border-white/10 bg-white/8 px-3 py-1.5"
+        >
+          Support
+        </a>
+        <a
+          href="/privacy"
+          className="whitespace-nowrap rounded-lg border border-white/10 bg-white/8 px-3 py-1.5"
+        >
+          Privacy
+        </a>
+        <a
+          href="/terms"
+          className="whitespace-nowrap rounded-lg border border-white/10 bg-white/8 px-3 py-1.5"
+        >
+          Terms
+        </a>
+      </nav>
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-orange-300">
@@ -2800,6 +2830,12 @@ function SettingsScreen({
           />
           <SettingRow icon={Smartphone} title="API URL" value={apiBaseUrl()} />
         </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <SettingsLink href="/install" title="Install guide" />
+          <SettingsLink href="/support" title="Support" />
+          <SettingsLink href="/privacy" title="Privacy policy" />
+          <SettingsLink href="/terms" title="Terms" />
+        </div>
         <button
           type="button"
           onClick={subscribe}
@@ -2851,6 +2887,21 @@ function SettingsScreen({
         {dashboard.disclaimer}
       </section>
     </div>
+  );
+}
+
+function SettingsLink({ href, title }: { href: string; title: string }) {
+  return (
+    <a
+      href={href}
+      className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-black text-slate-950"
+    >
+      <span className="inline-flex items-center gap-2">
+        <Globe2 className="h-4 w-4 text-orange-500" />
+        {title}
+      </span>
+      <ChevronRight className="h-4 w-4 text-slate-400" />
+    </a>
   );
 }
 

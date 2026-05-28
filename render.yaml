@@ -24,6 +24,8 @@ services:
         value: https://courtwatch-reno-api.onrender.com
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://courtwatch-reno-api.onrender.com
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://courtwatch-reno-web.onrender.com
       - key: VAPID_PUBLIC_KEY
         sync: false
       - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
@@ -49,6 +51,8 @@ services:
           property: connectionString
       - key: WEB_BASE_URL
         value: https://courtwatch-reno-web.onrender.com
+      - key: WEB_ALLOWED_ORIGINS
+        value: https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com
       - key: API_BASE_URL
         value: https://courtwatch-reno-api.onrender.com
       - key: EXPOSURE_EVENT_ID

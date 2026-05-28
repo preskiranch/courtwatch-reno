@@ -1,6 +1,10 @@
-const CACHE_NAME = "courtwatch-reno-v40";
+const CACHE_NAME = "courtwatch-reno-v41";
 const APP_SHELL = [
   "/",
+  "/install",
+  "/support",
+  "/privacy",
+  "/terms",
   "/manifest.webmanifest",
   "/icons/icon.svg",
   "/share/courtwatch-reno-qr.jpg",
