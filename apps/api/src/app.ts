@@ -47,6 +47,9 @@ export function createApp(
       : [
           config.WEB_BASE_URL,
           ...allowedOriginsFromEnv(config.WEB_ALLOWED_ORIGINS),
+          "https://courtwatchaau.com",
+          "https://www.courtwatchaau.com",
+          "https://app.courtwatchaau.com",
           "http://localhost:3000",
           "http://localhost:3001",
           "http://localhost:3002",

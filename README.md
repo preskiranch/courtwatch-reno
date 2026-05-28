@@ -259,7 +259,7 @@ To connect a custom domain in Render:
 7. Wait for Render to issue HTTPS certificates.
 8. Update Render environment variables:
    - Web service: `NEXT_PUBLIC_SITE_URL=https://courtwatchaau.com`
-   - API service: `WEB_ALLOWED_ORIGINS=https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com`
+   - API service: `WEB_ALLOWED_ORIGINS=https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com,https://app.courtwatchaau.com`
    - API service: keep `WEB_BASE_URL` on the Render URL until the domain is fully live, then change it to `https://courtwatchaau.com` if push notification links should open the branded domain.
 9. Redeploy the web and API services.
 

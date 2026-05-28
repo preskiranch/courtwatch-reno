@@ -52,7 +52,7 @@ services:
       - key: WEB_BASE_URL
         value: https://courtwatch-reno-web.onrender.com
       - key: WEB_ALLOWED_ORIGINS
-        value: https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com
+        value: https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com,https://app.courtwatchaau.com
       - key: API_BASE_URL
         value: https://courtwatch-reno-api.onrender.com
       - key: EXPOSURE_EVENT_ID
