@@ -11,6 +11,7 @@ import type {
   TournamentEvent,
 } from "@courtwatch/core";
 import { stableClientId } from "./client-id";
+import { dashboardFollowMigrationStorageKey } from "./storage-keys";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -54,9 +55,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
   const storageKey = cacheKey
     ? cacheStorageKey(cacheKey, path, clientId)
     : null;
-  const cacheKeys = cacheKey
-    ? cacheLookupKeys(cacheKey, path, clientId)
-    : [];
+  const cacheKeys = cacheKey ? cacheLookupKeys(cacheKey, path, clientId) : [];
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       headers: {
@@ -161,9 +160,7 @@ export const CourtWatchApi = {
       "teams",
     ),
   pointsLeaders: (eventId?: number | null) =>
-    apiGet<TeamScoringLeader[]>(
-      withEvent("/api/points-leaders", eventId),
-    ),
+    apiGet<TeamScoringLeader[]>(withEvent("/api/points-leaders", eventId)),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
   presenceHeartbeat: (clientId: string, page: string) =>
     apiPost<PresenceResponse>("/api/presence/heartbeat", { clientId, page }),
@@ -282,9 +279,7 @@ function firstCachedValue(keys: string[]): string | null {
 function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {
   if (!Array.isArray(data)) return true;
   if (cacheKey === "events") return data.length > 0;
-  if (
-    ["pointsLeaders", "teams", "gamesAll", "resultsAll"].includes(cacheKey)
-  ) {
+  if (["pointsLeaders", "teams", "gamesAll", "resultsAll"].includes(cacheKey)) {
     return data.length > 0;
   }
   return true;
@@ -371,7 +366,7 @@ function preserveDashboardFollowsForMigration<T>(
   const nextTeamIds = dashboardTeamIdsFromUnknown(nextData);
   if (previousTeamIds.length > 0 && nextTeamIds.length === 0) {
     window.localStorage.setItem(
-      `courtwatch:dashboard-follow-migration:${encodeURIComponent(clientId)}`,
+      dashboardFollowMigrationStorageKey(clientId),
       JSON.stringify({
         teamIds: previousTeamIds,
         savedAt: new Date().toISOString(),

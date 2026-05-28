@@ -65,6 +65,13 @@ import {
   rememberStoredFollowedTeam,
 } from "../lib/followed-team-storage";
 import { requestPushSubscription } from "../lib/push";
+import {
+  DASHBOARD_FOLLOW_MIGRATION_KEY,
+  LEGACY_DIVISION_COMPARE_STORAGE_KEY,
+  SELECTED_EVENT_STORAGE_KEY,
+  dashboardFollowMigrationStorageKey,
+  divisionCompareStorageKey,
+} from "../lib/storage-keys";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
 type PointsLeaderMode = "overall" | "compare";
@@ -166,7 +173,7 @@ export function CourtWatchApp() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = Number(
-      window.localStorage.getItem("courtwatch-reno:selected-event-id"),
+      window.localStorage.getItem(SELECTED_EVENT_STORAGE_KEY),
     );
     if (Number.isFinite(saved) && saved > 0) setSelectedEventId(saved);
   }, []);
@@ -186,10 +193,7 @@ export function CourtWatchApp() {
   const selectEvent = (eventId: number) => {
     setSelectedEventId(eventId);
     if (typeof window !== "undefined")
-      window.localStorage.setItem(
-        "courtwatch-reno:selected-event-id",
-        String(eventId),
-      );
+      window.localStorage.setItem(SELECTED_EVENT_STORAGE_KEY, String(eventId));
     setActiveTab("dashboard");
   };
 
@@ -688,7 +692,7 @@ function DashboardScreen({
       ? pointsLeadersQuery.data
       : dashboardPointLeaders.length > 0
         ? dashboardPointLeaders
-      : fallbackPointLeaders;
+        : fallbackPointLeaders;
   const dashboardFollowedTeams = useMemo(
     () =>
       dashboard.programs.flatMap((program) =>
@@ -764,7 +768,10 @@ function DashboardScreen({
 
   return (
     <div className="space-y-4">
-      <NextGameBanner game={effectiveDashboard.nextGame} records={teamRecords} />
+      <NextGameBanner
+        game={effectiveDashboard.nextGame}
+        records={teamRecords}
+      />
 
       <button
         type="button"
@@ -1445,16 +1452,16 @@ function DivisionResultCard({
       </div>
 
       <div className="space-y-2">
-        {group.rows.length > 0 ? (
-          group.rows.map((result) => (
-            <DivisionResultRow
-              key={`${result.divisionId}-${result.placement}`}
-              result={result}
-              record={resultRecordForTeam(result, records, games, teams)}
-              recordsLoading={recordsLoading}
-            />
-          ))
-        ) : null}
+        {group.rows.length > 0
+          ? group.rows.map((result) => (
+              <DivisionResultRow
+                key={`${result.divisionId}-${result.placement}`}
+                result={result}
+                record={resultRecordForTeam(result, records, games, teams)}
+                recordsLoading={recordsLoading}
+              />
+            ))
+          : null}
         {unplacedFollowedTeams.map((team) => (
           <FollowedTeamFinalStatusRow
             key={team.id}
@@ -1865,18 +1872,14 @@ function TeamsScreen({
       ),
     [dashboardFollowedTeams, recordTeams, teamsQuery.data],
   );
-  const {
-    storedFollowedTeams,
-    rememberFollowedTeam,
-    forgetFollowedTeamById,
-  } = useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
+  const { storedFollowedTeams, rememberFollowedTeam, forgetFollowedTeamById } =
+    useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
   const registeredTeamPool = useMemo(
     () => mergeTeamLists(recordTeams, teamsQuery.data ?? []),
     [recordTeams, teamsQuery.data],
   );
   const trustedRegisteredTeamPool = useMemo(
-    () =>
-      teamsWithTrustedFollowState(registeredTeamPool, storedFollowedTeams),
+    () => teamsWithTrustedFollowState(registeredTeamPool, storedFollowedTeams),
     [registeredTeamPool, storedFollowedTeams],
   );
   const followStateTeams = useMemo(
@@ -1920,17 +1923,14 @@ function TeamsScreen({
       refreshSelection();
     },
   });
-  const teams = useMemo(
-    () => {
-      const matchingStoredTeams = deferredSearch
-        ? storedFollowedTeams.filter((team) =>
-            teamMatchesSearch(team, deferredSearch),
-          )
-        : storedFollowedTeams;
-      return mergeTeamLists(trustedRegisteredTeamPool, matchingStoredTeams);
-    },
-    [deferredSearch, storedFollowedTeams, trustedRegisteredTeamPool],
-  );
+  const teams = useMemo(() => {
+    const matchingStoredTeams = deferredSearch
+      ? storedFollowedTeams.filter((team) =>
+          teamMatchesSearch(team, deferredSearch),
+        )
+      : storedFollowedTeams;
+    return mergeTeamLists(trustedRegisteredTeamPool, matchingStoredTeams);
+  }, [deferredSearch, storedFollowedTeams, trustedRegisteredTeamPool]);
   const registeredTeams = deferredSearch
     ? allTeamsQuery.data?.length
       ? teamsWithTrustedFollowState(allTeamsQuery.data, storedFollowedTeams)
@@ -1940,7 +1940,7 @@ function TeamsScreen({
     ? allTeamsQuery.isLoading && teams.length === 0
     : teamsQuery.isLoading;
   const registeredCountLabel =
-    deferredSearch && !(allTeamsQuery.data?.length)
+    deferredSearch && !allTeamsQuery.data?.length
       ? `${teams.length} results`
       : `${registeredTeams.length} registered`;
   const divisionTotals = useMemo(
@@ -2148,8 +2148,7 @@ function useStoredFollowedTeams(
   }, [clientId, eventId]);
 
   useEffect(() => {
-    if (!clientId || !eventId || observedFollowedSignature.length === 0)
-      return;
+    if (!clientId || !eventId || observedFollowedSignature.length === 0) return;
     setStoredFollowedTeams(
       mergeStoredFollowedTeams(clientId, eventId, observedTeams, {
         onlyExistingWhenStored: true,
@@ -3308,7 +3307,8 @@ function findResultTeam(
 ): Team | undefined {
   if (result.teamSourceUrl) {
     const bySourceUrl = teams.find(
-      (team) => normalizeUrl(team.sourceUrl) === normalizeUrl(result.teamSourceUrl),
+      (team) =>
+        normalizeUrl(team.sourceUrl) === normalizeUrl(result.teamSourceUrl),
     );
     if (bySourceUrl) return bySourceUrl;
   }
@@ -3418,14 +3418,6 @@ function hasRecordActivity(
     (record.gamesSeen > 0 || record.gamesScored > 0 || record.finalGames > 0),
   );
 }
-
-const LEGACY_DIVISION_COMPARE_STORAGE_KEY =
-  "courtwatch:points-division-compare";
-
-function divisionCompareStorageKey(clientId: string): string {
-  return `${LEGACY_DIVISION_COMPARE_STORAGE_KEY}:${encodeURIComponent(clientId)}`;
-}
-
 function loadStoredDivisionCompareKeys(clientId: string): string[] {
   if (typeof window === "undefined") return [];
   const deviceKey = divisionCompareStorageKey(clientId);
@@ -3567,9 +3559,8 @@ function dashboardTeamIds(dashboard: DashboardResponse): string[] {
 function dashboardFollowMigrationTeamIds(clientId: string): string[] {
   if (typeof window === "undefined") return [];
   const raw =
-    window.localStorage.getItem(
-      `courtwatch:dashboard-follow-migration:${encodeURIComponent(clientId)}`,
-    ) ?? window.localStorage.getItem("courtwatch:dashboard-follow-migration");
+    window.localStorage.getItem(dashboardFollowMigrationStorageKey(clientId)) ??
+    window.localStorage.getItem(DASHBOARD_FOLLOW_MIGRATION_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as { teamIds?: unknown };
