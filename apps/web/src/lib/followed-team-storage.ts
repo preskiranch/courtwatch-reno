@@ -50,6 +50,16 @@ export function mergeStoredFollowedTeams(
   );
 }
 
+export function replaceStoredFollowedTeams(
+  clientId: string | null,
+  eventId: number | null,
+  teams: Team[],
+): Team[] {
+  return writeStoredFollowedTeams(clientId, eventId, () =>
+    teams.filter((team) => team.isFollowed).map(markFollowed),
+  );
+}
+
 export function rememberStoredFollowedTeam(
   clientId: string | null,
   eventId: number | null,

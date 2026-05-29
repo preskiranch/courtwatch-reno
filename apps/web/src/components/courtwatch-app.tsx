@@ -72,6 +72,7 @@ import {
   mergeStoredFollowedTeams,
   mergeTeamLists,
   rememberStoredFollowedTeam,
+  replaceStoredFollowedTeams,
 } from "../lib/followed-team-storage";
 import { requestPushSubscription } from "../lib/push";
 import {
@@ -389,9 +390,11 @@ export function CourtWatchApp() {
       !dashboardQuery.data
     )
       return;
-    const followedTeams = dashboardTeams(dashboardQuery.data);
-    if (followedTeams.length === 0) return;
-    mergeStoredFollowedTeams(accountScope, activeEventId, followedTeams);
+    replaceStoredFollowedTeams(
+      accountScope,
+      activeEventId,
+      dashboardTeams(dashboardQuery.data),
+    );
   }, [accountScope, accountSession, activeEventId, dashboardQuery.data]);
 
   const refresh = async () => {
@@ -871,6 +874,7 @@ function DashboardScreen({
     clientId,
     eventId,
     observedFollowedTeams,
+    { authoritative: isAccountClientId(clientId) },
   );
   const trustedRegisteredTeams = useMemo(
     () =>
@@ -2019,7 +2023,9 @@ function TeamsScreen({
     [dashboardFollowedTeams, recordTeams, teamsQuery.data],
   );
   const { storedFollowedTeams, rememberFollowedTeam, forgetFollowedTeamById } =
-    useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
+    useStoredFollowedTeams(clientId, eventId, observedFollowedTeams, {
+      authoritative: isAccountClientId(clientId),
+    });
   const matchingStoredTeams = useMemo(
     () =>
       searchActive
@@ -2313,6 +2319,7 @@ function useStoredFollowedTeams(
   clientId: string | null,
   eventId: number | null,
   observedTeams: Team[],
+  options: { authoritative?: boolean } = {},
 ): {
   storedFollowedTeams: Team[];
   rememberFollowedTeam: (team: Team | undefined) => void;
@@ -2334,13 +2341,26 @@ function useStoredFollowedTeams(
   }, [clientId, eventId]);
 
   useEffect(() => {
-    if (!clientId || !eventId || observedFollowedSignature.length === 0) return;
+    if (!clientId || !eventId) return;
+    if (options.authoritative) {
+      setStoredFollowedTeams(
+        replaceStoredFollowedTeams(clientId, eventId, observedTeams),
+      );
+      return;
+    }
+    if (observedFollowedSignature.length === 0) return;
     setStoredFollowedTeams(
       mergeStoredFollowedTeams(clientId, eventId, observedTeams, {
         onlyExistingWhenStored: true,
       }),
     );
-  }, [clientId, eventId, observedFollowedSignature, observedTeams]);
+  }, [
+    clientId,
+    eventId,
+    observedFollowedSignature,
+    observedTeams,
+    options.authoritative,
+  ]);
 
   return {
     storedFollowedTeams,
@@ -4088,6 +4108,10 @@ function dashboardTeams(dashboard: DashboardResponse): Team[] {
 
 function isAdminAccount(session: AccountSession | null): boolean {
   return session?.user.email.trim().toLowerCase() === ADMIN_EMAIL;
+}
+
+function isAccountClientId(clientId: string | null): boolean {
+  return Boolean(clientId?.startsWith("account:"));
 }
 
 function dashboardFollowMigrationTeamIds(clientId: string): string[] {
