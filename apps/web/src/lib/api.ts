@@ -61,6 +61,18 @@ export type AccountStatsResponse = {
   registeredUsers: number;
 };
 
+export type AdminRegisteredUser = {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  createdAt: string;
+};
+
+export type AdminUsersResponse = {
+  total: number;
+  users: AdminRegisteredUser[];
+};
+
 export type AuthResponse = AccountSession & {
   totalRegisteredUsers: number;
 };
@@ -187,6 +199,7 @@ export const CourtWatchApi = {
     apiGet<TeamScoringLeader[]>(withEvent("/api/points-leaders", eventId)),
   accountStats: () =>
     apiGet<AccountStatsResponse>("/api/accounts/stats", "accountStats"),
+  adminUsers: () => apiGet<AdminUsersResponse>("/api/admin/users"),
   accountMe: () =>
     apiGet<{ user: AccountUser; totalRegisteredUsers: number }>("/api/auth/me"),
   registerAccount: (input: {

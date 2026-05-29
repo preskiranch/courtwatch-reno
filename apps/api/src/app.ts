@@ -37,6 +37,7 @@ import { NotificationService } from "./notification-service.js";
 import type { CourtWatchStore } from "./store.js";
 
 const PRESENCE_TTL_MS = 45_000;
+const ADMIN_ACCOUNT_EMAIL = "courtwatchaau@gmail.com";
 const activePresence = new Map<
   string,
   { lastSeenAt: number; page: string | null }
@@ -101,6 +102,41 @@ export function createApp(
     try {
       res.json({
         registeredUsers: await registeredAccountCount(prismaClient),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/admin/users", async (req, res, next) => {
+    try {
+      const admin = await requireAdminAccount(req, prismaClient);
+      if (!admin) {
+        res.status(403).json({ error: "Admin account required" });
+        return;
+      }
+      const [total, users] = await Promise.all([
+        registeredAccountCount(prismaClient),
+        prismaClient!.user.findMany({
+          where: { email: { not: null } },
+          orderBy: { createdAt: "desc" },
+          take: 500,
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            createdAt: true,
+          },
+        }),
+      ]);
+      res.json({
+        total,
+        users: users.map((user) => ({
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          createdAt: user.createdAt.toISOString(),
+        })),
       });
     } catch (error) {
       next(error);
@@ -821,6 +857,22 @@ function requestAccountSession(req: express.Request): {
   const authorization = req.headers.authorization;
   if (!authorization?.startsWith("Bearer ")) return null;
   return verifyAccountToken(authorization.slice("Bearer ".length).trim());
+}
+
+async function requireAdminAccount(
+  req: express.Request,
+  prismaClient: PrismaClient | null,
+): Promise<{ id: string; email: string } | null> {
+  const session = requestAccountSession(req);
+  if (!session || !prismaClient) return null;
+  const user = await prismaClient.user.findUnique({
+    where: { id: session.userId },
+    select: { id: true, email: true },
+  });
+  if (!user?.email) return null;
+  return normalizeEmail(user.email) === ADMIN_ACCOUNT_EMAIL
+    ? { id: user.id, email: user.email }
+    : null;
 }
 
 function requestExposureEventId(req: express.Request): number | null {

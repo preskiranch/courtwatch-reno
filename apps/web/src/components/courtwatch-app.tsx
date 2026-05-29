@@ -104,7 +104,7 @@ const tabs: Array<{
   { id: "schedule", label: "Schedule", icon: CalendarDays },
   { id: "teams", label: "Teams", icon: Users },
   { id: "alerts", label: "Alerts", icon: Bell },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "settings", label: "Dev Tools", icon: Settings },
 ];
 
 const LIVE_DATA_REFETCH_MS = 60_000;
@@ -2984,6 +2984,13 @@ function SettingsScreen({
   const [adminSecret, setAdminSecret] = useState("");
   const [pushMessage, setPushMessage] = useState<string | null>(null);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
+  const adminUsersQuery = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: CourtWatchApi.adminUsers,
+    staleTime: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
+    refetchIntervalInBackground: true,
+  });
   const syncMutation = useMutation({
     mutationFn: () => CourtWatchApi.syncNow(adminSecret, eventId),
     onSuccess: (result) => {
@@ -3021,7 +3028,7 @@ function SettingsScreen({
   return (
     <div className="space-y-4">
       <section className="court-card p-4">
-        <h2 className="text-2xl font-black text-slate-950">Settings</h2>
+        <h2 className="text-2xl font-black text-slate-950">Dev Tools</h2>
         <div className="mt-4 space-y-3">
           <SettingRow
             icon={Bell}
@@ -3059,6 +3066,52 @@ function SettingsScreen({
             {pushMessage}
           </p>
         ) : null}
+      </section>
+
+      <section className="court-card p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">
+              Registered Users
+            </p>
+            <h2 className="mt-1 text-xl font-black text-slate-950">
+              {adminUsersQuery.data?.total ?? "Loading"} accounts
+            </h2>
+          </div>
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-slate-950 text-orange-300">
+            <Users className="h-5 w-5" />
+          </div>
+        </div>
+        <div className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
+          {adminUsersQuery.isLoading ? (
+            <div className="h-20 animate-pulse rounded-lg bg-slate-100" />
+          ) : null}
+          {adminUsersQuery.data?.users.map((user) => (
+            <div
+              key={user.id}
+              className="rounded-lg border border-slate-200 bg-white p-3"
+            >
+              <p className="break-all text-sm font-black text-slate-950">
+                {user.email ?? "No email"}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">
+                {user.displayName ? `${user.displayName} / ` : ""}
+                {formatShortDateTime(user.createdAt)}
+              </p>
+            </div>
+          ))}
+          {!adminUsersQuery.isLoading &&
+          (adminUsersQuery.data?.users.length ?? 0) === 0 ? (
+            <p className="rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">
+              No registered users yet.
+            </p>
+          ) : null}
+          {adminUsersQuery.isError ? (
+            <p className="rounded-lg bg-orange-50 p-3 text-sm font-semibold text-orange-700">
+              Unable to load registered users.
+            </p>
+          ) : null}
+        </div>
       </section>
 
       <section className="court-card p-4">
@@ -3490,6 +3543,12 @@ function BottomTabs({
                     Dash
                     <br />
                     board
+                  </>
+                ) : tab.id === "settings" ? (
+                  <>
+                    Dev
+                    <br />
+                    Tools
                   </>
                 ) : (
                   tab.label
@@ -4145,6 +4204,19 @@ function formatShortTime(
   timeZone = DEFAULT_TOURNAMENT_TIME_ZONE,
 ): string {
   return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+  }).format(new Date(iso));
+}
+
+function formatShortDateTime(
+  iso: string,
+  timeZone = DEFAULT_TOURNAMENT_TIME_ZONE,
+): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     timeZone,
