@@ -92,6 +92,8 @@ type TeamRecord = Pick<
   gamesSeen: number;
 };
 
+const ADMIN_EMAIL = "courtwatchaau@gmail.com";
+
 const tabs: Array<{
   id: Tab;
   label: string;
@@ -121,6 +123,11 @@ export function CourtWatchApp() {
   const accountScope = accountSession
     ? `account:${accountSession.user.id}`
     : presenceClientId;
+  const isAdmin = isAdminAccount(accountSession);
+  const visibleTabs = useMemo(
+    () => (isAdmin ? tabs : tabs.filter((tab) => tab.id !== "settings")),
+    [isAdmin],
+  );
   const clientReady = Boolean(presenceClientId && authReady);
   const eventsQuery = useQuery({
     queryKey: ["events"],
@@ -194,9 +201,42 @@ export function CourtWatchApp() {
   }, []);
 
   useEffect(() => {
-    setAccountSession(loadAccountSession());
-    setAuthReady(true);
+    const savedSession = loadAccountSession();
+    if (!savedSession) {
+      setAuthReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    setAccountSession(savedSession);
+    CourtWatchApi.accountMe()
+      .then((response) => {
+        if (cancelled) return;
+        setAccountSession(
+          saveAccountSession({
+            token: savedSession.token,
+            user: response.user,
+            totalRegisteredUsers: response.totalRegisteredUsers,
+          }),
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearAccountSession();
+        setAccountSession(null);
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "settings" && !isAdmin) setActiveTab("dashboard");
+  }, [activeTab, isAdmin]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -295,9 +335,13 @@ export function CourtWatchApp() {
     );
     if (deviceTeams.length === 0) return;
 
+    const teamKey = deviceTeams
+      .map((team) => team.id)
+      .sort()
+      .join(",");
     const syncKey = `courtwatch-aau:account-sync:${accountSession.user.id}:${encodeURIComponent(
       presenceClientId,
-    )}:${activeEventId}`;
+    )}:${activeEventId}:${encodeURIComponent(teamKey)}`;
     if (window.localStorage.getItem(syncKey) === "complete") return;
 
     let cancelled = false;
@@ -336,6 +380,19 @@ export function CourtWatchApp() {
     presenceClientId,
     queryClient,
   ]);
+
+  useEffect(() => {
+    if (
+      !accountSession ||
+      !accountScope ||
+      !activeEventId ||
+      !dashboardQuery.data
+    )
+      return;
+    const followedTeams = dashboardTeams(dashboardQuery.data);
+    if (followedTeams.length === 0) return;
+    mergeStoredFollowedTeams(accountScope, activeEventId, followedTeams);
+  }, [accountScope, accountSession, activeEventId, dashboardQuery.data]);
 
   const refresh = async () => {
     await Promise.all([
@@ -438,6 +495,9 @@ export function CourtWatchApp() {
               dashboard={dashboard}
               eventId={activeEventId}
               clientId={accountScope ?? presenceClientId}
+              accountSession={accountSession}
+              onAccountSessionChange={setAccountSession}
+              onRefresh={refresh}
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "alerts" ? (
@@ -446,20 +506,21 @@ export function CourtWatchApp() {
               games={games}
             />
           ) : null}
-          {!isLoading && dashboard && activeTab === "settings" ? (
+          {!isLoading && dashboard && activeTab === "settings" && isAdmin ? (
             <SettingsScreen
               dashboard={dashboard}
               onRefresh={refresh}
               eventId={activeEventId}
-              clientId={presenceClientId}
-              accountSession={accountSession}
-              onAccountSessionChange={setAccountSession}
             />
           ) : null}
         </section>
 
         <AppFooterCredit />
-        <BottomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          tabs={visibleTabs}
+        />
       </main>
     </>
   );
@@ -753,7 +814,6 @@ function DashboardScreen({
   onRefresh: () => void;
   eventId: number | null;
 }) {
-  const queryClient = useQueryClient();
   const allGamesQuery = useQuery({
     queryKey: ["games", "all", eventId],
     queryFn: () => CourtWatchApi.allGames(eventId),
@@ -840,34 +900,6 @@ function DashboardScreen({
     storedFollowedTeams.length > 0
       ? storedFollowedTeams
       : effectiveDashboard.programs.flatMap((program) => program.teams);
-
-  useEffect(() => {
-    if (storedFollowedTeams.length === 0 || dashboardFollowedTeams.length === 0)
-      return;
-    const storedIds = new Set(storedFollowedTeams.map((team) => team.id));
-    const staleServerTeamIds = dashboardFollowedTeams
-      .map((team) => team.id)
-      .filter((teamId) => !storedIds.has(teamId));
-    if (staleServerTeamIds.length === 0) return;
-
-    let cancelled = false;
-    void Promise.all(
-      staleServerTeamIds.map((teamId) => CourtWatchApi.unfollowTeam(teamId)),
-    )
-      .then(() => {
-        if (cancelled) return;
-        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["games"] });
-        queryClient.invalidateQueries({ queryKey: ["alerts"] });
-        queryClient.invalidateQueries({ queryKey: ["results"] });
-        queryClient.invalidateQueries({ queryKey: ["teams"] });
-      })
-      .catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [dashboardFollowedTeams, queryClient, storedFollowedTeams]);
 
   return (
     <div className="space-y-4">
@@ -1926,15 +1958,22 @@ function TeamsScreen({
   dashboard,
   eventId,
   clientId,
+  accountSession,
+  onAccountSessionChange,
+  onRefresh,
 }: {
   dashboard: DashboardResponse;
   eventId: number | null;
   clientId: string;
+  accountSession: AccountSession | null;
+  onAccountSessionChange: (session: AccountSession | null) => void;
+  onRefresh: () => void;
 }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [focusedTeamId, setFocusedTeamId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
+  const searchActive = Boolean(deferredSearch);
   const {
     records,
     loading: recordsLoading,
@@ -1942,8 +1981,12 @@ function TeamsScreen({
     teams: recordTeams,
   } = useTeamRecords(eventId);
   const teamsQuery = useQuery({
-    queryKey: ["teams", clientId, deferredSearch, eventId],
-    queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
+    queryKey: ["teams", clientId, deferredSearch, eventId, searchActive],
+    queryFn: () =>
+      CourtWatchApi.teams(deferredSearch, eventId, {
+        allEvents: searchActive,
+      }),
+    enabled: !searchActive || deferredSearch.length > 0,
     staleTime: 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
@@ -1977,7 +2020,6 @@ function TeamsScreen({
   );
   const { storedFollowedTeams, rememberFollowedTeam, forgetFollowedTeamById } =
     useStoredFollowedTeams(clientId, eventId, observedFollowedTeams);
-  const searchActive = Boolean(deferredSearch);
   const matchingStoredTeams = useMemo(
     () =>
       searchActive
@@ -2037,7 +2079,10 @@ function TeamsScreen({
   const followTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.followTeam(teamId),
     onSuccess: (_match, teamId) => {
-      rememberFollowedTeam(knownTeamsById.get(teamId));
+      const team = knownTeamsById.get(teamId);
+      if (!team?.exposureEventId || team.exposureEventId === eventId) {
+        rememberFollowedTeam(team);
+      }
       refreshSelection();
     },
   });
@@ -2162,6 +2207,12 @@ function TeamsScreen({
           ) : null}
         </label>
       </section>
+
+      <AccountPanel
+        accountSession={accountSession}
+        onAccountSessionChange={onAccountSessionChange}
+        onRefresh={onRefresh}
+      />
 
       {searchActive ? teamResultsSection : null}
 
@@ -2399,6 +2450,11 @@ function FollowedTeamRow({
             {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} /{" "}
             {team.level ?? "Level TBD"}
           </p>
+          {team.eventName ? (
+            <p className="mt-1 text-xs font-black uppercase tracking-[0.08em] text-orange-600">
+              {team.eventName}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -2900,16 +2956,10 @@ function SettingsScreen({
   dashboard,
   onRefresh,
   eventId,
-  clientId,
-  accountSession,
-  onAccountSessionChange,
 }: {
   dashboard: DashboardResponse;
   onRefresh: () => void;
   eventId: number | null;
-  clientId: string | null;
-  accountSession: AccountSession | null;
-  onAccountSessionChange: (session: AccountSession | null) => void;
 }) {
   const [adminSecret, setAdminSecret] = useState("");
   const [pushMessage, setPushMessage] = useState<string | null>(null);
@@ -2950,14 +3000,6 @@ function SettingsScreen({
 
   return (
     <div className="space-y-4">
-      <AccountPanel
-        clientId={clientId}
-        eventId={eventId}
-        accountSession={accountSession}
-        onAccountSessionChange={onAccountSessionChange}
-        onRefresh={onRefresh}
-      />
-
       <section className="court-card p-4">
         <h2 className="text-2xl font-black text-slate-950">Settings</h2>
         <div className="mt-4 space-y-3">
@@ -3039,14 +3081,10 @@ function SettingsScreen({
 }
 
 function AccountPanel({
-  clientId,
-  eventId,
   accountSession,
   onAccountSessionChange,
   onRefresh,
 }: {
-  clientId: string | null;
-  eventId: number | null;
   accountSession: AccountSession | null;
   onAccountSessionChange: (session: AccountSession | null) => void;
   onRefresh: () => void;
@@ -3069,27 +3107,11 @@ function AccountPanel({
     setAccountMessage("Paste a new password to finish the reset.");
   }, []);
 
-  const syncDeviceTeams = async (messagePrefix = "Account ready") => {
-    const teams = loadStoredFollowedTeams(clientId, eventId);
-    if (teams.length === 0) {
-      setAccountMessage(`${messagePrefix}. No device-saved teams to sync.`);
-      onRefresh();
-      return;
-    }
-    const result = await CourtWatchApi.syncFollowedTeams(
-      teams.map((team) => team.id),
-      eventId,
-    );
-    setAccountMessage(
-      `${messagePrefix}. Synced ${result.syncedCount} saved teams from this device.`,
-    );
-    onRefresh();
-  };
-
   const applySession = async (response: AccountSession) => {
     const session = saveAccountSession(response);
     onAccountSessionChange(session);
-    await syncDeviceTeams("Signed in");
+    setAccountMessage("Signed in. Followed teams sync automatically.");
+    onRefresh();
   };
 
   const registerMutation = useMutation({
@@ -3147,17 +3169,11 @@ function AccountPanel({
     onError: (error) => setAccountMessage(errorText(error)),
   });
 
-  const manualSyncMutation = useMutation({
-    mutationFn: () => syncDeviceTeams("Synced"),
-    onError: (error) => setAccountMessage(errorText(error)),
-  });
-
   const busy =
     registerMutation.isPending ||
     loginMutation.isPending ||
     forgotMutation.isPending ||
-    resetMutation.isPending ||
-    manualSyncMutation.isPending;
+    resetMutation.isPending;
 
   const signOut = () => {
     clearAccountSession();
@@ -3205,20 +3221,16 @@ function AccountPanel({
           <p className="mt-1 break-all text-sm font-black text-slate-950">
             {accountSession.user.email}
           </p>
+          <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+            Followed teams sync automatically on every phone, tablet, or
+            computer where you sign in.
+          </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => manualSyncMutation.mutate()}
-              disabled={busy}
-              className="min-h-11 rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-60"
-            >
-              Sync this device
-            </button>
             <button
               type="button"
               onClick={signOut}
               disabled={busy}
-              className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm font-black text-slate-800 active:scale-[0.99] disabled:opacity-60"
+              className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm font-black text-slate-800 active:scale-[0.99] disabled:opacity-60 sm:col-span-2"
             >
               Sign out
             </button>
@@ -3419,13 +3431,24 @@ function SettingRow({
 function BottomTabs({
   activeTab,
   setActiveTab,
+  tabs,
 }: {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
+  tabs: Array<{
+    id: Tab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }>;
 }) {
   return (
     <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-2 backdrop-blur">
-      <div className="mx-auto grid max-w-[520px] grid-cols-5 gap-1">
+      <div
+        className="mx-auto grid max-w-[520px] gap-1"
+        style={{
+          gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
+        }}
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = tab.id === activeTab;
@@ -4054,13 +4077,17 @@ function dashboardWithEffectiveGameStatuses(
 }
 
 function dashboardTeamIds(dashboard: DashboardResponse): string[] {
-  return Array.from(
-    new Set(
-      dashboard.programs.flatMap((program) =>
-        program.teams.map((team) => team.id),
-      ),
-    ),
+  return Array.from(new Set(dashboardTeams(dashboard).map((team) => team.id)));
+}
+
+function dashboardTeams(dashboard: DashboardResponse): Team[] {
+  return dashboard.programs.flatMap((program) =>
+    program.teams.map((team) => ({ ...team, isFollowed: true })),
   );
+}
+
+function isAdminAccount(session: AccountSession | null): boolean {
+  return session?.user.email.trim().toLowerCase() === ADMIN_EMAIL;
 }
 
 function dashboardFollowMigrationTeamIds(clientId: string): string[] {

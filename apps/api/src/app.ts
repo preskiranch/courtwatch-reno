@@ -423,6 +423,7 @@ export function createApp(
           typeof req.query.search === "string" ? req.query.search : undefined,
           requestClientIdentity(req),
           requestExposureEventId(req),
+          stringQuery(req.query.scope) === "all",
         ),
       );
     } catch (error) {

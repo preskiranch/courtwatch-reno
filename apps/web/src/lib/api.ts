@@ -39,8 +39,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v19";
-const LEGACY_CACHE_VERSION = "v18";
+const CACHE_VERSION = "v20";
+const LEGACY_CACHE_VERSION = "v19";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -169,14 +169,20 @@ export const CourtWatchApi = {
     ),
   alerts: (eventId?: number | null) =>
     apiGet<GameChangeEvent[]>(withEvent("/api/alerts", eventId), "alerts"),
-  teams: (search = "", eventId?: number | null) =>
-    apiGet<Team[]>(
-      withEvent(
-        `/api/teams${search ? `?search=${encodeURIComponent(search)}` : ""}`,
-        eventId,
-      ),
+  teams: (
+    search = "",
+    eventId?: number | null,
+    options: { allEvents?: boolean } = {},
+  ) => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (options.allEvents) params.set("scope", "all");
+    const path = `/api/teams${params.toString() ? `?${params.toString()}` : ""}`;
+    return apiGet<Team[]>(
+      options.allEvents ? path : withEvent(path, eventId),
       "teams",
-    ),
+    );
+  },
   pointsLeaders: (eventId?: number | null) =>
     apiGet<TeamScoringLeader[]>(withEvent("/api/points-leaders", eventId)),
   accountStats: () =>
@@ -251,7 +257,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v19";
+  const dataVersion = "v20";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {

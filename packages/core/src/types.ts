@@ -110,6 +110,9 @@ export interface Team {
   lastSeenAt: string;
   createdAt?: string;
   updatedAt?: string;
+  exposureEventId?: number;
+  eventName?: string;
+  eventLocation?: string | null;
   playerNames?: string[];
   isFollowed?: boolean;
   followerCount?: number;

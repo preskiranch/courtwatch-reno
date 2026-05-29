@@ -92,6 +92,7 @@ export interface CourtWatchStore {
     search?: string,
     clientId?: string | null,
     exposureEventId?: number | null,
+    allEvents?: boolean,
   ): Promise<Team[]>;
   scoringLeaders(
     clientId?: string | null,
@@ -197,9 +198,13 @@ export class MockStore implements CourtWatchStore {
     search?: string,
     clientId?: string | null,
     exposureEventId?: number | null,
+    allEvents = false,
   ) {
     const normalized = normalizeName(search);
-    const snapshot = this.snapshotForClient(clientId, exposureEventId);
+    const program = this.ensureSelectedProgram(clientId);
+    const snapshot = allEvents
+      ? scopeSnapshot(structuredClone(this.data), program.id)
+      : this.snapshotForClient(clientId, exposureEventId);
     return filterTeamsForSearch(snapshot, normalized);
   }
 
@@ -696,10 +701,89 @@ export class PrismaStore implements CourtWatchStore {
     search?: string,
     clientId?: string | null,
     exposureEventId?: number | null,
+    allEvents = false,
   ) {
+    if (allEvents) return this.teamsAcrossEvents(search, clientId);
     const snapshot = await this.snapshotForClient(clientId, exposureEventId);
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
+  }
+
+  private async teamsAcrossEvents(
+    search?: string,
+    clientId?: string | null,
+  ): Promise<Team[]> {
+    const program = await this.ensureSelectedProgram(clientId);
+    const normalized = normalizeName(search);
+    const [teams, players, programs, matches, games] = await Promise.all([
+      this.prisma.team.findMany({
+        include: { division: true, event: true },
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+      }),
+      this.prisma.player.findMany(),
+      this.prisma.programWatchlist.findMany({ where: { active: true } }),
+      this.prisma.programTeamMatch.findMany({ where: { active: true } }),
+      this.prisma.game.findMany({ orderBy: { startsAt: "asc" } }),
+    ]);
+    const playerNamesByTeam = groupPlayerNamesByTeam(
+      players.map(prismaPlayerToCore),
+    );
+    const followerCounts = teamFollowerCounts(
+      programs,
+      matches.map(prismaMatchToCore),
+    );
+    const followedTeamIds = new Set(
+      matches
+        .filter(
+          (match) => match.active && match.programWatchlistId === program.id,
+        )
+        .map((match) => match.teamId),
+    );
+    const coreTeams: Team[] = teams.map((team) => ({
+      id: team.id,
+      eventId: team.eventId,
+      divisionId: team.divisionId,
+      exposureTeamId: team.exposureTeamId,
+      name: team.name,
+      normalizedName: team.normalizedName,
+      clubName: team.clubName,
+      normalizedClubName: team.normalizedClubName,
+      coachName: team.coachName,
+      city: team.city,
+      state: team.state,
+      sourceUrl: team.sourceUrl,
+      divisionName: team.division?.name ?? null,
+      gender: team.division?.gender ?? null,
+      gradeLevel: team.division?.gradeLevel ?? null,
+      level: team.division?.level ?? null,
+      rawJson: team.rawJson,
+      lastSeenAt: team.lastSeenAt.toISOString(),
+      createdAt: team.createdAt.toISOString(),
+      updatedAt: team.updatedAt.toISOString(),
+      exposureEventId: team.event.exposureEventId,
+      eventName: team.event.name,
+      eventLocation: team.event.location,
+      playerNames: playerNamesByTeam.get(team.id) ?? [],
+      isFollowed: followedTeamIds.has(team.id),
+      followerCount: followerCounts.get(team.id) ?? 0,
+    }));
+    const recordSnapshot = {
+      teams: coreTeams,
+      games: games.map(prismaGameToCore),
+      programs: programs.map((item) => ({
+        id: item.id,
+        userId: item.userId,
+        programName: item.programName,
+        normalizedProgramName: item.normalizedProgramName,
+        active: item.active,
+        createdAt: item.createdAt.toISOString(),
+      })),
+      matches: matches.map(prismaMatchToCore),
+    } as CourtWatchSnapshot;
+    return filterTeamsForSearch(recordSnapshot, normalized).map((team) => ({
+      ...team,
+      isFollowed: followedTeamIds.has(team.id),
+    }));
   }
 
   async scoringLeaders(

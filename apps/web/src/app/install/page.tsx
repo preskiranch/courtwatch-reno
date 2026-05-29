@@ -83,10 +83,10 @@ export default function InstallPage() {
             Using more than one device
           </h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
-            Create a free account in Settings to carry followed teams across
-            your phone, tablet, and computer. Without signing in, saved teams
-            remain on the device where they were followed and do not overwrite
-            anyone else's list.
+            Create a free account from the Teams page to carry followed teams
+            across your phone, tablet, and computer. Once you are signed in on
+            each device, followed teams sync automatically. Without signing in,
+            saved teams remain on the device where they were followed.
           </p>
         </div>
         <div className="mt-4">
