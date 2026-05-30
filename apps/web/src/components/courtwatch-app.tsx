@@ -122,6 +122,7 @@ export function CourtWatchApp() {
     null,
   );
   const [authReady, setAuthReady] = useState(false);
+  const [browserOnline, setBrowserOnline] = useState(true);
   const queryClient = useQueryClient();
   const accountScope = accountSession
     ? `account:${accountSession.user.id}`
@@ -216,6 +217,18 @@ export function CourtWatchApp() {
 
   useEffect(() => {
     setPresenceClientId(stableClientId());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateOnlineState = () => setBrowserOnline(window.navigator.onLine);
+    updateOnlineState();
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
   }, []);
 
   useEffect(() => {
@@ -472,8 +485,14 @@ export function CourtWatchApp() {
     !presenceClientId ||
     eventsQuery.isLoading ||
     (!hasNoEvents && (!activeEventId || dashboardQuery.isLoading));
-  const offline =
-    dashboardQuery.isError || gamesQuery.isError || alertsQuery.isError;
+  const allPrimarySourceQueriesFailed =
+    dashboardQuery.isError &&
+    gamesQuery.isError &&
+    alertsQuery.isError &&
+    eventsQuery.isError &&
+    !dashboard &&
+    displayEvents.length === 0;
+  const offline = !browserOnline || allPrimarySourceQueriesFailed;
 
   return (
     <>
@@ -673,6 +692,20 @@ function AppHeader({
   );
   const hasGroupedEvents =
     trackedEvents.length > 0 && discoveredEvents.length > 0;
+  const statusMessage = offline
+    ? "Offline cache"
+    : (dashboard?.sourceStatus.message ??
+      (selectedEvent
+        ? "Schedule data is current from the latest successful sync."
+        : "Loading source"));
+  const lastUpdated =
+    dashboard?.lastUpdated ??
+    selectedEvent?.lastSyncedAt ??
+    selectedEvent?.lastCheckedAt;
+  const displayTimezone =
+    dashboard?.event.timezone ??
+    selectedEvent?.timezone ??
+    DEFAULT_TOURNAMENT_TIME_ZONE;
   return (
     <header className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#07111f]/92 px-4 pb-3 pt-3 backdrop-blur">
       <nav
@@ -785,9 +818,7 @@ function AppHeader({
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-300" />
             )}
             <span className="line-clamp-2">
-              {offline
-                ? "Offline cache"
-                : (dashboard?.sourceStatus.message ?? "Loading source")}
+              {statusMessage}
             </span>
           </span>
         </span>
@@ -796,8 +827,8 @@ function AppHeader({
           {registeredUsers ?? "-"} registered
         </span>
         <span className="shrink-0 text-right">
-          {dashboard?.lastUpdated
-            ? `Updated ${formatShortTime(dashboard.lastUpdated, dashboard.event.timezone)}`
+          {lastUpdated
+            ? `Updated ${formatShortTime(lastUpdated, displayTimezone)}`
             : "Sync pending"}
         </span>
       </div>

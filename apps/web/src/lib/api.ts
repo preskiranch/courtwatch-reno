@@ -41,8 +41,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v20";
-const LEGACY_CACHE_VERSION = "v19";
+const CACHE_VERSION = "v21";
+const LEGACY_CACHE_VERSION = "v20";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -279,7 +279,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v20";
+  const dataVersion = "v21";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
@@ -295,7 +295,11 @@ export function pruneStaleApiCaches() {
 
 function renderApiFallbackUrl(): string | null {
   if (typeof window === "undefined") return null;
-  return window.location.hostname.endsWith(".onrender.com")
+  const hostname = window.location.hostname.toLowerCase();
+  return hostname.endsWith(".onrender.com") ||
+    hostname === "courtwatchaau.com" ||
+    hostname === "www.courtwatchaau.com" ||
+    hostname === "app.courtwatchaau.com"
     ? "https://courtwatch-reno-api.onrender.com"
     : null;
 }
