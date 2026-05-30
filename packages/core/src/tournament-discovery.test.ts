@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  DEFAULT_MAJOR_TOURNAMENT_SOURCES,
   ExposureEventsTournamentProvider,
   PublicHtmlTournamentProvider,
   TournamentDiscoveryService,
@@ -21,6 +22,36 @@ function jsonResponse(value: unknown) {
 }
 
 describe("TournamentDiscoveryService", () => {
+  it("tracks GSG Hoops and BAMTOURNAMENTS as trusted Exposure sources", () => {
+    expect(DEFAULT_MAJOR_TOURNAMENT_SOURCES).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "GSG Hoops",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/33328/gsg-hoops",
+          eventUrls: expect.arrayContaining([
+            "https://basketball.exposureevents.com/264312/bam-x-gsg-spring-finale",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "GSG Hoops",
+            "Golden State Games",
+            "BAM x GSG",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "BAMTOURNAMENTS",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/27132/bamtournaments",
+          sanctioningTags: expect.arrayContaining([
+            "BAM",
+            "BAMTOURNAMENTS",
+            "BAM x GSG",
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it("includes Exposure/Jam On It-style public tournaments when the public team list is reachable", async () => {
     const fetchImpl = vi.fn(
       async (input: string | URL | Request, init?: RequestInit) => {
