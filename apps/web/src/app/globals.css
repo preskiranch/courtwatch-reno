@@ -77,13 +77,13 @@ button {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: clamp(7rem, 16vw, 18rem);
+  width: clamp(10rem, 28vw, 24rem);
   background-image:
-    linear-gradient(rgba(7, 17, 31, 0.12), rgba(7, 17, 31, 0.42)),
+    linear-gradient(rgba(7, 17, 31, 0.05), rgba(7, 17, 31, 0.24)),
     url("/bezel/courtwatch-side-bezel.jpg");
-  background-position: center;
+  background-position: left center;
   background-size: cover;
-  opacity: 0.52;
+  opacity: 0.72;
 }
 
 .courtwatch-side-bezel-left {
@@ -105,7 +105,7 @@ button {
 
 @media (min-width: 1280px) {
   .courtwatch-side-bezel {
-    width: clamp(10rem, 18vw, 24rem);
+    width: clamp(16rem, 30vw, 32rem);
   }
 }
 
