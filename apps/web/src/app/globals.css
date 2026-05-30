@@ -64,6 +64,51 @@ button {
   background-size: 32px 32px;
 }
 
+.courtwatch-side-bezels {
+  display: none;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.courtwatch-side-bezel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(7rem, 16vw, 18rem);
+  background-image:
+    linear-gradient(rgba(7, 17, 31, 0.12), rgba(7, 17, 31, 0.42)),
+    url("/bezel/courtwatch-side-bezel.jpg");
+  background-position: center;
+  background-size: cover;
+  opacity: 0.52;
+}
+
+.courtwatch-side-bezel-left {
+  left: 0;
+  mask-image: linear-gradient(90deg, #000 0%, #000 68%, transparent 100%);
+}
+
+.courtwatch-side-bezel-right {
+  right: 0;
+  transform: scaleX(-1);
+  mask-image: linear-gradient(90deg, #000 0%, #000 68%, transparent 100%);
+}
+
+@media (min-width: 768px), (orientation: landscape) and (min-width: 640px) {
+  .courtwatch-side-bezels {
+    display: block;
+  }
+}
+
+@media (min-width: 1280px) {
+  .courtwatch-side-bezel {
+    width: clamp(10rem, 18vw, 24rem);
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

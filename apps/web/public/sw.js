@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-reno-v47";
+const CACHE_NAME = "courtwatch-reno-v48";
 const APP_SHELL = [
   "/",
   "/install",
@@ -8,6 +8,7 @@ const APP_SHELL = [
   "/manifest.webmanifest",
   "/icons/icon.svg",
   "/share/courtwatch-reno-qr.jpg",
+  "/bezel/courtwatch-side-bezel.jpg",
 ];
 
 self.addEventListener("install", (event) => {

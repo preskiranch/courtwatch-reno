@@ -440,8 +440,9 @@ export function CourtWatchApp() {
 
   return (
     <>
+      <SideBezel />
       <ShareQrRail />
-      <main className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
+      <main className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
         <AppHeader
           dashboard={dashboard}
           events={displayEvents}
@@ -526,6 +527,15 @@ export function CourtWatchApp() {
         />
       </main>
     </>
+  );
+}
+
+function SideBezel() {
+  return (
+    <div className="courtwatch-side-bezels" aria-hidden="true">
+      <div className="courtwatch-side-bezel courtwatch-side-bezel-left" />
+      <div className="courtwatch-side-bezel courtwatch-side-bezel-right" />
+    </div>
   );
 }
 
