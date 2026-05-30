@@ -6,6 +6,7 @@ import type {
   ProgramAlias,
   ProgramSummary,
   ProgramTeamMatch,
+  SyncStatus,
   Team,
   TeamScoringLeader,
   TournamentEvent,
@@ -33,6 +34,7 @@ type CacheKey =
   | "programs"
   | "pointsLeaders"
   | "accountStats"
+  | "syncStatus"
   | "event"
   | "events"
   | "results"
@@ -181,6 +183,13 @@ export const CourtWatchApi = {
     ),
   alerts: (eventId?: number | null) =>
     apiGet<GameChangeEvent[]>(withEvent("/api/alerts", eventId), "alerts"),
+  syncStatus: (eventId?: number | null, scope: "event" | "all" = "event") => {
+    const path =
+      scope === "all"
+        ? "/api/sync-status?scope=all"
+        : withEvent("/api/sync-status", eventId);
+    return apiGet<SyncStatus>(path, "syncStatus");
+  },
   teams: (
     search = "",
     eventId?: number | null,

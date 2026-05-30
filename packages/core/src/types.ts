@@ -243,6 +243,17 @@ export interface SyncRun {
   errorMessage: string | null;
 }
 
+export interface SyncStatus {
+  scope: "event" | "all";
+  exposureEventId: number | null;
+  lastSyncedAt: string | null;
+  lastCheckedAt: string | null;
+  lastTeamChangeAt: string | null;
+  latestChangeAt: string | null;
+  latestSuccessfulSyncAt: string | null;
+  fingerprint: string;
+}
+
 export interface DivisionResult {
   id: string;
   eventId: string;

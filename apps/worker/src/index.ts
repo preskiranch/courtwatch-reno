@@ -1,4 +1,8 @@
-import { calculatePollDelayMs } from "@courtwatch/core";
+import {
+  calculatePollDelayMs,
+  isAnyActiveTournamentWindow,
+} from "@courtwatch/core";
+import type { TournamentEvent } from "@courtwatch/core";
 import pino from "pino";
 import { z } from "zod";
 
@@ -98,9 +102,29 @@ async function loop() {
       );
     }
 
-    const delay = calculatePollDelayMs({ failureCount });
+    const delay = calculatePollDelayMs({
+      failureCount,
+      activeOverride: await activeTournamentOverride(),
+    });
     logger.info({ delayMs: delay, failureCount }, "waiting for next sync");
     await sleep(delay);
+  }
+}
+
+async function activeTournamentOverride(): Promise<boolean | undefined> {
+  try {
+    const response = await fetchWithTimeout(
+      new URL("/api/events", env.API_BASE_URL),
+    );
+    if (!response.ok) return undefined;
+    const events = (await response.json()) as TournamentEvent[];
+    return isAnyActiveTournamentWindow(events);
+  } catch (error) {
+    logger.warn(
+      { error: error instanceof Error ? error.message : error },
+      "active tournament window check failed",
+    );
+    return undefined;
   }
 }
 

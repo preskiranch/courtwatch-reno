@@ -3,6 +3,7 @@
 import {
   buildTeamScoringLeaders,
   filterTeamScoringLeadersByDivisionIds,
+  isAnyActiveTournamentWindow,
   withEffectiveGameStatus,
   withEffectiveGameStatuses,
   type DashboardResponse,
@@ -108,6 +109,7 @@ const tabs: Array<{
 ];
 
 const LIVE_DATA_REFETCH_MS = 60_000;
+const LIVE_SYNC_STATUS_REFETCH_MS = 1_000;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
@@ -153,7 +155,13 @@ export function CourtWatchApp() {
   const dataRefetchInterval = fetchedActiveEvent
     ? dataRefetchIntervalForEvent(fetchedActiveEvent, todayKey)
     : LIVE_DATA_REFETCH_MS;
+  const anyFetchedEventIsActive = isAnyActiveTournamentWindow(fetchedEvents);
+  const syncStatusRefetchInterval =
+    anyFetchedEventIsActive || dataRefetchInterval === LIVE_DATA_REFETCH_MS
+      ? LIVE_SYNC_STATUS_REFETCH_MS
+      : PASSIVE_DATA_REFETCH_MS;
   const lastTodayKeyRef = useRef(todayKey);
+  const lastSyncFingerprintRef = useRef<string | null>(null);
   const dashboardQuery = useQuery({
     queryKey: ["dashboard", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.dashboard(activeEventId),
@@ -175,6 +183,15 @@ export function CourtWatchApp() {
     queryFn: () => CourtWatchApi.alerts(activeEventId),
     enabled: clientReady && Boolean(activeEventId),
     refetchInterval: dataRefetchInterval,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+  });
+  const syncStatusQuery = useQuery({
+    queryKey: ["sync-status", "all"],
+    queryFn: () => CourtWatchApi.syncStatus(null, "all"),
+    enabled: Boolean(activeEventId),
+    staleTime: 0,
+    refetchInterval: syncStatusRefetchInterval,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
@@ -278,6 +295,26 @@ export function CourtWatchApp() {
       queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
     ]);
   }, [queryClient, todayKey]);
+
+  useEffect(() => {
+    const fingerprint = syncStatusQuery.data?.fingerprint;
+    if (!fingerprint) return;
+    if (!lastSyncFingerprintRef.current) {
+      lastSyncFingerprintRef.current = fingerprint;
+      return;
+    }
+    if (lastSyncFingerprintRef.current === fingerprint) return;
+    lastSyncFingerprintRef.current = fingerprint;
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["games"] }),
+      queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+      queryClient.invalidateQueries({ queryKey: ["events"] }),
+      queryClient.invalidateQueries({ queryKey: ["results"] }),
+      queryClient.invalidateQueries({ queryKey: ["teams"] }),
+      queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
+    ]);
+  }, [queryClient, syncStatusQuery.data?.fingerprint]);
 
   useEffect(() => {
     if (

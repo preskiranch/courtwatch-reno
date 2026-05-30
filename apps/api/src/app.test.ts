@@ -26,6 +26,18 @@ describe("CourtWatch API", () => {
     });
   });
 
+  it("returns an all-tournament sync fingerprint for realtime refresh", async () => {
+    const app = createApp(new MockStore(), null);
+    const response = await request(app)
+      .get("/api/sync-status?scope=all")
+      .expect(200);
+    expect(response.body).toMatchObject({
+      scope: "all",
+      exposureEventId: null,
+    });
+    expect(response.body.fingerprint).toContain("all|");
+  });
+
   it("lets a user follow and unfollow a selected team", async () => {
     const app = createApp(new MockStore(), null);
     await request(app).post("/api/teams/team-splash-4th/follow").expect(201);

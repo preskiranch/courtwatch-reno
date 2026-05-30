@@ -357,6 +357,19 @@ export function createApp(
     }
   });
 
+  app.get("/api/sync-status", async (req, res, next) => {
+    try {
+      res.json(
+        await store.syncStatus(
+          requestExposureEventId(req),
+          stringQuery(req.query.scope) === "all" ? "all" : "event",
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/dashboard", async (req, res, next) => {
     try {
       res.json(

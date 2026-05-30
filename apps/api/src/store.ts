@@ -46,6 +46,7 @@ import type {
   ResultMedalLabel,
   ResultPlacement,
   ResultSource,
+  SyncStatus,
   Team,
   TeamScoringLeader,
   TeamRecordSummary,
@@ -71,6 +72,10 @@ const teamSortCollator = new Intl.Collator("en-US", {
 export interface CourtWatchStore {
   events(): Promise<TournamentEvent[]>;
   snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot>;
+  syncStatus(
+    exposureEventId?: number | null,
+    scope?: "event" | "all",
+  ): Promise<SyncStatus>;
   dashboard(
     clientId?: string | null,
     exposureEventId?: number | null,
@@ -145,6 +150,87 @@ export class MockStore implements CourtWatchStore {
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
     return snapshotForTournament(structuredClone(this.data), exposureEventId);
+  }
+
+  async syncStatus(
+    exposureEventId?: number | null,
+    scope: "event" | "all" = "event",
+  ): Promise<SyncStatus> {
+    if (scope === "all") {
+      const lastSyncedAt =
+        this.data.syncRuns
+          .filter((run) => run.status === "success" && run.completedAt)
+          .map((run) => run.completedAt)
+          .sort()
+          .at(-1) ??
+        this.data.events
+          .map((event) => event.lastSyncedAt)
+          .filter(Boolean)
+          .sort()
+          .at(-1) ??
+        null;
+      const lastCheckedAt =
+        this.data.events
+          .map((event) => event.lastCheckedAt)
+          .filter(Boolean)
+          .sort()
+          .at(-1) ?? null;
+      const lastTeamChangeAt =
+        this.data.events
+          .map((event) => event.lastTeamChangeAt)
+          .filter(Boolean)
+          .sort()
+          .at(-1) ?? null;
+      const latestChangeAt =
+        this.data.changeEvents
+          .map((event) => event.createdAt)
+          .sort()
+          .at(-1) ?? null;
+      return {
+        scope,
+        exposureEventId: null,
+        lastSyncedAt,
+        lastCheckedAt,
+        lastTeamChangeAt,
+        latestChangeAt,
+        latestSuccessfulSyncAt: lastSyncedAt,
+        fingerprint: [
+          scope,
+          lastSyncedAt ?? "",
+          lastCheckedAt ?? "",
+          lastTeamChangeAt ?? "",
+          latestChangeAt ?? "",
+        ].join("|"),
+      };
+    }
+
+    const snapshot = this.snapshotForClient(null, exposureEventId);
+    const lastSyncedAt =
+      snapshot.syncRuns
+        .filter((run) => run.status === "success" && run.completedAt)
+        .map((run) => run.completedAt)
+        .sort()
+        .at(-1) ?? snapshot.event.lastSyncedAt;
+    const latestChangeAt =
+      snapshot.changeEvents
+        .map((event) => event.createdAt)
+        .sort()
+        .at(-1) ?? null;
+    return {
+      scope,
+      exposureEventId: snapshot.event.exposureEventId,
+      lastSyncedAt,
+      lastCheckedAt: snapshot.event.lastCheckedAt,
+      lastTeamChangeAt: snapshot.event.lastTeamChangeAt,
+      latestChangeAt,
+      latestSuccessfulSyncAt: lastSyncedAt,
+      fingerprint: [
+        snapshot.event.exposureEventId,
+        lastSyncedAt ?? "",
+        snapshot.event.lastTeamChangeAt ?? "",
+        latestChangeAt ?? "",
+      ].join("|"),
+    };
   }
 
   async dashboard(clientId?: string | null, exposureEventId?: number | null) {
@@ -646,6 +732,115 @@ export class PrismaStore implements CourtWatchStore {
         changesDetected: run.changesDetected,
         errorMessage: run.errorMessage,
       })),
+    };
+  }
+
+  async syncStatus(
+    exposureEventId?: number | null,
+    scope: "event" | "all" = "event",
+  ): Promise<SyncStatus> {
+    if (scope === "all") {
+      const [aggregate, latestChange, latestSuccess] = await Promise.all([
+        this.prisma.event.aggregate({
+          _max: {
+            lastSyncedAt: true,
+            lastCheckedAt: true,
+            lastTeamChangeAt: true,
+          },
+        }),
+        this.prisma.gameChangeEvent.findFirst({
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        }),
+        this.prisma.syncRun.findFirst({
+          where: { status: "success", completedAt: { not: null } },
+          orderBy: { completedAt: "desc" },
+          select: { completedAt: true },
+        }),
+      ]);
+      const lastSyncedAt = aggregate._max.lastSyncedAt?.toISOString() ?? null;
+      const lastCheckedAt = aggregate._max.lastCheckedAt?.toISOString() ?? null;
+      const lastTeamChangeAt =
+        aggregate._max.lastTeamChangeAt?.toISOString() ?? null;
+      const latestChangeAt = latestChange?.createdAt.toISOString() ?? null;
+      const latestSuccessfulSyncAt =
+        latestSuccess?.completedAt?.toISOString() ?? lastSyncedAt;
+
+      return {
+        scope,
+        exposureEventId: null,
+        lastSyncedAt,
+        lastCheckedAt,
+        lastTeamChangeAt,
+        latestChangeAt,
+        latestSuccessfulSyncAt,
+        fingerprint: [
+          scope,
+          lastSyncedAt ?? "",
+          lastCheckedAt ?? "",
+          lastTeamChangeAt ?? "",
+          latestChangeAt ?? "",
+          latestSuccessfulSyncAt ?? "",
+        ].join("|"),
+      };
+    }
+
+    const requestedTournament = tournamentForExposureEventId(exposureEventId);
+    const event = await this.prisma.event.findUnique({
+      where: { exposureEventId: requestedTournament.exposureEventId },
+    });
+
+    if (!event) {
+      return {
+        scope,
+        exposureEventId: requestedTournament.exposureEventId,
+        lastSyncedAt: null,
+        lastCheckedAt: null,
+        lastTeamChangeAt: null,
+        latestChangeAt: null,
+        latestSuccessfulSyncAt: null,
+        fingerprint: `${requestedTournament.exposureEventId}|pending`,
+      };
+    }
+
+    const [latestChange, latestSuccess] = await Promise.all([
+      this.prisma.gameChangeEvent.findFirst({
+        where: { game: { eventId: event.id } },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      }),
+      this.prisma.syncRun.findFirst({
+        where: {
+          eventId: event.id,
+          status: "success",
+          completedAt: { not: null },
+        },
+        orderBy: { completedAt: "desc" },
+        select: { completedAt: true },
+      }),
+    ]);
+    const lastSyncedAt = event.lastSyncedAt?.toISOString() ?? null;
+    const lastCheckedAt = event.lastCheckedAt?.toISOString() ?? null;
+    const lastTeamChangeAt = event.lastTeamChangeAt?.toISOString() ?? null;
+    const latestChangeAt = latestChange?.createdAt.toISOString() ?? null;
+    const latestSuccessfulSyncAt =
+      latestSuccess?.completedAt?.toISOString() ?? lastSyncedAt;
+
+    return {
+      scope,
+      exposureEventId: event.exposureEventId,
+      lastSyncedAt,
+      lastCheckedAt,
+      lastTeamChangeAt,
+      latestChangeAt,
+      latestSuccessfulSyncAt,
+      fingerprint: [
+        event.exposureEventId,
+        lastSyncedAt ?? "",
+        lastTeamChangeAt ?? "",
+        latestChangeAt ?? "",
+        latestSuccessfulSyncAt ?? "",
+      ].join("|"),
     };
   }
 
