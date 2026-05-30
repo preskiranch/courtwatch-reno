@@ -81,6 +81,51 @@ const fallbackTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+const gsgSpringFinaleTournament: TournamentSource = {
+  id: "event-bam-gsg-spring-finale-2026",
+  exposureEventId: 264312,
+  externalProvider: "exposure_events",
+  externalId: "264312",
+  slug: "bam-x-gsg-spring-finale",
+  sourceUrl:
+    "https://basketball.exposureevents.com/264312/bam-x-gsg-spring-finale",
+  name: "BAM x GSG - Spring Finale",
+  organizer: "GSG Hoops",
+  sport: "basketball",
+  sanctioningTags: [
+    "GSG Hoops",
+    "Golden State Games",
+    "BAM",
+    "BAMTOURNAMENTS",
+    "BAM x GSG",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: [],
+  venueName: null,
+  city: "San Ramon/Danville",
+  state: "CA",
+  region: "California",
+  startDate: "2026-05-30",
+  endDate: "2026-05-30",
+  location: "San Ramon/Danville, CA",
+  officialUrl:
+    "https://basketball.exposureevents.com/264312/bam-x-gsg-spring-finale",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: false,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
+const defaultTrackedTournaments = [
+  fallbackTournament,
+  gsgSpringFinaleTournament,
+];
+
 const TournamentSourceSchema = z
   .object({
     id: z.string().optional(),
@@ -200,7 +245,7 @@ export function configuredTournaments(): TournamentSource[] {
     ];
   }
 
-  return [fallbackTournament];
+  return defaultTrackedTournaments;
 }
 
 export function defaultTournament(): TournamentSource {
@@ -208,6 +253,9 @@ export function defaultTournament(): TournamentSource {
   const configuredDefault = config.DEFAULT_EXPOSURE_EVENT_ID;
   return (
     tournaments.find((event) => event.exposureEventId === configuredDefault) ??
+    tournaments.find(
+      (event) => event.exposureEventId === fallbackTournament.exposureEventId,
+    ) ??
     tournaments[0] ??
     fallbackTournament
   );
