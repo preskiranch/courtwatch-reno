@@ -148,6 +148,48 @@ describe("dashboard followed-team reconciliation", () => {
     expect(reconciled.nextGame?.id).toBe("game-test");
   });
 
+  it("refreshes existing followed teams from the latest games and records", () => {
+    const splash = team("team-splash-10u", "Splash City 10U");
+    const opponent = team("team-opponent", "Opponent");
+    opponent.isFollowed = false;
+    const staleProgram = emptyProgram();
+    staleProgram.teams = [
+      {
+        ...splash,
+        record: undefined,
+        matchType: "manual",
+        matchConfidence: 1,
+        nextGame: null,
+        lastResult: null,
+        liveStatus: "awaiting_bracket",
+      },
+    ];
+
+    const reconciled = dashboardWithRegisteredFollows(
+      dashboard(staleProgram),
+      [splash, opponent],
+      [game(splash.id, opponent.id)],
+      new Map([
+        [
+          splash.id,
+          {
+            wins: 2,
+            losses: 0,
+            ties: 0,
+            gamesScored: 2,
+            totalPoints: 111,
+            finalGames: 2,
+            gamesSeen: 3,
+          },
+        ],
+      ]),
+    );
+
+    expect(reconciled.programs[0]?.teams[0]?.record?.wins).toBe(2);
+    expect(reconciled.programs[0]?.teams[0]?.nextGame?.id).toBe("game-test");
+    expect(reconciled.nextGame?.id).toBe("game-test");
+  });
+
   it("keeps a real zero-team dashboard when the device has no followed teams", () => {
     const registered = team("team-splash-10u", "Splash City 10U");
     registered.isFollowed = false;

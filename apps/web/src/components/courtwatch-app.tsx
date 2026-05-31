@@ -558,6 +558,7 @@ export function CourtWatchApp() {
               accountSession={accountSession}
               onAccountSessionChange={setAccountSession}
               onRefresh={refresh}
+              timezone={dashboard.event.timezone}
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "alerts" ? (
@@ -817,9 +818,7 @@ function AppHeader({
             ) : (
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-300" />
             )}
-            <span className="line-clamp-2">
-              {statusMessage}
-            </span>
+            <span className="line-clamp-2">{statusMessage}</span>
           </span>
         </span>
         <span className="hidden shrink-0 items-center gap-1.5 rounded-md bg-white/8 px-2 py-1 text-[11px] font-black text-white min-[390px]:inline-flex">
@@ -988,6 +987,7 @@ function DashboardScreen({
       <NextGameBanner
         game={effectiveDashboard.nextGame}
         records={teamRecords}
+        timezone={dashboard.event.timezone}
       />
 
       <button
@@ -1006,6 +1006,7 @@ function DashboardScreen({
             program={program}
             records={teamRecords}
             recordsLoading={recordsLoading}
+            timezone={dashboard.event.timezone}
           />
         ))}
       </div>
@@ -1042,9 +1043,11 @@ function DashboardScreen({
 function NextGameBanner({
   game,
   records,
+  timezone,
 }: {
   game: Game | null;
   records: Map<string, TeamRecord>;
+  timezone?: string | null;
 }) {
   if (!game) {
     return (
@@ -1082,6 +1085,12 @@ function NextGameBanner({
           <h2 className="text-2xl font-black text-slate-950">
             {game.scheduledTime}
           </h2>
+          <p className="mt-0.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+            {formatGameDateOnly(
+              game.startsAt,
+              game.timezone ?? timezone ?? DEFAULT_TOURNAMENT_TIME_ZONE,
+            )}
+          </p>
           <p className="mt-1 text-sm font-bold text-slate-700">{matchup}</p>
           <GameRecordsLine game={game} records={records} />
         </div>
@@ -1102,10 +1111,12 @@ function ProgramCard({
   program,
   records,
   recordsLoading,
+  timezone,
 }: {
   program: ProgramSummary;
   records: Map<string, TeamRecord>;
   recordsLoading: boolean;
+  timezone?: string | null;
 }) {
   const found = program.teams.length;
   return (
@@ -1128,7 +1139,14 @@ function ProgramCard({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <Metric label="Next" value={program.nextGame?.scheduledTime ?? "TBD"} />
+        <Metric
+          label="Next"
+          value={
+            program.nextGame
+              ? formatNextGameSummary(program.nextGame, timezone)
+              : "TBD"
+          }
+        />
         <Metric label="Alerts" value={String(program.alertsCount)} />
       </div>
 
@@ -1156,7 +1174,7 @@ function ProgramCard({
             </div>
             <p className="mt-2 text-sm text-slate-700">
               {team.nextGame
-                ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}`
+                ? formatNextGameSummary(team.nextGame, timezone)
                 : "Next game awaiting bracket"}
             </p>
           </div>
@@ -1800,7 +1818,9 @@ function Metric({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
         {label}
       </p>
-      <p className="mt-0.5 text-lg font-black text-slate-950">{value}</p>
+      <p className="mt-0.5 break-words text-lg font-black leading-tight text-slate-950">
+        {value}
+      </p>
     </div>
   );
 }
@@ -2043,6 +2063,7 @@ function TeamsScreen({
   accountSession,
   onAccountSessionChange,
   onRefresh,
+  timezone,
 }: {
   dashboard: DashboardResponse;
   eventId: number | null;
@@ -2050,6 +2071,7 @@ function TeamsScreen({
   accountSession: AccountSession | null;
   onAccountSessionChange: (session: AccountSession | null) => void;
   onRefresh: () => void;
+  timezone?: string | null;
 }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -2323,6 +2345,7 @@ function TeamsScreen({
                   unfollowTeam.mutate(team.id);
                 }}
                 pending={unfollowTeam.isPending && pendingTeamId === team.id}
+                timezone={timezone}
               />
             ))}
           </div>
@@ -2336,6 +2359,7 @@ function TeamsScreen({
           record={teamRecordForTeam(focusedTeam, records)}
           records={records}
           recordsLoading={recordsLoading}
+          timezone={timezone}
         />
       ) : null}
 
@@ -2514,6 +2538,7 @@ function FollowedTeamRow({
   onFocus,
   onUnfollow,
   pending,
+  timezone,
 }: {
   team: ProgramSummary["teams"][number];
   eventId: number | null;
@@ -2523,6 +2548,7 @@ function FollowedTeamRow({
   onFocus: () => void;
   onUnfollow: () => void;
   pending: boolean;
+  timezone?: string | null;
 }) {
   const displayName = teamDisplayName(team);
   return (
@@ -2568,7 +2594,7 @@ function FollowedTeamRow({
           label="Next"
           value={
             team.nextGame
-              ? `${team.nextGame.scheduledTime} ${team.nextGame.courtName ?? "Court TBD"}`
+              ? formatNextGameSummary(team.nextGame, timezone)
               : "TBD"
           }
         />
@@ -2644,12 +2670,14 @@ function TeamFocusPanel({
   record,
   records,
   recordsLoading,
+  timezone,
 }: {
   team: ProgramSummary["teams"][number];
   eventId: number | null;
   record: TeamRecord | undefined;
   records: Map<string, TeamRecord>;
   recordsLoading: boolean;
+  timezone?: string | null;
 }) {
   const divisionGamesQuery = useQuery({
     queryKey: ["division-games", team.divisionId, eventId],
@@ -2694,7 +2722,14 @@ function TeamFocusPanel({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <Metric label="Next court" value={team.nextGame?.courtName ?? "TBD"} />
+        <Metric
+          label="Next"
+          value={
+            team.nextGame
+              ? formatNextGameSummary(team.nextGame, timezone)
+              : "TBD"
+          }
+        />
         <Metric
           label="Bracket games"
           value={
@@ -3647,11 +3682,11 @@ function StatusBadge({ status }: { status: string }) {
       ? "bg-slate-900 text-white"
       : status === "playing_now"
         ? "bg-emerald-500 text-white"
-      : status === "schedule_changed"
-        ? "bg-amber-400 text-slate-950"
-        : status === "awaiting_bracket" || status === "unknown"
-          ? "bg-slate-200 text-slate-700"
-          : "bg-orange-500 text-white";
+        : status === "schedule_changed"
+          ? "bg-amber-400 text-slate-950"
+          : status === "awaiting_bracket" || status === "unknown"
+            ? "bg-slate-200 text-slate-700"
+            : "bg-orange-500 text-white";
   return (
     <span
       className={clsx(
@@ -4314,6 +4349,30 @@ function formatGameDate(
     minute: "2-digit",
     timeZone,
   }).format(new Date(iso));
+}
+
+function formatGameDateOnly(
+  iso: string,
+  timeZone = DEFAULT_TOURNAMENT_TIME_ZONE,
+): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone,
+  }).format(new Date(iso));
+}
+
+function formatNextGameSummary(
+  game: Pick<Game, "startsAt" | "courtName" | "timezone">,
+  fallbackTimeZone: string | null | undefined = DEFAULT_TOURNAMENT_TIME_ZONE,
+): string {
+  const timeZone =
+    game.timezone ?? fallbackTimeZone ?? DEFAULT_TOURNAMENT_TIME_ZONE;
+  return `${formatGameDateOnly(game.startsAt, timeZone)} at ${formatShortTime(
+    game.startsAt,
+    timeZone,
+  )} ${game.courtName ?? "Court TBD"}`;
 }
 
 type AlertDisplay = {
