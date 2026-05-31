@@ -447,6 +447,8 @@ function preserveDashboardFollowsForMigration<T>(
     typeof window === "undefined"
   )
     return;
+  if (window.localStorage.getItem(`courtwatch:follow-migration:${clientId}`))
+    return;
   const previousTeamIds = dashboardTeamIdsFromUnknown(safeJson(previousCache));
   const nextTeamIds = dashboardTeamIdsFromUnknown(nextData);
   if (previousTeamIds.length > 0 && nextTeamIds.length === 0) {

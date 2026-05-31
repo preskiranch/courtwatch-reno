@@ -2180,6 +2180,9 @@ function TeamsScreen({
   );
   const followTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.followTeam(teamId),
+    onMutate: () => {
+      markFollowMigrationComplete(clientId);
+    },
     onSuccess: (_match, teamId) => {
       const team = knownTeamsById.get(teamId);
       if (!team?.exposureEventId || team.exposureEventId === eventId) {
@@ -2190,6 +2193,9 @@ function TeamsScreen({
   });
   const unfollowTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.unfollowTeam(teamId),
+    onMutate: () => {
+      markFollowMigrationComplete(clientId);
+    },
     onSuccess: (_unused, teamId) => {
       forgetFollowedTeamById(teamId);
       refreshSelection();
@@ -4335,6 +4341,20 @@ function dashboardFollowMigrationTeamIds(clientId: string): string[] {
     );
   } catch {
     return [];
+  }
+}
+
+function markFollowMigrationComplete(clientId: string | null) {
+  if (typeof window === "undefined") return;
+  const ids = new Set(
+    [clientId, stableClientId()].filter((id): id is string => Boolean(id)),
+  );
+  for (const id of ids) {
+    window.localStorage.setItem(
+      `courtwatch:follow-migration:${id}`,
+      "complete",
+    );
+    window.localStorage.removeItem(dashboardFollowMigrationStorageKey(id));
   }
 }
 
