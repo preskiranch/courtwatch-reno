@@ -949,6 +949,25 @@ function DashboardScreen({
     observedFollowedTeams,
     { authoritative: isAccountClientId(clientId) },
   );
+  const suppressedFollowedIds = useMemo(
+    () => loadSuppressedFollowedTeamIds(clientId, eventId),
+    [clientId, eventId, storedFollowedTeams],
+  );
+  const dashboardWithoutSuppressedFollows = useMemo(
+    () =>
+      suppressedFollowedIds.size === 0
+        ? dashboard
+        : {
+            ...dashboard,
+            programs: dashboard.programs.map((program) => ({
+              ...program,
+              teams: program.teams.filter(
+                (team) => !suppressedFollowedIds.has(team.id),
+              ),
+            })),
+          },
+    [dashboard, suppressedFollowedIds],
+  );
   const trustedRegisteredTeams = useMemo(
     () =>
       teamsWithTrustedFollowState(teamsQuery.data ?? [], storedFollowedTeams),
@@ -966,12 +985,17 @@ function DashboardScreen({
   const effectiveDashboard = useMemo(
     () =>
       dashboardWithRegisteredFollows(
-        dashboard,
+        dashboardWithoutSuppressedFollows,
         teamsForFollowState,
         allGamesQuery.data ?? [],
         teamRecords,
       ),
-    [allGamesQuery.data, dashboard, teamRecords, teamsForFollowState],
+    [
+      allGamesQuery.data,
+      dashboardWithoutSuppressedFollows,
+      teamRecords,
+      teamsForFollowState,
+    ],
   );
   const finalResultFollowedTeams =
     storedFollowedTeams.length > 0
