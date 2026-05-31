@@ -53,6 +53,24 @@ describe("final division results", () => {
     ]);
   });
 
+  it("does not derive placement winners from unresolved bracket placeholders", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      finalGame({
+        id: "game-placeholder-championship",
+        gameType: "Championship (G2)",
+        homeTeamId: "team-placeholder-w1",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "W1",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 51,
+        awayScore: 38,
+      }),
+    ];
+
+    expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
+  });
+
   it("uses the secondary completed placement final as bronze when the public feed labels it championship", () => {
     const snapshot = snapshotWithFinals();
     snapshot.games = [
@@ -237,6 +255,40 @@ describe("final division results", () => {
         isOfficial: false,
         sourceHash: "stored",
         rawJson: { homeScore: 51, awayScore: 38 },
+        lastSeenAt: "2026-05-24T00:00:00.000Z",
+      },
+    ];
+
+    const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
+    expect(
+      groups.find((group) => group.divisionId === "division-boys-4th-green")
+        ?.rows,
+    ).toEqual([]);
+  });
+
+  it("hides previously stored official placement rows that still contain bracket placeholders", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [];
+    snapshot.divisionResults = [
+      {
+        id: "stored-placeholder-champion",
+        eventId: snapshot.event.id,
+        divisionId: "division-boys-4th-green",
+        divisionName: "Boys 4th Green",
+        gender: "Boys",
+        gradeLevel: "4TH",
+        level: "Green",
+        teamId: null,
+        teamNameSnapshot: "W3",
+        teamSourceUrl: null,
+        placement: 1,
+        medalLabel: "Gold",
+        bracketLabel: "Championship",
+        source: "bracket_final",
+        sourceUrl: null,
+        isOfficial: true,
+        sourceHash: "stored-placeholder",
+        rawJson: { OfficialPlacement: true },
         lastSeenAt: "2026-05-24T00:00:00.000Z",
       },
     ];

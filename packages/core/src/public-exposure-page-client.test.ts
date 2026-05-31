@@ -280,6 +280,89 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("ignores bracket placeholder winners and falls back to completed standings", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1433824,"Name":"10U/11U 4th/5th Grade"}],
+              brackets: [
+                {"Id":799408,"Name":"Championship","DivisionId":1433824,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/799408")) {
+        return htmlResponse(`
+          <div class="bracket-winner" style="left: 300px; top: 279px;">
+            <div class="winner-source"><span class="name">W1</span></div>
+            <div>Champion</div>
+          </div>
+        `);
+      }
+      if (url.includes("/standings")) {
+        return jsonResponse([
+          {
+            PoolName: "A",
+            Teams: [
+              {
+                Name: "TXHE J3SSB 2033",
+                TeamLink:
+                  "/252017/g365-kings-of-the-south/teams/txhe-j3ssb-2033?divisionteamid=5330644",
+                Place: "1st",
+                Wins: 3,
+                Losses: 0,
+                Complete: true,
+              },
+              {
+                Name: "AB Elite 2034",
+                TeamLink:
+                  "/252017/g365-kings-of-the-south/teams/ab-elite-2034?divisionteamid=5330643",
+                Place: "2nd",
+                Wins: 2,
+                Losses: 1,
+                Complete: true,
+              },
+              {
+                Name: "Hard Hoops 2033 Jr 3SSB",
+                TeamLink:
+                  "/252017/g365-kings-of-the-south/teams/hard-hoops-2033-jr-3ssb?divisionteamid=5330642",
+                Place: "3rd",
+                Wins: 1,
+                Losses: 2,
+                Complete: true,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(252017, {
+      eventSlug: "g365-kings-of-the-south",
+    });
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.source,
+      ]),
+    ).toEqual([
+      [1, "TXHE J3SSB 2033", "official_standings"],
+      [2, "AB Elite 2034", "official_standings"],
+      [3, "Hard Hoops 2033 Jr 3SSB", "official_standings"],
+    ]);
+  });
+
   it("fills bronze from completed standings when playoff standings match the bracket finalists", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

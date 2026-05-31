@@ -847,6 +847,7 @@ function bracketTeamFromNode(
 ): ParsedBracketTeam | null {
   const name = cleanText(node.find(".name").first().text());
   if (!name) return null;
+  if (isBracketPlaceholderTeamName(name)) return null;
   const href = node.find("a").first().attr("href") ?? null;
   const sourceUrl = href ? new URL(href, baseUrl).toString() : null;
   const divisionTeamId = href
@@ -866,6 +867,15 @@ function scoreFromBracketParticipantText(text: string): number | null {
   const scores = Array.from(text.matchAll(/\((\d{1,3})\)/g));
   const rawScore = scores.at(-1)?.[1];
   return rawScore ? sanitizeBasketballScore(Number(rawScore)) : null;
+}
+
+function isBracketPlaceholderTeamName(name: string): boolean {
+  const normalized = cleanText(name).toLowerCase();
+  return (
+    /^(w|l)\d+(\s*\([^)]*\))?$/.test(normalized) ||
+    /^(winner|loser)\s+(of\s+)?(game\s+)?\d+$/i.test(normalized) ||
+    /^(tbd|to be determined|bye)$/.test(normalized)
+  );
 }
 
 function stylePixelValue(

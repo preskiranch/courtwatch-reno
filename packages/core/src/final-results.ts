@@ -54,10 +54,11 @@ export function deriveDivisionResultsFromGames(
     if (goldFinal) {
       const winner = resultTeamFromGame(goldFinal, snapshot.teams, "winner");
       const runnerUp = resultTeamFromGame(goldFinal, snapshot.teams, "loser");
-      if (winner)
+      if (winner) {
         results.push(makeResult(snapshot, divisionId, goldFinal, 1, winner));
-      if (runnerUp)
-        results.push(makeResult(snapshot, divisionId, goldFinal, 2, runnerUp));
+        if (runnerUp)
+          results.push(makeResult(snapshot, divisionId, goldFinal, 2, runnerUp));
+      }
     }
 
     const bronzeFinal =
@@ -312,6 +313,7 @@ function resultTeamFromGame(
   const nameSnapshot =
     (useHome ? game.homeTeamNameSnapshot : game.awayTeamNameSnapshot) ??
     "Team TBD";
+  if (isPlaceholderTeamName(nameSnapshot)) return null;
   const team = teamId ? teams.find((item) => item.id === teamId) : null;
   return {
     id: team?.id ?? teamId,
@@ -562,6 +564,7 @@ function hasTeamRecordActivity(
 }
 
 function isTrustedStoredResult(result: DivisionResult): boolean {
+  if (isPlaceholderTeamName(result.teamNameSnapshot)) return false;
   if (result.isOfficial) return true;
   if (result.source !== "bracket_final") return true;
   if (!hasOfficialPlacementSignal(result.rawJson)) return false;
@@ -602,6 +605,15 @@ function hasOfficialPlacementSignal(rawJson: unknown): boolean {
     "IsOfficialPlacement",
     "isOfficialPlacement",
   ].some((key) => raw[key] === true);
+}
+
+function isPlaceholderTeamName(name: string | null | undefined): boolean {
+  const normalized = (name ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+  return (
+    /^(w|l)\d+(\s*\([^)]*\))?$/.test(normalized) ||
+    /^(winner|loser)\s+(of\s+)?(game\s+)?\d+$/.test(normalized) ||
+    /^(tbd|to be determined|bye|team tbd)$/.test(normalized)
+  );
 }
 
 function maxIso(left: string | null, right: string | null): string | null {
