@@ -96,7 +96,7 @@ export function buildDivisionResultGroups(
   const divisionIds =
     scope === "watched"
       ? watchedDivisionIds(snapshot)
-      : registeredDivisionIds(snapshot);
+      : registeredDivisionIds(snapshot, Array.from(resultsByKey.values()));
   if (scope === "watched" && divisionIds.size === 0) return [];
 
   const results = Array.from(resultsByKey.values())
@@ -111,6 +111,12 @@ export function buildDivisionResultGroups(
   for (const result of results.sort(compareResults)) {
     const existing = groups.get(result.divisionId);
     if (existing) {
+      if (existing.rows.length === 0 && existing.divisionName === "Division TBD") {
+        existing.divisionName = result.divisionName;
+        existing.gender = result.gender;
+        existing.gradeLevel = result.gradeLevel;
+        existing.level = result.level;
+      }
       existing.rows.push(result);
       existing.sourceUrl ??= result.sourceUrl;
       existing.lastUpdatedAt = maxIso(
@@ -162,15 +168,20 @@ function watchedDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
   );
 }
 
-function registeredDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
+function registeredDivisionIds(
+  snapshot: CourtWatchSnapshot,
+  results: DivisionResult[],
+): Set<string> {
   const teamDivisionIds = new Set(
     snapshot.teams
       .map((team) => team.divisionId)
       .filter((divisionId): divisionId is string => Boolean(divisionId)),
   );
-  return teamDivisionIds.size > 0
-    ? teamDivisionIds
-    : new Set(snapshot.divisions.map((division) => division.id));
+  for (const result of results) {
+    teamDivisionIds.add(result.divisionId);
+  }
+  if (teamDivisionIds.size > 0) return teamDivisionIds;
+  return new Set(snapshot.divisions.map((division) => division.id));
 }
 
 function emptyResultGroup(
@@ -405,7 +416,36 @@ function withResultRecord(
 ): DivisionResult {
   if (!result.teamId) return result;
   const record = recordsByTeamId.get(result.teamId);
-  return record ? { ...result, record } : result;
+  const storedRecord = recordFromStoredResultRaw(result.rawJson);
+  return record || storedRecord
+    ? { ...result, record: record ?? storedRecord ?? undefined }
+    : result;
+}
+
+function recordFromStoredResultRaw(rawJson: unknown): TeamRecordSummary | null {
+  if (!rawJson || typeof rawJson !== "object" || Array.isArray(rawJson))
+    return null;
+  const raw = rawJson as Record<string, unknown>;
+  const wins = nonNegativeInteger(raw.Wins);
+  const losses = nonNegativeInteger(raw.Losses);
+  if (wins === null && losses === null) return null;
+  const totalPoints = nonNegativeInteger(raw.PointsScored) ?? 0;
+  const finalGames = (wins ?? 0) + (losses ?? 0);
+  return {
+    wins: wins ?? 0,
+    losses: losses ?? 0,
+    ties: 0,
+    gamesScored: finalGames,
+    totalPoints,
+    finalGames,
+    gamesSeen: finalGames,
+  };
+}
+
+function nonNegativeInteger(value: unknown): number | null {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numeric) || numeric < 0) return null;
+  return Math.trunc(numeric);
 }
 
 function buildTeamRecordSummaries(

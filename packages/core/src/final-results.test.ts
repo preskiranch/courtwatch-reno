@@ -266,6 +266,55 @@ describe("final division results", () => {
     });
   });
 
+  it("includes official standings pool result groups even when teams stay attached to the parent division", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [];
+    snapshot.divisionResults = [
+      {
+        id: "standings-pool-a-1",
+        eventId: snapshot.event.id,
+        divisionId: "division-boys-4th-green-pool-a",
+        divisionName: "Boys 4th Green - Pool A",
+        gender: "Boys",
+        gradeLevel: "4TH",
+        level: "Green",
+        teamId: "team-splash-4th",
+        teamNameSnapshot: "Splash City",
+        teamSourceUrl: null,
+        placement: 1,
+        medalLabel: "Gold",
+        bracketLabel: "Pool A standings",
+        source: "official_standings",
+        sourceUrl: "https://example.test/standings",
+        isOfficial: true,
+        sourceHash: "standings-pool-a-1",
+        rawJson: {
+          source: "public_standings",
+          PoolKey: "a",
+          Wins: 2,
+          Losses: 0,
+        },
+        lastSeenAt: "2026-05-25T00:00:00.000Z",
+      },
+    ];
+
+    const groups = buildDivisionResultGroups(snapshot, { scope: "all" });
+
+    expect(
+      groups.find(
+        (group) => group.divisionId === "division-boys-4th-green-pool-a",
+      ),
+    ).toMatchObject({
+      divisionName: "Boys 4th Green - Pool A",
+      rows: [
+        expect.objectContaining({
+          teamNameSnapshot: "Splash City",
+          record: expect.objectContaining({ wins: 2, losses: 0 }),
+        }),
+      ],
+    });
+  });
+
   it("includes watched divisions even before final placements are posted", () => {
     const snapshot = snapshotWithFinals();
     snapshot.matches = [
