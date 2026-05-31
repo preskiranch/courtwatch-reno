@@ -1927,6 +1927,9 @@ function shouldFetchPublicDivisionResults(tournament: TournamentSource) {
   const todayKey =
     process.env.COURTWATCH_TODAY ??
     dateKeyInTournamentTimeZone(new Date(), tournament.timezone);
+  if (tournament.startDate === tournament.endDate) {
+    return todayKey >= tournament.startDate;
+  }
   return todayKey >= tournament.endDate;
 }
 

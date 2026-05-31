@@ -7,19 +7,24 @@ export function deriveEffectiveGameStatus(
   now = new Date(),
 ): GameStatus {
   if (game.status === "final") return "final";
-  if (game.status === "playing_now") return "playing_now";
-  if (game.status !== "upcoming" && game.status !== "schedule_changed") {
-    return game.status;
-  }
 
   const startMs = Date.parse(game.startsAt);
   if (!Number.isFinite(startMs)) return game.status;
 
   const nowMs = now.getTime();
   const liveUntilMs = startMs + LIVE_GAME_WINDOW_MINUTES * 60_000;
-  return nowMs >= startMs && nowMs <= liveUntilMs
-    ? "playing_now"
-    : game.status;
+  const inLiveWindow = nowMs >= startMs && nowMs <= liveUntilMs;
+
+  if (game.status === "playing_now") {
+    if (inLiveWindow) return "playing_now";
+    return nowMs < startMs ? "upcoming" : "unknown";
+  }
+
+  if (game.status !== "upcoming" && game.status !== "schedule_changed") {
+    return game.status;
+  }
+
+  return inLiveWindow ? "playing_now" : game.status;
 }
 
 export function withEffectiveGameStatus<T extends Game>(

@@ -3647,11 +3647,11 @@ function StatusBadge({ status }: { status: string }) {
       ? "bg-slate-900 text-white"
       : status === "playing_now"
         ? "bg-emerald-500 text-white"
-        : status === "schedule_changed"
-          ? "bg-amber-400 text-slate-950"
-          : status === "awaiting_bracket"
-            ? "bg-slate-200 text-slate-700"
-            : "bg-orange-500 text-white";
+      : status === "schedule_changed"
+        ? "bg-amber-400 text-slate-950"
+        : status === "awaiting_bracket" || status === "unknown"
+          ? "bg-slate-200 text-slate-700"
+          : "bg-orange-500 text-white";
   return (
     <span
       className={clsx(
@@ -4269,6 +4269,7 @@ function dashboardFollowMigrationTeamIds(clientId: string): string[] {
 }
 
 function labelStatus(status: string): string {
+  if (status === "unknown") return "Awaiting score";
   return status
     .replace(/_/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
