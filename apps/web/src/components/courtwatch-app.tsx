@@ -2424,17 +2424,26 @@ function useStoredFollowedTeams(
   forgetFollowedTeamById: (teamId: string) => void;
 } {
   const [storedFollowedTeams, setStoredFollowedTeams] = useState<Team[]>([]);
+  const [suppressedFollowedIds, setSuppressedFollowedIds] = useState<
+    Set<string>
+  >(new Set());
   const observedFollowedSignature = useMemo(
     () =>
       observedTeams
         .filter((team) => team.isFollowed)
+        .filter((team) => !suppressedFollowedIds.has(team.id))
         .map((team) => `${team.id}:${team.followerCount ?? ""}`)
         .sort()
         .join("|"),
-    [observedTeams],
+    [observedTeams, suppressedFollowedIds],
+  );
+  const mergeableObservedTeams = useMemo(
+    () => observedTeams.filter((team) => !suppressedFollowedIds.has(team.id)),
+    [observedTeams, suppressedFollowedIds],
   );
 
   useEffect(() => {
+    setSuppressedFollowedIds(new Set());
     setStoredFollowedTeams(loadStoredFollowedTeams(clientId, eventId));
   }, [clientId, eventId]);
 
@@ -2442,34 +2451,43 @@ function useStoredFollowedTeams(
     if (!clientId || !eventId) return;
     if (options.authoritative) {
       setStoredFollowedTeams(
-        replaceStoredFollowedTeams(clientId, eventId, observedTeams),
+        replaceStoredFollowedTeams(clientId, eventId, mergeableObservedTeams),
       );
       return;
     }
     if (observedFollowedSignature.length === 0) return;
     setStoredFollowedTeams(
-      mergeStoredFollowedTeams(clientId, eventId, observedTeams, {
+      mergeStoredFollowedTeams(clientId, eventId, mergeableObservedTeams, {
         onlyExistingWhenStored: true,
       }),
     );
   }, [
     clientId,
     eventId,
+    mergeableObservedTeams,
     observedFollowedSignature,
-    observedTeams,
     options.authoritative,
   ]);
 
   return {
     storedFollowedTeams,
-    rememberFollowedTeam: (team) =>
+    rememberFollowedTeam: (team) => {
+      if (team)
+        setSuppressedFollowedIds((current) => {
+          const next = new Set(current);
+          next.delete(team.id);
+          return next;
+        });
       setStoredFollowedTeams(
         rememberStoredFollowedTeam(clientId, eventId, team),
-      ),
-    forgetFollowedTeamById: (teamId) =>
+      );
+    },
+    forgetFollowedTeamById: (teamId) => {
+      setSuppressedFollowedIds((current) => new Set(current).add(teamId));
       setStoredFollowedTeams(
         forgetStoredFollowedTeam(clientId, eventId, teamId),
-      ),
+      );
+    },
   };
 }
 
