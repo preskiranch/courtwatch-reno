@@ -1122,79 +1122,106 @@ function parseStandingPlacementResults(input: {
   divisionName: string;
   baseUrl: string;
 }): DivisionResult[] {
-  if (input.standings.length !== 1) return [];
-  const teams = input.standings[0]?.Teams ?? [];
-  if (teams.length === 0 || teams.some((team) => team.Complete !== true))
-    return [];
-
   const meta = extractDivisionMeta(input.divisionName);
   const sourceUrl = new URL(
     `/${input.eventId}/${input.eventSlug}/standings?eventid=${input.eventId}&divisionId=${input.divisionId}`,
     input.baseUrl,
   ).toString();
   const now = new Date().toISOString();
-  const results = new Map<ResultPlacement, DivisionResult>();
+  const results = new Map<string, DivisionResult>();
+  const completedPools = input.standings.filter((pool) => {
+    const teams = pool.Teams ?? [];
+    return teams.length > 0 && teams.every((team) => team.Complete === true);
+  });
+  const usePoolGroups = completedPools.length > 1;
 
-  for (const team of teams) {
-    const placement = placementFromText(String(team.Place ?? ""));
-    if (!placement) continue;
-    const name = cleanText(team.Name);
-    if (!name) continue;
-    const href = stringOrNull(team.TeamLink);
-    const teamSourceUrl = href ? new URL(href, input.baseUrl).toString() : null;
-    const divisionTeamId = href
-      ? new URL(href, input.baseUrl).searchParams.get("divisionteamid")
-      : null;
-    const teamId = divisionTeamId
-      ? `public-team-${input.eventId}-${divisionTeamId}`
-      : null;
-    const divisionId = `division-${input.eventId}-${input.divisionId}`;
-    const rawJson = {
-      source: "public_standings",
-      OfficialPlacement: true,
-      DivisionId: input.divisionId,
-      DivisionTeamId: divisionTeamId,
-      TeamLink: href,
-      Place: team.Place,
-      Wins: team.Wins,
-      Losses: team.Losses,
-      PointsScored: team.PointsScored,
-      PointsAllowed: team.PointsAllowed,
-    };
-    const sourceHash = hashSource({
-      placement,
-      teamId,
-      teamNameSnapshot: name,
-      sourceUrl,
-      rawJson,
-    });
+  for (const pool of completedPools) {
+    const poolName = cleanText(pool.PoolName) || "Pool";
+    const poolKey = normalizePoolKey(poolName);
+    const resultDivisionId = usePoolGroups
+      ? `division-${input.eventId}-${input.divisionId}-pool-${poolKey}`
+      : `division-${input.eventId}-${input.divisionId}`;
+    const resultDivisionName = usePoolGroups
+      ? `${input.divisionName} - Pool ${poolName}`
+      : input.divisionName;
+    const bracketLabel = usePoolGroups
+      ? `Pool ${poolName} standings`
+      : "Standings";
 
-    results.set(placement, {
-      id: `public-standings-result-${input.eventId}-${input.divisionId}-${placement}`,
-      eventId: `event-${input.eventId}`,
-      divisionId,
-      divisionName: input.divisionName,
-      gender: meta.gender,
-      gradeLevel: meta.gradeLevel,
-      level: meta.level,
-      teamId,
-      teamNameSnapshot: name,
-      teamSourceUrl,
-      placement,
-      medalLabel: placementMedals[placement],
-      bracketLabel: "Standings",
-      source: "official_standings",
-      sourceUrl,
-      isOfficial: true,
-      sourceHash,
-      rawJson,
-      lastSeenAt: now,
-    });
+    for (const team of pool.Teams ?? []) {
+      const placement = placementFromText(String(team.Place ?? ""));
+      if (!placement) continue;
+      const name = cleanText(team.Name);
+      if (!name) continue;
+      const href = stringOrNull(team.TeamLink);
+      const teamSourceUrl = href
+        ? new URL(href, input.baseUrl).toString()
+        : null;
+      const divisionTeamId = href
+        ? new URL(href, input.baseUrl).searchParams.get("divisionteamid")
+        : null;
+      const teamId = divisionTeamId
+        ? `public-team-${input.eventId}-${divisionTeamId}`
+        : null;
+      const rawJson = {
+        source: "public_standings",
+        OfficialPlacement: true,
+        DivisionId: input.divisionId,
+        SyntheticDivisionId: resultDivisionId,
+        SyntheticDivisionName: resultDivisionName,
+        PoolName: usePoolGroups ? poolName : null,
+        PoolKey: usePoolGroups ? poolKey : null,
+        DivisionTeamId: divisionTeamId,
+        TeamLink: href,
+        Place: team.Place,
+        Wins: team.Wins,
+        Losses: team.Losses,
+        PointsScored: team.PointsScored,
+        PointsAllowed: team.PointsAllowed,
+      };
+      const sourceHash = hashSource({
+        placement,
+        teamId,
+        teamNameSnapshot: name,
+        sourceUrl,
+        rawJson,
+      });
+
+      results.set(`${resultDivisionId}:${placement}`, {
+        id: `public-standings-result-${input.eventId}-${input.divisionId}-${poolKey}-${placement}`,
+        eventId: `event-${input.eventId}`,
+        divisionId: resultDivisionId,
+        divisionName: resultDivisionName,
+        gender: meta.gender,
+        gradeLevel: meta.gradeLevel,
+        level: meta.level,
+        teamId,
+        teamNameSnapshot: name,
+        teamSourceUrl,
+        placement,
+        medalLabel: placementMedals[placement],
+        bracketLabel,
+        source: "official_standings",
+        sourceUrl,
+        isOfficial: true,
+        sourceHash,
+        rawJson,
+        lastSeenAt: now,
+      });
+    }
   }
 
   return Array.from(results.values()).sort(
-    (left, right) => left.placement - right.placement,
+    (left, right) =>
+      left.divisionName.localeCompare(right.divisionName, "en-US", {
+        numeric: true,
+        sensitivity: "base",
+      }) || left.placement - right.placement,
   );
+}
+
+function normalizePoolKey(poolName: string): string {
+  return normalizeName(poolName).replace(/[^a-z0-9]+/g, "-") || "pool";
 }
 
 function isPrimaryResultBracketName(name: string): boolean {

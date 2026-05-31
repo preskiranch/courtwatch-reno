@@ -1353,6 +1353,7 @@ export class PrismaStore implements CourtWatchStore {
         await upsertDivisionResult(this.prisma, result);
       }
       for (const result of await fetchSourceDivisionResults(
+        this.prisma,
         tournament,
         event.id,
         teamMap,
@@ -1889,6 +1890,7 @@ async function fetchSourceGames(
 }
 
 async function fetchSourceDivisionResults(
+  prisma: PrismaClient,
   tournament: TournamentSource,
   eventId: string,
   teamMap: Map<string, Team>,
@@ -1905,9 +1907,19 @@ async function fetchSourceDivisionResults(
       tournament.exposureEventId,
       { eventSlug: tournament.slug },
     );
-    return results.map((result) =>
-      mapPublicDivisionResult(result, eventId, teamMap, divisionIdMap),
-    );
+    const mappedResults: DivisionResult[] = [];
+    for (const result of results) {
+      mappedResults.push(
+        await mapPublicDivisionResult(
+          prisma,
+          result,
+          eventId,
+          teamMap,
+          divisionIdMap,
+        ),
+      );
+    }
+    return mappedResults;
   } catch (error) {
     console.warn("Public bracket result fetch skipped", {
       eventId: tournament.exposureEventId,
@@ -1953,36 +1965,81 @@ function dateKeyInTournamentTimeZone(date: Date, timeZone: string): string {
   return `${lookup.year}-${lookup.month}-${lookup.day}`;
 }
 
-function mapPublicDivisionResult(
+async function mapPublicDivisionResult(
+  prisma: PrismaClient,
   result: DivisionResult,
   eventId: string,
   teamMap: Map<string, Team>,
   divisionIdMap: Map<string, string>,
-): DivisionResult {
+): Promise<DivisionResult> {
   const raw = isRecord(result.rawJson) ? result.rawJson : {};
   const divisionExposureId = stringOrNull(raw.DivisionId);
-  const divisionId =
-    (divisionExposureId ? divisionIdMap.get(divisionExposureId) : null) ??
-    divisionIdMap.get(result.divisionId) ??
-    result.divisionId;
   const divisionTeamId = stringOrNull(raw.DivisionTeamId);
   const team =
     (divisionTeamId ? teamMap.get(divisionTeamId) : null) ??
     (result.teamId ? teamMap.get(result.teamId) : null) ??
     null;
+  const syntheticDivision = await ensureSyntheticStandingPoolDivision(
+    prisma,
+    result,
+    eventId,
+    divisionExposureId,
+    divisionIdMap,
+  );
+  const divisionId =
+    syntheticDivision?.id ??
+    (divisionExposureId ? divisionIdMap.get(divisionExposureId) : null) ??
+    divisionIdMap.get(result.divisionId) ??
+    result.divisionId;
 
   return {
     ...result,
     eventId,
     divisionId,
-    divisionName: team?.divisionName ?? result.divisionName,
-    gender: team?.gender ?? result.gender,
-    gradeLevel: team?.gradeLevel ?? result.gradeLevel,
-    level: team?.level ?? result.level,
+    divisionName:
+      syntheticDivision?.name ?? team?.divisionName ?? result.divisionName,
+    gender: syntheticDivision?.gender ?? team?.gender ?? result.gender,
+    gradeLevel:
+      syntheticDivision?.gradeLevel ?? team?.gradeLevel ?? result.gradeLevel,
+    level: syntheticDivision?.level ?? team?.level ?? result.level,
     teamId: team?.id ?? result.teamId,
     teamNameSnapshot: team?.name ?? result.teamNameSnapshot,
     teamSourceUrl: team?.sourceUrl ?? result.teamSourceUrl,
   };
+}
+
+async function ensureSyntheticStandingPoolDivision(
+  prisma: PrismaClient,
+  result: DivisionResult,
+  eventId: string,
+  divisionExposureId: string | null,
+  divisionIdMap: Map<string, string>,
+) {
+  const raw = isRecord(result.rawJson) ? result.rawJson : {};
+  const poolKey = stringOrNull(raw.PoolKey);
+  if (!divisionExposureId || !poolKey) return null;
+
+  const parentDivisionId = divisionIdMap.get(divisionExposureId);
+  const parentDivision = parentDivisionId
+    ? await prisma.division.findUnique({ where: { id: parentDivisionId } })
+    : null;
+  const exposureDivisionId = `${divisionExposureId}:pool:${poolKey}`;
+  const division: Division = {
+    id: `${eventId}-${exposureDivisionId}`,
+    eventId,
+    exposureDivisionId,
+    name: result.divisionName,
+    gender: parentDivision?.gender ?? result.gender,
+    gradeLevel: parentDivision?.gradeLevel ?? result.gradeLevel,
+    level: parentDivision?.level ?? result.level,
+    rawJson: {
+      source: "public_standings_pool",
+      parentDivisionId,
+      parentExposureDivisionId: divisionExposureId,
+      poolName: stringOrNull(raw.PoolName),
+    },
+  };
+  return upsertDivision(prisma, eventId, division);
 }
 
 function dedupeSourceTeams(source: { divisions: Division[]; teams: Team[] }): {

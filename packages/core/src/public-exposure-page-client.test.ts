@@ -525,4 +525,147 @@ describe("PublicExposurePageClient", () => {
       Losses: 0,
     });
   });
+
+  it("keeps official placements for each completed standings pool", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1366269,"Name":"9th Grade (15U) Boys Division"}],
+              brackets: [],
+              standingsUrl: "/264312/bam-x-gsg-spring-finale/standings?eventid=264312",
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/standings")) {
+        return jsonResponse([
+          {
+            PoolName: "A",
+            Teams: [
+              {
+                Name: "PMA Knights Red 15U",
+                TeamLink:
+                  "/264312/bam-x-gsg-spring-finale/teams/pma-knights-red-15u?divisionteamid=5331514",
+                Place: "1st",
+                Complete: true,
+                Wins: 2,
+                Losses: 0,
+              },
+              {
+                Name: "A.T.R. Elite 15U",
+                TeamLink:
+                  "/264312/bam-x-gsg-spring-finale/teams/atr-elite-15u?divisionteamid=5331515",
+                Place: "2nd",
+                Complete: true,
+                Wins: 1,
+                Losses: 1,
+              },
+              {
+                Name: "JavStep 15U",
+                TeamLink:
+                  "/264312/bam-x-gsg-spring-finale/teams/javstep-15u?divisionteamid=5331516",
+                Place: "3rd",
+                Complete: true,
+                Wins: 0,
+                Losses: 2,
+              },
+            ],
+          },
+          {
+            PoolName: "B",
+            Teams: [
+              {
+                Name: "Bay Area Thunder 15U",
+                TeamLink:
+                  "/264312/bam-x-gsg-spring-finale/teams/bay-area-thunder-15u?divisionteamid=5331517",
+                Place: "1st",
+                Complete: true,
+                Wins: 2,
+                Losses: 0,
+              },
+              {
+                Name: "Top Performance A 14U",
+                TeamLink:
+                  "/264312/bam-x-gsg-spring-finale/teams/top-performance-a-14u?divisionteamid=5331518",
+                Place: "2nd",
+                Complete: true,
+                Wins: 1,
+                Losses: 1,
+              },
+              {
+                Name: "Ballerz United 15U",
+                TeamLink:
+                  "/264312/bam-x-gsg-spring-finale/teams/ballerz-united-15u?divisionteamid=5331519",
+                Place: "3rd",
+                Complete: true,
+                Wins: 1,
+                Losses: 1,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(264312, { eventSlug: "bam-x-gsg-spring-finale" });
+
+    expect(
+      results.map((result) => [
+        result.divisionName,
+        result.placement,
+        result.teamNameSnapshot,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [
+        "9th Grade (15U) Boys Division - Pool A",
+        1,
+        "PMA Knights Red 15U",
+        "Pool A standings",
+      ],
+      [
+        "9th Grade (15U) Boys Division - Pool A",
+        2,
+        "A.T.R. Elite 15U",
+        "Pool A standings",
+      ],
+      [
+        "9th Grade (15U) Boys Division - Pool A",
+        3,
+        "JavStep 15U",
+        "Pool A standings",
+      ],
+      [
+        "9th Grade (15U) Boys Division - Pool B",
+        1,
+        "Bay Area Thunder 15U",
+        "Pool B standings",
+      ],
+      [
+        "9th Grade (15U) Boys Division - Pool B",
+        2,
+        "Top Performance A 14U",
+        "Pool B standings",
+      ],
+      [
+        "9th Grade (15U) Boys Division - Pool B",
+        3,
+        "Ballerz United 15U",
+        "Pool B standings",
+      ],
+    ]);
+    expect(results[0]?.rawJson).toMatchObject({
+      PoolName: "A",
+      PoolKey: "a",
+      SyntheticDivisionName: "9th Grade (15U) Boys Division - Pool A",
+    });
+  });
 });
