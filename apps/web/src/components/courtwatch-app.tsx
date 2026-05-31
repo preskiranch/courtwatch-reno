@@ -2449,7 +2449,7 @@ function useStoredFollowedTeams(
   );
 
   useEffect(() => {
-    setSuppressedFollowedIds(new Set());
+    setSuppressedFollowedIds(loadSuppressedFollowedTeamIds(clientId, eventId));
     setStoredFollowedTeams(loadStoredFollowedTeams(clientId, eventId));
   }, [clientId, eventId]);
 
@@ -2478,17 +2478,20 @@ function useStoredFollowedTeams(
   return {
     storedFollowedTeams,
     rememberFollowedTeam: (team) => {
-      if (team)
+      if (team) {
+        clearSuppressedFollowedTeamId(clientId, eventId, team.id);
         setSuppressedFollowedIds((current) => {
           const next = new Set(current);
           next.delete(team.id);
           return next;
         });
+      }
       setStoredFollowedTeams(
         rememberStoredFollowedTeam(clientId, eventId, team),
       );
     },
     forgetFollowedTeamById: (teamId) => {
+      suppressFollowedTeamId(clientId, eventId, teamId);
       setSuppressedFollowedIds((current) => new Set(current).add(teamId));
       setStoredFollowedTeams(
         forgetStoredFollowedTeam(clientId, eventId, teamId),
@@ -4356,6 +4359,75 @@ function markFollowMigrationComplete(clientId: string | null) {
     );
     window.localStorage.removeItem(dashboardFollowMigrationStorageKey(id));
   }
+}
+
+function loadSuppressedFollowedTeamIds(
+  clientId: string | null,
+  eventId: number | null,
+): Set<string> {
+  const key = suppressedFollowedTeamsStorageKey(clientId, eventId);
+  if (!key || typeof window === "undefined") return new Set();
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) ?? "[]");
+    return new Set(
+      Array.isArray(parsed)
+        ? parsed.filter(
+            (teamId): teamId is string => typeof teamId === "string",
+          )
+        : [],
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function suppressFollowedTeamId(
+  clientId: string | null,
+  eventId: number | null,
+  teamId: string,
+) {
+  writeSuppressedFollowedTeamIds(clientId, eventId, (current) =>
+    new Set(current).add(teamId),
+  );
+}
+
+function clearSuppressedFollowedTeamId(
+  clientId: string | null,
+  eventId: number | null,
+  teamId: string,
+) {
+  writeSuppressedFollowedTeamIds(clientId, eventId, (current) => {
+    const next = new Set(current);
+    next.delete(teamId);
+    return next;
+  });
+}
+
+function writeSuppressedFollowedTeamIds(
+  clientId: string | null,
+  eventId: number | null,
+  update: (current: Set<string>) => Set<string>,
+) {
+  const key = suppressedFollowedTeamsStorageKey(clientId, eventId);
+  if (!key || typeof window === "undefined") return;
+  const next = Array.from(
+    update(loadSuppressedFollowedTeamIds(clientId, eventId)),
+  );
+  if (next.length === 0) {
+    window.localStorage.removeItem(key);
+    return;
+  }
+  window.localStorage.setItem(key, JSON.stringify(next));
+}
+
+function suppressedFollowedTeamsStorageKey(
+  clientId: string | null,
+  eventId: number | null,
+): string | null {
+  if (!clientId || !eventId) return null;
+  return `courtwatch-aau:v1:suppressed-followed:${encodeURIComponent(
+    clientId,
+  )}:${eventId}`;
 }
 
 function labelStatus(status: string): string {
