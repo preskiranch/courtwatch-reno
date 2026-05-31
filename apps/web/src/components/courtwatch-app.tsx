@@ -253,7 +253,7 @@ export function CourtWatchApp() {
         if (cancelled) return;
         clearAccountSession();
         setAccountSession(null);
-      })
+      });
 
     return () => {
       cancelled = true;
@@ -1774,7 +1774,7 @@ function DivisionResultRow({
   recordsLoading: boolean;
 }) {
   const isChampion = result.placement === 1;
-  const displayedRecord = resultRecordFromOfficialRow(result) ?? record;
+  const displayedRecord = record ?? resultRecordFromOfficialRow(result);
   return (
     <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-2">
       <div
@@ -3929,30 +3929,32 @@ function resultRecordForTeam(
   games: Game[],
   teams: Team[],
 ): TeamRecord | undefined {
-  if (hasRecordActivity(result.record)) return result.record;
-
-  const officialRecord = resultRecordFromOfficialRow(result);
-  if (hasRecordActivity(officialRecord)) return officialRecord;
+  const candidates: Array<TeamRecord | undefined> = [
+    hasRecordActivity(result.record) ? result.record : undefined,
+    resultRecordFromOfficialRow(result),
+  ];
 
   if (result.teamId) {
     const storedRecord = records.get(result.teamId);
-    if (hasRecordActivity(storedRecord)) return storedRecord;
+    if (hasRecordActivity(storedRecord)) candidates.push(storedRecord);
 
     const gameRecord = recordFromGamesForTeamId(result.teamId, games);
-    if (hasRecordActivity(gameRecord)) return gameRecord;
+    if (hasRecordActivity(gameRecord)) candidates.push(gameRecord);
   }
 
   const matchedTeam = findResultTeam(result, teams);
   if (matchedTeam) {
     const matchedRecord = teamRecordForTeam(matchedTeam, records);
-    if (hasRecordActivity(matchedRecord)) return matchedRecord;
+    if (hasRecordActivity(matchedRecord)) candidates.push(matchedRecord);
 
     const matchedGameRecord = recordFromGamesForTeamId(matchedTeam.id, games);
-    if (hasRecordActivity(matchedGameRecord)) return matchedGameRecord;
+    if (hasRecordActivity(matchedGameRecord))
+      candidates.push(matchedGameRecord);
   }
 
   const namedRecord = recordFromGamesForTeamName(result, games);
-  return hasRecordActivity(namedRecord) ? namedRecord : undefined;
+  if (hasRecordActivity(namedRecord)) candidates.push(namedRecord);
+  return bestTeamRecord(candidates);
 }
 
 function followedTeamRecord(
@@ -4221,6 +4223,25 @@ function recordCaption(
 function recordText(record: TeamRecord | undefined, loading = false): string {
   if (record && hasRecordActivity(record)) return teamRecordLabel(record);
   return loading ? "..." : "W-L TBD";
+}
+
+function bestTeamRecord(
+  records: Array<TeamRecord | undefined>,
+): TeamRecord | undefined {
+  return records
+    .filter((record): record is TeamRecord => hasRecordActivity(record))
+    .sort(
+      (left, right) => recordCompleteness(right) - recordCompleteness(left),
+    )[0];
+}
+
+function recordCompleteness(record: TeamRecord): number {
+  return Math.max(
+    record.gamesScored,
+    record.finalGames,
+    record.gamesSeen,
+    record.wins + record.losses + record.ties,
+  );
 }
 
 function dashboardWithEffectiveGameStatuses(
