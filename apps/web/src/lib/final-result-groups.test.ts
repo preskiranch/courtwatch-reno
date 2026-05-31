@@ -186,14 +186,78 @@ describe("finalResultGroupsForFollowedTeams", () => {
 
     const alphaGroups = finalResultGroupsForFollowedTeams(
       [blue, green],
-      [team({ id: "team-blue", name: "Blue Team", divisionId: "division-blue" })],
+      [
+        team({
+          id: "team-blue",
+          name: "Blue Team",
+          divisionId: "division-blue",
+        }),
+      ],
     );
     const betaGroups = finalResultGroupsForFollowedTeams(
       [blue, green],
-      [team({ id: "team-green", name: "Green Team", divisionId: "division-green" })],
+      [
+        team({
+          id: "team-green",
+          name: "Green Team",
+          divisionId: "division-green",
+        }),
+      ],
     );
 
-    expect(alphaGroups.map((item) => item.divisionId)).toEqual(["division-blue"]);
-    expect(betaGroups.map((item) => item.divisionId)).toEqual(["division-green"]);
+    expect(alphaGroups.map((item) => item.divisionId)).toEqual([
+      "division-blue",
+    ]);
+    expect(betaGroups.map((item) => item.divisionId)).toEqual([
+      "division-green",
+    ]);
+  });
+
+  it("matches followed teams inside synthetic standings pool result groups", () => {
+    const poolA = group({
+      divisionId: "division-blue-pool-a",
+      divisionName: "Boys 15U - Pool A",
+      rows: [
+        result({
+          divisionId: "division-blue-pool-a",
+          teamId: "team-pma",
+          teamNameSnapshot: "PMA Knights Red 15U",
+          placement: 1,
+        }),
+        result({
+          divisionId: "division-blue-pool-a",
+          teamId: "team-atr",
+          teamNameSnapshot: "A.T.R. Elite 15U",
+          placement: 2,
+        }),
+        result({
+          divisionId: "division-blue-pool-a",
+          teamId: "team-javstep",
+          teamNameSnapshot: "JavStep 15U",
+          placement: 3,
+        }),
+      ],
+    });
+
+    const groups = finalResultGroupsForFollowedTeams(
+      [poolA],
+      [
+        team({
+          id: "team-pma",
+          name: "PMA Knights Red 15U",
+          divisionId: "division-blue",
+          divisionName: "Boys 15U",
+        }),
+      ],
+    );
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.divisionId).toBe("division-blue-pool-a");
+    expect(groups[0]?.followedTeamsWithoutPlacement).toEqual([]);
+    expect(groups[0]?.rows.map((row) => row.teamNameSnapshot)).toEqual([
+      "PMA Knights Red 15U",
+      "A.T.R. Elite 15U",
+      "JavStep 15U",
+    ]);
   });
 });

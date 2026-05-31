@@ -1,4 +1,8 @@
-import type { DivisionResult, DivisionResultGroup, Team } from "@courtwatch/core";
+import type {
+  DivisionResult,
+  DivisionResultGroup,
+  Team,
+} from "@courtwatch/core";
 
 export type FollowedFinalResultGroup = DivisionResultGroup & {
   followedTeamsWithoutPlacement: Team[];
@@ -17,10 +21,17 @@ export function finalResultGroupsForFollowedTeams(
   const usedDivisionIds = new Set<string>();
   const followedTeamsByDivisionId = groupFollowedTeamsByDivision(followedTeams);
   const followedGroups = groups.flatMap((group) => {
-    const teamsInDivision = followedTeamsByDivisionId.get(group.divisionId) ?? [];
+    const teamsInDivision = matchingFollowedTeamsForResultGroup(
+      group,
+      followedTeams,
+      followedTeamsByDivisionId,
+    );
     if (teamsInDivision.length === 0) return [];
 
     usedDivisionIds.add(group.divisionId);
+    for (const team of teamsInDivision) {
+      if (team.divisionId) usedDivisionIds.add(team.divisionId);
+    }
     const followedTeamsWithoutPlacement = teamsInDivision.filter(
       (team) =>
         !group.rows.some((result) => resultMatchesFollowedTeam(result, team)),
@@ -46,6 +57,23 @@ export function finalResultGroupsForFollowedTeams(
     );
 
   return [...followedGroups, ...missingGroups];
+}
+
+function matchingFollowedTeamsForResultGroup(
+  group: DivisionResultGroup,
+  followedTeams: Team[],
+  followedTeamsByDivisionId: Map<string, Team[]>,
+): Team[] {
+  const matches = new Map<string, Team>();
+  for (const team of followedTeamsByDivisionId.get(group.divisionId) ?? []) {
+    matches.set(team.id, team);
+  }
+  for (const team of followedTeams) {
+    if (group.rows.some((result) => resultMatchesFollowedTeam(result, team))) {
+      matches.set(team.id, team);
+    }
+  }
+  return Array.from(matches.values());
 }
 
 function groupFollowedTeamsByDivision(
