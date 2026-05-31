@@ -37,10 +37,7 @@ export function mergeStoredFollowedTeams(
   const followedTeams = teams
     .filter((team) => team.isFollowed)
     .filter(
-      (team) =>
-        !options.onlyExistingWhenStored ||
-        currentIds.size === 0 ||
-        currentIds.has(team.id),
+      (team) => !options.onlyExistingWhenStored || currentIds.has(team.id),
     );
   if (followedTeams.length === 0) {
     return current;
