@@ -121,9 +121,86 @@ const gsgSpringFinaleTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+const touchShootingTheStandardTournament: TournamentSource = {
+  id: "event-the-standard-2026",
+  exposureEventId: 267048,
+  externalProvider: "exposure_events",
+  externalId: "267048",
+  slug: "the-standard",
+  sourceUrl: "https://basketball.exposureevents.com/267048/the-standard",
+  name: "The Standard",
+  organizer: "Touch Shooting Premiere Events",
+  sport: "basketball",
+  sanctioningTags: [
+    "Touch Shooting Premiere Events",
+    "Northern California",
+    "NorCal",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: [],
+  venueName: null,
+  city: "Sacramento",
+  state: "CA",
+  region: "Northern California",
+  startDate: "2026-06-06",
+  endDate: "2026-06-07",
+  location: "Sacramento, CA",
+  officialUrl: "https://basketball.exposureevents.com/267048/the-standard",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: false,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
+const hoop121FallFestTournament: TournamentSource = {
+  id: "event-bay-area-fall-fest-2026",
+  exposureEventId: 255459,
+  externalProvider: "exposure_events",
+  externalId: "255459",
+  slug: "the-bay-area-fall-fest-invitational",
+  sourceUrl:
+    "https://basketball.exposureevents.com/255459/the-bay-area-fall-fest-invitational",
+  name: "The Bay Area Fall Fest Invitational",
+  organizer: "Hoop 121",
+  sport: "basketball",
+  sanctioningTags: [
+    "Hoop 121",
+    "Bay Area",
+    "Northern California",
+    "NorCal",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: [],
+  venueName: null,
+  city: "East Bay Area",
+  state: "CA",
+  region: "Northern California",
+  startDate: "2026-11-07",
+  endDate: "2026-11-08",
+  location: "East Bay Area, CA",
+  officialUrl:
+    "https://basketball.exposureevents.com/255459/the-bay-area-fall-fest-invitational",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: false,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
 const defaultTrackedTournaments = [
   fallbackTournament,
   gsgSpringFinaleTournament,
+  touchShootingTheStandardTournament,
+  hoop121FallFestTournament,
 ];
 
 const TournamentSourceSchema = z

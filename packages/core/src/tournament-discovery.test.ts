@@ -22,7 +22,7 @@ function jsonResponse(value: unknown) {
 }
 
 describe("TournamentDiscoveryService", () => {
-  it("tracks GSG Hoops and BAMTOURNAMENTS as trusted Exposure sources", () => {
+  it("tracks trusted Exposure organizer sources for Bay Area and NorCal discovery", () => {
     expect(DEFAULT_MAJOR_TOURNAMENT_SOURCES).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -46,6 +46,51 @@ describe("TournamentDiscoveryService", () => {
             "BAM",
             "BAMTOURNAMENTS",
             "BAM x GSG",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "Touch Shooting Premiere Events",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/33845/touch-shooting-premiere-events",
+          eventUrls: expect.arrayContaining([
+            "https://basketball.exposureevents.com/267048/the-standard",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "Northern California",
+            "NorCal",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "Hoop 121",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/12589/hoop-121",
+          eventUrls: expect.arrayContaining([
+            "https://basketball.exposureevents.com/255459/the-bay-area-fall-fest-invitational",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "Bay Area",
+            "Northern California",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "NorCal Sports TV",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/27463/norcal-sports-tv",
+          eventUrls: expect.arrayContaining([
+            "https://basketball.exposureevents.com/262086/ncstv-valley-exposure-tour",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "NorCal Sports TV",
+            "NorCal",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "Bay Area Stars Academy",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/35401/bay-area-stars-academy",
+          sanctioningTags: expect.arrayContaining([
+            "Bay Area Stars",
+            "Northern California",
           ]),
         }),
       ]),

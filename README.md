@@ -147,7 +147,11 @@ API_BASE_URL=http://localhost:4000 ADMIN_SECRET=dev-secret npm run dev:worker
 Behavior:
 
 - Runs an immediate sync on startup.
-- Polls every 60 seconds during May 23-25, 2026 active Reno tournament hours.
+- Discovers approved public Exposure tournaments on startup and then on `TOURNAMENT_DISCOVERY_INTERVAL_HOURS` (default: 24 hours).
+- Looks ahead `TOURNAMENT_DISCOVERY_WINDOW_DAYS` (default: 183 days) for public-source tournaments.
+- Tracks built-in Exposure organizer sources including Jam On It, Grassroots 365, GSG Hoops, BAMTOURNAMENTS, Touch Shooting Premiere Events, Hoop 121, NorCal Sports TV, and Bay Area Stars Academy.
+- Only adds discovered tournaments when the public team list can be read successfully.
+- Polls every 60 seconds during active tournament dates/hours for any tracked event.
 - Polls every 10-15 minutes outside active hours.
 - Uses exponential backoff after failures.
 - Preserves old saved data if the source fails.
