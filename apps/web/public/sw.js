@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-reno-v52";
+const CACHE_NAME = "courtwatch-reno-v53";
 const APP_SHELL = [
   "/",
   "/install",

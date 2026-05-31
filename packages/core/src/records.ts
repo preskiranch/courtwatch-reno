@@ -5,13 +5,22 @@ export function buildTeamRecordSummaryMap(
   games: Game[],
   teams: Team[],
 ): Map<string, TeamRecordSummary> {
+  const records = new Map<string, TeamRecordSummary>();
+  const officialRecordTeamIds = new Set<string>();
+
+  for (const team of teams) {
+    if (!hasRecordActivity(team.record)) continue;
+    records.set(team.id, { ...team.record });
+    officialRecordTeamIds.add(team.id);
+  }
+
   const leaders = buildTeamScoringLeaders(games, teams, {
     includeUnscoredTeams: true,
   });
-  const records = new Map<string, TeamRecordSummary>();
 
   for (const leader of leaders) {
     if (!leader.teamId) continue;
+    if (officialRecordTeamIds.has(leader.teamId)) continue;
     if (leader.gamesScored <= 0) continue;
     records.set(leader.teamId, {
       wins: leader.wins,
@@ -27,6 +36,7 @@ export function buildTeamRecordSummaryMap(
   for (const game of games) {
     for (const teamId of [game.homeTeamId, game.awayTeamId]) {
       if (!teamId) continue;
+      if (officialRecordTeamIds.has(teamId)) continue;
       const record = records.get(teamId);
       if (!record) continue;
       record.gamesSeen += 1;
@@ -55,4 +65,18 @@ export function attachTeamRecordsToGame(
 export function attachTeamRecordsToGames(games: Game[], teams: Team[]): Game[] {
   const records = buildTeamRecordSummaryMap(games, teams);
   return games.map((game) => attachTeamRecordsToGame(game, records));
+}
+
+function hasRecordActivity(
+  record: TeamRecordSummary | null | undefined,
+): record is TeamRecordSummary {
+  return Boolean(
+    record &&
+      (record.gamesSeen > 0 ||
+        record.gamesScored > 0 ||
+        record.finalGames > 0 ||
+        record.wins > 0 ||
+        record.losses > 0 ||
+        record.ties > 0),
+  );
 }

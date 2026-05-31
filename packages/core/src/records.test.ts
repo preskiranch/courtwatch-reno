@@ -54,6 +54,30 @@ describe("game record enrichment", () => {
     expect(records.has("team-premier-10u")).toBe(false);
   });
 
+  it("keeps official team records when the game feed is temporarily incomplete", () => {
+    const records = buildTeamRecordSummaryMap([], [
+      {
+        ...seedTeams[0]!,
+        record: {
+          wins: 2,
+          losses: 0,
+          ties: 0,
+          gamesScored: 2,
+          totalPoints: 111,
+          finalGames: 2,
+          gamesSeen: 3,
+        },
+      },
+    ]);
+
+    expect(records.get(seedTeams[0]!.id)).toMatchObject({
+      wins: 2,
+      losses: 0,
+      gamesScored: 2,
+      gamesSeen: 3,
+    });
+  });
+
   it("promotes started watched games to LIVE for schedule filters", () => {
     const service = new ScheduleService();
     const games = service.listWatchedGames(

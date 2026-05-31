@@ -41,8 +41,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v21";
-const LEGACY_CACHE_VERSION = "v20";
+const CACHE_VERSION = "v22";
+const LEGACY_CACHE_VERSION = "v21";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",

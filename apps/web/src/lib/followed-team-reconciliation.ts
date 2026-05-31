@@ -124,11 +124,18 @@ function enrichFollowedTeam(
     record: activeRecord(records.get(team.id), team.record),
     matchType: existing.matchType,
     matchConfidence: existing.matchConfidence,
-    nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
+    nextGame: nextGame
+      ? attachTeamRecordsToGame(nextGame, records)
+      : existing.nextGame,
     lastResult: lastResult
       ? attachTeamRecordsToGame(lastResult, records)
-      : null,
-    liveStatus: nextGame?.status ?? lastResult?.status ?? existing.liveStatus,
+      : existing.lastResult,
+    liveStatus:
+      nextGame?.status ??
+      lastResult?.status ??
+      existing.nextGame?.status ??
+      existing.lastResult?.status ??
+      existing.liveStatus,
   };
 }
 

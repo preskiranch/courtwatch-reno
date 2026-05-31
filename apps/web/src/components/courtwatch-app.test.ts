@@ -190,6 +190,33 @@ describe("dashboard followed-team reconciliation", () => {
     expect(reconciled.nextGame?.id).toBe("game-test");
   });
 
+  it("does not erase a saved next game when all-games refresh is temporarily empty", () => {
+    const splash = team("team-splash-10u", "Splash City 10U");
+    const opponent = team("team-opponent", "Opponent");
+    opponent.isFollowed = false;
+    const staleProgram = emptyProgram();
+    staleProgram.teams = [
+      {
+        ...splash,
+        matchType: "manual",
+        matchConfidence: 1,
+        nextGame: game(splash.id, opponent.id),
+        lastResult: null,
+        liveStatus: "upcoming",
+      },
+    ];
+
+    const reconciled = dashboardWithRegisteredFollows(
+      dashboard(staleProgram),
+      [splash, opponent],
+      [],
+      new Map(),
+    );
+
+    expect(reconciled.programs[0]?.teams[0]?.nextGame?.id).toBe("game-test");
+    expect(reconciled.nextGame?.id).toBe("game-test");
+  });
+
   it("keeps a real zero-team dashboard when the device has no followed teams", () => {
     const registered = team("team-splash-10u", "Splash City 10U");
     registered.isFollowed = false;
