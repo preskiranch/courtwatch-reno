@@ -121,7 +121,6 @@ export function CourtWatchApp() {
   const [accountSession, setAccountSession] = useState<AccountSession | null>(
     null,
   );
-  const [authReady, setAuthReady] = useState(false);
   const [browserOnline, setBrowserOnline] = useState(true);
   const queryClient = useQueryClient();
   const accountScope = accountSession
@@ -132,7 +131,7 @@ export function CourtWatchApp() {
     () => (isAdmin ? tabs : tabs.filter((tab) => tab.id !== "settings")),
     [isAdmin],
   );
-  const clientReady = Boolean(presenceClientId && authReady);
+  const clientReady = Boolean(presenceClientId);
   const eventsQuery = useQuery({
     queryKey: ["events"],
     queryFn: CourtWatchApi.events,
@@ -234,7 +233,6 @@ export function CourtWatchApp() {
   useEffect(() => {
     const savedSession = loadAccountSession();
     if (!savedSession) {
-      setAuthReady(true);
       return;
     }
 
@@ -256,9 +254,6 @@ export function CourtWatchApp() {
         clearAccountSession();
         setAccountSession(null);
       })
-      .finally(() => {
-        if (!cancelled) setAuthReady(true);
-      });
 
     return () => {
       cancelled = true;
@@ -454,6 +449,7 @@ export function CourtWatchApp() {
       queryClient.invalidateQueries({ queryKey: ["alerts"] }),
       queryClient.invalidateQueries({ queryKey: ["events"] }),
       queryClient.invalidateQueries({ queryKey: ["results"] }),
+      queryClient.invalidateQueries({ queryKey: ["teams"] }),
       queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
       queryClient.invalidateQueries({ queryKey: ["account-stats"] }),
     ]);
