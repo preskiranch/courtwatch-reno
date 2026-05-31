@@ -274,7 +274,7 @@ describe("final division results", () => {
         id: "standings-pool-a-1",
         eventId: snapshot.event.id,
         divisionId: "division-boys-4th-green-pool-a",
-        divisionName: "Boys 4th Green - Pool A",
+        divisionName: "Boys 4th Level 2 Green - Pool A",
         gender: "Boys",
         gradeLevel: "4TH",
         level: "Green",
@@ -305,7 +305,7 @@ describe("final division results", () => {
         (group) => group.divisionId === "division-boys-4th-green-pool-a",
       ),
     ).toMatchObject({
-      divisionName: "Boys 4th Green - Pool A",
+      divisionName: "Boys 4th Level 2 Green - Pool A",
       rows: [
         expect.objectContaining({
           teamNameSnapshot: "Splash City",
@@ -313,6 +313,9 @@ describe("final division results", () => {
         }),
       ],
     });
+    expect(
+      groups.find((group) => group.divisionId === "division-boys-4th-green"),
+    ).toBeUndefined();
   });
 
   it("includes watched divisions even before final placements are posted", () => {

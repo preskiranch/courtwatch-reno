@@ -139,12 +139,36 @@ export function buildDivisionResultGroups(
     });
   }
 
-  return Array.from(groups.values()).sort((left, right) =>
+  return withoutEmptyParentGroupsWithPoolResults(
+    Array.from(groups.values()),
+  ).sort((left, right) =>
     left.divisionName.localeCompare(right.divisionName, "en-US", {
       numeric: true,
       sensitivity: "base",
     }),
   );
+}
+
+function withoutEmptyParentGroupsWithPoolResults(
+  groups: DivisionResultGroup[],
+): DivisionResultGroup[] {
+  const divisionNamesWithPoolResults = new Set(
+    groups
+      .filter((group) => group.rows.length > 0)
+      .map((group) => parentDivisionNameFromPoolGroup(group.divisionName))
+      .filter((name): name is string => Boolean(name)),
+  );
+  if (divisionNamesWithPoolResults.size === 0) return groups;
+  return groups.filter(
+    (group) =>
+      group.rows.length > 0 ||
+      !divisionNamesWithPoolResults.has(group.divisionName),
+  );
+}
+
+function parentDivisionNameFromPoolGroup(divisionName: string): string | null {
+  const match = divisionName.match(/^(.*?)\s+-\s+Pool\s+.+$/i);
+  return match?.[1]?.trim() || null;
 }
 
 function watchedDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
