@@ -2530,43 +2530,83 @@ async function upsertDivisionResult(
   prisma: PrismaClient,
   result: DivisionResult,
 ) {
-  return prisma.divisionResult.upsert({
-    where: {
-      eventId_divisionId_placement: {
-        eventId: result.eventId,
-        divisionId: result.divisionId,
-        placement: result.placement,
-      },
-    },
-    update: {
-      teamId: result.teamId,
-      teamNameSnapshot: result.teamNameSnapshot,
-      medalLabel: result.medalLabel,
-      bracketLabel: result.bracketLabel,
-      source: result.source,
-      sourceUrl: result.sourceUrl,
-      isOfficial: result.isOfficial,
-      sourceHash: result.sourceHash,
-      rawJson: (result.rawJson ?? {}) as object,
-      lastSeenAt: new Date(result.lastSeenAt),
-    },
-    create: {
-      id: result.id,
-      eventId: result.eventId,
-      divisionId: result.divisionId,
-      teamId: result.teamId,
-      placement: result.placement,
-      medalLabel: result.medalLabel,
-      bracketLabel: result.bracketLabel,
-      teamNameSnapshot: result.teamNameSnapshot,
-      source: result.source,
-      sourceUrl: result.sourceUrl,
-      isOfficial: result.isOfficial,
-      sourceHash: result.sourceHash,
-      rawJson: (result.rawJson ?? {}) as object,
-      lastSeenAt: new Date(result.lastSeenAt),
-    },
+  const existingById = await prisma.divisionResult.findUnique({
+    where: { id: result.id },
+    select: { id: true, eventId: true, divisionId: true, placement: true },
   });
+  const write = {
+    eventId: result.eventId,
+    divisionId: result.divisionId,
+    teamId: result.teamId,
+    placement: result.placement,
+    teamNameSnapshot: result.teamNameSnapshot,
+    medalLabel: result.medalLabel,
+    bracketLabel: result.bracketLabel,
+    source: result.source,
+    sourceUrl: result.sourceUrl,
+    isOfficial: result.isOfficial,
+    sourceHash: result.sourceHash,
+    rawJson: (result.rawJson ?? {}) as object,
+    lastSeenAt: new Date(result.lastSeenAt),
+  };
+
+  if (
+    existingById &&
+    (existingById.eventId !== result.eventId ||
+      existingById.divisionId !== result.divisionId ||
+      existingById.placement !== result.placement)
+  ) {
+    try {
+      return await prisma.divisionResult.update({
+        where: { id: result.id },
+        data: write,
+      });
+    } catch (error) {
+      if (!isPrismaUniqueConstraintError(error)) throw error;
+      await prisma.divisionResult.delete({ where: { id: result.id } });
+    }
+  }
+
+  try {
+    return await prisma.divisionResult.upsert({
+      where: {
+        eventId_divisionId_placement: {
+          eventId: result.eventId,
+          divisionId: result.divisionId,
+          placement: result.placement,
+        },
+      },
+      update: {
+        teamId: result.teamId,
+        teamNameSnapshot: result.teamNameSnapshot,
+        medalLabel: result.medalLabel,
+        bracketLabel: result.bracketLabel,
+        source: result.source,
+        sourceUrl: result.sourceUrl,
+        isOfficial: result.isOfficial,
+        sourceHash: result.sourceHash,
+        rawJson: (result.rawJson ?? {}) as object,
+        lastSeenAt: new Date(result.lastSeenAt),
+      },
+      create: {
+        id: result.id,
+        ...write,
+      },
+    });
+  } catch (error) {
+    if (!isPrismaUniqueConstraintError(error)) throw error;
+    return prisma.divisionResult.update({
+      where: { id: result.id },
+      data: write,
+    });
+  }
+}
+
+function isPrismaUniqueConstraintError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  );
 }
 
 async function loadTeamMap(
