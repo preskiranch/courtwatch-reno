@@ -17,27 +17,30 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   process.env.WEB_BASE_URL ??
   "https://courtwatch-reno-web.onrender.com";
+const isCourtVision = process.env.NEXT_PUBLIC_APP_TARGET === "courtvision";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "CourtVision Scorekeeper",
-  description:
-    "Mobile AI camera basketball scorekeeper MVP with court calibration, debug scoring, and manual correction.",
+  title: isCourtVision ? "CourtVision Scorekeeper" : "Court Watch AAU",
+  description: isCourtVision
+    ? "Mobile AI camera basketball scorekeeper MVP with court calibration, debug scoring, and manual correction."
+    : "Independent AAU tournament tracker for schedules, records, brackets, alerts, and final placements.",
   manifest: "/manifest.webmanifest",
   alternates: {
     canonical: "/"
   },
   openGraph: {
-    title: "CourtVision Scorekeeper",
-    description:
-      "Track basketball scores from calibrated 2PT and 3PT zones with camera-ready architecture.",
+    title: isCourtVision ? "CourtVision Scorekeeper" : "Court Watch AAU",
+    description: isCourtVision
+      ? "Track basketball scores from calibrated 2PT and 3PT zones with camera-ready architecture."
+      : "Follow AAU tournament teams by device with schedules, records, brackets, alerts, and final placements.",
     url: "/",
-    siteName: "Court Watch AAU",
+    siteName: isCourtVision ? "CourtVision Scorekeeper" : "Court Watch AAU",
     type: "website"
   },
   appleWebApp: {
     capable: true,
-    title: "CourtVision",
+    title: isCourtVision ? "CourtVision" : "Court Watch AAU",
     statusBarStyle: "black-translucent"
   }
 };

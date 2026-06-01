@@ -11,6 +11,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NEXT_PUBLIC_APP_TARGET
+        value: courtvision
       - key: WEB_BASE_URL
         value: https://courtvision-scorekeeper-web.onrender.com
       - key: NEXT_PUBLIC_SITE_URL

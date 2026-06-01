@@ -83,6 +83,8 @@ The Blueprint uses Render's free web instance type. Set `NEXT_PUBLIC_SITE_URL` a
 
 Do not attach this service to the existing root `render.yaml`; that file remains the legacy Court Watch AAU API/web/worker Blueprint. Keeping CourtVision in `render.courtvision.yaml` prevents a single Blueprint from managing unrelated resources.
 
+The CourtVision Blueprint sets `NEXT_PUBLIC_APP_TARGET=courtvision`. Leave that variable unset for the existing Court Watch AAU website so the original homepage remains the default.
+
 ## Current Limitations
 
 - Real ball, player, hoop, shot attempt, and made-shot detection are placeholders by design.

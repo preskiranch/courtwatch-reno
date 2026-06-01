@@ -1,7 +1,7 @@
 {
-  "name": "CourtVision Scorekeeper",
-  "short_name": "CourtVision",
-  "description": "Mobile basketball scorekeeper with camera calibration, debug shot events, and manual correction.",
+  "name": "Court Watch AAU",
+  "short_name": "Court AAU",
+  "description": "Mobile AAU tournament tracker for selected teams.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
