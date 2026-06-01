@@ -684,11 +684,23 @@ function AppHeader({
   const trackedEvents = events.filter(
     (event) => event.dropdownGroup === "tracked",
   );
-  const discoveredEvents = events.filter(
+  const publicSourceEvents = events.filter(
     (event) => event.dropdownGroup !== "tracked",
   );
+  const activePublicSourceEvents = publicSourceEvents.filter(
+    (event) => effectiveTournamentStatus(event) === "active",
+  );
+  const upcomingPublicSourceEvents = publicSourceEvents.filter(
+    (event) => effectiveTournamentStatus(event) === "upcoming",
+  );
+  const completedPublicSourceEvents = publicSourceEvents.filter(
+    (event) => effectiveTournamentStatus(event) === "completed",
+  );
   const hasGroupedEvents =
-    trackedEvents.length > 0 && discoveredEvents.length > 0;
+    trackedEvents.length > 0 ||
+    activePublicSourceEvents.length > 0 ||
+    upcomingPublicSourceEvents.length > 0 ||
+    completedPublicSourceEvents.length > 0;
   const statusMessage = offline
     ? "Offline cache"
     : (dashboard?.sourceStatus.message ??
@@ -788,16 +800,46 @@ function AppHeader({
           ) : null}
           {hasGroupedEvents ? (
             <>
-              <optgroup label="My tracked events">
-                {trackedEvents.map((event) => (
-                  <TournamentOption key={event.exposureEventId} event={event} />
-                ))}
-              </optgroup>
-              <optgroup label="Upcoming public-source tournaments">
-                {discoveredEvents.map((event) => (
-                  <TournamentOption key={event.exposureEventId} event={event} />
-                ))}
-              </optgroup>
+              {trackedEvents.length > 0 ? (
+                <optgroup label="My tracked events">
+                  {trackedEvents.map((event) => (
+                    <TournamentOption
+                      key={event.exposureEventId}
+                      event={event}
+                    />
+                  ))}
+                </optgroup>
+              ) : null}
+              {activePublicSourceEvents.length > 0 ? (
+                <optgroup label="Active public-source tournaments">
+                  {activePublicSourceEvents.map((event) => (
+                    <TournamentOption
+                      key={event.exposureEventId}
+                      event={event}
+                    />
+                  ))}
+                </optgroup>
+              ) : null}
+              {upcomingPublicSourceEvents.length > 0 ? (
+                <optgroup label="Upcoming public-source tournaments">
+                  {upcomingPublicSourceEvents.map((event) => (
+                    <TournamentOption
+                      key={event.exposureEventId}
+                      event={event}
+                    />
+                  ))}
+                </optgroup>
+              ) : null}
+              {completedPublicSourceEvents.length > 0 ? (
+                <optgroup label="Completed public-source tournaments">
+                  {completedPublicSourceEvents.map((event) => (
+                    <TournamentOption
+                      key={event.exposureEventId}
+                      event={event}
+                    />
+                  ))}
+                </optgroup>
+              ) : null}
             </>
           ) : (
             events.map((event) => (
@@ -849,6 +891,20 @@ function TournamentOption({ event }: { event: TournamentEvent }) {
       {tournamentOptionLabel(event)}
     </option>
   );
+}
+
+function effectiveTournamentStatus(
+  event: TournamentEvent,
+): TournamentEvent["status"] {
+  if (event.status === "cancelled" || event.status === "unavailable") {
+    return event.status;
+  }
+  const todayKey = dateKeyInTimeZone(new Date(), event.timezone);
+  if (event.endDate < todayKey) return "completed";
+  if (event.startDate <= todayKey && event.endDate >= todayKey) {
+    return "active";
+  }
+  return "upcoming";
 }
 
 function tournamentOptionLabel(event: TournamentEvent): string {
