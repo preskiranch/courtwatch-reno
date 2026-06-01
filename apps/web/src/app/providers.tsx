@@ -12,10 +12,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 30_000,
             refetchInterval: 60_000,
-            retry: 1
-          }
-        }
-      })
+            retry: 1,
+          },
+        },
+      }),
   );
 
   useEffect(() => {
@@ -26,7 +26,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         .then((keys) =>
           Promise.all(
             keys
-              .filter((key) => key.startsWith("courtwatch-reno-"))
+              .filter(
+                (key) =>
+                  key.startsWith("courtwatch-reno-") ||
+                  key.startsWith("courtwatch-aau-"),
+              )
               .map((key) => window.caches.delete(key)),
           ),
         )
@@ -60,5 +64,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }

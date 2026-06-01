@@ -1,6 +1,5 @@
-const CACHE_NAME = "courtwatch-reno-v54";
+const CACHE_NAME = "courtwatch-aau-v55";
 const APP_SHELL = [
-  "/",
   "/install",
   "/support",
   "/privacy",
@@ -27,7 +26,12 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter(
+              (key) =>
+                key !== CACHE_NAME &&
+                (key.startsWith("courtwatch-reno-") ||
+                  key.startsWith("courtwatch-aau-")),
+            )
             .map((key) => caches.delete(key)),
         ),
       )
@@ -38,6 +42,22 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request, { cache: "no-store" }).catch(
+        () =>
+          new Response(
+            "Court Watch AAU is temporarily offline. Reconnect and refresh for the latest tournament data.",
+            {
+              headers: { "Content-Type": "text/plain; charset=utf-8" },
+              status: 503,
+            },
+          ),
+      ),
+    );
+    return;
+  }
 
   if (request.url.includes("/api/")) {
     event.respondWith(fetch(request));
