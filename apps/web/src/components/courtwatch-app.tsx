@@ -1554,6 +1554,11 @@ function FinalResultsSection({
   followedTeams: Team[];
 }) {
   const [scope, setScope] = useState<"watched" | "all">("watched");
+  useEffect(() => {
+    if (followedTeams.length === 0) {
+      setScope("all");
+    }
+  }, [followedTeams.length]);
   const {
     records,
     loading: recordsLoading,
