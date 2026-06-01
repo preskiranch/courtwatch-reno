@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: courtvision-scorekeeper-web
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
+    startCommand: npm run start --workspace @courtwatch/web
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: WEB_BASE_URL
+        value: https://courtvision-scorekeeper-web.onrender.com
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://courtvision-scorekeeper-web.onrender.com

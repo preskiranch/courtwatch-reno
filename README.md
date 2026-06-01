@@ -1,3 +1,98 @@
+# CourtVision Scorekeeper MVP
+
+CourtVision Scorekeeper is a mobile-first PWA MVP for AI camera-assisted basketball scoring. It lets a user configure solo, one-team, or two-team play, define target score and rules, calibrate 2PT/3PT court zones, mark the hoop, run a live camera preview where browser permission is available, and test the full scoring flow with debug/manual shot events.
+
+## What Works Now
+
+- Home, setup, camera setup, calibration, game, game-over, and history screens.
+- Solo, one-team, and two-team modes with editable team names and colors.
+- Target score, win-by-2, 2PT/3PT toggles, optional shot clock value, and game-ending buzzer trigger.
+- Calibration profiles saved in browser local storage with hoop bounds, rim center, 2PT polygons, 3PT polygons, and optional out-of-bounds polygons.
+- Point-in-polygon scoring logic for deterministic 2PT/3PT/unknown zone detection.
+- Scoreboard, shot log, shot chart, undo, manual correction, pending confirmation for unknown team/zone/result/low-confidence events.
+- Debug shot simulator for made 2PT, made 3PT, miss, unknown team, and unknown zone paths.
+- Browser camera preview with overlay when permission is available.
+- Session history saved locally and JSON export for game summaries.
+- Unit tests for calibration validation, point-in-polygon, shot value calculation, score updates, undo, win condition, win-by-2, team color fallback, debug events, missed shots, unknown team/zone, and buzzer trigger.
+
+## AI Camera Integration
+
+The repository was searched for the requested existing Tool Check-In camera terms:
+
+- `Tool Check In`
+- `tool-check-in`
+- `ai camera`
+- `AICamera`
+- `CameraAI`
+- `VisionCamera`
+- `camera scanner`
+- `camera analyzer`
+- `object detection`
+- `frame processor`
+
+No exact reusable AI camera tool was present in this repo. The MVP therefore adds a pluggable interface layer in `packages/core/src/courtvision-vision.ts` rather than hard-coding a duplicate camera pipeline.
+
+Integration points:
+
+- `CameraFrameProvider` supplies frames from a phone camera, test video, or image source.
+- `HoopDetector` detects or stores the hoop/rim/backboard region.
+- `BallTracker` tracks basketball position across frames.
+- `PlayerTracker` tracks players and optional sampled jersey colors.
+- `TeamColorClassifier` assigns shots to teams based on calibrated colors.
+- `ShotAttemptDetector` finds likely shot releases from ball trajectory.
+- `MadeShotDetector` decides made/missed from hoop-region crossing and confidence.
+- `ShotScoringEngine` converts detector output into `ShotEvent` objects consumed by the UI.
+
+The UI does not depend on low-level CV code. It consumes `ShotEvent`-like data and routes uncertain events through confirmation controls.
+
+## Local Development
+
+```bash
+npm ci
+npm run build --workspace @courtwatch/core
+npm run test:run --workspace @courtwatch/core
+npm run typecheck --workspace @courtwatch/web
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Render Deployment
+
+This MVP deploys as a single Render web service. It does not require the legacy API, worker, or Postgres services because calibration profiles, settings, and game history are stored in browser local storage.
+
+Use the dedicated `render.courtvision.yaml` Blueprint file. In Render's Blueprint setup, set the Blueprint Path to:
+
+```text
+render.courtvision.yaml
+```
+
+Render will run:
+
+```bash
+npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
+```
+
+and then start the app with:
+
+```bash
+npm run start --workspace @courtwatch/web
+```
+
+The Blueprint uses Render's free web instance type. Set `NEXT_PUBLIC_SITE_URL` and `WEB_BASE_URL` to the final Render URL or custom domain. The default Blueprint values point to `https://courtvision-scorekeeper-web.onrender.com`.
+
+Do not attach this service to the existing root `render.yaml`; that file remains the legacy Court Watch AAU API/web/worker Blueprint. Keeping CourtVision in `render.courtvision.yaml` prevents a single Blueprint from managing unrelated resources.
+
+## Current Limitations
+
+- Real ball, player, hoop, shot attempt, and made-shot detection are placeholders by design.
+- Camera instability and zoom warnings are static guidance in this MVP.
+- Highlight clip saving, voice announcements, and scoreboard image sharing are not implemented.
+- Calibration editing is intentionally simple: tap to place hoop or append polygon points, or use the default template.
+- Stats and profiles are local to the browser until a persistence backend is wired in.
+
+## Legacy Project Notes
+
 # Court Watch AAU
 
 Court Watch AAU is a mobile-first PWA for choosing and following registered teams across AAU basketball tournaments, including the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.

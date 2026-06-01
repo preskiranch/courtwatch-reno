@@ -1,10 +1,5 @@
-import { CourtWatchApp } from "../components/courtwatch-app";
-import { DomainMigrationGate } from "../components/domain-migration-gate";
+import { CourtVisionApp } from "../components/courtvision-app";
 
 export default function Home() {
-  return (
-    <DomainMigrationGate>
-      <CourtWatchApp />
-    </DomainMigrationGate>
-  );
+  return <CourtVisionApp />;
 }

@@ -20,24 +20,24 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Court Watch AAU",
+  title: "CourtVision Scorekeeper",
   description:
-    "Independent AAU tournament tracker for schedules, records, brackets, alerts, and final placements.",
+    "Mobile AI camera basketball scorekeeper MVP with court calibration, debug scoring, and manual correction.",
   manifest: "/manifest.webmanifest",
   alternates: {
     canonical: "/"
   },
   openGraph: {
-    title: "Court Watch AAU",
+    title: "CourtVision Scorekeeper",
     description:
-      "Follow AAU tournament teams by device with schedules, records, brackets, alerts, and final placements.",
+      "Track basketball scores from calibrated 2PT and 3PT zones with camera-ready architecture.",
     url: "/",
     siteName: "Court Watch AAU",
     type: "website"
   },
   appleWebApp: {
     capable: true,
-    title: "Court Watch AAU",
+    title: "CourtVision",
     statusBarStyle: "black-translucent"
   }
 };
