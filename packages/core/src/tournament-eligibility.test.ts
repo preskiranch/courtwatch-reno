@@ -33,8 +33,8 @@ describe("eligibleTournamentEvents", () => {
         tournamentEvent(4, { name: "Zero Teams", registeredTeamCount: 0 }),
         tournamentEvent(5, {
           name: "Completed",
-          startDate: "2026-05-01",
-          endDate: "2026-05-02",
+          startDate: "2026-04-20",
+          endDate: "2026-04-21",
           status: "completed",
         }),
         tournamentEvent(6, { name: "Cancelled", status: "cancelled" }),
@@ -50,12 +50,34 @@ describe("eligibleTournamentEvents", () => {
     );
 
     expect(events.map((event) => event.name)).toEqual([
+      "Completed",
       "Recent Completed",
       base.name,
       "Zero Teams",
       "More Than 30 Days",
       "More Than 90 Days",
     ]);
+  });
+
+  it("keeps completed tournaments with fresh synced data in the finished dropdown for 90 days", () => {
+    const events = eligibleTournamentEvents(
+      [
+        tournamentEvent(255539, {
+          name: "2026 Reno Memorial Day Tournament",
+          startDate: "2026-05-23",
+          endDate: "2026-05-25",
+          status: "completed",
+          registeredTeamCount: 702,
+          lastSyncedAt: "2026-06-02T12:00:00.000Z",
+        }),
+      ],
+      { todayKey: "2026-06-02", now: new Date("2026-06-02T19:00:00.000Z") },
+    );
+
+    expect(events.map((event) => event.name)).toEqual([
+      "2026 Reno Memorial Day Tournament",
+    ]);
+    expect(events[0]?.status).toBe("completed");
   });
 
   it("dedupes repeated provider events", () => {

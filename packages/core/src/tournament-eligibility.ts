@@ -5,7 +5,7 @@ export const UPCOMING_PUBLIC_TOURNAMENT_LOOKAHEAD_DAYS = 183;
 export const UPCOMING_TOURNAMENT_WINDOW_DAYS =
   UPCOMING_PUBLIC_TOURNAMENT_LOOKAHEAD_DAYS;
 export const DEFAULT_DROPDOWN_CACHE_HOURS = 720;
-export const RECENT_COMPLETED_TOURNAMENT_DAYS = 7;
+export const RECENT_COMPLETED_TOURNAMENT_DAYS = 90;
 
 export interface TournamentDropdownEligibilityOptions {
   todayKey?: string;
