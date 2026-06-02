@@ -320,6 +320,7 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 - `POST /api/presence/heartbeat`
 - `GET /api/games`
 - `GET /api/games?scope=division&division=division-1278469`
+- `GET /api/courts`
 - `GET /api/games/:gameId`
 - `GET /api/dashboard`
 - `GET /api/alerts`

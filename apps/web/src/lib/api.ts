@@ -1,5 +1,6 @@
 import type {
   DashboardResponse,
+  CourtSummary,
   DivisionResultGroup,
   Game,
   GameChangeEvent,
@@ -30,6 +31,7 @@ type CacheKey =
   | "dashboard"
   | "games"
   | "gamesAll"
+  | "courts"
   | "alerts"
   | "programs"
   | "pointsLeaders"
@@ -41,11 +43,12 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v25";
-const LEGACY_CACHE_VERSION = "v24";
+const CACHE_VERSION = "v26";
+const LEGACY_CACHE_VERSION = "v25";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
+  "courts",
   "alerts",
   "programs",
   "results",
@@ -181,6 +184,8 @@ export const CourtWatchApi = {
     apiGet<Game[]>(withEvent(`/api/games${query}`, eventId), "games"),
   allGames: (eventId?: number | null) =>
     apiGet<Game[]>(withEvent("/api/games?scope=all", eventId), "gamesAll"),
+  courts: (eventId?: number | null) =>
+    apiGet<CourtSummary[]>(withEvent("/api/courts", eventId), "courts"),
   results: (scope: "watched" | "all" = "watched", eventId?: number | null) =>
     apiGet<DivisionResultGroup[]>(
       withEvent(`/api/results?scope=${scope}`, eventId),
@@ -284,7 +289,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v26";
+  const dataVersion = "v27";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {

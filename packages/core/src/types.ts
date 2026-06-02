@@ -201,6 +201,21 @@ export interface Game {
   rawJson?: unknown;
 }
 
+export interface CourtFinderGame {
+  game: Game;
+  division: Division | null;
+}
+
+export interface CourtSummary {
+  courtKey: string;
+  courtName: string;
+  venueName: string | null;
+  currentGames: CourtFinderGame[];
+  upNextGame: CourtFinderGame | null;
+  recentGame: CourtFinderGame | null;
+  games: CourtFinderGame[];
+}
+
 export interface GameChangeEvent {
   id: string;
   gameId: string | null;

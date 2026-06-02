@@ -185,6 +185,90 @@ describe("CourtWatch API", () => {
     });
   });
 
+  it("returns court finder summaries with live and up-next games", async () => {
+    const snapshot = structuredClone(seedSnapshot);
+    const now = Date.now();
+    const baseGame = seedGames[0]!;
+    snapshot.games = [
+      {
+        ...baseGame,
+        id: "game-court-34-final",
+        exposureGameId: "game-court-34-final",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City 10U",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 42,
+        awayScore: 38,
+        status: "final",
+        startsAt: new Date(now - 2 * 60 * 60_000).toISOString(),
+        scheduledDate: "2026-06-02",
+        scheduledTime: "10:00 AM",
+        courtName: "Court 34",
+      },
+      {
+        ...baseGame,
+        id: "game-court-34-live",
+        exposureGameId: "game-court-34-live",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City 10U",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: null,
+        awayScore: null,
+        status: "upcoming",
+        startsAt: new Date(now - 5 * 60_000).toISOString(),
+        scheduledDate: "2026-06-02",
+        scheduledTime: "12:00 PM",
+        courtName: "Court 34",
+      },
+      {
+        ...baseGame,
+        id: "game-court-34-next",
+        exposureGameId: "game-court-34-next",
+        homeTeamId: "team-splash-6th",
+        awayTeamId: "team-norcal-6",
+        homeTeamNameSnapshot: "Splash City 12U",
+        awayTeamNameSnapshot: "NorCal Elite Blue",
+        homeScore: null,
+        awayScore: null,
+        status: "upcoming",
+        startsAt: new Date(now + 90 * 60_000).toISOString(),
+        scheduledDate: "2026-06-02",
+        scheduledTime: "1:30 PM",
+        courtName: "Court 34",
+      },
+    ] satisfies Game[];
+    const app = createApp(new MockStore(snapshot), null);
+    const response = await request(app).get("/api/courts").expect(200);
+    const court34 = response.body.find(
+      (court: { courtName: string }) => court.courtName === "Court 34",
+    );
+
+    expect(court34).toMatchObject({
+      courtName: "Court 34",
+      venueName: "Reno-Sparks Convention Center",
+      currentGames: [
+        {
+          game: {
+            id: "game-court-34-live",
+            status: "playing_now",
+            homeTeamNameSnapshot: "Splash City 10U",
+            awayTeamNameSnapshot: "Premier 10U Gold",
+            homeTeamRecord: { wins: 1, losses: 0 },
+          },
+        },
+      ],
+      upNextGame: {
+        game: {
+          id: "game-court-34-next",
+          homeTeamNameSnapshot: "Splash City 12U",
+          awayTeamNameSnapshot: "NorCal Elite Blue",
+        },
+      },
+    });
+  });
+
   it("includes points leaders in the dashboard payload", async () => {
     const app = createApp(new MockStore(), null);
     const response = await request(app)

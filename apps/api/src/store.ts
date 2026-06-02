@@ -6,6 +6,7 @@ import {
   PublicExposurePageClient,
   RENO_TIMEZONE,
   ScheduleService,
+  CourtFinderService,
   SELECTED_TEAMS_PROGRAM_ID,
   SELECTED_TEAMS_PROGRAM_NAME,
   TournamentDiscoveryService,
@@ -35,6 +36,7 @@ import {
 } from "@courtwatch/core";
 import type {
   CourtWatchSnapshot,
+  CourtSummary,
   Division,
   DivisionResult,
   DivisionResultGroup,
@@ -92,6 +94,7 @@ export interface CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
   ): Promise<Game[]>;
+  courts(exposureEventId?: number | null): Promise<CourtSummary[]>;
   game(
     gameId: string,
   ): Promise<(Game & { changeHistory: GameChangeEvent[] }) | null>;
@@ -267,6 +270,12 @@ export class MockStore implements CourtWatchStore {
       },
     );
     return schedule;
+  }
+
+  async courts(exposureEventId?: number | null) {
+    return new CourtFinderService().listCourts(
+      await this.snapshot(exposureEventId),
+    );
   }
 
   async game(gameId: string) {
@@ -877,6 +886,12 @@ export class PrismaStore implements CourtWatchStore {
         division: filters.division,
         scope: filters.scope,
       },
+    );
+  }
+
+  async courts(exposureEventId?: number | null) {
+    return new CourtFinderService().listCourts(
+      await this.snapshot(exposureEventId),
     );
   }
 

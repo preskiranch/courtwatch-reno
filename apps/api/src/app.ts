@@ -559,6 +559,14 @@ export function createApp(
     }
   });
 
+  app.get("/api/courts", async (req, res, next) => {
+    try {
+      res.json(await store.courts(requestExposureEventId(req)));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/games/:gameId", async (req, res, next) => {
     try {
       const game = await store.game(req.params.gameId);

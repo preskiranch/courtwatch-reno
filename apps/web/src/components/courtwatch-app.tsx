@@ -6,6 +6,8 @@ import {
   isAnyActiveTournamentWindow,
   withEffectiveGameStatus,
   withEffectiveGameStatuses,
+  type CourtFinderGame,
+  type CourtSummary,
   type DashboardResponse,
   type DivisionResult,
   type Game,
@@ -93,6 +95,8 @@ type TeamRecord = Pick<
   finalGames: number;
   gamesSeen: number;
 };
+
+const EMPTY_RECORDS = new Map<string, TeamRecord>();
 
 const ADMIN_EMAIL = "courtwatchaau@gmail.com";
 
@@ -1921,10 +1925,23 @@ function ScheduleScreen({
   timezone: string;
   eventId: number | null;
 }) {
+  const [scheduleView, setScheduleView] = useState<"timeline" | "courts">(
+    "timeline",
+  );
   const [programFilter, setProgramFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courtFilter, setCourtFilter] = useState("");
+  const [selectedCourtKey, setSelectedCourtKey] = useState("");
   const { records, loading: recordsLoading } = useTeamRecords(eventId);
+  const courtsQuery = useQuery({
+    queryKey: ["courts", eventId],
+    queryFn: () => CourtWatchApi.courts(eventId),
+    enabled: Boolean(eventId),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+  });
   const followedCount = programs.reduce(
     (count, program) => count + program.teams.length,
     0,
@@ -1961,84 +1978,329 @@ function ScheduleScreen({
 
   return (
     <div className="space-y-4">
+      <section className="rounded-lg border border-white/10 bg-white/8 p-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setScheduleView("timeline")}
+            className={clsx(
+              "min-h-11 rounded-lg text-sm font-black transition active:scale-95",
+              scheduleView === "timeline"
+                ? "bg-orange-500 text-white"
+                : "bg-slate-950 text-slate-200",
+            )}
+          >
+            Timeline
+          </button>
+          <button
+            type="button"
+            onClick={() => setScheduleView("courts")}
+            className={clsx(
+              "min-h-11 rounded-lg text-sm font-black transition active:scale-95",
+              scheduleView === "courts"
+                ? "bg-orange-500 text-white"
+                : "bg-slate-950 text-slate-200",
+            )}
+          >
+            Courts
+          </button>
+        </div>
+      </section>
+
+      {scheduleView === "courts" ? (
+        <CourtFinderView
+          courts={courtsQuery.data ?? []}
+          loading={courtsQuery.isLoading}
+          selectedCourtKey={selectedCourtKey}
+          onSelectCourt={setSelectedCourtKey}
+        />
+      ) : (
+        <>
+          <section className="rounded-lg border border-white/10 bg-white/8 p-3">
+            <div className="mb-3 flex items-center gap-2 text-sm font-black text-white">
+              <Search className="h-4 w-4 text-orange-300" />
+              Schedule Filters
+            </div>
+            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+              <FilterButton
+                active={programFilter === "all"}
+                onClick={() => setProgramFilter("all")}
+              >
+                All watched
+              </FilterButton>
+              {programs.map((program) => (
+                <FilterButton
+                  key={program.program.id}
+                  active={programFilter === program.program.id}
+                  onClick={() => setProgramFilter(program.program.id)}
+                >
+                  {program.program.programName}
+                </FilterButton>
+              ))}
+            </div>
+            <div className="mt-2 no-scrollbar flex gap-2 overflow-x-auto pb-1">
+              {[
+                "all",
+                "playing_now",
+                "upcoming",
+                "final",
+                "schedule_changed",
+              ].map((status) => (
+                <FilterButton
+                  key={status}
+                  active={statusFilter === status}
+                  onClick={() => setStatusFilter(status)}
+                >
+                  {status === "all" ? "All status" : labelStatus(status)}
+                </FilterButton>
+              ))}
+            </div>
+            <select
+              value={courtFilter}
+              onChange={(event) => setCourtFilter(event.target.value)}
+              className="mt-2 h-11 w-full rounded-lg border border-white/12 bg-slate-950 px-3 text-sm font-semibold text-white"
+            >
+              <option value="">All courts</option>
+              {courts.map((court) => (
+                <option key={court} value={court ?? ""}>
+                  {court}
+                </option>
+              ))}
+            </select>
+          </section>
+
+          {groups.map((group) => (
+            <section key={group.date} className="space-y-2">
+              <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">
+                {group.label}
+              </h2>
+              {group.games.map((game) => (
+                <GameRow
+                  key={game.id}
+                  game={game}
+                  records={records}
+                  recordsLoading={recordsLoading}
+                />
+              ))}
+            </section>
+          ))}
+          {groups.length === 0 ? (
+            <section className="court-card p-4">
+              <h2 className="text-xl font-black text-slate-950">
+                No followed-team games yet
+              </h2>
+              <p className="mt-2 text-sm font-semibold text-slate-600">
+                {followedCount > 0
+                  ? "Court Watch AAU is waiting for the real Exposure schedule feed for your selected teams. No placeholder games are shown."
+                  : "Use Teams search to follow the registered teams you want on this schedule."}
+              </p>
+            </section>
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+}
+
+function CourtFinderView({
+  courts,
+  loading,
+  selectedCourtKey,
+  onSelectCourt,
+}: {
+  courts: CourtSummary[];
+  loading: boolean;
+  selectedCourtKey: string;
+  onSelectCourt: (courtKey: string) => void;
+}) {
+  const selectedCourt =
+    courts.find((court) => court.courtKey === selectedCourtKey) ?? null;
+  const activeCourts = courts.filter((court) => court.currentGames.length > 0);
+  const visibleCourts = selectedCourt
+    ? [selectedCourt]
+    : activeCourts.length > 0
+      ? activeCourts
+      : courts;
+
+  return (
+    <div className="space-y-3">
       <section className="rounded-lg border border-white/10 bg-white/8 p-3">
         <div className="mb-3 flex items-center gap-2 text-sm font-black text-white">
-          <Search className="h-4 w-4 text-orange-300" />
-          Schedule Filters
-        </div>
-        <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-          <FilterButton
-            active={programFilter === "all"}
-            onClick={() => setProgramFilter("all")}
-          >
-            All watched
-          </FilterButton>
-          {programs.map((program) => (
-            <FilterButton
-              key={program.program.id}
-              active={programFilter === program.program.id}
-              onClick={() => setProgramFilter(program.program.id)}
-            >
-              {program.program.programName}
-            </FilterButton>
-          ))}
-        </div>
-        <div className="mt-2 no-scrollbar flex gap-2 overflow-x-auto pb-1">
-          {["all", "playing_now", "upcoming", "final", "schedule_changed"].map(
-            (status) => (
-              <FilterButton
-                key={status}
-                active={statusFilter === status}
-                onClick={() => setStatusFilter(status)}
-              >
-                {status === "all" ? "All status" : labelStatus(status)}
-              </FilterButton>
-            ),
-          )}
+          <Gauge className="h-4 w-4 text-orange-300" />
+          Court Finder
         </div>
         <select
-          value={courtFilter}
-          onChange={(event) => setCourtFilter(event.target.value)}
-          className="mt-2 h-11 w-full rounded-lg border border-white/12 bg-slate-950 px-3 text-sm font-semibold text-white"
+          value={selectedCourtKey}
+          onChange={(event) => onSelectCourt(event.target.value)}
+          className="h-11 w-full rounded-lg border border-white/12 bg-slate-950 px-3 text-sm font-semibold text-white"
         >
-          <option value="">All courts</option>
+          <option value="">
+            {activeCourts.length > 0 ? "All active courts" : "All courts"}
+          </option>
           {courts.map((court) => (
-            <option key={court} value={court ?? ""}>
-              {court}
+            <option key={court.courtKey} value={court.courtKey}>
+              {courtFinderCourtLabel(court)}
             </option>
           ))}
         </select>
       </section>
 
-      {groups.map((group) => (
-        <section key={group.date} className="space-y-2">
-          <h2 className="px-1 text-sm font-black uppercase tracking-[0.16em] text-orange-300">
-            {group.label}
-          </h2>
-          {group.games.map((game) => (
-            <GameRow
-              key={game.id}
-              game={game}
-              records={records}
-              recordsLoading={recordsLoading}
-            />
-          ))}
-        </section>
-      ))}
-      {groups.length === 0 ? (
+      {loading ? (
+        <div className="h-32 animate-pulse rounded-lg bg-white/12" />
+      ) : null}
+      {!loading && courts.length === 0 ? (
         <section className="court-card p-4">
           <h2 className="text-xl font-black text-slate-950">
-            No followed-team games yet
+            No courts posted yet
           </h2>
           <p className="mt-2 text-sm font-semibold text-slate-600">
-            {followedCount > 0
-              ? "Court Watch AAU is waiting for the real Exposure schedule feed for your selected teams. No placeholder games are shown."
-              : "Use Teams search to follow the registered teams you want on this schedule."}
+            Court Watch AAU will show live and upcoming court assignments when
+            the tournament source posts games.
           </p>
         </section>
       ) : null}
+      {!loading &&
+      courts.length > 0 &&
+      visibleCourts.length === 0 &&
+      selectedCourtKey ? (
+        <section className="court-card p-4">
+          <h2 className="text-xl font-black text-slate-950">Court not found</h2>
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            Choose another court from the tournament court list.
+          </p>
+        </section>
+      ) : null}
+
+      {visibleCourts.map((court) => (
+        <CourtFinderCard key={court.courtKey} court={court} />
+      ))}
     </div>
   );
+}
+
+function CourtFinderCard({ court }: { court: CourtSummary }) {
+  const displayGames =
+    court.currentGames.length > 0
+      ? court.currentGames
+      : court.upNextGame
+        ? [court.upNextGame]
+        : court.recentGame
+          ? [court.recentGame]
+          : [];
+  const label =
+    court.currentGames.length > 0
+      ? "Playing now"
+      : court.upNextGame
+        ? "Up next"
+        : court.recentGame
+          ? "Last on court"
+          : "No games";
+
+  return (
+    <section className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">
+            {label}
+          </p>
+          <h2 className="mt-1 text-2xl font-black text-slate-950">
+            {court.courtName}
+          </h2>
+          <p className="mt-1 text-sm font-semibold text-slate-500">
+            {court.venueName ?? "Venue TBD"}
+          </p>
+        </div>
+        <div
+          className={clsx(
+            "rounded-lg px-3 py-2 text-center text-xs font-black uppercase",
+            court.currentGames.length > 0
+              ? "bg-emerald-500 text-white"
+              : "bg-slate-100 text-slate-700",
+          )}
+        >
+          {court.currentGames.length > 0 ? "Live" : "Court"}
+        </div>
+      </div>
+
+      {displayGames.length > 0 ? (
+        <div className="mt-4 space-y-3">
+          {displayGames.map((item) => (
+            <CourtFinderGameCard key={item.game.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <p className="mt-4 rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-600">
+          No live or upcoming games are posted for this court.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function CourtFinderGameCard({ item }: { item: CourtFinderGame }) {
+  const game = item.game;
+  const bracketUrl = bracketUrlFromGame(game);
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={game.status} />
+            <span className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+              {game.gameType ?? "Pool"}
+            </span>
+          </div>
+          <h3 className="mt-2 text-lg font-black leading-tight text-slate-950">
+            {gameMatchupDisplayName(game)}
+          </h3>
+          <p className="mt-1 text-sm font-semibold text-slate-500">
+            {item.division?.name ??
+              divisionNameFromGame(game) ??
+              "Division TBD"}
+          </p>
+          <p className="mt-1 text-sm font-black text-slate-700">
+            {formatGameDate(game.startsAt)} <span>{game.scheduledTime}</span>
+          </p>
+          <GameRecordsLine
+            game={game}
+            records={EMPTY_RECORDS}
+            loading={false}
+          />
+        </div>
+        {game.homeScore !== null && game.awayScore !== null ? (
+          <div className="shrink-0 rounded-lg bg-slate-950 px-3 py-2 text-center text-white">
+            <p className="text-lg font-black">
+              {game.homeScore}-{game.awayScore}
+            </p>
+            <p className="text-[10px] font-bold text-orange-300">FINAL</p>
+          </div>
+        ) : (
+          <div className="shrink-0 rounded-lg bg-orange-500 px-3 py-2 text-center text-white">
+            <p className="text-lg font-black">{game.scheduledTime}</p>
+            <p className="text-[10px] font-bold">{game.courtName}</p>
+          </div>
+        )}
+      </div>
+      {bracketUrl ? (
+        <a
+          href={bracketUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex min-h-9 items-center gap-1 rounded-lg bg-slate-100 px-3 text-sm font-black text-slate-800"
+        >
+          <Trophy className="h-4 w-4 text-orange-500" />
+          Official bracket
+          <ChevronRight className="h-4 w-4" />
+        </a>
+      ) : null}
+    </article>
+  );
+}
+
+function courtFinderCourtLabel(court: CourtSummary): string {
+  return court.venueName
+    ? `${court.courtName} - ${court.venueName}`
+    : court.courtName;
 }
 
 function FilterButton({

@@ -7,6 +7,8 @@ import {
   buildTeamRecordSummaryMap,
 } from "./records.js";
 import type {
+  CourtFinderGame,
+  CourtSummary,
   CourtWatchSnapshot,
   Game,
   ProgramAlias,
@@ -122,6 +124,114 @@ export class ScheduleService {
       )
       .map((game) => attachTeamRecordsToGame(game, records));
   }
+}
+
+export class CourtFinderService {
+  listCourts(snapshot: CourtWatchSnapshot, now = new Date()): CourtSummary[] {
+    const games = withEffectiveGameStatuses(snapshot.games, now);
+    const records = buildTeamRecordSummaryMap(games, snapshot.teams);
+    const divisionsById = new Map(
+      snapshot.divisions.map((division) => [division.id, division]),
+    );
+    const grouped = new Map<
+      string,
+      {
+        courtKey: string;
+        courtName: string;
+        venueName: string | null;
+        games: CourtFinderGame[];
+      }
+    >();
+
+    for (const game of games) {
+      if (!game.courtName) continue;
+      const courtKey = courtFinderKey(game.venueName, game.courtName);
+      const existing = grouped.get(courtKey) ?? {
+        courtKey,
+        courtName: game.courtName,
+        venueName: game.venueName,
+        games: [],
+      };
+      existing.games.push({
+        game: attachTeamRecordsToGame(game, records),
+        division: game.divisionId
+          ? (divisionsById.get(game.divisionId) ?? null)
+          : null,
+      });
+      grouped.set(courtKey, existing);
+    }
+
+    const nowMs = now.getTime();
+    return Array.from(grouped.values())
+      .map((court) => {
+        const gamesForCourt = court.games.sort(compareCourtFinderGames);
+        const currentGames = gamesForCourt.filter(
+          (item) => item.game.status === "playing_now",
+        );
+        const upNextGame =
+          gamesForCourt.find((item) => {
+            if (
+              item.game.status === "final" ||
+              item.game.status === "playing_now"
+            )
+              return false;
+            const startsAt = Date.parse(item.game.startsAt);
+            return Number.isFinite(startsAt) && startsAt >= nowMs;
+          }) ?? null;
+        const recentGame =
+          [...gamesForCourt].reverse().find((item) => {
+            const startsAt = Date.parse(item.game.startsAt);
+            return Number.isFinite(startsAt) && startsAt <= nowMs;
+          }) ?? null;
+        return {
+          ...court,
+          currentGames,
+          upNextGame,
+          recentGame,
+          games: gamesForCourt,
+        };
+      })
+      .sort(compareCourtSummaries);
+  }
+}
+
+function courtFinderKey(
+  venueName: string | null | undefined,
+  courtName: string,
+): string {
+  return `${normalizeCourtPart(venueName ?? "venue tbd")}::${normalizeCourtPart(courtName)}`;
+}
+
+function normalizeCourtPart(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function compareCourtFinderGames(
+  left: CourtFinderGame,
+  right: CourtFinderGame,
+) {
+  return Date.parse(left.game.startsAt) - Date.parse(right.game.startsAt);
+}
+
+function compareCourtSummaries(left: CourtSummary, right: CourtSummary) {
+  return (
+    String(left.venueName ?? "").localeCompare(
+      String(right.venueName ?? ""),
+      "en-US",
+      {
+        numeric: true,
+        sensitivity: "base",
+      },
+    ) ||
+    left.courtName.localeCompare(right.courtName, "en-US", {
+      numeric: true,
+      sensitivity: "base",
+    })
+  );
 }
 
 export class RenderHealthCheckService {
