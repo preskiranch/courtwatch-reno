@@ -41,8 +41,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v24";
-const LEGACY_CACHE_VERSION = "v23";
+const CACHE_VERSION = "v25";
+const LEGACY_CACHE_VERSION = "v24";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -284,7 +284,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v25";
+  const dataVersion = "v26";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
@@ -412,7 +412,7 @@ function eventStillSelectable(event: TournamentEvent): boolean {
   if (event.status === "cancelled" || event.status === "unavailable")
     return false;
   const today = localDateKey();
-  const oldestVisibleEnd = addDaysToDateKey(today, -7);
+  const oldestVisibleEnd = addDaysToDateKey(today, -90);
   const newestVisibleStart = addDaysToDateKey(today, 183);
   return (
     event.endDate >= oldestVisibleEnd && event.startDate <= newestVisibleStart
