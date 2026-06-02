@@ -524,7 +524,9 @@ export class PrismaStore implements CourtWatchStore {
       );
     }
 
-    return dropdownEventsWithTrackedFallback(Array.from(merged.values()));
+    return dropdownEventsWithUpcomingExposureFallback(
+      Array.from(merged.values()),
+    );
   }
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
@@ -1594,7 +1596,7 @@ function dropdownEventsFromSnapshot(
   const teamCounts = new Map<string, number>();
   for (const team of teams)
     teamCounts.set(team.eventId, (teamCounts.get(team.eventId) ?? 0) + 1);
-  return dropdownEventsWithTrackedFallback(
+  return dropdownEventsWithUpcomingExposureFallback(
     events.map((event) => ({
       ...event,
       registeredTeamCount: teamCounts.get(event.id) ?? 0,
@@ -1603,7 +1605,7 @@ function dropdownEventsFromSnapshot(
   );
 }
 
-function dropdownEventsWithTrackedFallback(
+function dropdownEventsWithUpcomingExposureFallback(
   events: TournamentEvent[],
 ): TournamentEvent[] {
   const eligible = eligibleTournamentEvents(events, {
@@ -1618,10 +1620,10 @@ function dropdownEventsWithTrackedFallback(
     todayKey,
     config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
   );
-  const trackedUpcoming = events
+  const upcomingExposureEvents = events
     .filter((event) => {
       if (eligibleExposureIds.has(event.exposureEventId)) return false;
-      if (event.dropdownGroup !== "tracked") return false;
+      if (!isExposureEvent(event)) return false;
       const status = deriveTournamentStatus(event, todayKey);
       return (
         (status === "upcoming" || status === "active") &&
@@ -1634,7 +1636,15 @@ function dropdownEventsWithTrackedFallback(
       status: deriveTournamentStatus(event, todayKey),
     }));
 
-  return sortTournamentEvents([...eligible, ...trackedUpcoming]);
+  return sortTournamentEvents([...eligible, ...upcomingExposureEvents]);
+}
+
+function isExposureEvent(event: TournamentEvent): boolean {
+  if (event.externalProvider === "exposure_events") return true;
+  return Boolean(
+    event.sourceUrl?.includes("basketball.exposureevents.com") ||
+    event.officialUrl.includes("basketball.exposureevents.com"),
+  );
 }
 
 function prismaEventToCore(
