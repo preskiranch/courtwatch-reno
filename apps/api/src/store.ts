@@ -29,6 +29,8 @@ import {
   seedPrograms,
   seedSnapshot,
   seedTeams,
+  tournamentTodayKey,
+  tournamentWindowEndKey,
   withEffectiveGameStatus,
 } from "@courtwatch/core";
 import type {
@@ -522,10 +524,7 @@ export class PrismaStore implements CourtWatchStore {
       );
     }
 
-    return eligibleTournamentEvents(Array.from(merged.values()), {
-      windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
-      cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS,
-    });
+    return dropdownEventsWithTrackedFallback(Array.from(merged.values()));
   }
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
@@ -1595,17 +1594,47 @@ function dropdownEventsFromSnapshot(
   const teamCounts = new Map<string, number>();
   for (const team of teams)
     teamCounts.set(team.eventId, (teamCounts.get(team.eventId) ?? 0) + 1);
-  return eligibleTournamentEvents(
+  return dropdownEventsWithTrackedFallback(
     events.map((event) => ({
       ...event,
       registeredTeamCount: teamCounts.get(event.id) ?? 0,
       hasPublicTeamList: event.hasPublicTeamList,
     })),
-    {
-      windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
-      cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS,
-    },
   );
+}
+
+function dropdownEventsWithTrackedFallback(
+  events: TournamentEvent[],
+): TournamentEvent[] {
+  const eligible = eligibleTournamentEvents(events, {
+    windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
+    cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS,
+  });
+  const eligibleExposureIds = new Set(
+    eligible.map((event) => event.exposureEventId),
+  );
+  const todayKey = tournamentTodayKey();
+  const windowEndKey = tournamentWindowEndKey(
+    todayKey,
+    config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
+  );
+  const trackedUpcoming = events
+    .filter((event) => {
+      if (eligibleExposureIds.has(event.exposureEventId)) return false;
+      if (event.dropdownGroup !== "tracked") return false;
+      const status = deriveTournamentStatus(event, todayKey);
+      return (
+        (status === "upcoming" || status === "active") &&
+        event.startDate <= windowEndKey &&
+        event.endDate >= todayKey
+      );
+    })
+    .map((event) => ({
+      ...event,
+      status: deriveTournamentStatus(event, todayKey),
+    }));
+
+  return sortTournamentEvents([...eligible, ...trackedUpcoming]);
 }
 
 function prismaEventToCore(
