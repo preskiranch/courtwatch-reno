@@ -121,6 +121,47 @@ const gsgSpringFinaleTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+const gsgBamNorcalCollisionTournament: TournamentSource = {
+  id: "event-gsg-bam-norcal-collision-2026",
+  exposureEventId: 264313,
+  externalProvider: "exposure_events",
+  externalId: "264313",
+  slug: "gsg-x-bam-norcal-collision",
+  sourceUrl:
+    "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
+  name: "GSG x BAM - NorCal Collision",
+  organizer: "GSG Hoops",
+  sport: "basketball",
+  sanctioningTags: [
+    "GSG Hoops",
+    "Golden State Games",
+    "BAM",
+    "BAMTOURNAMENTS",
+    "BAM x GSG",
+    "NorCal",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: ["8U", "17U"],
+  venueName: null,
+  city: "San Ramon",
+  state: "CA",
+  region: "Northern California",
+  startDate: "2026-06-06",
+  endDate: "2026-06-07",
+  location: "San Ramon, CA",
+  officialUrl:
+    "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: false,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
 const touchShootingTheStandardTournament: TournamentSource = {
   id: "event-the-standard-2026",
   exposureEventId: 267048,
@@ -199,6 +240,7 @@ const hoop121FallFestTournament: TournamentSource = {
 const defaultTrackedTournaments = [
   fallbackTournament,
   gsgSpringFinaleTournament,
+  gsgBamNorcalCollisionTournament,
   touchShootingTheStandardTournament,
   hoop121FallFestTournament,
 ];

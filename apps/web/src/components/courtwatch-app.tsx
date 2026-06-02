@@ -682,7 +682,9 @@ function AppHeader({
     events.find((event) => event.exposureEventId === selectedEventId) ??
     dashboard?.event;
   const trackedEvents = events.filter(
-    (event) => event.dropdownGroup === "tracked",
+    (event) =>
+      event.dropdownGroup === "tracked" &&
+      effectiveTournamentStatus(event) !== "completed",
   );
   const publicSourceEvents = events.filter(
     (event) => event.dropdownGroup !== "tracked",
@@ -693,14 +695,14 @@ function AppHeader({
   const upcomingPublicSourceEvents = publicSourceEvents.filter(
     (event) => effectiveTournamentStatus(event) === "upcoming",
   );
-  const completedPublicSourceEvents = publicSourceEvents.filter(
+  const completedEvents = events.filter(
     (event) => effectiveTournamentStatus(event) === "completed",
   );
   const hasGroupedEvents =
     trackedEvents.length > 0 ||
     activePublicSourceEvents.length > 0 ||
     upcomingPublicSourceEvents.length > 0 ||
-    completedPublicSourceEvents.length > 0;
+    completedEvents.length > 0;
   const statusMessage = offline
     ? "Offline cache"
     : (dashboard?.sourceStatus.message ??
@@ -830,9 +832,9 @@ function AppHeader({
                   ))}
                 </optgroup>
               ) : null}
-              {completedPublicSourceEvents.length > 0 ? (
-                <optgroup label="Completed public-source tournaments">
-                  {completedPublicSourceEvents.map((event) => (
+              {completedEvents.length > 0 ? (
+                <optgroup label="Finished tournaments">
+                  {completedEvents.map((event) => (
                     <TournamentOption
                       key={event.exposureEventId}
                       event={event}
