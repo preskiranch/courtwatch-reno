@@ -41,8 +41,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v22";
-const LEGACY_CACHE_VERSION = "v21";
+const CACHE_VERSION = "v23";
+const LEGACY_CACHE_VERSION = "v22";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -89,13 +89,18 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
     ? cacheLookupKeys(cacheKey, path, cacheClientId)
     : [];
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: {
-        Accept: "application/json",
-        ...clientIdentityHeaders(clientId),
+    const response = await fetch(
+      `${API_BASE_URL}${networkPath(path, cacheKey)}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          ...clientIdentityHeaders(clientId),
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
+    );
     if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
     const previousCache =
@@ -279,7 +284,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v23";
+  const dataVersion = "v24";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
@@ -323,6 +328,12 @@ function withEvent(path: string, eventId?: number | null): string {
   if (!eventId) return path;
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}eventId=${encodeURIComponent(String(eventId))}`;
+}
+
+function networkPath(path: string, cacheKey?: CacheKey): string {
+  if (cacheKey !== "events") return path;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}_cw=${Date.now()}`;
 }
 
 function cacheStorageKey(
