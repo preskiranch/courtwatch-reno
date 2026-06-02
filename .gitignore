@@ -11,3 +11,4 @@ coverage
 prisma/dev.db
 playwright-report
 test-results
+outreach/generated

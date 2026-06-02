@@ -19,6 +19,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx scripts/seed.ts",
+    "outreach:generate": "node scripts/outreach/generate-outreach-candidates.mjs",
     "format": "prettier --write ."
   },
   "devDependencies": {

@@ -329,6 +329,23 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 - `PATCH /api/settings/notification-preferences`
 - `POST /api/admin/sync-now`
 
+## Social Outreach Prep
+
+Court Watch AAU includes a manual outreach assistant for recent completed tournaments. It prepares an outreach CSV, message drafts, and branded achievement image cards, but it does not send automated Instagram or TikTok DMs.
+
+```bash
+npm run outreach:generate
+```
+
+Examples:
+
+```bash
+npm run outreach:generate -- --event=255539 --max-teams=50
+npm run outreach:generate -- --days=30 --max-teams=0
+```
+
+Generated files are written to `outreach/generated/`, which is ignored by git. Full instructions are in [docs/social-outreach.md](docs/social-outreach.md).
+
 ## Render Deployment
 
 1. Create a GitHub repository named `courtwatch-reno`.
