@@ -43,8 +43,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v26";
-const LEGACY_CACHE_VERSION = "v25";
+const CACHE_VERSION = "v27";
+const LEGACY_CACHE_VERSION = "v26";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -123,13 +123,17 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
         clientId,
       );
       if (shouldPersistCacheData(cacheKey, dataToStore)) {
-        window.localStorage.setItem(
-          storageKey,
-          JSON.stringify({
-            data: dataToStore,
-            savedAt: new Date().toISOString(),
-          }),
-        );
+        try {
+          window.localStorage.setItem(
+            storageKey,
+            JSON.stringify({
+              data: dataToStore,
+              savedAt: new Date().toISOString(),
+            }),
+          );
+        } catch {
+          // Large tournament payloads should never block fresh network data.
+        }
       }
     }
     return dataToStore;
@@ -289,7 +293,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v27";
+  const dataVersion = "v28";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
@@ -379,6 +383,7 @@ function firstCachedValue(keys: string[]): string | null {
 
 function shouldPersistCacheData<T>(cacheKey: CacheKey, data: T): boolean {
   if (!Array.isArray(data)) return true;
+  if (cacheKey === "courts") return false;
   if (cacheKey === "events") return data.length > 0;
   if (["pointsLeaders", "teams", "gamesAll", "resultsAll"].includes(cacheKey)) {
     return data.length > 0;
