@@ -617,6 +617,8 @@ function ShareQrMobileCard() {
 
 function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
   const [showShareFallback, setShowShareFallback] = useState(false);
+  const [showQrOpenOption, setShowQrOpenOption] = useState(false);
+  const qrLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qrSize =
     layout === "rail" ? "h-24 w-24 2xl:h-32 2xl:w-32" : "h-20 w-20";
 
@@ -645,6 +647,20 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
     setShowShareFallback(false);
   }
 
+  function startQrLongPress() {
+    clearQrLongPress();
+    qrLongPressTimer.current = setTimeout(() => {
+      setShowQrOpenOption(true);
+      setShowShareFallback(false);
+    }, 650);
+  }
+
+  function clearQrLongPress() {
+    if (!qrLongPressTimer.current) return;
+    clearTimeout(qrLongPressTimer.current);
+    qrLongPressTimer.current = null;
+  }
+
   return (
     <section
       className={clsx(
@@ -655,22 +671,40 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
       )}
       aria-label="Share Court Watch AAU"
     >
-      <a
-        href={PUBLIC_SITE_URL}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Open Court Watch AAU"
-        className="shrink-0 rounded-md transition active:scale-95"
-      >
-        <img
-          src="/share/courtwatch-reno-qr.jpg"
-          alt="QR code for Court Watch AAU"
-          className={clsx(
-            "rounded-md border border-white bg-white object-contain",
-            qrSize,
-          )}
-        />
-      </a>
+      <div className="relative shrink-0">
+        <button
+          type="button"
+          onPointerDown={startQrLongPress}
+          onPointerUp={clearQrLongPress}
+          onPointerLeave={clearQrLongPress}
+          onPointerCancel={clearQrLongPress}
+          onContextMenu={(event) => event.preventDefault()}
+          aria-label="Hold QR code for site link"
+          className="block rounded-md transition active:scale-95"
+        >
+          <img
+            src="/share/courtwatch-reno-qr.jpg"
+            alt="QR code for Court Watch AAU"
+            draggable={false}
+            className={clsx(
+              "select-none rounded-md border border-white bg-white object-contain",
+              qrSize,
+            )}
+          />
+        </button>
+        {showQrOpenOption ? (
+          <div className="absolute left-0 z-30 mt-2 rounded-lg border border-white/12 bg-slate-950 p-2 shadow-2xl">
+            <a
+              href={PUBLIC_SITE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-h-9 min-w-28 items-center rounded-md px-3 text-xs font-black text-white hover:bg-white/10"
+            >
+              Open site
+            </a>
+          </div>
+        ) : null}
+      </div>
       <div className={clsx("relative", layout === "rail" ? "mt-2" : "min-w-0")}>
         <button
           type="button"
