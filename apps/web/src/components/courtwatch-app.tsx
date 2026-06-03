@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock3,
+  Download,
   Gauge,
   Globe2,
   Home,
@@ -1210,6 +1211,7 @@ function DashboardScreen({
 
       <FinalResultsSection
         clientId={clientId}
+        event={dashboard.event}
         eventId={eventId}
         followedTeams={finalResultFollowedTeams}
       />
@@ -1713,10 +1715,12 @@ function latestPointLeaderScoreLabel(leader: TeamScoringLeader): string | null {
 
 function FinalResultsSection({
   clientId,
+  event,
   eventId,
   followedTeams,
 }: {
   clientId: string;
+  event: TournamentEvent;
   eventId: number | null;
   followedTeams: Team[];
 }) {
@@ -1820,6 +1824,7 @@ function FinalResultsSection({
         {resultGroups.map((group) => (
           <DivisionResultCard
             key={group.divisionId}
+            event={event}
             group={group}
             records={records}
             games={recordGames}
@@ -1832,19 +1837,40 @@ function FinalResultsSection({
   );
 }
 
+type FinalResultShareRow = {
+  label: string;
+  teamName: string;
+  recordText: string;
+  placement: number;
+  note?: string;
+};
+
+type GeneratedResultShareCard = {
+  blob: Blob;
+  filename: string;
+  url: string;
+};
+
 function DivisionResultCard({
+  event,
   group,
   records,
   games,
   teams,
   recordsLoading,
 }: {
+  event: TournamentEvent;
   group: FollowedFinalResultGroup;
   records: Map<string, TeamRecord>;
   games: Game[];
   teams: Team[];
   recordsLoading: boolean;
 }) {
+  const [shareCard, setShareCard] = useState<GeneratedResultShareCard | null>(
+    null,
+  );
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
   const unplacedFollowedTeams = group.followedTeamsWithoutPlacement ?? [];
   const resultStatusLabel =
     !group.hasPostedPlacements && group.rows.length === 0
@@ -1852,6 +1878,67 @@ function DivisionResultCard({
       : group.isOfficial
         ? "Official"
         : "Bracket final";
+
+  useEffect(() => {
+    return () => {
+      if (shareCard?.url) URL.revokeObjectURL(shareCard.url);
+    };
+  }, [shareCard?.url]);
+
+  const createShareCard = async () => {
+    setShareBusy(true);
+    setShareError(null);
+    try {
+      const blob = await renderFinalResultShareImage({
+        event,
+        group,
+        rows: finalResultShareRows(group, records, games, teams),
+      });
+      const url = URL.createObjectURL(blob);
+      setShareCard({
+        blob,
+        filename: finalResultShareFilename(event, group),
+        url,
+      });
+    } catch (error) {
+      setShareError(
+        error instanceof Error
+          ? error.message
+          : "Unable to create the result image.",
+      );
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
+  const shareGeneratedCard = async () => {
+    if (!shareCard) return;
+    const file = new File([shareCard.blob], shareCard.filename, {
+      type: "image/png",
+    });
+    const shareData: ShareData = {
+      files: [file],
+      title: `${group.divisionName} final results`,
+      text: `Court Watch AAU final results for ${group.divisionName}.`,
+    };
+    try {
+      if (
+        typeof navigator.share === "function" &&
+        (typeof navigator.canShare !== "function" ||
+          navigator.canShare(shareData))
+      ) {
+        await navigator.share(shareData);
+        return;
+      }
+      setShareError("Use Save image, then post or send it from your device.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareError(
+        error instanceof Error ? error.message : "Unable to share this image.",
+      );
+    }
+  };
+
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-3">
       <div className="mb-3 flex items-start justify-between gap-3">
@@ -1905,20 +1992,75 @@ function DivisionResultCard({
         ) : null}
       </div>
 
+      {shareCard ? (
+        <div className="mt-3 rounded-lg border border-orange-100 bg-orange-50 p-3">
+          <div className="flex gap-3">
+            <img
+              src={shareCard.url}
+              alt={`${group.divisionName} share image preview`}
+              className="h-28 w-20 shrink-0 rounded-md border border-white object-cover shadow-sm"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black text-slate-950">
+                Social image ready
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">
+                Save it to your device or use your phone share sheet.
+              </p>
+              <div className="mt-3 grid gap-2 min-[420px]:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={shareGeneratedCard}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-xs font-black text-white active:scale-[0.98]"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share image
+                </button>
+                <a
+                  href={shareCard.url}
+                  download={shareCard.filename}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-black text-orange-700 ring-1 ring-orange-100 active:scale-[0.98]"
+                >
+                  <Download className="h-4 w-4" />
+                  Save image
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {shareError ? (
+        <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs font-semibold text-amber-700">
+          {shareError}
+        </p>
+      ) : null}
+
       <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
         <p className="text-[11px] font-semibold leading-4 text-slate-500">
           Official schedules and rulings come from tournament staff.
         </p>
-        {group.sourceUrl ? (
-          <a
-            href={group.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 text-xs font-black text-orange-600"
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={createShareCard}
+            disabled={shareBusy}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-orange-500 px-3 text-xs font-black text-white active:scale-[0.98] disabled:opacity-70"
           >
-            Source
-          </a>
-        ) : null}
+            <Share2 className="h-4 w-4" />
+            {shareBusy ? "Making..." : "Share result"}
+          </button>
+          {group.sourceUrl ? (
+            <a
+              href={group.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-black text-orange-600"
+            >
+              Source
+            </a>
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -2002,6 +2144,377 @@ function DivisionResultRow({
       </div>
     </div>
   );
+}
+
+function finalResultShareRows(
+  group: FollowedFinalResultGroup,
+  records: Map<string, TeamRecord>,
+  games: Game[],
+  teams: Team[],
+): FinalResultShareRow[] {
+  const placementRows = group.rows.map((result) => {
+    const resolvedRecord =
+      resultRecordForTeam(result, records, games, teams) ??
+      resultRecordFromOfficialRow(result);
+    return {
+      label: resultPlacementLabel(result),
+      placement: result.placement,
+      recordText: recordText(resolvedRecord),
+      teamName: result.teamNameSnapshot,
+    };
+  });
+  const followedRows = (group.followedTeamsWithoutPlacement ?? []).map(
+    (team) => {
+      const resolvedRecord = followedTeamRecord(team, records, games);
+      return {
+        label: "Followed team",
+        note: group.hasPostedPlacements
+          ? "Not listed in posted gold, silver, or bronze."
+          : "Final placement pending.",
+        placement: 0,
+        recordText: recordText(resolvedRecord),
+        teamName: teamDisplayName(team),
+      };
+    },
+  );
+  if (placementRows.length > 0) return placementRows.slice(0, 3);
+  return followedRows.slice(0, 2);
+}
+
+async function renderFinalResultShareImage({
+  event,
+  group,
+  rows,
+}: {
+  event: TournamentEvent;
+  group: FollowedFinalResultGroup;
+  rows: FinalResultShareRow[];
+}): Promise<Blob> {
+  if (typeof document === "undefined") {
+    throw new Error("Image generation is only available in the browser.");
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Unable to create the result image.");
+
+  const fontFamily =
+    "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  const setFont = (size: number, weight = 800) => {
+    ctx.font = `${weight} ${size}px ${fontFamily}`;
+  };
+  const eventPlace =
+    event.city && event.state
+      ? `${event.city}, ${event.state}`
+      : event.location;
+  const eventDate = finalResultShareEventDate(event);
+  const statusLabel =
+    group.rows.length === 0
+      ? "Pending final placement"
+      : group.isOfficial
+        ? "Official final results"
+        : "Bracket final results";
+  const displayRows =
+    rows.length > 0
+      ? rows
+      : [
+          {
+            label: "Final results",
+            note: "Final placements not posted yet for this division.",
+            placement: 0,
+            recordText: "",
+            teamName: "Pending",
+          },
+        ];
+
+  const background = ctx.createLinearGradient(0, 0, 1080, 1350);
+  background.addColorStop(0, "#071423");
+  background.addColorStop(0.55, "#0b1726");
+  background.addColorStop(1, "#030812");
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, 1080, 1350);
+
+  drawCanvasGrid(ctx, 1080, 1350);
+  ctx.fillStyle = "rgba(255, 96, 5, 0.18)";
+  ctx.beginPath();
+  ctx.arc(940, 96, 220, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+  ctx.beginPath();
+  ctx.arc(130, 1260, 280, 0, Math.PI * 2);
+  ctx.fill();
+
+  setFont(38, 900);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("COURT WATCH AAU", 72, 94);
+  setFont(22, 900);
+  ctx.fillStyle = "#ffb36b";
+  ctx.fillText("FINAL RESULTS", 72, 132);
+
+  setFont(20, 900);
+  ctx.fillStyle = "#06101f";
+  fillRoundedRect(ctx, 760, 62, 248, 54, 16);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("courtwatchaau.com", 786, 98);
+
+  fillRoundedRect(ctx, 72, 182, 936, 170, 28, "rgba(255,255,255,0.94)");
+  setFont(34, 900);
+  ctx.fillStyle = "#07101f";
+  drawWrappedCanvasText(ctx, event.name, 112, 234, 856, 40, 2);
+  setFont(24, 800);
+  ctx.fillStyle = "#64748b";
+  drawWrappedCanvasText(
+    ctx,
+    [eventPlace, eventDate].filter(Boolean).join(" / "),
+    112,
+    314,
+    856,
+    30,
+    1,
+  );
+
+  fillRoundedRect(ctx, 72, 394, 936, 734, 32, "#f8fafc");
+  setFont(24, 900);
+  ctx.fillStyle = "#e65300";
+  ctx.fillText(statusLabel.toUpperCase(), 112, 450);
+  setFont(42, 900);
+  ctx.fillStyle = "#07101f";
+  drawWrappedCanvasText(ctx, group.divisionName, 112, 510, 820, 48, 2);
+  setFont(26, 800);
+  ctx.fillStyle = "#64748b";
+  drawWrappedCanvasText(
+    ctx,
+    `${group.gradeLevel ?? "Grade TBD"}${group.level ? ` / ${group.level}` : ""}`,
+    112,
+    604,
+    820,
+    34,
+    1,
+  );
+
+  let rowTop = 662;
+  for (const row of displayRows) {
+    const rowHeight = row.note ? 138 : 122;
+    const accent =
+      row.placement === 1
+        ? "#ff5f05"
+        : row.placement === 2
+          ? "#64748b"
+          : row.placement === 3
+            ? "#b45309"
+            : "#cbd5e1";
+    fillRoundedRect(ctx, 112, rowTop, 856, rowHeight, 22, "#ffffff");
+    fillRoundedRect(ctx, 132, rowTop + 22, 84, 84, 18, accent);
+    setFont(row.placement > 0 ? 28 : 18, 900);
+    ctx.fillStyle = row.placement > 0 ? "#ffffff" : "#334155";
+    const rankLabel = row.placement > 0 ? ordinalRank(row.placement) : "TEAM";
+    ctx.textAlign = "center";
+    ctx.fillText(rankLabel, 174, rowTop + (row.placement > 0 ? 74 : 71));
+    ctx.textAlign = "left";
+
+    setFont(22, 900);
+    ctx.fillStyle = "#64748b";
+    drawWrappedCanvasText(
+      ctx,
+      row.label.toUpperCase(),
+      244,
+      rowTop + 48,
+      480,
+      28,
+      1,
+    );
+    setFont(32, 900);
+    ctx.fillStyle = "#07101f";
+    drawWrappedCanvasText(ctx, row.teamName, 244, rowTop + 86, 470, 38, 1);
+    if (row.note) {
+      setFont(19, 800);
+      ctx.fillStyle = "#64748b";
+      drawWrappedCanvasText(ctx, row.note, 244, rowTop + 121, 520, 24, 1);
+    }
+
+    if (row.recordText) {
+      fillRoundedRect(ctx, 768, rowTop + 40, 154, 52, 14, "#f1f5f9");
+      setFont(24, 900);
+      ctx.fillStyle = "#07101f";
+      ctx.textAlign = "center";
+      ctx.fillText(row.recordText, 845, rowTop + 73);
+      setFont(13, 900);
+      ctx.fillStyle = "#64748b";
+      ctx.fillText("W-L", 845, rowTop + 95);
+      ctx.textAlign = "left";
+    }
+    rowTop += rowHeight + 18;
+  }
+
+  fillRoundedRect(ctx, 72, 1178, 936, 94, 24, "rgba(255,255,255,0.09)");
+  setFont(24, 900);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("Share the journey. Follow tournament updates.", 112, 1229);
+  setFont(18, 800);
+  ctx.fillStyle = "#cbd5e1";
+  drawWrappedCanvasText(
+    ctx,
+    "Official schedules and rulings come from tournament staff.",
+    112,
+    1262,
+    820,
+    24,
+    1,
+  );
+
+  setFont(26, 900);
+  ctx.fillStyle = "#ff7a1a";
+  ctx.fillText("COURTWATCHAAU.COM", 72, 1316);
+
+  return canvasToPngBlob(canvas);
+}
+
+function finalResultShareEventDate(event: TournamentEvent): string {
+  const timezone = event.timezone ?? DEFAULT_TOURNAMENT_TIME_ZONE;
+  const start = compactTournamentDate(event.startDate, timezone);
+  const end =
+    event.endDate && event.endDate !== event.startDate
+      ? compactTournamentDate(event.endDate, timezone)
+      : "";
+  return end ? `${start}-${end}` : start;
+}
+
+function finalResultShareFilename(
+  event: TournamentEvent,
+  group: FollowedFinalResultGroup,
+): string {
+  return `court-watch-aau-${shareFilenamePart(event.name)}-${shareFilenamePart(group.divisionName)}.png`;
+}
+
+function shareFilenamePart(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 42);
+}
+
+function drawCanvasGrid(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= width; x += 58) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= height; y += 58) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function fillRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  fillStyle?: string,
+) {
+  ctx.save();
+  if (fillStyle) ctx.fillStyle = fillStyle;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawWrappedCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number,
+): number {
+  const lines = canvasTextLines(ctx, text, maxWidth, maxLines);
+  lines.forEach((line, index) => ctx.fillText(line, x, y + index * lineHeight));
+  return y + lines.length * lineHeight;
+}
+
+function canvasTextLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [""];
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (ctx.measureText(next).width <= maxWidth) {
+      current = next;
+      continue;
+    }
+    if (current) lines.push(current);
+    current = word;
+    if (lines.length === maxLines) break;
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  if (lines.length > maxLines) lines.length = maxLines;
+  const lastIndex = lines.length - 1;
+  if (lastIndex >= 0) {
+    const remainingWords = words.join(" ");
+    if (lines.join(" ") !== remainingWords) {
+      lines[lastIndex] = fitCanvasText(ctx, `${lines[lastIndex]}...`, maxWidth);
+    }
+  }
+  const fittedLines = lines.map((line) => fitCanvasText(ctx, line, maxWidth));
+  return fittedLines;
+}
+
+function fitCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let fitted = text;
+  while (fitted.length > 1 && ctx.measureText(fitted).width > maxWidth) {
+    fitted = `${fitted.slice(0, -4)}...`;
+  }
+  return fitted;
+}
+
+function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+      reject(new Error("Unable to create the result image."));
+    }, "image/png");
+  });
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
