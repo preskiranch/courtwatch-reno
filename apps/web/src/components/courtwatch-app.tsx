@@ -99,6 +99,9 @@ type TeamRecord = Pick<
 const EMPTY_RECORDS = new Map<string, TeamRecord>();
 
 const ADMIN_EMAIL = "courtwatchaau@gmail.com";
+const PUBLIC_SITE_URL = "https://www.courtwatchaau.com/";
+const PUBLIC_SITE_SHARE_TEXT =
+  "Court Watch AAU helps parents and teams follow AAU tournament schedules, courts, records, brackets, alerts, and final results.";
 
 const tabs: Array<{
   id: Tab;
@@ -613,38 +616,76 @@ function ShareQrMobileCard() {
 }
 
 function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
+  const [showShareFallback, setShowShareFallback] = useState(false);
   const qrSize =
     layout === "rail" ? "h-24 w-24 2xl:h-32 2xl:w-32" : "h-20 w-20";
+
+  async function shareSite() {
+    const shareData = {
+      title: "Court Watch AAU",
+      text: PUBLIC_SITE_SHARE_TEXT,
+      url: PUBLIC_SITE_URL,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError")
+          return;
+      }
+    }
+
+    setShowShareFallback((current) => !current);
+  }
+
+  async function copySiteLink() {
+    await navigator.clipboard?.writeText(PUBLIC_SITE_URL);
+    setShowShareFallback(false);
+  }
+
   return (
     <section
       className={clsx(
-        "pointer-events-none rounded-lg border border-white/12 bg-[#07111f]/92 p-2 text-white shadow-2xl backdrop-blur",
+        "rounded-lg border border-white/12 bg-[#07111f]/92 p-2 text-white shadow-2xl backdrop-blur",
         layout === "rail"
           ? "text-center"
           : "flex max-w-[320px] items-center gap-3",
       )}
       aria-label="Share Court Watch AAU"
     >
-      <img
-        src="/share/courtwatch-reno-qr.jpg"
-        alt="QR code for Court Watch AAU"
-        className={clsx(
-          "shrink-0 rounded-md border border-white bg-white object-contain",
-          qrSize,
-        )}
-      />
-      <div className={layout === "rail" ? "mt-2" : "min-w-0"}>
-        <div
+      <a
+        href={PUBLIC_SITE_URL}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Open Court Watch AAU"
+        className="shrink-0 rounded-md transition active:scale-95"
+      >
+        <img
+          src="/share/courtwatch-reno-qr.jpg"
+          alt="QR code for Court Watch AAU"
           className={clsx(
-            "flex items-center gap-1 text-orange-300",
-            layout === "rail" ? "justify-center" : "",
+            "rounded-md border border-white bg-white object-contain",
+            qrSize,
           )}
+        />
+      </a>
+      <div className={clsx("relative", layout === "rail" ? "mt-2" : "min-w-0")}>
+        <button
+          type="button"
+          onClick={shareSite}
+          className={clsx(
+            "flex min-h-8 items-center gap-1 text-orange-300 transition active:scale-95",
+            layout === "rail" ? "mx-auto justify-center" : "",
+          )}
+          aria-label="Share Court Watch AAU"
         >
-          <Share2 className="h-3.5 w-3.5" />
-          <p className="text-[11px] font-black uppercase tracking-[0.12em]">
+          <Share2 className="h-4 w-4" />
+          <span className="text-[11px] font-black uppercase tracking-[0.12em]">
             Share
-          </p>
-        </div>
+          </span>
+        </button>
         <p
           className={clsx(
             "font-black leading-tight",
@@ -656,6 +697,36 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
         <p className="mt-1 text-[11px] font-semibold leading-4 text-slate-300">
           Scan to open Court Watch AAU.
         </p>
+        {showShareFallback ? (
+          <div
+            className={clsx(
+              "absolute z-30 mt-2 rounded-lg border border-white/12 bg-slate-950 p-2 shadow-2xl",
+              layout === "rail" ? "left-1/2 w-36 -translate-x-1/2" : "left-0",
+            )}
+          >
+            <a
+              href={`sms:?&body=${encodeURIComponent(`${PUBLIC_SITE_SHARE_TEXT} ${PUBLIC_SITE_URL}`)}`}
+              className="flex min-h-9 items-center gap-2 rounded-md px-2 text-xs font-black text-white hover:bg-white/10"
+            >
+              <Smartphone className="h-4 w-4 text-orange-300" />
+              Text
+            </a>
+            <a
+              href={`mailto:?subject=${encodeURIComponent("Court Watch AAU")}&body=${encodeURIComponent(`${PUBLIC_SITE_SHARE_TEXT}\n\n${PUBLIC_SITE_URL}`)}`}
+              className="flex min-h-9 items-center gap-2 rounded-md px-2 text-xs font-black text-white hover:bg-white/10"
+            >
+              <Mail className="h-4 w-4 text-orange-300" />
+              Email
+            </a>
+            <button
+              type="button"
+              onClick={copySiteLink}
+              className="flex min-h-9 w-full items-center rounded-md px-2 text-left text-xs font-black text-white hover:bg-white/10"
+            >
+              Copy link
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );
