@@ -2002,7 +2002,7 @@ function DivisionResultCard({
             />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-black text-slate-950">
-                Social image ready
+                Custom graphic ready
               </p>
               <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">
                 Save it to your device or use your phone share sheet.
@@ -2014,7 +2014,7 @@ function DivisionResultCard({
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-xs font-black text-white active:scale-[0.98]"
                 >
                   <Share2 className="h-4 w-4" />
-                  Share image
+                  Share graphic
                 </button>
                 <a
                   href={shareCard.url}
@@ -2022,7 +2022,7 @@ function DivisionResultCard({
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-black text-orange-700 ring-1 ring-orange-100 active:scale-[0.98]"
                 >
                   <Download className="h-4 w-4" />
-                  Save image
+                  Save graphic
                 </a>
               </div>
             </div>
@@ -2048,7 +2048,7 @@ function DivisionResultCard({
             className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-orange-500 px-3 text-xs font-black text-white active:scale-[0.98] disabled:opacity-70"
           >
             <Share2 className="h-4 w-4" />
-            {shareBusy ? "Making..." : "Share result"}
+            {shareBusy ? "Making..." : "Make graphic"}
           </button>
           {group.sourceUrl ? (
             <a
@@ -2200,6 +2200,8 @@ async function renderFinalResultShareImage({
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Unable to create the result image.");
 
+  const theme = finalResultPosterTheme(event, group);
+  const seed = finalResultPosterSeed(event, group);
   const fontFamily =
     "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
   const setFont = (size: number, weight = 800) => {
@@ -2212,10 +2214,10 @@ async function renderFinalResultShareImage({
   const eventDate = finalResultShareEventDate(event);
   const statusLabel =
     group.rows.length === 0
-      ? "Pending final placement"
+      ? "Pending"
       : group.isOfficial
-        ? "Official final results"
-        : "Bracket final results";
+        ? "Official"
+        : "Bracket final";
   const displayRows =
     rows.length > 0
       ? rows
@@ -2229,146 +2231,464 @@ async function renderFinalResultShareImage({
           },
         ];
 
-  const background = ctx.createLinearGradient(0, 0, 1080, 1350);
-  background.addColorStop(0, "#071423");
-  background.addColorStop(0.55, "#0b1726");
-  background.addColorStop(1, "#030812");
-  ctx.fillStyle = background;
-  ctx.fillRect(0, 0, 1080, 1350);
+  drawPosterBackground(ctx, theme, seed);
+  drawPosterLogoBadge(ctx, theme, 778, 58);
 
-  drawCanvasGrid(ctx, 1080, 1350);
-  ctx.fillStyle = "rgba(255, 96, 5, 0.18)";
-  ctx.beginPath();
-  ctx.arc(940, 96, 220, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
-  ctx.beginPath();
-  ctx.arc(130, 1260, 280, 0, Math.PI * 2);
-  ctx.fill();
+  setFont(25, 900);
+  ctx.fillStyle = theme.accentSoft;
+  ctx.fillText((event.organizer || "AAU BASKETBALL").toUpperCase(), 72, 76);
 
-  setFont(38, 900);
+  setFont(70, 950);
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("COURT WATCH AAU", 72, 94);
-  setFont(22, 900);
-  ctx.fillStyle = "#ffb36b";
-  ctx.fillText("FINAL RESULTS", 72, 132);
+  drawWrappedCanvasText(ctx, theme.headline, 72, 166, 690, 76, 2);
 
-  setFont(20, 900);
-  ctx.fillStyle = "#06101f";
-  fillRoundedRect(ctx, 760, 62, 248, 54, 16);
+  setFont(25, 900);
+  ctx.fillStyle = theme.secondary;
+  drawWrappedCanvasText(ctx, theme.subhead, 78, 326, 840, 30, 1);
+
+  fillRoundedRect(ctx, 72, 378, 936, 120, 28, "rgba(255,255,255,0.09)");
+  strokeRoundedRect(ctx, 72, 378, 936, 120, 28, "rgba(255,255,255,0.18)", 2);
+  setFont(24, 900);
+  ctx.fillStyle = theme.accentSoft;
+  ctx.fillText("TOURNAMENT", 110, 426);
+  setFont(32, 900);
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("courtwatchaau.com", 786, 98);
-
-  fillRoundedRect(ctx, 72, 182, 936, 170, 28, "rgba(255,255,255,0.94)");
-  setFont(34, 900);
-  ctx.fillStyle = "#07101f";
-  drawWrappedCanvasText(ctx, event.name, 112, 234, 856, 40, 2);
-  setFont(24, 800);
-  ctx.fillStyle = "#64748b";
+  drawWrappedCanvasText(ctx, event.name, 110, 468, 700, 38, 1);
+  setFont(22, 800);
+  ctx.fillStyle = "#cbd5e1";
   drawWrappedCanvasText(
     ctx,
     [eventPlace, eventDate].filter(Boolean).join(" / "),
-    112,
-    314,
-    856,
-    30,
+    110,
+    506,
+    700,
+    28,
     1,
   );
+  fillRoundedRect(ctx, 804, 416, 146, 48, 14, theme.primary);
+  setFont(20, 950);
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.fillText(fitCanvasText(ctx, statusLabel.toUpperCase(), 118), 877, 448);
+  ctx.textAlign = "left";
 
-  fillRoundedRect(ctx, 72, 394, 936, 734, 32, "#f8fafc");
-  setFont(24, 900);
-  ctx.fillStyle = "#e65300";
-  ctx.fillText(statusLabel.toUpperCase(), 112, 450);
-  setFont(42, 900);
-  ctx.fillStyle = "#07101f";
-  drawWrappedCanvasText(ctx, group.divisionName, 112, 510, 820, 48, 2);
-  setFont(26, 800);
+  const champion = displayRows.find((row) => row.placement === 1);
+  if (champion) {
+    drawChampionSpotlight(ctx, champion, theme, 74, 544);
+  } else {
+    drawPendingSpotlight(ctx, displayRows[0]!, theme, 74, 544);
+  }
+
+  drawPosterPhoneMock(ctx, theme, group, displayRows, 586, 546, seed);
+
+  fillRoundedRect(ctx, 72, 850, 936, 410, 30, "rgba(255,255,255,0.94)");
+  setFont(22, 950);
+  ctx.fillStyle = theme.primary;
+  ctx.fillText("DIVISION RESULTS", 110, 904);
+  setFont(44, 950);
+  ctx.fillStyle = "#050816";
+  drawWrappedCanvasText(ctx, group.divisionName, 110, 956, 780, 52, 2);
+  setFont(22, 850);
   ctx.fillStyle = "#64748b";
   drawWrappedCanvasText(
     ctx,
     `${group.gradeLevel ?? "Grade TBD"}${group.level ? ` / ${group.level}` : ""}`,
-    112,
-    604,
-    820,
-    34,
+    110,
+    1044,
+    780,
+    28,
     1,
   );
 
-  let rowTop = 662;
-  for (const row of displayRows) {
-    const rowHeight = row.note ? 138 : 122;
-    const accent =
-      row.placement === 1
-        ? "#ff5f05"
-        : row.placement === 2
-          ? "#64748b"
-          : row.placement === 3
-            ? "#b45309"
-            : "#cbd5e1";
-    fillRoundedRect(ctx, 112, rowTop, 856, rowHeight, 22, "#ffffff");
-    fillRoundedRect(ctx, 132, rowTop + 22, 84, 84, 18, accent);
-    setFont(row.placement > 0 ? 28 : 18, 900);
-    ctx.fillStyle = row.placement > 0 ? "#ffffff" : "#334155";
-    const rankLabel = row.placement > 0 ? ordinalRank(row.placement) : "TEAM";
-    ctx.textAlign = "center";
-    ctx.fillText(rankLabel, 174, rowTop + (row.placement > 0 ? 74 : 71));
-    ctx.textAlign = "left";
+  const podiumRows = displayRows.slice(0, 3);
+  const rowStart = 1058;
+  podiumRows.forEach((row, index) =>
+    drawPosterPodiumRow(ctx, row, theme, 110, rowStart + index * 60),
+  );
 
-    setFont(22, 900);
-    ctx.fillStyle = "#64748b";
-    drawWrappedCanvasText(
-      ctx,
-      row.label.toUpperCase(),
-      244,
-      rowTop + 48,
-      480,
-      28,
-      1,
-    );
-    setFont(32, 900);
-    ctx.fillStyle = "#07101f";
-    drawWrappedCanvasText(ctx, row.teamName, 244, rowTop + 86, 470, 38, 1);
-    if (row.note) {
-      setFont(19, 800);
-      ctx.fillStyle = "#64748b";
-      drawWrappedCanvasText(ctx, row.note, 244, rowTop + 121, 520, 24, 1);
-    }
-
-    if (row.recordText) {
-      fillRoundedRect(ctx, 768, rowTop + 40, 154, 52, 14, "#f1f5f9");
-      setFont(24, 900);
-      ctx.fillStyle = "#07101f";
-      ctx.textAlign = "center";
-      ctx.fillText(row.recordText, 845, rowTop + 73);
-      setFont(13, 900);
-      ctx.fillStyle = "#64748b";
-      ctx.fillText("W-L", 845, rowTop + 95);
-      ctx.textAlign = "left";
-    }
-    rowTop += rowHeight + 18;
-  }
-
-  fillRoundedRect(ctx, 72, 1178, 936, 94, 24, "rgba(255,255,255,0.09)");
-  setFont(24, 900);
+  fillRoundedRect(ctx, 72, 1270, 936, 66, 20, theme.primary);
+  setFont(30, 950);
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("Share the journey. Follow tournament updates.", 112, 1229);
-  setFont(18, 800);
-  ctx.fillStyle = "#cbd5e1";
-  drawWrappedCanvasText(
-    ctx,
-    "Official schedules and rulings come from tournament staff.",
-    112,
-    1262,
-    820,
-    24,
-    1,
+  ctx.fillText("VISIT COURTWATCHAAU.COM", 120, 1311);
+  setFont(18, 900);
+  ctx.fillStyle = "rgba(255,255,255,0.78)";
+  ctx.fillText(
+    "Find your team. Follow their journey. Stay updated.",
+    120,
+    1330,
   );
-
-  setFont(26, 900);
-  ctx.fillStyle = "#ff7a1a";
-  ctx.fillText("COURTWATCHAAU.COM", 72, 1316);
 
   return canvasToPngBlob(canvas);
+}
+
+type FinalResultPosterTheme = {
+  accentSoft: string;
+  backgroundA: string;
+  backgroundB: string;
+  backgroundC: string;
+  glow: string;
+  headline: string;
+  primary: string;
+  secondary: string;
+  subhead: string;
+};
+
+const FINAL_RESULT_POSTER_THEMES: FinalResultPosterTheme[] = [
+  {
+    accentSoft: "#ffb36b",
+    backgroundA: "#070b16",
+    backgroundB: "#111827",
+    backgroundC: "#1b0802",
+    glow: "rgba(255, 94, 10, 0.34)",
+    headline: "WHO MADE THE PODIUM?",
+    primary: "#ff5f05",
+    secondary: "#f8d28b",
+    subhead: "Gold, silver, and bronze posted on Court Watch AAU.",
+  },
+  {
+    accentSoft: "#a7f3d0",
+    backgroundA: "#041019",
+    backgroundB: "#0f2a2d",
+    backgroundC: "#120f03",
+    glow: "rgba(20, 184, 166, 0.3)",
+    headline: "DIVISION HARDWARE",
+    primary: "#0f766e",
+    secondary: "#ffb36b",
+    subhead: "Official placements, records, and tournament updates.",
+  },
+  {
+    accentSoft: "#fed7aa",
+    backgroundA: "#050816",
+    backgroundB: "#1e1b4b",
+    backgroundC: "#2a1203",
+    glow: "rgba(249, 115, 22, 0.32)",
+    headline: "CHAMPS CROWNED",
+    primary: "#ea580c",
+    secondary: "#93c5fd",
+    subhead: "Share the final results with the team and families.",
+  },
+  {
+    accentSoft: "#fef3c7",
+    backgroundA: "#080b11",
+    backgroundB: "#172554",
+    backgroundC: "#451a03",
+    glow: "rgba(245, 158, 11, 0.3)",
+    headline: "FINAL STANDINGS ARE IN",
+    primary: "#d97706",
+    secondary: "#bfdbfe",
+    subhead: "A tournament recap graphic built from live results.",
+  },
+];
+
+function finalResultPosterSeed(
+  event: TournamentEvent,
+  group: FollowedFinalResultGroup,
+): number {
+  return hashText(
+    `${event.exposureEventId}:${event.name}:${group.divisionId}:${group.divisionName}`,
+  );
+}
+
+function finalResultPosterTheme(
+  event: TournamentEvent,
+  group: FollowedFinalResultGroup,
+): FinalResultPosterTheme {
+  const seed = finalResultPosterSeed(event, group);
+  return FINAL_RESULT_POSTER_THEMES[seed % FINAL_RESULT_POSTER_THEMES.length]!;
+}
+
+function hashText(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0);
+}
+
+function seededUnit(seed: number, index: number): number {
+  const value = Math.sin(seed * 12.9898 + index * 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function drawPosterBackground(
+  ctx: CanvasRenderingContext2D,
+  theme: FinalResultPosterTheme,
+  seed: number,
+) {
+  const background = ctx.createLinearGradient(0, 0, 1080, 1350);
+  background.addColorStop(0, theme.backgroundA);
+  background.addColorStop(0.55, theme.backgroundB);
+  background.addColorStop(1, theme.backgroundC);
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, 1080, 1350);
+
+  drawCanvasGrid(ctx, 1080, 1350);
+  drawPosterBasketball(ctx, 90 + seededUnit(seed, 1) * 80, 190, 250, theme);
+  drawPosterBasketball(ctx, 930, 1070, 340, theme, 0.28);
+
+  for (let index = 0; index < 62; index += 1) {
+    const x = seededUnit(seed, index + 10) * 1080;
+    const y = seededUnit(seed, index + 110) * 1350;
+    const size = 2 + seededUnit(seed, index + 210) * 8;
+    ctx.fillStyle =
+      index % 3 === 0
+        ? theme.glow
+        : index % 3 === 1
+          ? "rgba(255,255,255,0.18)"
+          : "rgba(255,255,255,0.08)";
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.save();
+  ctx.strokeStyle = theme.glow;
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.moveTo(38, 356 + seededUnit(seed, 3) * 40);
+  ctx.bezierCurveTo(310, 260, 720, 308, 1030, 168);
+  ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(255,255,255,0.22)";
+  ctx.setLineDash([16, 18]);
+  ctx.beginPath();
+  ctx.moveTo(38, 402 + seededUnit(seed, 4) * 34);
+  ctx.bezierCurveTo(360, 328, 710, 382, 1030, 250);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPosterBasketball(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  theme: FinalResultPosterTheme,
+  opacity = 0.72,
+) {
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  const ballGradient = ctx.createRadialGradient(
+    x - radius * 0.28,
+    y - radius * 0.3,
+    radius * 0.08,
+    x,
+    y,
+    radius,
+  );
+  ballGradient.addColorStop(0, "#ffb36b");
+  ballGradient.addColorStop(0.45, theme.primary);
+  ballGradient.addColorStop(1, "#5b1a04");
+  ctx.fillStyle = ballGradient;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(5, 8, 22, 0.68)";
+  ctx.lineWidth = Math.max(8, radius * 0.055);
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.95, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x - radius, y);
+  ctx.lineTo(x + radius, y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(x - radius * 0.32, y, radius * 0.34, radius, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(x + radius * 0.32, y, radius * 0.34, radius, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPosterLogoBadge(
+  ctx: CanvasRenderingContext2D,
+  theme: FinalResultPosterTheme,
+  x: number,
+  y: number,
+) {
+  fillRoundedRect(ctx, x, y, 230, 116, 24, "rgba(255,255,255,0.1)");
+  strokeRoundedRect(ctx, x, y, 230, 116, 24, "rgba(255,255,255,0.2)", 2);
+  drawPosterBasketball(ctx, x + 52, y + 58, 38, theme, 1);
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "900 23px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("COURT", x + 94, y + 48);
+  ctx.fillStyle = theme.accentSoft;
+  ctx.fillText("WATCH", x + 94, y + 75);
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "900 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("AAU", x + 94, y + 96);
+}
+
+function drawChampionSpotlight(
+  ctx: CanvasRenderingContext2D,
+  row: FinalResultShareRow,
+  theme: FinalResultPosterTheme,
+  x: number,
+  y: number,
+) {
+  fillRoundedRect(ctx, x, y, 476, 292, 34, "rgba(255,255,255,0.1)");
+  strokeRoundedRect(ctx, x, y, 476, 292, 34, theme.glow, 3);
+  fillRoundedRect(ctx, x + 30, y + 28, 126, 126, 28, theme.primary);
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "950 42px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("1st", x + 93, y + 106);
+  ctx.font =
+    "900 20px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("GOLD", x + 93, y + 134);
+  ctx.textAlign = "left";
+  ctx.fillStyle = theme.accentSoft;
+  ctx.font =
+    "900 24px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("CHAMPION SPOTLIGHT", x + 180, y + 72);
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "950 44px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  drawWrappedCanvasText(ctx, row.teamName, x + 180, y + 124, 280, 50, 2);
+  fillRoundedRect(ctx, x + 30, y + 190, 192, 58, 16, "rgba(5,8,22,0.78)");
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "950 30px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText(row.recordText || "W-L TBD", x + 54, y + 229);
+  ctx.fillStyle = theme.secondary;
+  ctx.font =
+    "900 14px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("OVERALL RECORD", x + 246, y + 226);
+}
+
+function drawPendingSpotlight(
+  ctx: CanvasRenderingContext2D,
+  row: FinalResultShareRow,
+  theme: FinalResultPosterTheme,
+  x: number,
+  y: number,
+) {
+  fillRoundedRect(ctx, x, y, 476, 292, 34, "rgba(255,255,255,0.1)");
+  strokeRoundedRect(ctx, x, y, 476, 292, 34, theme.glow, 3);
+  fillRoundedRect(ctx, x + 34, y + 36, 92, 92, 22, theme.primary);
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "950 34px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("TBD", x + 158, y + 90);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font =
+    "850 24px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  drawWrappedCanvasText(
+    ctx,
+    row.note ?? row.teamName,
+    x + 158,
+    y + 132,
+    330,
+    32,
+    3,
+  );
+}
+
+function drawPosterPhoneMock(
+  ctx: CanvasRenderingContext2D,
+  theme: FinalResultPosterTheme,
+  group: FollowedFinalResultGroup,
+  rows: FinalResultShareRow[],
+  x: number,
+  y: number,
+  seed: number,
+) {
+  ctx.save();
+  ctx.translate(x + 174, y + 146);
+  ctx.rotate((seed % 2 === 0 ? -1 : 1) * 0.045);
+  fillRoundedRect(ctx, -174, -146, 348, 292, 28, "#050816");
+  strokeRoundedRect(ctx, -174, -146, 348, 292, 28, "rgba(255,255,255,0.24)", 4);
+  fillRoundedRect(ctx, -148, -110, 296, 224, 16, "#f8fafc");
+  fillRoundedRect(ctx, -148, -110, 296, 50, 16, "#101827");
+  ctx.fillStyle = theme.accentSoft;
+  ctx.font =
+    "900 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText("COURT WATCH AAU", -124, -78);
+  ctx.fillStyle = "#0f172a";
+  ctx.font =
+    "950 20px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  drawWrappedCanvasText(ctx, group.divisionName, -124, -22, 235, 22, 2);
+  rows.slice(0, 3).forEach((row, index) => {
+    const rowY = 34 + index * 48;
+    const color =
+      row.placement === 1
+        ? theme.primary
+        : row.placement === 2
+          ? "#64748b"
+          : "#b45309";
+    fillRoundedRect(ctx, -124, rowY, 248, 36, 10, "#ffffff");
+    fillRoundedRect(ctx, -112, rowY + 7, 44, 22, 7, color);
+    ctx.fillStyle = "#ffffff";
+    ctx.font =
+      "950 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      row.placement > 0 ? ordinalRank(row.placement) : "TBD",
+      -90,
+      rowY + 23,
+    );
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#0f172a";
+    ctx.font =
+      "900 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+    drawWrappedCanvasText(ctx, row.teamName, -58, rowY + 23, 120, 15, 1);
+    ctx.fillStyle = "#64748b";
+    ctx.font =
+      "900 12px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+    ctx.fillText(row.recordText, 78, rowY + 23);
+  });
+  ctx.restore();
+}
+
+function drawPosterPodiumRow(
+  ctx: CanvasRenderingContext2D,
+  row: FinalResultShareRow,
+  theme: FinalResultPosterTheme,
+  x: number,
+  y: number,
+) {
+  const accent =
+    row.placement === 1
+      ? theme.primary
+      : row.placement === 2
+        ? "#64748b"
+        : "#b45309";
+  fillRoundedRect(ctx, x, y, 830, 58, 16, "#ffffff");
+  fillRoundedRect(ctx, x + 12, y + 9, 74, 40, 12, accent);
+  ctx.fillStyle = "#ffffff";
+  ctx.font =
+    "950 22px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(
+    row.placement > 0 ? ordinalRank(row.placement) : "TBD",
+    x + 49,
+    y + 36,
+  );
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#64748b";
+  ctx.font =
+    "950 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.fillText(row.label.toUpperCase(), x + 110, y + 24);
+  ctx.fillStyle = "#050816";
+  ctx.font =
+    "950 24px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  drawWrappedCanvasText(ctx, row.teamName, x + 110, y + 50, 470, 28, 1);
+  fillRoundedRect(ctx, x + 682, y + 10, 118, 38, 11, "#f1f5f9");
+  ctx.fillStyle = "#050816";
+  ctx.font =
+    "950 20px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(row.recordText || "TBD", x + 741, y + 35);
+  ctx.textAlign = "left";
 }
 
 function finalResultShareEventDate(event: TournamentEvent): string {
@@ -2442,6 +2762,34 @@ function fillRoundedRect(
   ctx.quadraticCurveTo(x, y, x + radius, y);
   ctx.closePath();
   ctx.fill();
+  ctx.restore();
+}
+
+function strokeRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  strokeStyle: string,
+  lineWidth = 1,
+) {
+  ctx.save();
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.stroke();
   ctx.restore();
 }
 
