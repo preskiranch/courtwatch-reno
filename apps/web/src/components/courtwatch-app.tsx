@@ -501,7 +501,7 @@ export function CourtWatchApp() {
     <>
       <SideBezel />
       <ShareQrRail />
-      <main className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pb-24 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
+      <main className="courtwatch-content-shell relative z-10 mx-auto flex min-h-dvh w-full max-w-[520px] flex-col px-4 pt-4 text-white sm:max-w-3xl md:max-w-5xl">
         <AppHeader
           dashboard={dashboard}
           events={displayEvents}
@@ -4105,7 +4105,7 @@ function BottomTabs({
   }>;
 }) {
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-2 backdrop-blur">
+    <nav className="courtwatch-bottom-tabs fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-1.5 backdrop-blur">
       <div
         className="mx-auto grid max-w-[520px] gap-1"
         style={{
@@ -4122,11 +4122,11 @@ function BottomTabs({
               aria-label={tab.label}
               onClick={() => setActiveTab(tab.id)}
               className={clsx(
-                "flex min-h-14 min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-lg text-[8px] font-black leading-none transition active:scale-95 sm:text-[11px]",
+                "flex min-h-12 min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-lg text-[8px] font-black leading-none transition active:scale-95 sm:min-h-14 sm:text-[11px]",
                 active ? "bg-orange-500 text-white" : "text-slate-300",
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="block w-full text-center">
                 {tab.id === "dashboard" ? (
                   <>
