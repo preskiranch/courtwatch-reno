@@ -122,6 +122,8 @@ const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
 export function CourtWatchApp() {
+  useVisualViewportBottomGap();
+
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
@@ -589,6 +591,40 @@ export function CourtWatchApp() {
       </main>
     </>
   );
+}
+
+function useVisualViewportBottomGap() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+
+    const update = () => {
+      const visualHeight = viewport?.height ?? window.innerHeight;
+      const visualOffsetTop = viewport?.offsetTop ?? 0;
+      const bottomGap = Math.max(
+        0,
+        Math.round(visualHeight + visualOffsetTop - window.innerHeight),
+      );
+      root.style.setProperty(
+        "--courtwatch-visual-bottom-gap",
+        `${bottomGap}px`,
+      );
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    viewport?.addEventListener("resize", update);
+    viewport?.addEventListener("scroll", update);
+    return () => {
+      root.style.removeProperty("--courtwatch-visual-bottom-gap");
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      viewport?.removeEventListener("resize", update);
+      viewport?.removeEventListener("scroll", update);
+    };
+  }, []);
 }
 
 function SideBezel() {

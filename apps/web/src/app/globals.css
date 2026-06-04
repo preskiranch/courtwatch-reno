@@ -8,6 +8,7 @@
   --court-orange-2: #ffb547;
   --court-card: #f8fafc;
   --court-ink: #101827;
+  --courtwatch-visual-bottom-gap: 0px;
 }
 
 * {
@@ -68,6 +69,8 @@ button {
 
 .courtwatch-bottom-tabs {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  transform: translateY(var(--courtwatch-visual-bottom-gap));
+  will-change: transform;
 }
 
 .court-card {
