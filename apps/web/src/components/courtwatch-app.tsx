@@ -3631,11 +3631,8 @@ function TeamsScreen({
     teams: recordTeams,
   } = useTeamRecords(eventId);
   const teamsQuery = useQuery({
-    queryKey: ["teams", clientId, deferredSearch, eventId, searchActive],
-    queryFn: () =>
-      CourtWatchApi.teams(deferredSearch, eventId, {
-        allEvents: searchActive,
-      }),
+    queryKey: ["teams", clientId, deferredSearch, eventId],
+    queryFn: () => CourtWatchApi.teams(deferredSearch, eventId),
     enabled: !searchActive || deferredSearch.length > 0,
     staleTime: 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
@@ -3659,51 +3656,73 @@ function TeamsScreen({
       })),
     [dashboard.programs],
   );
+  const scopedSearchTeams = useMemo(
+    () => teamsForSelectedEvent(teamsQuery.data ?? [], eventId),
+    [teamsQuery.data, eventId],
+  );
+  const scopedAllTeams = useMemo(
+    () => teamsForSelectedEvent(allTeamsQuery.data ?? [], eventId),
+    [allTeamsQuery.data, eventId],
+  );
+  const scopedRecordTeams = useMemo(
+    () => teamsForSelectedEvent(recordTeams, eventId),
+    [recordTeams, eventId],
+  );
+  const scopedDashboardFollowedTeams = useMemo(
+    () => teamsForSelectedEvent(dashboardFollowedTeams, eventId),
+    [dashboardFollowedTeams, eventId],
+  );
   const observedFollowedTeams = useMemo(
     () =>
       mergeTeamLists(
-        recordTeams,
-        teamsQuery.data ?? [],
-        dashboardFollowedTeams,
+        scopedRecordTeams,
+        scopedSearchTeams,
+        scopedDashboardFollowedTeams,
       ),
-    [dashboardFollowedTeams, recordTeams, teamsQuery.data],
+    [scopedDashboardFollowedTeams, scopedRecordTeams, scopedSearchTeams],
   );
   const { storedFollowedTeams, rememberFollowedTeam, forgetFollowedTeamById } =
     useStoredFollowedTeams(clientId, eventId, observedFollowedTeams, {
       authoritative: isAccountClientId(clientId),
     });
+  const scopedStoredFollowedTeams = useMemo(
+    () => teamsForSelectedEvent(storedFollowedTeams, eventId),
+    [storedFollowedTeams, eventId],
+  );
   const matchingStoredTeams = useMemo(
     () =>
       searchActive
-        ? storedFollowedTeams.filter((team) =>
+        ? scopedStoredFollowedTeams.filter((team) =>
             teamMatchesSearch(team, deferredSearch),
           )
-        : storedFollowedTeams,
-    [deferredSearch, searchActive, storedFollowedTeams],
+        : scopedStoredFollowedTeams,
+    [deferredSearch, scopedStoredFollowedTeams, searchActive],
   );
   const matchingRecordTeams = useMemo(
     () =>
       searchActive
-        ? recordTeams.filter((team) => teamMatchesSearch(team, deferredSearch))
-        : recordTeams,
-    [deferredSearch, recordTeams, searchActive],
+        ? scopedRecordTeams.filter((team) =>
+            teamMatchesSearch(team, deferredSearch),
+          )
+        : scopedRecordTeams,
+    [deferredSearch, scopedRecordTeams, searchActive],
   );
   const knownTeamPool = useMemo(
     () =>
       mergeTeamLists(
-        recordTeams,
-        teamsQuery.data ?? [],
-        allTeamsQuery.data ?? [],
+        scopedRecordTeams,
+        scopedSearchTeams,
+        scopedAllTeams,
       ),
-    [allTeamsQuery.data, recordTeams, teamsQuery.data],
+    [scopedAllTeams, scopedRecordTeams, scopedSearchTeams],
   );
   const trustedKnownTeamPool = useMemo(
-    () => teamsWithTrustedFollowState(knownTeamPool, storedFollowedTeams),
-    [knownTeamPool, storedFollowedTeams],
+    () => teamsWithTrustedFollowState(knownTeamPool, scopedStoredFollowedTeams),
+    [knownTeamPool, scopedStoredFollowedTeams],
   );
   const followStateTeams = useMemo(
-    () => mergeTeamLists(trustedKnownTeamPool, storedFollowedTeams),
-    [storedFollowedTeams, trustedKnownTeamPool],
+    () => mergeTeamLists(trustedKnownTeamPool, scopedStoredFollowedTeams),
+    [scopedStoredFollowedTeams, trustedKnownTeamPool],
   );
   const selectedProgram = useMemo(
     () =>
@@ -3754,21 +3773,21 @@ function TeamsScreen({
   const visibleTeams = useMemo(() => {
     const visiblePool = searchActive
       ? mergeTeamLists(
-          teamsQuery.data ?? [],
+          scopedSearchTeams,
           matchingRecordTeams,
           matchingStoredTeams,
         )
       : followStateTeams;
     return sortTeamsForDisplay(
-      teamsWithTrustedFollowState(visiblePool, storedFollowedTeams),
+      teamsWithTrustedFollowState(visiblePool, scopedStoredFollowedTeams),
     );
   }, [
     followStateTeams,
     matchingRecordTeams,
     matchingStoredTeams,
+    scopedSearchTeams,
+    scopedStoredFollowedTeams,
     searchActive,
-    storedFollowedTeams,
-    teamsQuery.data,
   ]);
   const registeredCountLoading =
     teamsQuery.isLoading && visibleTeams.length === 0;
@@ -4060,6 +4079,18 @@ function teamsWithTrustedFollowState(
     ...team,
     isFollowed: storedFollowedIds.has(team.id),
   }));
+}
+
+function teamsForSelectedEvent(
+  teams: Team[],
+  eventId: number | null,
+): Team[] {
+  if (!eventId) return teams;
+  return teams.filter(
+    (team) =>
+      typeof team.exposureEventId !== "number" ||
+      team.exposureEventId === eventId,
+  );
 }
 
 function DivisionTotalsPanel({
