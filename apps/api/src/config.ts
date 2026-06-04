@@ -216,6 +216,170 @@ const eastBaySummerBattleTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+type GsgBamTournamentData = {
+  exposureEventId: number;
+  slug: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  city: string;
+  tags?: string[];
+};
+
+const gsgBamSummerTournamentData = [
+  {
+    exposureEventId: 264315,
+    slug: "gsg-x-bam-fathers-day-shootout",
+    name: "GSG x BAM - Father's Day Shootout",
+    startDate: "2026-06-20",
+    endDate: "2026-06-21",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264316,
+    slug: "bam-x-gsg-summer-slam",
+    name: "BAM x GSG - Summer Slam",
+    startDate: "2026-06-27",
+    endDate: "2026-06-28",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264317,
+    slug: "gsg-x-bam-july-4th-shootout",
+    name: "GSG x BAM - July 4th Shootout",
+    startDate: "2026-07-04",
+    endDate: "2026-07-05",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264318,
+    slug: "bam-x-gsg-norcal-summer-classic",
+    name: "BAM x GSG - NorCal Summer Classic",
+    startDate: "2026-07-11",
+    endDate: "2026-07-12",
+    location: "San Ramon, CA",
+    city: "San Ramon",
+    tags: ["NorCal"],
+  },
+  {
+    exposureEventId: 264319,
+    slug: "gsg-x-bam-summer-showdown",
+    name: "GSG x BAM - Summer Showdown",
+    startDate: "2026-07-18",
+    endDate: "2026-07-19",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264320,
+    slug: "bam-x-gsg-summer-jam",
+    name: "BAM x GSG - Summer Jam",
+    startDate: "2026-07-25",
+    endDate: "2026-07-26",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264321,
+    slug: "gsg-x-bam-summer-showcase",
+    name: "GSG x BAM - Summer Showcase",
+    startDate: "2026-08-01",
+    endDate: "2026-08-02",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264322,
+    slug: "king-of-cali-powered-by-battleground-circuit",
+    name: "King of Cali powered by Battleground Circuit",
+    startDate: "2026-08-08",
+    endDate: "2026-08-09",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+    tags: ["Battleground Circuit", "King of Cali"],
+  },
+  {
+    exposureEventId: 264323,
+    slug: "bam-x-gsg-bay-area-hoopfest",
+    name: "BAM x GSG - Bay Area HoopFest",
+    startDate: "2026-08-15",
+    endDate: "2026-08-16",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264324,
+    slug: "gsg-x-bam-heat-check-classic",
+    name: "GSG x BAM - Heat Check Classic",
+    startDate: "2026-08-22",
+    endDate: "2026-08-23",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+  {
+    exposureEventId: 264325,
+    slug: "bam-x-gsg-summer-finale",
+    name: "BAM x GSG - Summer Finale",
+    startDate: "2026-08-29",
+    endDate: "2026-08-30",
+    location: "San Ramon/San Leandro/Oakland, CA",
+    city: "San Ramon/San Leandro/Oakland",
+  },
+] satisfies GsgBamTournamentData[];
+
+function gsgBamTournamentSource(
+  tournament: GsgBamTournamentData,
+): TournamentSource {
+  const officialUrl = `https://basketball.exposureevents.com/${tournament.exposureEventId}/${tournament.slug}`;
+  return {
+    id: `event-${tournament.slug}-2026`,
+    exposureEventId: tournament.exposureEventId,
+    externalProvider: "exposure_events",
+    externalId: String(tournament.exposureEventId),
+    slug: tournament.slug,
+    sourceUrl: officialUrl,
+    name: tournament.name,
+    organizer: "GSG Hoops",
+    sport: "basketball",
+    sanctioningTags: [
+      "GSG Hoops",
+      "Golden State Games",
+      "BAM",
+      "BAMTOURNAMENTS",
+      "BAM Tournaments",
+      "BAM x GSG",
+      "Exposure Events",
+      ...(tournament.tags ?? []),
+    ],
+    gender: "Boys & Girls",
+    ageOrGradeDivisions: [],
+    venueName: null,
+    city: tournament.city,
+    state: "CA",
+    region: "Northern California",
+    startDate: tournament.startDate,
+    endDate: tournament.endDate,
+    location: tournament.location,
+    officialUrl,
+    timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+    registeredTeamCount: 0,
+    hasPublicTeamList: false,
+    lastCheckedAt: null,
+    lastSyncedAt: null,
+    lastTeamChangeAt: null,
+    status: "upcoming",
+    dropdownGroup: "tracked",
+  };
+}
+
+const gsgBamSummerTournaments = gsgBamSummerTournamentData.map(
+  gsgBamTournamentSource,
+);
+
 const touchShootingTheStandardTournament: TournamentSource = {
   id: "event-the-standard-2026",
   exposureEventId: 267048,
@@ -296,6 +460,7 @@ const defaultTrackedTournaments = [
   gsgSpringFinaleTournament,
   gsgBamNorcalCollisionTournament,
   eastBaySummerBattleTournament,
+  ...gsgBamSummerTournaments,
   touchShootingTheStandardTournament,
   hoop121FallFestTournament,
 ];

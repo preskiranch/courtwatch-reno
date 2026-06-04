@@ -75,6 +75,44 @@ export interface TournamentProvider {
   ): Promise<PublicExposureTeamResult>;
 }
 
+const GSG_BAM_EXPOSURE_EVENT_URLS = [
+  "https://basketball.exposureevents.com/248676/gsg-x-bam-new-years-tip-off",
+  "https://basketball.exposureevents.com/248677/bam-x-gsg-battleground-showcase",
+  "https://basketball.exposureevents.com/248678/gsg-x-bam-mlk-tournament",
+  "https://basketball.exposureevents.com/259691/gsg-x-bam-winter-shootout",
+  "https://basketball.exposureevents.com/259692/bam-x-gsg-winter-hoopfest",
+  "https://basketball.exposureevents.com/259694/gsg-x-bam-super-bowl-slam",
+  "https://basketball.exposureevents.com/259695/bam-x-gsg-golden-state-tip-off",
+  "https://basketball.exposureevents.com/259696/gsg-x-bam-bay-area-hoop-challenge",
+  "https://basketball.exposureevents.com/259697/king-of-the-bay-powered-by-battleground-x-lakeshow",
+  "https://basketball.exposureevents.com/259698/gsg-x-bam-west-coast-rumble",
+  "https://basketball.exposureevents.com/259699/king-of-sonoma-county-powered-by-battlegrounds-circuit",
+  "https://basketball.exposureevents.com/259700/bam-x-gsg-bay-area-hoop-cup",
+  "https://basketball.exposureevents.com/262153/bam-x-gsg-march-madness",
+  "https://basketball.exposureevents.com/262156/gsg-x-bam-easter-jam",
+  "https://basketball.exposureevents.com/262158/bam-x-gsg-hoop-supremacy",
+  "https://basketball.exposureevents.com/262159/gsg-x-bam-bay-area-spring-jam",
+  "https://basketball.exposureevents.com/262160/bam-x-gsg-bayside-battle",
+  "https://basketball.exposureevents.com/262161/gsg-x-bam-bay-area-jamboree",
+  "https://basketball.exposureevents.com/262163/bam-x-gsg-mothers-day-shootout",
+  "https://basketball.exposureevents.com/262164/king-of-norcal-powered-by-battleground-circuit",
+  "https://basketball.exposureevents.com/262358/memorial-day-mayhem-powered-by-4ballers-only-and-battleground-circuit",
+  "https://basketball.exposureevents.com/264312/bam-x-gsg-spring-finale",
+  "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
+  "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
+  "https://basketball.exposureevents.com/264315/gsg-x-bam-fathers-day-shootout",
+  "https://basketball.exposureevents.com/264316/bam-x-gsg-summer-slam",
+  "https://basketball.exposureevents.com/264317/gsg-x-bam-july-4th-shootout",
+  "https://basketball.exposureevents.com/264318/bam-x-gsg-norcal-summer-classic",
+  "https://basketball.exposureevents.com/264319/gsg-x-bam-summer-showdown",
+  "https://basketball.exposureevents.com/264320/bam-x-gsg-summer-jam",
+  "https://basketball.exposureevents.com/264321/gsg-x-bam-summer-showcase",
+  "https://basketball.exposureevents.com/264322/king-of-cali-powered-by-battleground-circuit",
+  "https://basketball.exposureevents.com/264323/bam-x-gsg-bay-area-hoopfest",
+  "https://basketball.exposureevents.com/264324/gsg-x-bam-heat-check-classic",
+  "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale",
+];
+
 export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
   {
     name: "Jam On It",
@@ -124,11 +162,8 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     provider: "exposure_events",
     enabled: true,
     url: "https://basketball.exposureevents.com/organizations/33328/gsg-hoops",
-    eventUrls: [
-      "https://basketball.exposureevents.com/264312/bam-x-gsg-spring-finale",
-      "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
-      "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
-    ],
+    eventUrls: GSG_BAM_EXPOSURE_EVENT_URLS,
+    maxEvents: 60,
     organizerName: "GSG Hoops",
     sanctioningTags: [
       "GSG Hoops",
@@ -144,10 +179,8 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     provider: "exposure_events",
     enabled: true,
     url: "https://basketball.exposureevents.com/organizations/27132/bamtournaments",
-    eventUrls: [
-      "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
-      "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
-    ],
+    eventUrls: GSG_BAM_EXPOSURE_EVENT_URLS,
+    maxEvents: 60,
     organizerName: "BAMTOURNAMENTS",
     sanctioningTags: [
       "BAM",
