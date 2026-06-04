@@ -162,6 +162,60 @@ const gsgBamNorcalCollisionTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+const eastBaySummerBattleTournament: TournamentSource = {
+  id: "event-east-bay-summer-battle-2026",
+  exposureEventId: 264314,
+  externalProvider: "exposure_events",
+  externalId: "264314",
+  slug: "the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
+  sourceUrl:
+    "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
+  name: "The East Bay Summer Battle - powered by 4Ballers Only x GSG x JustHoop",
+  organizer: "GSG Hoops",
+  sport: "basketball",
+  sanctioningTags: [
+    "GSG Hoops",
+    "Golden State Games",
+    "BAM",
+    "BAMTOURNAMENTS",
+    "BAM Tournaments",
+    "Summer Challenge",
+    "4Ballers Only",
+    "JustHoop",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: [
+    "2nd/3rd Grade",
+    "4th Grade",
+    "5th Grade",
+    "6th Grade",
+    "7th Grade",
+    "8th Grade",
+    "9th Grade",
+    "10th Grade",
+    "11th Grade",
+    "12th Grade",
+  ],
+  venueName: "San Leandro High School",
+  city: "San Leandro",
+  state: "CA",
+  region: "Northern California",
+  startDate: "2026-06-13",
+  endDate: "2026-06-14",
+  location: "San Leandro & Surrounding Gyms, CA",
+  officialUrl:
+    "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: false,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
 const touchShootingTheStandardTournament: TournamentSource = {
   id: "event-the-standard-2026",
   exposureEventId: 267048,
@@ -241,6 +295,7 @@ const defaultTrackedTournaments = [
   fallbackTournament,
   gsgSpringFinaleTournament,
   gsgBamNorcalCollisionTournament,
+  eastBaySummerBattleTournament,
   touchShootingTheStandardTournament,
   hoop121FallFestTournament,
 ];

@@ -126,6 +126,8 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     url: "https://basketball.exposureevents.com/organizations/33328/gsg-hoops",
     eventUrls: [
       "https://basketball.exposureevents.com/264312/bam-x-gsg-spring-finale",
+      "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
+      "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
     ],
     organizerName: "GSG Hoops",
     sanctioningTags: [
@@ -142,6 +144,10 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     provider: "exposure_events",
     enabled: true,
     url: "https://basketball.exposureevents.com/organizations/27132/bamtournaments",
+    eventUrls: [
+      "https://basketball.exposureevents.com/264313/gsg-x-bam-norcal-collision",
+      "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
+    ],
     organizerName: "BAMTOURNAMENTS",
     sanctioningTags: [
       "BAM",
