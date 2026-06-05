@@ -65,6 +65,7 @@ describe("TournamentDiscoveryService", () => {
           provider: "exposure_events",
           url: "https://basketball.exposureevents.com/organizations/12589/hoop-121",
           eventUrls: expect.arrayContaining([
+            "https://basketball.exposureevents.com/262891/sf-whph-and-sf-rebels-sf-takeover",
             "https://basketball.exposureevents.com/255459/the-bay-area-fall-fest-invitational",
           ]),
           sanctioningTags: expect.arrayContaining([

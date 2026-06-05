@@ -687,6 +687,49 @@ const hoop121FallFestTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+const hoop121SfTakeoverTournament: TournamentSource = {
+  id: "event-sf-whph-sf-rebels-sf-takeover-2026",
+  exposureEventId: 262891,
+  externalProvider: "exposure_events",
+  externalId: "262891",
+  slug: "sf-whph-and-sf-rebels-sf-takeover",
+  sourceUrl:
+    "https://basketball.exposureevents.com/262891/sf-whph-and-sf-rebels-sf-takeover",
+  name: "SF WHPH & SF Rebels - SF Takeover",
+  organizer: "Hoop 121",
+  sport: "basketball",
+  sanctioningTags: [
+    "Hoop 121",
+    "SF WHPH",
+    "SF Work Hard Play Hard",
+    "SF Rebels",
+    "Bay Area Takeover",
+    "Bay Area",
+    "Northern California",
+    "NorCal",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: ["8U", "17U"],
+  venueName: "Saint Ignatius High School",
+  city: "San Francisco",
+  state: "CA",
+  region: "Northern California",
+  startDate: "2026-05-30",
+  endDate: "2026-05-31",
+  location: "San Francisco, CA",
+  officialUrl:
+    "https://basketball.exposureevents.com/262891/sf-whph-and-sf-rebels-sf-takeover",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: false,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
 const defaultTrackedTournaments = [
   fallbackTournament,
   gsgSpringFinaleTournament,
@@ -695,6 +738,7 @@ const defaultTrackedTournaments = [
   ...gsgBamSummerTournaments,
   ...g365Tournaments,
   touchShootingTheStandardTournament,
+  hoop121SfTakeoverTournament,
   hoop121FallFestTournament,
 ];
 
