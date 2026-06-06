@@ -215,6 +215,127 @@ describe("TournamentDiscoveryService", () => {
     });
   });
 
+  it("paginates Exposure organizer directories and derives regions from event locations", async () => {
+    const fetchImpl = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/robots.txt")) {
+          return new Response("User-agent: *\nAllow: /\n", {
+            status: 200,
+            headers: { "Content-Type": "text/plain" },
+          });
+        }
+        if (init?.method === "POST") {
+          const body = String(init.body ?? "");
+          const page = new URLSearchParams(body).get("Page");
+          return jsonResponse({
+            Results:
+              page === "2"
+                ? [{ Link: "/920002/desert-classic" }]
+                : [{ Link: "/920001/bakersfield-classic" }],
+            Page: page,
+            PageSize: 1,
+            Total: 2,
+          });
+        }
+        if (url.endsWith("/organizations/99999/test-source")) {
+          return htmlResponse(`
+            <script>
+              app.viewModel.events.init({ tokenName: 'X-Exposure-Token', tokenValue: 'public-token' });
+            </script>
+          `);
+        }
+        if (
+          url.endsWith(
+            "/920001/bakersfield-classic/search?eventid=920001&eventname=bakersfield-classic",
+          )
+        ) {
+          return jsonResponse({
+            Teams: [
+              {
+                Division: "Boys 5th Grade",
+                DivisionId: 11,
+                Slug: "central-select",
+                Value: 501,
+                Name: "Central Select (Boys 5th Grade)",
+              },
+            ],
+          });
+        }
+        if (
+          url.endsWith(
+            "/920002/desert-classic/search?eventid=920002&eventname=desert-classic",
+          )
+        ) {
+          return jsonResponse({
+            Teams: [
+              {
+                Division: "Boys 6th Grade",
+                DivisionId: 12,
+                Slug: "desert-select",
+                Value: 601,
+                Name: "Desert Select (Boys 6th Grade)",
+              },
+            ],
+          });
+        }
+        if (url.endsWith("/920001/bakersfield-classic")) {
+          return htmlResponse(`
+            <html>
+              <head>
+                <title>Bakersfield Classic - June 20-21, 2026 - Bakersfield, CA</title>
+                <meta name="twitter:title" content="Bakersfield Classic" />
+              </head>
+              <body><a href="/organizations/99999/test-source">Test Source</a></body>
+            </html>
+          `);
+        }
+        if (url.endsWith("/920002/desert-classic")) {
+          return htmlResponse(`
+            <html>
+              <head>
+                <title>Desert Classic - June 20-21, 2026 - Avondale, AZ</title>
+                <meta name="twitter:title" content="Desert Classic" />
+              </head>
+              <body><a href="/organizations/99999/test-source">Test Source</a></body>
+            </html>
+          `);
+        }
+        throw new Error(`Unhandled URL ${url}`);
+      },
+    ) as unknown as typeof fetch;
+
+    const provider = new ExposureEventsTournamentProvider({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    });
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "Test Source",
+          provider: "exposure_events",
+          enabled: true,
+          url: "https://basketball.exposureevents.com/organizations/99999/test-source",
+          organizerName: "Test Source",
+          region: "Northern California",
+        },
+      ],
+      { now: new Date("2026-06-05T12:00:00.000Z") },
+    );
+
+    expect(result.failures).toEqual([]);
+    expect(result.candidates.map((candidate) => candidate.event.name)).toEqual([
+      "Bakersfield Classic",
+      "Desert Classic",
+    ]);
+    expect(
+      result.candidates.map((candidate) => candidate.event.region),
+    ).toEqual(["Northern California", "AZ"]);
+    expect(result.candidates.map((candidate) => candidate.event.state)).toEqual(
+      ["CA", "AZ"],
+    );
+  });
+
   it("includes non-Exposure public HTML tournaments when a public team-list page is reachable", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

@@ -75,6 +75,14 @@ export interface TournamentProvider {
   ): Promise<PublicExposureTeamResult>;
 }
 
+interface ExposureDirectoryPayload {
+  Results?: Array<Record<string, unknown>> | null;
+  Page?: number | string | null;
+  PageSize?: number | string | null;
+  Total?: number | string | null;
+  TotalPages?: number | string | null;
+}
+
 const GSG_BAM_EXPOSURE_EVENT_URLS = [
   "https://basketball.exposureevents.com/248676/gsg-x-bam-new-years-tip-off",
   "https://basketball.exposureevents.com/248677/bam-x-gsg-battleground-showcase",
@@ -421,6 +429,7 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
         sourceUrl,
         html,
         window,
+        source,
       ))
         eventUrls.add(eventUrl);
     }
@@ -519,7 +528,7 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
       venueName: parseVenueName($),
       city,
       state,
-      region: source.region ?? state,
+      region: tournamentRegionFromLocation(city, state, location, source),
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
       location: location || [city, state].filter(Boolean).join(", "),
@@ -539,39 +548,55 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
     sourceUrl: string,
     html: string,
     window: TournamentDiscoveryWindow,
+    source: MajorTournamentSource,
   ): Promise<string[]> {
     const token = parseExposureToken(html);
     if (!token) return [];
     await assertRobotsAllowed(sourceUrl, this.fetchImpl);
-    const response = await this.fetchImpl(sourceUrl, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Exposure-Token": token,
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": publicUserAgent(),
-      },
-      body: new URLSearchParams({
-        Page: "1",
-        sportType: "1",
-        EventType: "Tournament",
-        StartDateString: dateKeyToExposureDate(window.startDate),
-        EndDateString: dateKeyToExposureDate(window.endDate),
-      }).toString(),
-    });
-    if (!response.ok)
-      throw new Error(
-        `Exposure directory request failed with ${response.status}`,
+    const maxEvents = Math.max(1, source.maxEvents ?? 150);
+    const eventUrls = new Set<string>();
+    let page = 1;
+
+    while (eventUrls.size < maxEvents) {
+      const response = await this.fetchImpl(sourceUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Exposure-Token": token,
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": publicUserAgent(),
+        },
+        body: new URLSearchParams({
+          Page: String(page),
+          sportType: "1",
+          EventType: "Tournament",
+          StartDateString: dateKeyToExposureDate(window.startDate),
+          EndDateString: dateKeyToExposureDate(window.endDate),
+        }).toString(),
+      });
+      if (!response.ok)
+        throw new Error(
+          `Exposure directory request failed with ${response.status}`,
+        );
+      const payload = (await response.json()) as ExposureDirectoryPayload;
+      const results = payload.Results ?? [];
+      for (const item of results) {
+        const value = stringValue(item.Link ?? item.Url ?? item.URL);
+        const eventUrl = value
+          ? normalizeExposureEventUrl(value, this.baseUrl)
+          : null;
+        if (eventUrl) eventUrls.add(eventUrl);
+        if (eventUrls.size >= maxEvents) break;
+      }
+      if (!hasMoreExposureDirectoryPages(payload, page, results.length)) break;
+      page += 1;
+      await sleep(
+        Number(process.env.TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS ?? 125),
       );
-    const payload = (await response.json()) as {
-      Results?: Array<Record<string, unknown>> | null;
-    };
-    return (payload.Results ?? [])
-      .map((item) => stringValue(item.Link ?? item.Url ?? item.URL))
-      .filter((value): value is string => Boolean(value))
-      .map((value) => normalizeExposureEventUrl(value, this.baseUrl))
-      .filter((value): value is string => Boolean(value));
+    }
+
+    return Array.from(eventUrls);
   }
 
   private async fetchText(url: string): Promise<string> {
@@ -756,7 +781,7 @@ export class PublicHtmlTournamentProvider implements TournamentProvider {
       venueName: null,
       city,
       state,
-      region: source.region ?? state,
+      region: tournamentRegionFromLocation(city, state, location, source),
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
       location:
@@ -1229,6 +1254,96 @@ function splitCityState(location: string): {
   return { city: city || null, state: cleanText(rest.join(", ")) || null };
 }
 
+function tournamentRegionFromLocation(
+  city: string | null,
+  state: string | null,
+  location: string,
+  source: MajorTournamentSource,
+): string | null {
+  const stateCode = normalizeStateCode(`${state ?? ""} ${location}`);
+  if (stateCode === "CA") {
+    return isSouthernCaliforniaLocation(`${city ?? ""} ${location}`)
+      ? "Southern California"
+      : "Northern California";
+  }
+  return stateCode || source.region || state || null;
+}
+
+function normalizeStateCode(value: string): string | null {
+  const source = value.toLowerCase();
+  if (/\bca\b|california/.test(source)) return "CA";
+  if (/\baz\b|arizona/.test(source)) return "AZ";
+  if (/\bco\b|colorado/.test(source)) return "CO";
+  if (/\bfl\b|florida/.test(source)) return "FL";
+  if (/\bnv\b|nevada/.test(source)) return "NV";
+  if (/\bor\b|oregon/.test(source)) return "OR";
+  if (/\btx\b|texas/.test(source)) return "TX";
+  if (/\bwa\b|washington/.test(source)) return "WA";
+  const compact = cleanText(value).toUpperCase();
+  return compact.length === 2 ? compact : null;
+}
+
+function isSouthernCaliforniaLocation(value: string): boolean {
+  const city = normalizePlaceName(value);
+  if (!city || city.includes("bakersfield")) return false;
+  return SOUTHERN_CALIFORNIA_CITY_MARKERS.some((marker) =>
+    city.includes(marker),
+  );
+}
+
+function normalizePlaceName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const SOUTHERN_CALIFORNIA_CITY_MARKERS = [
+  "anaheim",
+  "arcadia",
+  "burbank",
+  "carlsbad",
+  "chula vista",
+  "corona",
+  "costa mesa",
+  "culver city",
+  "el segundo",
+  "fontana",
+  "fullerton",
+  "garden grove",
+  "glendale",
+  "huntington beach",
+  "inglewood",
+  "irvine",
+  "la mirada",
+  "long beach",
+  "los angeles",
+  "mission viejo",
+  "murrieta",
+  "newport beach",
+  "oceanside",
+  "ontario",
+  "orange",
+  "orange county",
+  "oxnard",
+  "palm desert",
+  "palm springs",
+  "pasadena",
+  "rancho cucamonga",
+  "riverside",
+  "san bernardino",
+  "san clemente",
+  "san diego",
+  "santa ana",
+  "santa clarita",
+  "simi valley",
+  "temecula",
+  "thousand oaks",
+  "torrance",
+  "ventura",
+];
+
 function parseVenueName($: cheerio.CheerioAPI): string | null {
   const locationHeading = $("h2, h3")
     .filter(
@@ -1454,6 +1569,31 @@ function dateKeyToExposureDate(dateKeyValue: string): string {
 
 function stringValue(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function hasMoreExposureDirectoryPages(
+  payload: ExposureDirectoryPayload,
+  requestedPage: number,
+  resultsLength: number,
+): boolean {
+  if (resultsLength === 0) return false;
+  const page = numberValue(payload.Page) ?? requestedPage;
+  const totalPages = numberValue(payload.TotalPages);
+  if (totalPages) return page < totalPages;
+  const pageSize = numberValue(payload.PageSize);
+  const total = numberValue(payload.Total);
+  if (pageSize && total) return page * pageSize < total;
+  if (pageSize) return resultsLength >= pageSize;
+  return false;
+}
+
+function numberValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function cleanText(value: string): string {
