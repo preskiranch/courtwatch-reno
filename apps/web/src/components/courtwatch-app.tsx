@@ -51,6 +51,7 @@ import {
   X,
 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CourtWatchApi, apiBaseUrl } from "../lib/api";
 import {
   clearAccountSession,
@@ -1018,6 +1019,7 @@ function TournamentPickerSheet({
   onSelectEvent: (eventId: number) => void;
   onClose: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
   const regionOptions = useMemo(
     () => tournamentRegionOptions(events),
     [events],
@@ -1027,14 +1029,20 @@ function TournamentPickerSheet({
     [events, regionFilter],
   );
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-slate-950/96 text-white backdrop-blur"
+      className="fixed inset-0 z-[2147483647] bg-slate-950/96 text-white backdrop-blur"
       role="dialog"
       aria-modal="true"
       aria-label="Choose tournament"
     >
-      <div className="flex h-full min-h-0 flex-col">
+      <div className="flex h-dvh min-h-0 flex-col">
         <div className="border-b border-white/10 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
             <div className="min-w-0">
@@ -1119,7 +1127,8 @@ function TournamentPickerSheet({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
