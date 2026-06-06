@@ -1493,6 +1493,8 @@ export class PrismaStore implements CourtWatchStore {
         changesDetected,
       };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown sync error";
       await this.prisma.syncRun.update({
         where: { id: run.id },
         data: {
@@ -1501,19 +1503,14 @@ export class PrismaStore implements CourtWatchStore {
           teamsCount,
           gamesCount,
           changesDetected,
-          errorMessage:
-            error instanceof Error ? error.message : "Unknown sync error",
+          errorMessage,
         },
       });
       await this.prisma.event.update({
         where: { id: event.id },
         data: {
           lastCheckedAt: new Date(),
-          status: deriveTournamentStatus({
-            startDate: tournament.startDate,
-            endDate: tournament.endDate,
-            status: tournament.status,
-          }),
+          status: syncFailureStatus(tournament, errorMessage),
         },
       });
       throw error;
@@ -1838,6 +1835,22 @@ function syncSourceForTournament(tournament: TournamentSource): string {
     isExposureConfigured()
     ? "exposure_api"
     : "public_page";
+}
+
+function syncFailureStatus(
+  tournament: TournamentSource,
+  errorMessage: string,
+): TournamentEvent["status"] {
+  if (
+    errorMessage.includes("Public page request failed with 410") ||
+    errorMessage.includes("request failed with 410")
+  )
+    return "unavailable";
+  return deriveTournamentStatus({
+    startDate: tournament.startDate,
+    endDate: tournament.endDate,
+    status: tournament.status,
+  });
 }
 
 function slugFromOfficialUrl(officialUrl: string): string | null {
