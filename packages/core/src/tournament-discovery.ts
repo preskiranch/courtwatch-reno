@@ -438,7 +438,13 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
     for (const eventUrl of eventUrls) {
       const parsed = parseExposureEventUrl(eventUrl);
       if (!parsed) continue;
-      const details = await this.fetchEventDetails(eventUrl, source);
+      let details: DiscoveredTournamentEvent;
+      try {
+        details = await this.fetchEventDetails(eventUrl, source);
+      } catch {
+        // A stale explicit event link should not block the rest of an organizer.
+        continue;
+      }
       if (
         details.startDate > window.endDate ||
         details.endDate < window.startDate

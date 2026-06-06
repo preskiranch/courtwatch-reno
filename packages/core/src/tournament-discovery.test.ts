@@ -98,7 +98,7 @@ describe("TournamentDiscoveryService", () => {
     );
   });
 
-  it("includes Exposure/Jam On It-style public tournaments when the public team list is reachable", async () => {
+  it("includes Exposure/Jam On It-style public tournaments and skips stale event URLs", async () => {
     const fetchImpl = vi.fn(
       async (input: string | URL | Request, init?: RequestInit) => {
         const url = String(input);
@@ -153,6 +153,12 @@ describe("TournamentDiscoveryService", () => {
             '<html><body><div id="content"></div></body></html>',
           );
         }
+        if (url.endsWith("/910000/stale-classic")) {
+          return new Response("gone", {
+            status: 410,
+            headers: { "Content-Type": "text/html" },
+          });
+        }
         if (url.endsWith("/910001/jam-on-it-memorial-day-classic")) {
           return htmlResponse(`
           <html>
@@ -190,6 +196,9 @@ describe("TournamentDiscoveryService", () => {
           provider: "exposure_events",
           enabled: true,
           url: "https://basketball.exposureevents.com/organizations/3461/jam-on-it",
+          eventUrls: [
+            "https://basketball.exposureevents.com/910000/stale-classic",
+          ],
           organizerName: "Jam On It",
         },
       ],
