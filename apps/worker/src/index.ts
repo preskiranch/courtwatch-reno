@@ -15,6 +15,8 @@ const EnvSchema = z.object({
   NODE_ENV: z.string().default("development"),
   TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(6),
   TOURNAMENT_DISCOVERY_WINDOW_DAYS: z.coerce.number().default(183),
+  WORKER_SYNC_BATCH_SIZE: z.coerce.number().default(8),
+  WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
 });
 
@@ -43,6 +45,79 @@ async function syncOnce() {
       "tournament discovery failed; continuing with normal sync",
     );
   }
+  const targets = await syncTargets();
+  const results = [];
+  for (const target of targets) {
+    try {
+      results.push(await syncSingleEvent(target));
+    } catch (error) {
+      logger.warn(
+        {
+          exposureEventId: target.exposureEventId,
+          name: target.name,
+          error: error instanceof Error ? error.message : error,
+        },
+        "event sync skipped",
+      );
+      results.push({
+        status: "failed",
+        teamsCount: 0,
+        gamesCount: 0,
+        changesDetected: 0,
+      });
+    }
+  }
+
+  return {
+    status: results.every((result) => result.status === "success")
+      ? "success"
+      : "partial",
+    targetsCount: targets.length,
+    teamsCount: results.reduce((count, result) => count + result.teamsCount, 0),
+    gamesCount: results.reduce((count, result) => count + result.gamesCount, 0),
+    changesDetected: results.reduce(
+      (count, result) => count + result.changesDetected,
+      0,
+    ),
+  };
+}
+
+async function syncTargets(): Promise<TournamentEvent[]> {
+  const response = await fetchWithTimeout(new URL("/api/events", env.API_BASE_URL));
+  if (!response.ok) {
+    throw new Error(
+      `events failed with ${response.status}: ${await response.text()}`,
+    );
+  }
+  const events = (await response.json()) as TournamentEvent[];
+  const preferredIds = preferredExposureEventIds();
+  const today = new Date().toISOString().slice(0, 10);
+  return events
+    .filter((event) => event.status !== "cancelled")
+    .sort((left, right) => {
+      const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
+      const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
+      if (leftPreferred !== rightPreferred) return leftPreferred - rightPreferred;
+
+      const leftStatus = syncStatusPriority(left.status);
+      const rightStatus = syncStatusPriority(right.status);
+      if (leftStatus !== rightStatus) return leftStatus - rightStatus;
+
+      const leftFreshness = left.lastSyncedAt ?? left.lastCheckedAt ?? "";
+      const rightFreshness = right.lastSyncedAt ?? right.lastCheckedAt ?? "";
+      if (leftFreshness !== rightFreshness)
+        return leftFreshness.localeCompare(rightFreshness);
+
+      const leftSoon = Math.abs(left.startDate.localeCompare(today));
+      const rightSoon = Math.abs(right.startDate.localeCompare(today));
+      if (leftSoon !== rightSoon) return leftSoon - rightSoon;
+
+      return left.name.localeCompare(right.name);
+    })
+    .slice(0, Math.max(1, env.WORKER_SYNC_BATCH_SIZE));
+}
+
+async function syncSingleEvent(event: TournamentEvent) {
   const response = await fetchWithTimeout(
     new URL("/api/admin/sync-now", env.API_BASE_URL),
     {
@@ -51,8 +126,12 @@ async function syncOnce() {
         "Content-Type": "application/json",
         ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
       },
-      body: JSON.stringify({ source: "worker" }),
+      body: JSON.stringify({
+        source: "worker",
+        exposureEventId: event.exposureEventId,
+      }),
     },
+    env.WORKER_EVENT_SYNC_TIMEOUT_MS,
   );
 
   if (!response.ok) {
@@ -67,6 +146,30 @@ async function syncOnce() {
     gamesCount: number;
     changesDetected: number;
   }>;
+}
+
+function syncStatusPriority(status: TournamentEvent["status"]) {
+  if (status === "active") return 0;
+  if (status === "upcoming") return 1;
+  if (status === "completed") return 2;
+  return 3;
+}
+
+function preferredExposureEventIds() {
+  const ids = new Set<number>();
+  for (const source of DEFAULT_MAJOR_TOURNAMENT_SOURCES) {
+    for (const url of source.eventUrls ?? []) {
+      const id = exposureEventIdFromUrl(url);
+      if (id) ids.add(id);
+    }
+  }
+  ids.add(255539);
+  return ids;
+}
+
+function exposureEventIdFromUrl(url: string) {
+  const match = url.match(/exposureevents\.com\/(\d+)\//i);
+  return match ? Number(match[1]) : null;
 }
 
 async function discoverTournamentsIfDue() {
@@ -209,10 +312,11 @@ function sleep(ms: number) {
 async function fetchWithTimeout(
   input: string | URL | Request,
   init: RequestInit = {},
+  timeoutMs = env.WORKER_API_TIMEOUT_MS,
 ) {
-  if (init.signal || env.WORKER_API_TIMEOUT_MS <= 0) return fetch(input, init);
+  if (init.signal || timeoutMs <= 0) return fetch(input, init);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), env.WORKER_API_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await fetch(input, { ...init, signal: controller.signal });
   } finally {
