@@ -1712,7 +1712,11 @@ export class PrismaStore implements CourtWatchStore {
       where: { eventId: event.id },
     });
     if (storedTeams >= event.registeredTeamCount && storedTeams > 0) {
-      if (!event.lastSyncedAt) {
+      if (
+        !event.lastSyncedAt ||
+        !event.hasPublicTeamList ||
+        event.registeredTeamCount !== storedTeams
+      ) {
         const now = new Date();
         await this.prisma.event.update({
           where: { id: event.id },
