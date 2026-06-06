@@ -358,6 +358,7 @@ export class TournamentDiscoveryService {
           endDate,
           now: options.now,
         });
+        let metadataTeamHydrations = 0;
         for (const event of events) {
           const keys = tournamentDiscoveryDedupeKeys(event);
           if (keys.some((key) => seen.has(key))) continue;
@@ -365,11 +366,44 @@ export class TournamentDiscoveryService {
           if (!provider.supportsPublicTeamLists) continue;
 
           if (source.metadataOnly) {
+            const status = deriveTournamentStatus(event, startDate);
+            if (
+              shouldHydrateMetadataOnlyTeams(event, startDate) &&
+              metadataTeamHydrations < metadataTeamHydrationLimit()
+            ) {
+              try {
+                const teams = await provider.fetchRegisteredTeams(event);
+                metadataTeamHydrations += 1;
+                candidates.push({
+                  event: {
+                    ...event,
+                    hasPublicTeamList: true,
+                    registeredTeamCount: teams.teams.length,
+                    lastCheckedAt: new Date().toISOString(),
+                    lastSyncedAt: new Date().toISOString(),
+                    status,
+                  },
+                  teams,
+                });
+                await sleep(
+                  Number(
+                    process.env.TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS ?? 125,
+                  ),
+                );
+                continue;
+              } catch (error) {
+                failures.push({
+                  provider: provider.providerName,
+                  source: event.sourceUrl,
+                  message: errorMessage(error),
+                });
+              }
+            }
             candidates.push({
               event: {
                 ...event,
                 lastCheckedAt: new Date().toISOString(),
-                status: deriveTournamentStatus(event, startDate),
+                status,
               },
               teams: { divisions: [], teams: [] },
             });
@@ -645,6 +679,38 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
       );
     return response.text();
   }
+}
+
+function shouldHydrateMetadataOnlyTeams(
+  event: DiscoveredTournamentEvent,
+  startDate: string,
+): boolean {
+  const status = deriveTournamentStatus(event, startDate);
+  if (status === "active") return true;
+  if (status !== "upcoming") return false;
+  return event.startDate <= tournamentWindowEndKey(
+    startDate,
+    metadataTeamHydrationWindowDays(),
+  );
+}
+
+function metadataTeamHydrationWindowDays(): number {
+  return positiveIntegerEnv(
+    "TOURNAMENT_DISCOVERY_METADATA_TEAM_HYDRATION_WINDOW_DAYS",
+    14,
+  );
+}
+
+function metadataTeamHydrationLimit(): number {
+  return positiveIntegerEnv(
+    "TOURNAMENT_DISCOVERY_METADATA_TEAM_HYDRATION_LIMIT",
+    300,
+  );
+}
+
+function positiveIntegerEnv(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
 }
 
 export class PublicHtmlTournamentProvider implements TournamentProvider {

@@ -259,8 +259,8 @@ describe("TournamentDiscoveryService", () => {
       city: "Hayward",
       state: "CA",
       region: "Northern California",
-      startDate: "2026-06-20",
-      endDate: "2026-06-21",
+      startDate: "2026-07-20",
+      endDate: "2026-07-21",
       location: "Hayward, CA",
       officialUrl:
         "https://basketball.exposureevents.com/930001/directory-only-classic",
@@ -307,6 +307,104 @@ describe("TournamentDiscoveryService", () => {
         teams: { divisions: [], teams: [] },
       },
     ]);
+  });
+
+  it("hydrates active metadata-only Exposure events when teams are published", async () => {
+    const event = {
+      id: "event-930002",
+      exposureEventId: 930002,
+      externalProvider: "exposure_events",
+      externalId: "930002",
+      slug: "active-directory-classic",
+      sourceUrl:
+        "https://basketball.exposureevents.com/930002/active-directory-classic",
+      name: "Active Directory Classic",
+      organizer: "Exposure Basketball Events",
+      sport: "basketball",
+      sanctioningTags: ["Exposure Events"],
+      gender: null,
+      ageOrGradeDivisions: [],
+      venueName: null,
+      city: "Roseville",
+      state: "CA",
+      region: "Northern California",
+      startDate: "2026-06-06",
+      endDate: "2026-06-07",
+      location: "Roseville, CA",
+      officialUrl:
+        "https://basketball.exposureevents.com/930002/active-directory-classic",
+      timezone: "America/Los_Angeles",
+      registeredTeamCount: 0,
+      hasPublicTeamList: false,
+      lastCheckedAt: null,
+      lastSyncedAt: null,
+      lastTeamChangeAt: null,
+      status: "upcoming" as const,
+      dropdownGroup: "upcoming" as const,
+    };
+    const fetchRegisteredTeams = vi.fn(async () => ({
+      divisions: [
+        {
+          id: "division-930002-11u",
+          eventId: event.id,
+          exposureDivisionId: "930002-11u",
+          name: "11U/5th Grade",
+          gender: "boys",
+          gradeLevel: "5TH",
+          level: null,
+          rawJson: {},
+        },
+      ],
+      teams: [
+        {
+          id: "team-930002-707-soldiers",
+          eventId: event.id,
+          divisionId: "division-930002-11u",
+          exposureTeamId: "707-soldiers",
+          name: "707 Soldiers",
+          normalizedName: "707 soldiers",
+          clubName: null,
+          normalizedClubName: null,
+          coachName: null,
+          sourceUrl:
+            "https://basketball.exposureevents.com/930002/active-directory-classic/teams/707-soldiers",
+          rawJson: {},
+          lastSeenAt: "2026-06-06T12:00:00.000Z",
+        },
+      ],
+    }));
+    const provider: TournamentProvider = {
+      providerName: "aau_event_finder",
+      supportsPublicTeamLists: true,
+      discoverEvents: async () => [event],
+      fetchRegisteredTeams,
+    };
+
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "Exposure Basketball Directory",
+          provider: "aau_event_finder",
+          enabled: true,
+          metadataOnly: true,
+        },
+      ],
+      { now: new Date("2026-06-06T12:00:00.000Z") },
+    );
+
+    expect(fetchRegisteredTeams).toHaveBeenCalledTimes(1);
+    expect(result.failures).toEqual([]);
+    expect(result.candidates[0]).toMatchObject({
+      event: {
+        exposureEventId: 930002,
+        hasPublicTeamList: true,
+        registeredTeamCount: 1,
+        status: "active",
+      },
+      teams: {
+        teams: [{ name: "707 Soldiers" }],
+      },
+    });
   });
 
   it("includes Exposure/Jam On It-style public tournaments and skips stale event URLs", async () => {
