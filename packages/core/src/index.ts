@@ -10,6 +10,7 @@ export * from "./records.js";
 export * from "./game-status.js";
 export * from "./score-utils.js";
 export * from "./scoring-leaders.js";
+export * from "./california-region.js";
 export * from "./courtvision-types.js";
 export * from "./courtvision-calibration.js";
 export * from "./courtvision-scoring.js";

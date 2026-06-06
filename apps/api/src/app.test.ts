@@ -15,15 +15,35 @@ describe("CourtWatch API", () => {
     expect(response.body.programs[0].teams).toHaveLength(0);
   });
 
-  it("returns Reno as the default tournament dropdown option", async () => {
+  it("does not mark events tracked until the current device follows a team", async () => {
     const app = createApp(new MockStore(), null);
     const response = await request(app).get("/api/events").expect(200);
     expect(response.body[0]).toMatchObject({
       exposureEventId: 255539,
-      dropdownGroup: "tracked",
+      dropdownGroup: "upcoming",
       hasPublicTeamList: true,
       registeredTeamCount: seedSnapshot.teams.length,
     });
+  });
+
+  it("marks events tracked for the device that follows a team in them", async () => {
+    const app = createApp(new MockStore(), null);
+    await request(app)
+      .post("/api/teams/team-splash-4th/follow")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(201);
+
+    const alpha = await request(app)
+      .get("/api/events")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(200);
+    const beta = await request(app)
+      .get("/api/events")
+      .set("x-courtwatch-client-id", "client-beta-456")
+      .expect(200);
+
+    expect(alpha.body[0].dropdownGroup).toBe("tracked");
+    expect(beta.body[0].dropdownGroup).toBe("upcoming");
   });
 
   it("returns an all-tournament sync fingerprint for realtime refresh", async () => {

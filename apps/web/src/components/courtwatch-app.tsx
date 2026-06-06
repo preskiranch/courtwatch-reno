@@ -2,6 +2,7 @@
 
 import {
   buildTeamScoringLeaders,
+  californiaTournamentRegionFromPlace,
   filterTeamScoringLeadersByDivisionIds,
   isAnyActiveTournamentWindow,
   withEffectiveGameStatus,
@@ -1334,11 +1335,10 @@ function tournamentRegionKey(event: TournamentEvent): TournamentRegionFilter {
 }
 
 function isSouthernCaliforniaEvent(event: TournamentEvent): boolean {
-  const city = normalizePlaceName(event.city ?? event.location);
-  if (!city) return false;
-  if (city.includes("bakersfield")) return false;
-  return SOUTHERN_CALIFORNIA_CITY_MARKERS.some((marker) =>
-    city.includes(marker),
+  return (
+    californiaTournamentRegionFromPlace(
+      `${event.city ?? ""} ${event.location ?? ""} ${event.region ?? ""}`,
+    ) === "Southern California"
   );
 }
 
@@ -1358,14 +1358,6 @@ function normalizeStateCode(
   return (state ?? "Other").trim().toUpperCase();
 }
 
-function normalizePlaceName(value: string | null): string {
-  return (value ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 const STATE_LABELS: Record<string, string> = {
   AZ: "Arizona",
   CA: "California",
@@ -1377,52 +1369,6 @@ const STATE_LABELS: Record<string, string> = {
   WA: "Washington",
   OTHER: "Other",
 };
-
-const SOUTHERN_CALIFORNIA_CITY_MARKERS = [
-  "anaheim",
-  "arcadia",
-  "burbank",
-  "carlsbad",
-  "chula vista",
-  "corona",
-  "costa mesa",
-  "culver city",
-  "el segundo",
-  "fontana",
-  "fullerton",
-  "garden grove",
-  "glendale",
-  "huntington beach",
-  "inglewood",
-  "irvine",
-  "la mirada",
-  "long beach",
-  "los angeles",
-  "mission viejo",
-  "murrieta",
-  "newport beach",
-  "oceanside",
-  "ontario",
-  "orange",
-  "orange county",
-  "oxnard",
-  "palm desert",
-  "palm springs",
-  "pasadena",
-  "rancho cucamonga",
-  "riverside",
-  "san bernardino",
-  "san clemente",
-  "san diego",
-  "santa ana",
-  "santa clarita",
-  "simi valley",
-  "temecula",
-  "thousand oaks",
-  "torrance",
-  "ventura",
-  "west covina",
-];
 
 function effectiveTournamentStatus(
   event: TournamentEvent,

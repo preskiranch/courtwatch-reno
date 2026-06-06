@@ -74,7 +74,7 @@ const teamSortCollator = new Intl.Collator("en-US", {
 });
 
 export interface CourtWatchStore {
-  events(): Promise<TournamentEvent[]>;
+  events(clientId?: string | null): Promise<TournamentEvent[]>;
   snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot>;
   syncStatus(
     exposureEventId?: number | null,
@@ -147,9 +147,28 @@ export class MockStore implements CourtWatchStore {
     this.data = structuredClone(initialData);
   }
 
-  async events(): Promise<TournamentEvent[]> {
+  async events(clientId?: string | null): Promise<TournamentEvent[]> {
+    const program = this.ensureSelectedProgram(clientId);
+    const followedTeamIds = new Set(
+      this.data.matches
+        .filter(
+          (match) =>
+            match.active && match.programWatchlistId === program.id,
+        )
+        .map((match) => match.teamId),
+    );
+    const trackedEventIds = new Set(
+      this.data.teams
+        .filter((team) => followedTeamIds.has(team.id))
+        .map((team) => team.eventId),
+    );
     return structuredClone(
-      dropdownEventsFromSnapshot(this.data.events, this.data.teams),
+      dropdownEventsFromSnapshot(this.data.events, this.data.teams).map(
+        (event) => ({
+          ...event,
+          dropdownGroup: trackedEventIds.has(event.id) ? "tracked" : "upcoming",
+        }),
+      ),
     );
   }
 
@@ -489,22 +508,24 @@ export class MockStore implements CourtWatchStore {
 export class PrismaStore implements CourtWatchStore {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async events(): Promise<TournamentEvent[]> {
+  async events(clientId?: string | null): Promise<TournamentEvent[]> {
     const configured = configuredTournaments();
     const configuredByExposureId = new Map(
       configured.map((event) => [event.exposureEventId, event]),
     );
-    const [dbEvents, teamCounts, latestSuccesses] = await Promise.all([
-      this.prisma.event.findMany({
-        orderBy: [{ startDate: "asc" }, { name: "asc" }],
-      }),
-      this.prisma.team.groupBy({ by: ["eventId"], _count: { _all: true } }),
-      this.prisma.syncRun.groupBy({
-        by: ["eventId"],
-        where: { status: "success", completedAt: { not: null } },
-        _max: { completedAt: true },
-      }),
-    ]);
+    const [dbEvents, teamCounts, latestSuccesses, trackedExposureEventIds] =
+      await Promise.all([
+        this.prisma.event.findMany({
+          orderBy: [{ startDate: "asc" }, { name: "asc" }],
+        }),
+        this.prisma.team.groupBy({ by: ["eventId"], _count: { _all: true } }),
+        this.prisma.syncRun.groupBy({
+          by: ["eventId"],
+          where: { status: "success", completedAt: { not: null } },
+          _max: { completedAt: true },
+        }),
+        this.trackedExposureEventIdsForClient(clientId),
+      ]);
     const teamCountByEventId = new Map(
       teamCounts.map((count) => [count.eventId, count._count._all]),
     );
@@ -535,7 +556,12 @@ export class PrismaStore implements CourtWatchStore {
 
     return dropdownEventsWithUpcomingExposureFallback(
       Array.from(merged.values()),
-    );
+    ).map((event) => ({
+      ...event,
+      dropdownGroup: trackedExposureEventIds.has(event.exposureEventId)
+        ? "tracked"
+        : "upcoming",
+    }));
   }
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
@@ -1218,6 +1244,24 @@ export class PrismaStore implements CourtWatchStore {
       }
     }
     return sortTournamentEvents(Array.from(byExposureId.values()));
+  }
+
+  private async trackedExposureEventIdsForClient(
+    clientId?: string | null,
+  ): Promise<Set<number>> {
+    if (!clientId) return new Set();
+    const program = await this.ensureSelectedProgram(clientId);
+    const matches = await this.prisma.programTeamMatch.findMany({
+      where: { active: true, programWatchlistId: program.id },
+      select: {
+        team: {
+          select: {
+            event: { select: { exposureEventId: true } },
+          },
+        },
+      },
+    });
+    return new Set(matches.map((match) => match.team.event.exposureEventId));
   }
 
   private async eventsWithStoredTeamData(): Promise<TournamentEvent[]> {

@@ -155,10 +155,22 @@ describe("TournamentDiscoveryService", () => {
                 StateRegionAbbr: "CA",
                 Location: "Oakland, CA",
               },
+              {
+                Id: 266982,
+                Name: "Cali Summer Showcase",
+                Type: "Tournament",
+                Link: "https://basketball.exposureevents.com/266982/cali-summer-showcase",
+                OrganizationName: "Exposure Basketball Events",
+                StartDate: "2026-06-13T00:00:00.000",
+                EndDate: "2026-06-14T00:00:00.000",
+                CityState: "Westminster, California",
+                StateRegionAbbr: "CA",
+                Location: "Westminster, CA",
+              },
             ],
             Page: 1,
             PageSize: 50,
-            Total: 2,
+            Total: 3,
           });
         }
         if (url.endsWith("/youth-basketball-events")) {
@@ -204,7 +216,7 @@ describe("TournamentDiscoveryService", () => {
       },
     );
 
-    expect(events).toHaveLength(2);
+    expect(events).toHaveLength(3);
     expect(events[0]).toMatchObject({
       exposureEventId: 250262,
       externalProvider: "exposure_events",
@@ -220,6 +232,11 @@ describe("TournamentDiscoveryService", () => {
       exposureEventId: 252628,
       name: "G365 Gold Rush",
       region: "Northern California",
+    });
+    expect(events[2]).toMatchObject({
+      exposureEventId: 266982,
+      name: "Cali Summer Showcase",
+      region: "Southern California",
     });
   });
 

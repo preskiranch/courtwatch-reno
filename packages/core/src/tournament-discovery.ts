@@ -5,6 +5,7 @@ import {
   PublicExposurePageClient,
   type PublicExposureTeamResult,
 } from "./public-exposure-page-client.js";
+import { californiaTournamentRegionFromPlace } from "./california-region.js";
 import type { TournamentEvent, TournamentEventStatus } from "./types.js";
 import { DEFAULT_TOURNAMENT_TIMEZONE } from "./types.js";
 import {
@@ -1510,9 +1511,7 @@ function tournamentRegionFromLocation(
 ): string | null {
   const stateCode = normalizeStateCode(`${state ?? ""} ${location}`);
   if (stateCode === "CA") {
-    return isSouthernCaliforniaLocation(`${city ?? ""} ${location}`)
-      ? "Southern California"
-      : "Northern California";
+    return californiaTournamentRegionFromPlace(`${city ?? ""} ${location}`);
   }
   return stateCode || source.region || state || null;
 }
@@ -1530,67 +1529,6 @@ function normalizeStateCode(value: string): string | null {
   const compact = cleanText(value).toUpperCase();
   return compact.length === 2 ? compact : null;
 }
-
-function isSouthernCaliforniaLocation(value: string): boolean {
-  const city = normalizePlaceName(value);
-  if (!city || city.includes("bakersfield")) return false;
-  return SOUTHERN_CALIFORNIA_CITY_MARKERS.some((marker) =>
-    city.includes(marker),
-  );
-}
-
-function normalizePlaceName(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-const SOUTHERN_CALIFORNIA_CITY_MARKERS = [
-  "anaheim",
-  "arcadia",
-  "burbank",
-  "carlsbad",
-  "chula vista",
-  "corona",
-  "costa mesa",
-  "culver city",
-  "el segundo",
-  "fontana",
-  "fullerton",
-  "garden grove",
-  "glendale",
-  "huntington beach",
-  "inglewood",
-  "irvine",
-  "la mirada",
-  "long beach",
-  "los angeles",
-  "mission viejo",
-  "murrieta",
-  "newport beach",
-  "oceanside",
-  "ontario",
-  "orange",
-  "orange county",
-  "oxnard",
-  "palm desert",
-  "palm springs",
-  "pasadena",
-  "rancho cucamonga",
-  "riverside",
-  "san bernardino",
-  "san clemente",
-  "san diego",
-  "santa ana",
-  "santa clarita",
-  "simi valley",
-  "temecula",
-  "thousand oaks",
-  "torrance",
-  "ventura",
-];
 
 function parseVenueName($: cheerio.CheerioAPI): string | null {
   const locationHeading = $("h2, h3")

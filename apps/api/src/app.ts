@@ -341,9 +341,9 @@ export function createApp(
     }
   });
 
-  app.get("/api/events", async (_req, res, next) => {
+  app.get("/api/events", async (req, res, next) => {
     try {
-      res.json(await store.events());
+      res.json(await store.events(requestClientIdentity(req)));
     } catch (error) {
       next(error);
     }
