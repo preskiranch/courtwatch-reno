@@ -689,6 +689,46 @@ const hoop121FallFestTournament: TournamentSource = {
   dropdownGroup: "tracked",
 };
 
+const hoop121FathersDayHoopFestTournament: TournamentSource = {
+  id: "event-fathers-day-hoop-fest-2026",
+  exposureEventId: 247158,
+  externalProvider: "exposure_events",
+  externalId: "247158",
+  slug: "2026-fathers-day-hoop-fest",
+  sourceUrl:
+    "https://basketball.exposureevents.com/247158/2026-fathers-day-hoop-fest",
+  name: "2026 Father's Day Hoop Fest!",
+  organizer: "Hoop 121",
+  sport: "basketball",
+  sanctioningTags: [
+    "Hoop 121",
+    "Bay Area",
+    "East Bay",
+    "Northern California",
+    "NorCal",
+    "Exposure Events",
+  ],
+  gender: "Boys & Girls",
+  ageOrGradeDivisions: ["8U", "17U"],
+  venueName: "Chabot College",
+  city: "Hayward",
+  state: "CA",
+  region: "Northern California",
+  startDate: "2026-06-20",
+  endDate: "2026-06-20",
+  location: "Hayward, CA",
+  officialUrl:
+    "https://basketball.exposureevents.com/247158/2026-fathers-day-hoop-fest",
+  timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+  registeredTeamCount: 0,
+  hasPublicTeamList: true,
+  lastCheckedAt: null,
+  lastSyncedAt: null,
+  lastTeamChangeAt: null,
+  status: "upcoming",
+  dropdownGroup: "tracked",
+};
+
 const hoop121SfTakeoverTournament: TournamentSource = {
   id: "event-sf-whph-sf-rebels-sf-takeover-2026",
   exposureEventId: 262891,
@@ -740,6 +780,7 @@ const defaultTrackedTournaments = [
   ...gsgBamSummerTournaments,
   ...g365Tournaments,
   touchShootingTheStandardTournament,
+  hoop121FathersDayHoopFestTournament,
   hoop121SfTakeoverTournament,
   hoop121FallFestTournament,
 ];
