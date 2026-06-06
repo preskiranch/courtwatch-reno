@@ -31,6 +31,9 @@ export interface MajorTournamentSource {
   teamSelectors?: string[];
   maxEvents?: number;
   maxTeamListPages?: number;
+  metadataOnly?: boolean;
+  directoryEventType?: string;
+  ignoreDiscoveryWindowEnd?: boolean;
   organizerName?: string;
   sanctioningTags?: string[];
   timezone?: string;
@@ -298,11 +301,17 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     timezone: DEFAULT_TOURNAMENT_TIMEZONE,
   },
   {
-    name: "AAU Event Finder",
+    name: "Exposure Basketball Directory",
     provider: "aau_event_finder",
     enabled: true,
-    organizerName: "AAU",
-    sanctioningTags: ["AAU"],
+    url: "https://basketball.exposureevents.com/youth-basketball-events",
+    maxEvents: 2600,
+    metadataOnly: true,
+    directoryEventType: "",
+    ignoreDiscoveryWindowEnd: true,
+    organizerName: "Exposure Basketball Events",
+    sanctioningTags: ["Exposure Events"],
+    timezone: DEFAULT_TOURNAMENT_TIMEZONE,
   },
 ];
 
@@ -353,6 +362,18 @@ export class TournamentDiscoveryService {
           if (keys.some((key) => seen.has(key))) continue;
           for (const key of keys) seen.add(key);
           if (!provider.supportsPublicTeamLists) continue;
+
+          if (source.metadataOnly) {
+            candidates.push({
+              event: {
+                ...event,
+                lastCheckedAt: new Date().toISOString(),
+                status: deriveTournamentStatus(event, startDate),
+              },
+              teams: { divisions: [], teams: [] },
+            });
+            continue;
+          }
 
           try {
             const teams = await provider.fetchRegisteredTeams(event);
@@ -565,6 +586,15 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
     let page = 1;
 
     while (eventUrls.size < maxEvents) {
+      const directoryEventType = source.directoryEventType ?? "Tournament";
+      const body = new URLSearchParams({
+        Page: String(page),
+        sportType: "1",
+        StartDateString: dateKeyToExposureDate(window.startDate),
+      });
+      if (!source.ignoreDiscoveryWindowEnd)
+        body.set("EndDateString", dateKeyToExposureDate(window.endDate));
+      if (directoryEventType) body.set("EventType", directoryEventType);
       const response = await this.fetchImpl(sourceUrl, {
         method: "POST",
         headers: {
@@ -574,13 +604,7 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
           "X-Requested-With": "XMLHttpRequest",
           "User-Agent": publicUserAgent(),
         },
-        body: new URLSearchParams({
-          Page: String(page),
-          sportType: "1",
-          EventType: "Tournament",
-          StartDateString: dateKeyToExposureDate(window.startDate),
-          EndDateString: dateKeyToExposureDate(window.endDate),
-        }).toString(),
+        body: body.toString(),
       });
       if (!response.ok)
         throw new Error(
@@ -823,15 +847,232 @@ export class PublicHtmlTournamentProvider implements TournamentProvider {
 
 export class AauEventFinderTournamentProvider implements TournamentProvider {
   readonly providerName = "aau_event_finder" as const;
-  readonly supportsPublicTeamLists = false;
+  readonly supportsPublicTeamLists = true;
+  private readonly baseUrl: string;
+  private readonly fetchImpl: typeof fetch;
+  private readonly publicClient: PublicExposurePageClient;
 
-  async discoverEvents(): Promise<DiscoveredTournamentEvent[]> {
-    return [];
+  constructor(options: { baseUrl?: string; fetchImpl?: typeof fetch } = {}) {
+    this.baseUrl =
+      options.baseUrl ??
+      process.env.EXPOSURE_PUBLIC_BASE_URL ??
+      "https://basketball.exposureevents.com";
+    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.publicClient = new PublicExposurePageClient({
+      baseUrl: this.baseUrl,
+      fetchImpl: this.fetchImpl,
+    });
   }
 
-  async fetchRegisteredTeams(): Promise<PublicExposureTeamResult> {
-    return { divisions: [], teams: [] };
+  async discoverEvents(
+    source: MajorTournamentSource,
+    window: TournamentDiscoveryWindow,
+  ): Promise<DiscoveredTournamentEvent[]> {
+    const sourceUrl = new URL(
+      source.url ?? "/youth-basketball-events",
+      this.baseUrl,
+    ).toString();
+    const initialResponse = await this.fetchDirectoryPage(sourceUrl);
+    const token = parseExposureToken(initialResponse.html);
+    if (!token) return [];
+
+    const maxEvents = Math.max(1, source.maxEvents ?? 2600);
+    const directoryEventType = source.directoryEventType ?? "";
+    const events: DiscoveredTournamentEvent[] = [];
+    let page = 1;
+
+    while (events.length < maxEvents) {
+      const body = new URLSearchParams({
+        Page: String(page),
+        sportType: "1",
+        StartDateString: dateKeyToExposureDate(window.startDate),
+      });
+      if (!source.ignoreDiscoveryWindowEnd)
+        body.set("EndDateString", dateKeyToExposureDate(window.endDate));
+      if (directoryEventType) body.set("EventType", directoryEventType);
+
+      const response = await this.fetchImpl(sourceUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Exposure-Token": token,
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": publicUserAgent(),
+          ...(initialResponse.cookie ? { Cookie: initialResponse.cookie } : {}),
+        },
+        body: body.toString(),
+      });
+      if (!response.ok)
+        throw new Error(
+          `Exposure basketball directory request failed with ${response.status}`,
+        );
+
+      const payload = (await response.json()) as ExposureDirectoryPayload;
+      const results = payload.Results ?? [];
+      for (const item of results) {
+        const event = directoryItemToTournamentEvent(
+          item,
+          source,
+          this.baseUrl,
+        );
+        if (!event) continue;
+        if (
+          (!source.ignoreDiscoveryWindowEnd &&
+            event.startDate > window.endDate) ||
+          event.endDate < window.startDate
+        )
+          continue;
+        events.push(event);
+        if (events.length >= maxEvents) break;
+      }
+      if (!hasMoreExposureDirectoryPages(payload, page, results.length)) break;
+      page += 1;
+      await sleep(
+        Number(process.env.TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS ?? 125),
+      );
+    }
+
+    return dedupeDiscoveredEvents(events);
   }
+
+  async fetchRegisteredTeams(
+    event: DiscoveredTournamentEvent,
+  ): Promise<PublicExposureTeamResult> {
+    return this.publicClient.fetchTeams(
+      event.exposureEventId,
+      event.slug,
+      event.timezone,
+    );
+  }
+
+  private async fetchDirectoryPage(
+    sourceUrl: string,
+  ): Promise<{ html: string; cookie: string }> {
+    await assertRobotsAllowed(sourceUrl, this.fetchImpl);
+    const response = await this.fetchImpl(sourceUrl, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": publicUserAgent(),
+      },
+    });
+    if (!response.ok)
+      throw new Error(
+        `Exposure basketball directory page request failed with ${response.status}`,
+      );
+    return {
+      html: await response.text(),
+      cookie: cookieHeaderFromResponse(response),
+    };
+  }
+}
+
+function directoryItemToTournamentEvent(
+  item: Record<string, unknown>,
+  source: MajorTournamentSource,
+  baseUrl: string,
+): DiscoveredTournamentEvent | null {
+  const link = stringValue(item.Link ?? item.Url ?? item.URL);
+  const eventUrl = link ? normalizeExposureEventUrl(link, baseUrl) : null;
+  if (!eventUrl) return null;
+  const parsed = parseExposureEventUrl(eventUrl);
+  if (!parsed) return null;
+
+  const startDate = dateKeyFromUnknown(item.StartDate);
+  if (!startDate) return null;
+  const endDate = dateKeyFromUnknown(item.EndDate) ?? startDate;
+  const name =
+    stringValue(item.Name) ??
+    stringValue(item.Title) ??
+    `Exposure Event ${parsed.eventId}`;
+  const city = stringValue(item.City);
+  const rawState =
+    stringValue(item.StateRegionAbbr) ??
+    stringValue(item.StateRegion) ??
+    stringValue(item.State);
+  const cityState = stringValue(item.CityState) ?? "";
+  const split = splitCityState(cityState);
+  const resolvedCity = city ?? split.city;
+  const resolvedState = rawState ?? split.state;
+  const location =
+    cityState ||
+    [resolvedCity, resolvedState].filter(Boolean).join(", ") ||
+    "Location TBD";
+  const venueName = stringValue(item.Location);
+  const organizer =
+    stringValue(item.OrganizationName) ?? source.organizerName ?? source.name;
+  const eventType = stringValue(item.Type);
+  const gender = parseGender(
+    `${stringValue(item.YouthAgeGradesBoth) ?? ""} ${eventType ?? ""}`,
+  );
+  const registeredTeamCount =
+    numberValue(
+      item.TeamCount ??
+        item.TeamsCount ??
+        item.RegisteredTeamCount ??
+        item.RegisteredTeams,
+    ) ?? 0;
+
+  return {
+    id: `event-${parsed.eventId}`,
+    exposureEventId: parsed.eventId,
+    externalProvider: "exposure_events",
+    externalId: String(parsed.eventId),
+    slug: parsed.slug,
+    sourceUrl: eventUrl,
+    name,
+    organizer,
+    sport: "basketball",
+    sanctioningTags: dedupeStrings([
+      ...(source.sanctioningTags ?? []),
+      ...(eventType ? [eventType] : []),
+      "Exposure Events",
+    ]),
+    gender,
+    ageOrGradeDivisions: parseAgeOrGradeDivisions(
+      `${stringValue(item.YouthAgeGradesBoth) ?? ""} ${name}`,
+    ),
+    venueName,
+    city: resolvedCity,
+    state: resolvedState,
+    region: tournamentRegionFromLocation(
+      resolvedCity,
+      resolvedState,
+      location,
+      source,
+    ),
+    startDate,
+    endDate,
+    location,
+    officialUrl: eventUrl,
+    timezone: source.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE,
+    registeredTeamCount,
+    hasPublicTeamList: false,
+    lastCheckedAt: null,
+    lastSyncedAt: null,
+    lastTeamChangeAt: null,
+    status: deriveTournamentStatus({
+      startDate,
+      endDate,
+      status: "upcoming",
+    }),
+    dropdownGroup: "upcoming",
+  };
+}
+
+function cookieHeaderFromResponse(response: Response): string {
+  const headersWithCookies = response.headers as Headers & {
+    getSetCookie?: () => string[];
+  };
+  const cookies =
+    headersWithCookies.getSetCookie?.() ??
+    (response.headers.get("set-cookie")
+      ? [response.headers.get("set-cookie") ?? ""]
+      : []);
+  return cookies
+    .map((cookie) => cookie.split(";")[0]?.trim() ?? "")
+    .filter(Boolean)
+    .join("; ");
 }
 
 function dedupeDiscoveredEvents(

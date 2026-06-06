@@ -1157,9 +1157,20 @@ export class PrismaStore implements CourtWatchStore {
     );
     const syncResults = [];
     for (const candidate of result.candidates) {
-      syncResults.push(
-        await this.syncTournament(candidate.event, candidate.teams),
-      );
+      if (isMetadataOnlyTournamentCandidate(candidate)) {
+        await upsertEvent(this.prisma, candidate.event);
+        syncResults.push({
+          status: "success",
+          source: "directory",
+          teamsCount: 0,
+          gamesCount: 0,
+          changesDetected: 0,
+        });
+      } else {
+        syncResults.push(
+          await this.syncTournament(candidate.event, candidate.teams),
+        );
+      }
     }
     for (const failure of result.failures) {
       console.warn("Tournament discovery source skipped", failure);
@@ -1383,14 +1394,19 @@ export class PrismaStore implements CourtWatchStore {
       gamesCount = after.games.length;
       const syncedAt = new Date();
       const publicTeamListWasFetched =
-        Boolean(preloadedTeams) || sourceTeams.teams.length > 0;
+        sourceTeams.teams.length > 0 ||
+        (Boolean(preloadedTeams) && tournament.hasPublicTeamList);
       await this.prisma.event.update({
         where: { id: event.id },
         data: {
-          registeredTeamCount: teamsCount,
-          hasPublicTeamList: publicTeamListWasFetched,
+          registeredTeamCount: publicTeamListWasFetched
+            ? teamsCount
+            : tournament.registeredTeamCount,
+          hasPublicTeamList:
+            publicTeamListWasFetched || tournament.hasPublicTeamList,
           lastCheckedAt: syncedAt,
-          lastSyncedAt: syncedAt,
+          lastSyncedAt:
+            publicTeamListWasFetched || gamesCount > 0 ? syncedAt : undefined,
           lastTeamChangeAt: haveTeamExternalIdsChanged(
             previousTeamIds,
             sourceTeams.teams,
@@ -2124,6 +2140,16 @@ function sourceTeamDedupeKey(team: Team): string {
     team.divisionId ?? team.divisionName ?? "",
     normalizeName(team.name),
   ].join(":");
+}
+
+function isMetadataOnlyTournamentCandidate(
+  candidate: PublicTournamentCandidate,
+): boolean {
+  return (
+    !candidate.event.hasPublicTeamList &&
+    candidate.teams.divisions.length === 0 &&
+    candidate.teams.teams.length === 0
+  );
 }
 
 async function fetchSourcePlayers(

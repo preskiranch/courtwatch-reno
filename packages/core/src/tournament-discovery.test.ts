@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  AauEventFinderTournamentProvider,
   DEFAULT_MAJOR_TOURNAMENT_SOURCES,
   ExposureEventsTournamentProvider,
   PublicHtmlTournamentProvider,
@@ -95,8 +96,200 @@ describe("TournamentDiscoveryService", () => {
             "Northern California",
           ]),
         }),
+        expect.objectContaining({
+          name: "Exposure Basketball Directory",
+          provider: "aau_event_finder",
+          url: "https://basketball.exposureevents.com/youth-basketball-events",
+          maxEvents: 2600,
+          metadataOnly: true,
+          directoryEventType: "",
+          ignoreDiscoveryWindowEnd: true,
+          sanctioningTags: expect.arrayContaining(["Exposure Events"]),
+        }),
       ]),
     );
+  });
+
+  it("discovers global Exposure basketball directory events with the page token and session cookie", async () => {
+    const fetchImpl = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/robots.txt")) {
+          return new Response("User-agent: *\nAllow: /\n", {
+            status: 200,
+            headers: { "Content-Type": "text/plain" },
+          });
+        }
+        if (init?.method === "POST") {
+          expect(init.headers).toMatchObject({
+            "X-Exposure-Token": "public-token",
+            Cookie: "exposure-session=test-session",
+          });
+          expect(String(init.body)).not.toContain("EventType=");
+          expect(String(init.body)).not.toContain("EndDateString=");
+          return jsonResponse({
+            Results: [
+              {
+                Id: 250262,
+                Name: "Big Shots Spring Nationals",
+                Type: "Tournament",
+                Link: "/250262/big-shots-spring-nationals",
+                OrganizationName: "Big Shots",
+                StartDate: "2026-06-06T00:00:00.000",
+                EndDate: "2026-06-07T00:00:00.000",
+                City: "Rock Hill",
+                StateRegionAbbr: "SC",
+                CityState: "Rock Hill, South Carolina",
+                Location: "Rock Hill Sports & Event Center",
+                YouthAgeGradesBoth: "Boys & Girls",
+              },
+              {
+                Id: 252628,
+                Name: "G365 Gold Rush",
+                Type: "Tournament",
+                Link: "https://basketball.exposureevents.com/252628/g365-gold-rush",
+                OrganizationName: "Grassroots 365",
+                StartDate: "2026-06-06T00:00:00.000",
+                EndDate: "2026-06-06T00:00:00.000",
+                CityState: "Oakland, California",
+                StateRegionAbbr: "CA",
+                Location: "Oakland, CA",
+              },
+            ],
+            Page: 1,
+            PageSize: 50,
+            Total: 2,
+          });
+        }
+        if (url.endsWith("/youth-basketball-events")) {
+          return new Response(
+            `
+              <script>
+                app.viewModel.events.init({ tokenName: 'X-Exposure-Token', tokenValue: 'public-token' });
+              </script>
+            `,
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "text/html",
+                "Set-Cookie": "exposure-session=test-session; path=/",
+              },
+            },
+          );
+        }
+        throw new Error(`Unhandled URL ${url}`);
+      },
+    ) as unknown as typeof fetch;
+
+    const provider = new AauEventFinderTournamentProvider({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    });
+    const events = await provider.discoverEvents(
+      {
+        name: "Exposure Basketball Directory",
+        provider: "aau_event_finder",
+        enabled: true,
+        url: "https://basketball.exposureevents.com/youth-basketball-events",
+        maxEvents: 2600,
+        directoryEventType: "",
+        ignoreDiscoveryWindowEnd: true,
+        organizerName: "Exposure Basketball Events",
+        sanctioningTags: ["Exposure Events"],
+      },
+      {
+        startDate: "2026-06-06",
+        endDate: "2026-12-06",
+        now: new Date("2026-06-06T12:00:00.000Z"),
+      },
+    );
+
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({
+      exposureEventId: 250262,
+      externalProvider: "exposure_events",
+      name: "Big Shots Spring Nationals",
+      organizer: "Big Shots",
+      city: "Rock Hill",
+      state: "SC",
+      location: "Rock Hill, South Carolina",
+      venueName: "Rock Hill Sports & Event Center",
+      hasPublicTeamList: false,
+    });
+    expect(events[1]).toMatchObject({
+      exposureEventId: 252628,
+      name: "G365 Gold Rush",
+      region: "Northern California",
+    });
+  });
+
+  it("stores metadata-only directory discoveries without fetching every team list", async () => {
+    const event = {
+      id: "event-930001",
+      exposureEventId: 930001,
+      externalProvider: "exposure_events",
+      externalId: "930001",
+      slug: "directory-only-classic",
+      sourceUrl:
+        "https://basketball.exposureevents.com/930001/directory-only-classic",
+      name: "Directory Only Classic",
+      organizer: "Exposure Basketball Events",
+      sport: "basketball",
+      sanctioningTags: ["Exposure Events"],
+      gender: null,
+      ageOrGradeDivisions: [],
+      venueName: null,
+      city: "Hayward",
+      state: "CA",
+      region: "Northern California",
+      startDate: "2026-06-20",
+      endDate: "2026-06-21",
+      location: "Hayward, CA",
+      officialUrl:
+        "https://basketball.exposureevents.com/930001/directory-only-classic",
+      timezone: "America/Los_Angeles",
+      registeredTeamCount: 0,
+      hasPublicTeamList: false,
+      lastCheckedAt: null,
+      lastSyncedAt: null,
+      lastTeamChangeAt: null,
+      status: "upcoming" as const,
+      dropdownGroup: "upcoming" as const,
+    };
+    const fetchRegisteredTeams = vi.fn(async () => {
+      throw new Error("metadata-only source should not fetch team pages");
+    });
+    const provider: TournamentProvider = {
+      providerName: "aau_event_finder",
+      supportsPublicTeamLists: true,
+      discoverEvents: async () => [event],
+      fetchRegisteredTeams,
+    };
+
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "Exposure Basketball Directory",
+          provider: "aau_event_finder",
+          enabled: true,
+          metadataOnly: true,
+        },
+      ],
+      { now: new Date("2026-06-06T12:00:00.000Z") },
+    );
+
+    expect(fetchRegisteredTeams).not.toHaveBeenCalled();
+    expect(result.failures).toEqual([]);
+    expect(result.candidates).toEqual([
+      {
+        event: expect.objectContaining({
+          exposureEventId: 930001,
+          hasPublicTeamList: false,
+          lastCheckedAt: expect.any(String),
+        }),
+        teams: { divisions: [], teams: [] },
+      },
+    ]);
   });
 
   it("includes Exposure/Jam On It-style public tournaments and skips stale event URLs", async () => {
