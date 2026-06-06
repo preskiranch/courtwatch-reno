@@ -1711,7 +1711,21 @@ export class PrismaStore implements CourtWatchStore {
     const storedTeams = await this.prisma.team.count({
       where: { eventId: event.id },
     });
-    if (storedTeams > 0) return;
+    if (storedTeams >= event.registeredTeamCount && storedTeams > 0) {
+      if (!event.lastSyncedAt) {
+        const now = new Date();
+        await this.prisma.event.update({
+          where: { id: event.id },
+          data: {
+            registeredTeamCount: storedTeams,
+            hasPublicTeamList: true,
+            lastCheckedAt: now,
+            lastSyncedAt: now,
+          },
+        });
+      }
+      return;
+    }
     if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return;
 
     const tournament =
@@ -1729,15 +1743,17 @@ export class PrismaStore implements CourtWatchStore {
         });
         return;
       }
+      const teamListChanged = sourceTeams.teams.length !== storedTeams;
+      const syncedAt = new Date();
       await upsertSourceDivisionsAndTeams(this.prisma, event.id, sourceTeams);
       await this.prisma.event.update({
         where: { id: event.id },
         data: {
           registeredTeamCount: sourceTeams.teams.length,
           hasPublicTeamList: true,
-          lastCheckedAt: new Date(),
-          lastSyncedAt: new Date(),
-          lastTeamChangeAt: new Date(),
+          lastCheckedAt: syncedAt,
+          lastSyncedAt: syncedAt,
+          lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
         },
       });
     } catch (error) {
