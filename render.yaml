@@ -144,6 +144,8 @@ services:
         value: "6"
       - key: WORKER_API_TIMEOUT_MS
         value: "300000"
+      - key: WORKER_SYNC_BATCH_SIZE
+        value: "12"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA

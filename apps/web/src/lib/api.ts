@@ -43,8 +43,8 @@ type CacheKey =
   | "resultsAll"
   | "teams";
 
-const CACHE_VERSION = "v28";
-const LEGACY_CACHE_VERSION = "v27";
+const CACHE_VERSION = "v29";
+const LEGACY_CACHE_VERSION = "v28";
 const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "dashboard",
   "games",
@@ -293,7 +293,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v29";
+  const dataVersion = "v30";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {

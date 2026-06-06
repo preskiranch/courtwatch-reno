@@ -99,6 +99,11 @@ async function syncTargets(): Promise<TournamentEvent[]> {
       const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
       if (leftPreferred !== rightPreferred) return leftPreferred - rightPreferred;
 
+      const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
+      const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
+      if (leftNeedsTeams !== rightNeedsTeams)
+        return leftNeedsTeams - rightNeedsTeams;
+
       const leftStatus = syncStatusPriority(left.status);
       const rightStatus = syncStatusPriority(right.status);
       if (leftStatus !== rightStatus) return leftStatus - rightStatus;
@@ -153,6 +158,15 @@ function syncStatusPriority(status: TournamentEvent["status"]) {
   if (status === "upcoming") return 1;
   if (status === "completed") return 2;
   return 3;
+}
+
+function needsPublishedTeamHydration(event: TournamentEvent) {
+  return (
+    event.status !== "completed" &&
+    event.hasPublicTeamList &&
+    event.registeredTeamCount > 0 &&
+    !event.lastSyncedAt
+  );
 }
 
 function preferredExposureEventIds() {

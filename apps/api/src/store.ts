@@ -941,7 +941,8 @@ export class PrismaStore implements CourtWatchStore {
     allEvents = false,
   ) {
     if (allEvents) return this.teamsAcrossEvents(search, clientId);
-    const snapshot = await this.snapshotForClient(clientId, exposureEventId);
+    await this.hydratePublishedTeamsIfMissing(exposureEventId);
+    const snapshot = await this.teamsSnapshotForEvent(clientId, exposureEventId);
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
   }
@@ -1243,6 +1244,12 @@ export class PrismaStore implements CourtWatchStore {
         byExposureId.set(event.exposureEventId, event);
       }
     }
+    const eventsNeedingTeams = await this.eventsNeedingTeamHydration();
+    for (const event of eventsNeedingTeams) {
+      if (!byExposureId.has(event.exposureEventId)) {
+        byExposureId.set(event.exposureEventId, event);
+      }
+    }
     return sortTournamentEvents(Array.from(byExposureId.values()));
   }
 
@@ -1299,6 +1306,55 @@ export class PrismaStore implements CourtWatchStore {
         latestSuccessByEventId.get(event.id) ?? null,
       ),
     );
+  }
+
+  private async eventsNeedingTeamHydration(): Promise<TournamentEvent[]> {
+    const todayKey = tournamentTodayKey();
+    const windowEndKey = tournamentWindowEndKey(
+      todayKey,
+      config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
+    );
+    const [events, teamCounts, latestSuccesses] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          externalProvider: "exposure_events",
+          hasPublicTeamList: true,
+          registeredTeamCount: { gt: 0 },
+          startDate: { lte: new Date(`${windowEndKey}T00:00:00.000Z`) },
+          endDate: { gte: new Date(`${todayKey}T00:00:00.000Z`) },
+          status: { notIn: ["cancelled", "unavailable"] },
+        },
+        orderBy: [{ startDate: "asc" }, { name: "asc" }],
+      }),
+      this.prisma.team.groupBy({ by: ["eventId"], _count: { _all: true } }),
+      this.prisma.syncRun.groupBy({
+        by: ["eventId"],
+        where: { status: "success", completedAt: { not: null } },
+        _max: { completedAt: true },
+      }),
+    ]);
+    const teamCountByEventId = new Map(
+      teamCounts.map((count) => [count.eventId, count._count._all]),
+    );
+    const latestSuccessByEventId = new Map(
+      latestSuccesses.map((run) => [
+        run.eventId,
+        run._max.completedAt?.toISOString() ?? null,
+      ]),
+    );
+    return events
+      .filter((event) => {
+        const storedTeams = teamCountByEventId.get(event.id) ?? 0;
+        return storedTeams < event.registeredTeamCount;
+      })
+      .map((event) =>
+        prismaEventToCore(
+          event,
+          undefined,
+          teamCountByEventId.get(event.id) ?? null,
+          latestSuccessByEventId.get(event.id) ?? null,
+        ),
+      );
   }
 
   private async tournamentSourceForSync(
@@ -1381,31 +1437,11 @@ export class PrismaStore implements CourtWatchStore {
         if (!includeMockArsenal) await removeMockArsenalSeedData(this.prisma);
       }
 
-      const divisionIdMap = new Map<string, string>();
-      for (const division of sourceTeams.divisions) {
-        const savedDivision = await upsertDivision(
-          this.prisma,
-          event.id,
-          division,
-        );
-        divisionIdMap.set(division.id, savedDivision.id);
-        if (division.exposureDivisionId)
-          divisionIdMap.set(division.exposureDivisionId, savedDivision.id);
-      }
-      for (const [key, value] of await loadDivisionIdMap(
+      const divisionIdMap = await upsertSourceDivisionsAndTeams(
         this.prisma,
         event.id,
-      )) {
-        if (!divisionIdMap.has(key)) divisionIdMap.set(key, value);
-      }
-      for (const team of sourceTeams.teams) {
-        await upsertTeam(this.prisma, event.id, {
-          ...team,
-          divisionId: team.divisionId
-            ? (divisionIdMap.get(team.divisionId) ?? team.divisionId)
-            : null,
-        });
-      }
+        sourceTeams,
+      );
       if (!usingMockFallback && sourceTeams.teams.length > 0)
         await removeTeamsMissingFromPublicList(
           this.prisma,
@@ -1567,6 +1603,149 @@ export class PrismaStore implements CourtWatchStore {
   ): Promise<CourtWatchSnapshot> {
     const program = await this.ensureSelectedProgram(clientId);
     return scopeSnapshot(await this.snapshot(exposureEventId), program.id);
+  }
+
+  private async teamsSnapshotForEvent(
+    clientId?: string | null,
+    exposureEventId?: number | null,
+  ): Promise<CourtWatchSnapshot> {
+    const requestedTournament = tournamentForExposureEventId(exposureEventId);
+    const event = await this.prisma.event.findUnique({
+      where: { exposureEventId: requestedTournament.exposureEventId },
+    });
+    if (!event) {
+      return scopeSnapshot(
+        emptySnapshotForTournament(requestedTournament, []),
+        (await this.ensureSelectedProgram(clientId)).id,
+      );
+    }
+
+    const tournament =
+      configuredTournaments().find(
+        (source) => source.exposureEventId === event.exposureEventId,
+      ) ?? prismaEventToCore(event);
+    const [teams, games, programs, matches] = await Promise.all([
+      this.prisma.team.findMany({
+        where: { eventId: event.id },
+        include: { division: true },
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+      }),
+      this.prisma.game.findMany({
+        where: { eventId: event.id },
+        orderBy: { startsAt: "asc" },
+      }),
+      this.prisma.programWatchlist.findMany({ where: { active: true } }),
+      this.prisma.programTeamMatch.findMany({ where: { active: true } }),
+    ]);
+    const followerCounts = teamFollowerCounts(
+      programs.map(prismaProgramToCore),
+      matches.map(prismaMatchToCore),
+    );
+    const followedProgram = await this.ensureSelectedProgram(clientId);
+    const followedTeamIds = new Set(
+      matches
+        .filter(
+          (match) =>
+            match.active && match.programWatchlistId === followedProgram.id,
+        )
+        .map((match) => match.teamId),
+    );
+    const snapshot: CourtWatchSnapshot = {
+      event: {
+        ...prismaEventToCore(
+          event,
+          tournament,
+          teams.length,
+          event.lastSyncedAt?.toISOString() ?? null,
+        ),
+        slug: tournament.slug,
+        timezone: tournament.timezone,
+      },
+      events: [],
+      divisions: [],
+      teams: teams.map((team) => ({
+        id: team.id,
+        eventId: team.eventId,
+        divisionId: team.divisionId,
+        exposureTeamId: team.exposureTeamId,
+        name: team.name,
+        normalizedName: team.normalizedName,
+        clubName: team.clubName,
+        normalizedClubName: team.normalizedClubName,
+        coachName: team.coachName,
+        city: team.city,
+        state: team.state,
+        sourceUrl: team.sourceUrl,
+        divisionName: team.division?.name ?? null,
+        gender: team.division?.gender ?? null,
+        gradeLevel: team.division?.gradeLevel ?? null,
+        level: team.division?.level ?? null,
+        rawJson: team.rawJson,
+        lastSeenAt: team.lastSeenAt.toISOString(),
+        createdAt: team.createdAt.toISOString(),
+        updatedAt: team.updatedAt.toISOString(),
+        playerNames: [],
+        isFollowed: followedTeamIds.has(team.id),
+        followerCount: followerCounts.get(team.id) ?? 0,
+      })),
+      players: [],
+      divisionResults: [],
+      programs: programs.map(prismaProgramToCore),
+      aliases: [],
+      matches: matches.map(prismaMatchToCore),
+      games: games.map(prismaGameToCore),
+      changeEvents: [],
+      syncRuns: [],
+    };
+    return scopeSnapshot(snapshot, followedProgram.id);
+  }
+
+  private async hydratePublishedTeamsIfMissing(
+    exposureEventId?: number | null,
+  ) {
+    if (!exposureEventId) return;
+    const event = await this.prisma.event.findUnique({
+      where: { exposureEventId },
+    });
+    if (!event) return;
+    const storedTeams = await this.prisma.team.count({
+      where: { eventId: event.id },
+    });
+    if (storedTeams > 0) return;
+    if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return;
+
+    const tournament =
+      configuredTournaments().find(
+        (source) => source.exposureEventId === event.exposureEventId,
+      ) ?? prismaEventToCore(event);
+    if (!isExposureEvent(tournament)) return;
+
+    try {
+      const sourceTeams = dedupeSourceTeams(await fetchSourceTeams(tournament));
+      if (sourceTeams.teams.length === 0) {
+        await this.prisma.event.update({
+          where: { id: event.id },
+          data: { lastCheckedAt: new Date() },
+        });
+        return;
+      }
+      await upsertSourceDivisionsAndTeams(this.prisma, event.id, sourceTeams);
+      await this.prisma.event.update({
+        where: { id: event.id },
+        data: {
+          registeredTeamCount: sourceTeams.teams.length,
+          hasPublicTeamList: true,
+          lastCheckedAt: new Date(),
+          lastSyncedAt: new Date(),
+          lastTeamChangeAt: new Date(),
+        },
+      });
+    } catch (error) {
+      console.warn("Unable to hydrate published team list", {
+        exposureEventId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   }
 
   private async ensureSelectedProgram(
@@ -2561,6 +2740,33 @@ async function upsertDivision(
   });
 }
 
+async function upsertSourceDivisionsAndTeams(
+  prisma: PrismaClient,
+  eventId: string,
+  sourceTeams: { divisions: Division[]; teams: Team[] },
+): Promise<Map<string, string>> {
+  const divisionIdMap = new Map<string, string>();
+  for (const division of sourceTeams.divisions) {
+    const savedDivision = await upsertDivision(prisma, eventId, division);
+    divisionIdMap.set(division.id, savedDivision.id);
+    if (division.exposureDivisionId) {
+      divisionIdMap.set(division.exposureDivisionId, savedDivision.id);
+    }
+  }
+  for (const [key, value] of await loadDivisionIdMap(prisma, eventId)) {
+    if (!divisionIdMap.has(key)) divisionIdMap.set(key, value);
+  }
+  for (const team of sourceTeams.teams) {
+    await upsertTeam(prisma, eventId, {
+      ...team,
+      divisionId: team.divisionId
+        ? (divisionIdMap.get(team.divisionId) ?? team.divisionId)
+        : null,
+    });
+  }
+  return divisionIdMap;
+}
+
 async function upsertTeam(prisma: PrismaClient, eventId: string, team: Team) {
   return prisma.team.upsert({
     where: {
@@ -3288,6 +3494,24 @@ function prismaPlayerToCore(player: {
     grade: player.grade,
     rawJson: player.rawJson,
     lastSeenAt: player.lastSeenAt.toISOString(),
+  };
+}
+
+function prismaProgramToCore(program: {
+  id: string;
+  userId: string | null;
+  programName: string;
+  normalizedProgramName: string;
+  active: boolean;
+  createdAt: Date;
+}): ProgramWatchlist {
+  return {
+    id: program.id,
+    userId: program.userId,
+    programName: program.programName,
+    normalizedProgramName: program.normalizedProgramName,
+    active: program.active,
+    createdAt: program.createdAt.toISOString(),
   };
 }
 
