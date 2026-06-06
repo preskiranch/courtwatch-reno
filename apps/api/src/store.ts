@@ -1144,7 +1144,23 @@ export class PrismaStore implements CourtWatchStore {
     const tournaments = await this.syncTournamentTargets(exposureEventId);
     const results = [];
     for (const tournament of tournaments) {
-      results.push(await this.syncTournament(tournament));
+      try {
+        results.push(await this.syncTournament(tournament));
+      } catch (error) {
+        if (exposureEventId) throw error;
+        console.warn("Tournament sync skipped", {
+          exposureEventId: tournament.exposureEventId,
+          name: tournament.name,
+          error: error instanceof Error ? error.message : "Unknown sync error",
+        });
+        results.push({
+          status: "failed",
+          source: syncSourceForTournament(tournament),
+          teamsCount: 0,
+          gamesCount: 0,
+          changesDetected: 0,
+        });
+      }
     }
     return aggregateSyncResults(results);
   }
@@ -1195,12 +1211,50 @@ export class PrismaStore implements CourtWatchStore {
     for (const tournament of configuredTournaments()) {
       byExposureId.set(tournament.exposureEventId, tournament);
     }
-    for (const event of await this.events()) {
+    const eventsWithTeams = await this.eventsWithStoredTeamData();
+    for (const event of eventsWithTeams) {
       if (!byExposureId.has(event.exposureEventId)) {
         byExposureId.set(event.exposureEventId, event);
       }
     }
     return sortTournamentEvents(Array.from(byExposureId.values()));
+  }
+
+  private async eventsWithStoredTeamData(): Promise<TournamentEvent[]> {
+    const [teamCounts, latestSuccesses] = await Promise.all([
+      this.prisma.team.groupBy({ by: ["eventId"], _count: { _all: true } }),
+      this.prisma.syncRun.groupBy({
+        by: ["eventId"],
+        where: { status: "success", completedAt: { not: null } },
+        _max: { completedAt: true },
+      }),
+    ]);
+    const eventIds = teamCounts
+      .filter((count) => count._count._all > 0)
+      .map((count) => count.eventId);
+    if (eventIds.length === 0) return [];
+
+    const teamCountByEventId = new Map(
+      teamCounts.map((count) => [count.eventId, count._count._all]),
+    );
+    const latestSuccessByEventId = new Map(
+      latestSuccesses.map((run) => [
+        run.eventId,
+        run._max.completedAt?.toISOString() ?? null,
+      ]),
+    );
+    const events = await this.prisma.event.findMany({
+      where: { id: { in: eventIds } },
+      orderBy: [{ startDate: "asc" }, { name: "asc" }],
+    });
+    return events.map((event) =>
+      prismaEventToCore(
+        event,
+        undefined,
+        teamCountByEventId.get(event.id),
+        latestSuccessByEventId.get(event.id) ?? null,
+      ),
+    );
   }
 
   private async tournamentSourceForSync(
@@ -1777,6 +1831,13 @@ function aggregateSyncResults(
       0,
     ),
   };
+}
+
+function syncSourceForTournament(tournament: TournamentSource): string {
+  return tournament.externalProvider === "exposure_events" &&
+    isExposureConfigured()
+    ? "exposure_api"
+    : "public_page";
 }
 
 function slugFromOfficialUrl(officialUrl: string): string | null {
