@@ -244,7 +244,7 @@ API_BASE_URL=http://localhost:4000 ADMIN_SECRET=dev-secret npm run dev:worker
 Behavior:
 
 - Runs an immediate sync on startup.
-- Discovers approved public Exposure tournaments on startup and then on `TOURNAMENT_DISCOVERY_INTERVAL_HOURS` (default: 24 hours).
+- Discovers approved public Exposure tournaments on startup and then on `TOURNAMENT_DISCOVERY_INTERVAL_HOURS` (default: 6 hours).
 - Looks ahead `TOURNAMENT_DISCOVERY_WINDOW_DAYS` (default: 183 days) for public-source tournaments.
 - Tracks built-in Exposure organizer sources including Jam On It, Grassroots 365, GSG Hoops, BAMTOURNAMENTS, Touch Shooting Premiere Events, Hoop 121, NorCal Sports TV, and Bay Area Stars Academy.
 - Only adds discovered tournaments when the public team list can be read successfully.

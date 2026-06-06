@@ -78,7 +78,7 @@ services:
       - key: TOURNAMENT_DISCOVERY_ENABLED
         value: "true"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
-        value: "24"
+        value: "6"
       - key: TOURNAMENT_DISCOVERY_WINDOW_DAYS
         value: "183"
       - key: TOURNAMENT_DROPDOWN_CACHE_HOURS
@@ -141,7 +141,7 @@ services:
       - key: DEFAULT_EXPOSURE_EVENT_ID
         value: "255539"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
-        value: "24"
+        value: "6"
       - key: WORKER_API_TIMEOUT_MS
         value: "300000"
       - key: ENABLE_MOCK_ARSENAL

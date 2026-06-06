@@ -10,7 +10,7 @@ const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
   ADMIN_SECRET: z.string().optional(),
   NODE_ENV: z.string().default("development"),
-  TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(24),
+  TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(6),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
 });
 

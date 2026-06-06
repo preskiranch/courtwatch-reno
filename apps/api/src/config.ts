@@ -20,7 +20,7 @@ const ConfigSchema = z.object({
   DEFAULT_EXPOSURE_EVENT_ID: z.coerce.number().optional(),
   MAJOR_TOURNAMENT_SOURCES: z.string().optional(),
   TOURNAMENT_DISCOVERY_ENABLED: z.coerce.boolean().default(true),
-  TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(24),
+  TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(6),
   TOURNAMENT_DISCOVERY_WINDOW_DAYS: z.coerce.number().default(183),
   TOURNAMENT_DROPDOWN_CACHE_HOURS: z.coerce.number().default(720),
   VAPID_PUBLIC_KEY: z.string().optional(),
@@ -571,7 +571,9 @@ const g365TournamentData = [
   },
 ] satisfies G365TournamentData[];
 
-function g365TournamentSource(tournament: G365TournamentData): TournamentSource {
+function g365TournamentSource(
+  tournament: G365TournamentData,
+): TournamentSource {
   const officialUrl = `https://basketball.exposureevents.com/${tournament.exposureEventId}/${tournament.slug}`;
   return {
     id: `event-${tournament.slug}-2026`,
