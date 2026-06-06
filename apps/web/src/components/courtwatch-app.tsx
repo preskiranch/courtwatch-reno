@@ -23,7 +23,9 @@ import {
   Activity,
   Bell,
   CalendarDays,
+  Check,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Clock3,
   Download,
@@ -118,6 +120,11 @@ const tabs: Array<{
 
 const LIVE_DATA_REFETCH_MS = 60_000;
 const LIVE_SYNC_STATUS_REFETCH_MS = 1_000;
+const ALL_TOURNAMENT_REGIONS = "all";
+const NORTHERN_CALIFORNIA_REGION = "norcal";
+const SOUTHERN_CALIFORNIA_REGION = "socal";
+
+type TournamentRegionFilter = string;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
@@ -824,31 +831,26 @@ function AppHeader({
   refreshing: boolean;
   onSelectEvent: (eventId: number) => void;
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [regionFilter, setRegionFilter] = useState<TournamentRegionFilter>(
+    ALL_TOURNAMENT_REGIONS,
+  );
   const selectedEvent =
     events.find((event) => event.exposureEventId === selectedEventId) ??
     dashboard?.event;
-  const trackedEvents = events.filter(
-    (event) =>
-      event.dropdownGroup === "tracked" &&
-      effectiveTournamentStatus(event) !== "completed",
-  );
-  const publicSourceEvents = events.filter(
-    (event) => event.dropdownGroup !== "tracked",
-  );
-  const activePublicSourceEvents = publicSourceEvents.filter(
-    (event) => effectiveTournamentStatus(event) === "active",
-  );
-  const upcomingPublicSourceEvents = publicSourceEvents.filter(
-    (event) => effectiveTournamentStatus(event) === "upcoming",
-  );
-  const completedEvents = events.filter(
-    (event) => effectiveTournamentStatus(event) === "completed",
-  );
-  const hasGroupedEvents =
-    trackedEvents.length > 0 ||
-    activePublicSourceEvents.length > 0 ||
-    upcomingPublicSourceEvents.length > 0 ||
-    completedEvents.length > 0;
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPickerOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [pickerOpen]);
   const statusMessage = offline
     ? "Offline cache"
     : (dashboard?.sourceStatus.message ??
@@ -931,71 +933,39 @@ function AppHeader({
           </button>
         </div>
       </div>
-      <label className="mt-3 block">
-        <span className="mb-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+      <div className="mt-3">
+        <div className="mb-1 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
           Tournament
-        </span>
-        <select
-          value={selectedEventId ?? ""}
-          onChange={(event) => onSelectEvent(Number(event.target.value))}
-          className="h-11 w-full rounded-lg border border-white/12 bg-slate-950 px-3 text-sm font-black text-white"
+        </div>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-white/12 bg-slate-950 px-3 py-2 text-left text-sm font-black text-white transition focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 active:scale-[0.995]"
           disabled={events.length === 0}
         >
-          {events.length === 0 ? (
-            <option value="">
-              No public-source tournaments found in the next six months
-            </option>
-          ) : null}
-          {hasGroupedEvents ? (
-            <>
-              {trackedEvents.length > 0 ? (
-                <optgroup label="My tracked events">
-                  {trackedEvents.map((event) => (
-                    <TournamentOption
-                      key={event.exposureEventId}
-                      event={event}
-                    />
-                  ))}
-                </optgroup>
-              ) : null}
-              {activePublicSourceEvents.length > 0 ? (
-                <optgroup label="Active public-source tournaments">
-                  {activePublicSourceEvents.map((event) => (
-                    <TournamentOption
-                      key={event.exposureEventId}
-                      event={event}
-                    />
-                  ))}
-                </optgroup>
-              ) : null}
-              {upcomingPublicSourceEvents.length > 0 ? (
-                <optgroup label="Upcoming public-source tournaments">
-                  {upcomingPublicSourceEvents.map((event) => (
-                    <TournamentOption
-                      key={event.exposureEventId}
-                      event={event}
-                    />
-                  ))}
-                </optgroup>
-              ) : null}
-              {completedEvents.length > 0 ? (
-                <optgroup label="Finished tournaments">
-                  {completedEvents.map((event) => (
-                    <TournamentOption
-                      key={event.exposureEventId}
-                      event={event}
-                    />
-                  ))}
-                </optgroup>
-              ) : null}
-            </>
-          ) : (
-            events.map((event) => (
-              <TournamentOption key={event.exposureEventId} event={event} />
-            ))
-          )}
-        </select>
-      </label>
+          <span className="line-clamp-2">
+            {selectedEvent
+              ? tournamentOptionLabel(selectedEvent)
+              : events.length === 0
+                ? "No public-source tournaments found in the next six months"
+                : "Choose tournament"}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-slate-300" />
+        </button>
+      </div>
+      {pickerOpen ? (
+        <TournamentPickerSheet
+          events={events}
+          selectedEventId={selectedEventId}
+          regionFilter={regionFilter}
+          onRegionFilterChange={setRegionFilter}
+          onClose={() => setPickerOpen(false)}
+          onSelectEvent={(eventId) => {
+            onSelectEvent(eventId);
+            setPickerOpen(false);
+          }}
+        />
+      ) : null}
       <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-300">
         <span className="min-w-0 flex-1 items-center gap-1.5 sm:flex">
           <span className="inline-flex items-center gap-1.5">
@@ -1033,13 +1003,417 @@ function AppFooterCredit() {
   );
 }
 
-function TournamentOption({ event }: { event: TournamentEvent }) {
+function TournamentPickerSheet({
+  events,
+  selectedEventId,
+  regionFilter,
+  onRegionFilterChange,
+  onSelectEvent,
+  onClose,
+}: {
+  events: TournamentEvent[];
+  selectedEventId: number | null;
+  regionFilter: TournamentRegionFilter;
+  onRegionFilterChange: (region: TournamentRegionFilter) => void;
+  onSelectEvent: (eventId: number) => void;
+  onClose: () => void;
+}) {
+  const regionOptions = useMemo(
+    () => tournamentRegionOptions(events),
+    [events],
+  );
+  const sections = useMemo(
+    () => tournamentPickerSections(events, regionFilter),
+    [events, regionFilter],
+  );
+
   return (
-    <option value={event.exposureEventId}>
-      {tournamentOptionLabel(event)}
-    </option>
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/96 text-white backdrop-blur"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choose tournament"
+    >
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="border-b border-white/10 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-orange-300">
+                Tournament
+              </p>
+              <h2 className="mt-1 text-xl font-black tracking-normal">
+                Choose by region
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/12 bg-white/8 text-white transition active:scale-95"
+              aria-label="Close tournament selector"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        <div className="border-b border-white/10 px-4 py-3">
+          <div className="no-scrollbar mx-auto flex w-full max-w-6xl gap-2 overflow-x-auto">
+            {regionOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => onRegionFilterChange(option.id)}
+                className={clsx(
+                  "shrink-0 rounded-lg border px-3 py-2 text-left text-xs font-black transition active:scale-95",
+                  regionFilter === option.id
+                    ? "border-orange-400 bg-orange-500 text-white"
+                    : "border-white/10 bg-white/8 text-slate-200",
+                )}
+              >
+                <span className="block whitespace-nowrap">{option.label}</span>
+                <span
+                  className={clsx(
+                    "mt-0.5 block text-[10px] uppercase tracking-normal",
+                    regionFilter === option.id
+                      ? "text-orange-50"
+                      : "text-slate-400",
+                  )}
+                >
+                  {option.count} events
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 safe-bottom">
+          <div className="mx-auto w-full max-w-6xl space-y-5">
+            {sections.length === 0 ? (
+              <div className="rounded-lg border border-white/10 bg-white/8 p-4 text-sm font-semibold text-slate-300">
+                No tournaments found for this region.
+              </div>
+            ) : null}
+            {sections.map((section) => (
+              <section key={section.id} aria-labelledby={section.id}>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h3
+                    id={section.id}
+                    className="text-[11px] font-black uppercase tracking-[0.18em] text-orange-300"
+                  >
+                    {section.label}
+                  </h3>
+                  <span className="rounded-md bg-white/8 px-2 py-1 text-[11px] font-black text-slate-200">
+                    {section.events.length}
+                  </span>
+                </div>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {section.events.map((event) => (
+                    <TournamentPickerEvent
+                      key={`${section.id}-${event.exposureEventId}`}
+                      event={event}
+                      selected={event.exposureEventId === selectedEventId}
+                      onSelect={() => onSelectEvent(event.exposureEventId)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
+
+function TournamentPickerEvent({
+  event,
+  selected,
+  onSelect,
+}: {
+  event: TournamentEvent;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const status = effectiveTournamentStatus(event);
+  const date =
+    event.startDate === event.endDate
+      ? compactTournamentDate(event.startDate, event.timezone)
+      : `${compactTournamentDate(event.startDate, event.timezone)}-${compactTournamentDate(event.endDate, event.timezone)}`;
+  const place =
+    event.city && event.state
+      ? `${event.city}, ${event.state}`
+      : event.location;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={clsx(
+        "flex min-h-24 w-full items-start gap-3 rounded-lg border p-3 text-left transition active:scale-[0.99]",
+        selected
+          ? "border-orange-400 bg-orange-500/16 ring-2 ring-orange-400/25"
+          : "border-white/10 bg-white/8 hover:bg-white/12",
+      )}
+    >
+      <span
+        className={clsx(
+          "mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-md",
+          selected ? "bg-orange-500 text-white" : "bg-slate-900 text-slate-300",
+        )}
+      >
+        {selected ? (
+          <Check className="h-4 w-4" />
+        ) : (
+          <CalendarDays className="h-4 w-4" />
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-2 text-sm font-black leading-5 text-white">
+          {event.name}
+        </span>
+        <span className="mt-1 block text-xs font-semibold text-slate-300">
+          {place} — {date}
+        </span>
+        <span className="mt-2 flex flex-wrap gap-1.5">
+          <span className="rounded-md bg-slate-950 px-2 py-1 text-[10px] font-black uppercase text-slate-200">
+            {event.registeredTeamCount > 0
+              ? `${event.registeredTeamCount} teams`
+              : "Teams not posted"}
+          </span>
+          <span className="rounded-md bg-white/10 px-2 py-1 text-[10px] font-black uppercase text-slate-200">
+            {tournamentRegionLabel(event)}
+          </span>
+          <span
+            className={clsx(
+              "rounded-md px-2 py-1 text-[10px] font-black uppercase",
+              status === "active" && "bg-emerald-400/18 text-emerald-200",
+              status === "upcoming" && "bg-sky-400/18 text-sky-200",
+              status === "completed" && "bg-slate-200/12 text-slate-200",
+              (status === "cancelled" || status === "unavailable") &&
+                "bg-red-400/18 text-red-200",
+            )}
+          >
+            {status}
+          </span>
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function tournamentPickerSections(
+  events: TournamentEvent[],
+  regionFilter: TournamentRegionFilter,
+): Array<{ id: string; label: string; events: TournamentEvent[] }> {
+  const filteredEvents = events.filter((event) =>
+    tournamentMatchesRegion(event, regionFilter),
+  );
+  const trackedEvents = filteredEvents.filter(
+    (event) =>
+      event.dropdownGroup === "tracked" &&
+      effectiveTournamentStatus(event) !== "completed",
+  );
+  const publicSourceEvents = filteredEvents.filter(
+    (event) => event.dropdownGroup !== "tracked",
+  );
+  const activePublicSourceEvents = publicSourceEvents.filter(
+    (event) => effectiveTournamentStatus(event) === "active",
+  );
+  const upcomingPublicSourceEvents = publicSourceEvents.filter(
+    (event) => effectiveTournamentStatus(event) === "upcoming",
+  );
+  const completedEvents = filteredEvents.filter(
+    (event) => effectiveTournamentStatus(event) === "completed",
+  );
+  return [
+    {
+      id: "tracked-events",
+      label: "My tracked events",
+      events: trackedEvents,
+    },
+    {
+      id: "active-events",
+      label: "Active tournaments",
+      events: activePublicSourceEvents,
+    },
+    {
+      id: "upcoming-events",
+      label: "Upcoming tournaments",
+      events: upcomingPublicSourceEvents,
+    },
+    {
+      id: "finished-events",
+      label: "Finished tournaments",
+      events: completedEvents,
+    },
+  ].filter((section) => section.events.length > 0);
+}
+
+function tournamentRegionOptions(events: TournamentEvent[]): Array<{
+  id: TournamentRegionFilter;
+  label: string;
+  count: number;
+}> {
+  const counts = new Map<TournamentRegionFilter, number>();
+  for (const event of events) {
+    const id = tournamentRegionKey(event);
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  const options = [
+    {
+      id: ALL_TOURNAMENT_REGIONS,
+      label: "All",
+      count: events.length,
+    },
+    {
+      id: NORTHERN_CALIFORNIA_REGION,
+      label: "Northern California",
+      count: counts.get(NORTHERN_CALIFORNIA_REGION) ?? 0,
+    },
+    {
+      id: SOUTHERN_CALIFORNIA_REGION,
+      label: "Southern California",
+      count: counts.get(SOUTHERN_CALIFORNIA_REGION) ?? 0,
+    },
+  ];
+  const otherRegions = [...counts.entries()]
+    .filter(
+      ([id]) =>
+        id !== NORTHERN_CALIFORNIA_REGION && id !== SOUTHERN_CALIFORNIA_REGION,
+    )
+    .sort(([a], [b]) =>
+      tournamentRegionName(a).localeCompare(tournamentRegionName(b)),
+    )
+    .map(([id, count]) => ({
+      id,
+      label: tournamentRegionName(id),
+      count,
+    }));
+  return [...options, ...otherRegions].filter(
+    (option) => option.id === ALL_TOURNAMENT_REGIONS || option.count > 0,
+  );
+}
+
+function tournamentMatchesRegion(
+  event: TournamentEvent,
+  regionFilter: TournamentRegionFilter,
+): boolean {
+  if (regionFilter === ALL_TOURNAMENT_REGIONS) return true;
+  return tournamentRegionKey(event) === regionFilter;
+}
+
+function tournamentRegionLabel(event: TournamentEvent): string {
+  return tournamentRegionName(tournamentRegionKey(event));
+}
+
+function tournamentRegionName(region: TournamentRegionFilter): string {
+  if (region === ALL_TOURNAMENT_REGIONS) return "All";
+  if (region === NORTHERN_CALIFORNIA_REGION) return "Northern CA";
+  if (region === SOUTHERN_CALIFORNIA_REGION) return "Southern CA";
+  if (region.startsWith("state:")) {
+    const state = region.slice("state:".length);
+    return STATE_LABELS[state] ?? state;
+  }
+  return "Other";
+}
+
+function tournamentRegionKey(event: TournamentEvent): TournamentRegionFilter {
+  const state = normalizeStateCode(event.state, event.location);
+  if (state === "CA") {
+    return isSouthernCaliforniaEvent(event)
+      ? SOUTHERN_CALIFORNIA_REGION
+      : NORTHERN_CALIFORNIA_REGION;
+  }
+  return `state:${state || "OTHER"}`;
+}
+
+function isSouthernCaliforniaEvent(event: TournamentEvent): boolean {
+  const city = normalizePlaceName(event.city ?? event.location);
+  if (!city) return false;
+  if (city.includes("bakersfield")) return false;
+  return SOUTHERN_CALIFORNIA_CITY_MARKERS.some((marker) =>
+    city.includes(marker),
+  );
+}
+
+function normalizeStateCode(
+  state: string | null,
+  location: string | null,
+): string {
+  const source = `${state ?? ""} ${location ?? ""}`.toLowerCase();
+  if (/\bca\b|california/.test(source)) return "CA";
+  if (/\bnv\b|nevada/.test(source)) return "NV";
+  if (/\btx\b|texas/.test(source)) return "TX";
+  if (/\bfl\b|florida/.test(source)) return "FL";
+  if (/\baz\b|arizona/.test(source)) return "AZ";
+  if (/\bwa\b|washington/.test(source)) return "WA";
+  if (/\bor\b|oregon/.test(source)) return "OR";
+  if (/\bco\b|colorado/.test(source)) return "CO";
+  return (state ?? "Other").trim().toUpperCase();
+}
+
+function normalizePlaceName(value: string | null): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const STATE_LABELS: Record<string, string> = {
+  AZ: "Arizona",
+  CA: "California",
+  CO: "Colorado",
+  FL: "Florida",
+  NV: "Nevada",
+  OR: "Oregon",
+  TX: "Texas",
+  WA: "Washington",
+  OTHER: "Other",
+};
+
+const SOUTHERN_CALIFORNIA_CITY_MARKERS = [
+  "anaheim",
+  "arcadia",
+  "burbank",
+  "carlsbad",
+  "chula vista",
+  "corona",
+  "costa mesa",
+  "culver city",
+  "el segundo",
+  "fontana",
+  "fullerton",
+  "garden grove",
+  "glendale",
+  "huntington beach",
+  "inglewood",
+  "irvine",
+  "la mirada",
+  "long beach",
+  "los angeles",
+  "mission viejo",
+  "murrieta",
+  "newport beach",
+  "oceanside",
+  "ontario",
+  "orange",
+  "orange county",
+  "oxnard",
+  "palm desert",
+  "palm springs",
+  "pasadena",
+  "rancho cucamonga",
+  "riverside",
+  "san bernardino",
+  "san clemente",
+  "san diego",
+  "santa ana",
+  "santa clarita",
+  "simi valley",
+  "temecula",
+  "thousand oaks",
+  "torrance",
+  "ventura",
+  "west covina",
+];
 
 function effectiveTournamentStatus(
   event: TournamentEvent,
@@ -3708,12 +4082,7 @@ function TeamsScreen({
     [deferredSearch, scopedRecordTeams, searchActive],
   );
   const knownTeamPool = useMemo(
-    () =>
-      mergeTeamLists(
-        scopedRecordTeams,
-        scopedSearchTeams,
-        scopedAllTeams,
-      ),
+    () => mergeTeamLists(scopedRecordTeams, scopedSearchTeams, scopedAllTeams),
     [scopedAllTeams, scopedRecordTeams, scopedSearchTeams],
   );
   const trustedKnownTeamPool = useMemo(
@@ -4081,10 +4450,7 @@ function teamsWithTrustedFollowState(
   }));
 }
 
-function teamsForSelectedEvent(
-  teams: Team[],
-  eventId: number | null,
-): Team[] {
+function teamsForSelectedEvent(teams: Team[], eventId: number | null): Team[] {
   if (!eventId) return teams;
   return teams.filter(
     (team) =>
