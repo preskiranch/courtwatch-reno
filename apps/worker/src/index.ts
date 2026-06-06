@@ -1,8 +1,11 @@
 import {
+  DEFAULT_MAJOR_TOURNAMENT_SOURCES,
+  TournamentDiscoveryService,
   calculatePollDelayMs,
   isAnyActiveTournamentWindow,
 } from "@courtwatch/core";
 import type { TournamentEvent } from "@courtwatch/core";
+import { prisma } from "@courtwatch/db";
 import pino from "pino";
 import { z } from "zod";
 
@@ -11,6 +14,7 @@ const EnvSchema = z.object({
   ADMIN_SECRET: z.string().optional(),
   NODE_ENV: z.string().default("development"),
   TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(6),
+  TOURNAMENT_DISCOVERY_WINDOW_DAYS: z.coerce.number().default(183),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
 });
 
@@ -68,24 +72,94 @@ async function syncOnce() {
 async function discoverTournamentsIfDue() {
   const intervalMs = env.TOURNAMENT_DISCOVERY_INTERVAL_HOURS * 60 * 60 * 1000;
   if (Date.now() - lastDiscoveryAt < intervalMs) return;
-  const response = await fetchWithTimeout(
-    new URL("/api/admin/discover-tournaments", env.API_BASE_URL),
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
-      },
-      body: JSON.stringify({ source: "worker" }),
-    },
+
+  const result = await new TournamentDiscoveryService().discover(
+    DEFAULT_MAJOR_TOURNAMENT_SOURCES,
+    { windowDays: env.TOURNAMENT_DISCOVERY_WINDOW_DAYS },
   );
-  lastDiscoveryAt = Date.now();
-  if (!response.ok) {
-    throw new Error(
-      `discover-tournaments failed with ${response.status}: ${await response.text()}`,
-    );
+  let upsertedCount = 0;
+  for (const candidate of result.candidates) {
+    await upsertDiscoveredEvent(candidate.event);
+    upsertedCount += 1;
   }
-  logger.info(await response.json(), "tournament discovery completed");
+  lastDiscoveryAt = Date.now();
+
+  for (const failure of result.failures) {
+    logger.warn(failure, "tournament discovery source skipped");
+  }
+
+  logger.info(
+    {
+      discoveredCount: result.candidates.length,
+      upsertedCount,
+      failureCount: result.failures.length,
+    },
+    "tournament discovery completed",
+  );
+}
+
+async function upsertDiscoveredEvent(event: TournamentEvent) {
+  await prisma.event.upsert({
+    where: { exposureEventId: event.exposureEventId },
+    update: {
+      externalProvider: event.externalProvider,
+      externalId: event.externalId,
+      sourceUrl: event.sourceUrl,
+      name: event.name,
+      organizer: event.organizer,
+      sport: event.sport,
+      sanctioningTags: event.sanctioningTags,
+      gender: event.gender,
+      ageOrGradeDivisions: event.ageOrGradeDivisions,
+      venueName: event.venueName,
+      city: event.city,
+      state: event.state,
+      region: event.region,
+      startDate: new Date(`${event.startDate}T00:00:00.000Z`),
+      endDate: new Date(`${event.endDate}T00:00:00.000Z`),
+      location: event.location,
+      officialUrl: event.officialUrl,
+      registeredTeamCount:
+        event.registeredTeamCount > 0 ? event.registeredTeamCount : undefined,
+      hasPublicTeamList: event.hasPublicTeamList || undefined,
+      lastCheckedAt: event.lastCheckedAt
+        ? new Date(event.lastCheckedAt)
+        : undefined,
+      lastTeamChangeAt: event.lastTeamChangeAt
+        ? new Date(event.lastTeamChangeAt)
+        : undefined,
+      status: event.status,
+    },
+    create: {
+      id: event.id,
+      exposureEventId: event.exposureEventId,
+      externalProvider: event.externalProvider,
+      externalId: event.externalId,
+      sourceUrl: event.sourceUrl,
+      name: event.name,
+      organizer: event.organizer,
+      sport: event.sport,
+      sanctioningTags: event.sanctioningTags,
+      gender: event.gender,
+      ageOrGradeDivisions: event.ageOrGradeDivisions,
+      venueName: event.venueName,
+      city: event.city,
+      state: event.state,
+      region: event.region,
+      startDate: new Date(`${event.startDate}T00:00:00.000Z`),
+      endDate: new Date(`${event.endDate}T00:00:00.000Z`),
+      location: event.location,
+      officialUrl: event.officialUrl,
+      registeredTeamCount: event.registeredTeamCount,
+      hasPublicTeamList: event.hasPublicTeamList,
+      lastCheckedAt: event.lastCheckedAt ? new Date(event.lastCheckedAt) : null,
+      lastSyncedAt: event.lastSyncedAt ? new Date(event.lastSyncedAt) : null,
+      lastTeamChangeAt: event.lastTeamChangeAt
+        ? new Date(event.lastTeamChangeAt)
+        : null,
+      status: event.status,
+    },
+  });
 }
 
 async function loop() {

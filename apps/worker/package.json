@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@courtwatch/core": "0.1.0",
+    "@courtwatch/db": "0.1.0",
     "pino": "^10.1.0",
     "zod": "^4.1.13"
   },
