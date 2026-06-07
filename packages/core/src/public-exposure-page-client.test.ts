@@ -328,7 +328,7 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
-  it("ignores bracket placeholder winners and falls back to completed standings", async () => {
+  it("does not use standings as final placements while a result bracket is unresolved", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);
       if (url.includes("/schedule")) {
@@ -398,17 +398,103 @@ describe("PublicExposurePageClient", () => {
       eventSlug: "g365-kings-of-the-south",
     });
 
-    expect(
-      results.map((result) => [
-        result.placement,
-        result.teamNameSnapshot,
-        result.source,
-      ]),
-    ).toEqual([
-      [1, "TXHE J3SSB 2033", "official_standings"],
-      [2, "AB Elite 2034", "official_standings"],
-      [3, "Hard Hoops 2033 Jr 3SSB", "official_standings"],
-    ]);
+    expect(results).toEqual([]);
+  });
+
+  it("keeps two-day playoff divisions pending until the championship bracket is complete", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1330544,"Name":"13u Division 2"}],
+              brackets: [
+                {"Id":802912,"Name":"Championship Playoff","DivisionId":1330544,"CrossDivisionIds":[],"ShowStandings":false},
+                {"Id":802915,"Name":"Sunday Games","DivisionId":1330544,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/802912")) {
+        return htmlResponse(`
+          <div class="bracket-winner" style="left: 301px; top: 271px;">
+            <div class="winner-source">
+              <div class="select-container"><span class="name"></span></div>
+            </div>
+            <div>Champion</div>
+          </div>
+          <div class="bracket-part" style="left: 0px; top: 279px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/261079/battle-in-the-bay/teams/nbc-bulls?divisionteamid=5351244">NBC Bulls</a></span></div>
+            </div>
+            <div class="game-details"><div>Sun. Jun 7 8:30 AM</div></div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">1</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"><a href="/261079/battle-in-the-bay/teams/sv-soldiers-12u-elite?divisionteamid=5351242">SV Soldiers 12u Elite</a></span></div>
+            </div>
+          </div>
+          <div class="bracket-part" style="left: 151px; top: 227px;">
+            <div class="clearfix away-team bracket-team">
+              <div class="participant"><span class="name"><a href="/261079/battle-in-the-bay/teams/lakeshow-sun?divisionteamid=5351241">Lakeshow-Sun</a></span></div>
+            </div>
+            <div class="game-details"><div>Sun. Jun 7 10:20 AM</div></div>
+            <div class="game-number-wrapper"><div class="game-number"><div class="number">2</div></div></div>
+            <div class="clearfix home-team bracket-team">
+              <div class="participant"><span class="name"></span></div>
+            </div>
+          </div>
+        `);
+      }
+      if (url.includes("/standings")) {
+        return jsonResponse([
+          {
+            PoolName: "A",
+            Teams: [
+              {
+                Name: "Lakeshow-Sun",
+                TeamLink:
+                  "/261079/battle-in-the-bay/teams/lakeshow-sun?divisionteamid=5351241",
+                Place: "1st",
+                Wins: 2,
+                Losses: 0,
+                Complete: true,
+              },
+              {
+                Name: "NBC Bulls",
+                TeamLink:
+                  "/261079/battle-in-the-bay/teams/nbc-bulls?divisionteamid=5351244",
+                Place: "2nd",
+                Wins: 2,
+                Losses: 0,
+                Complete: true,
+              },
+              {
+                Name: "SV Soldiers 12u Elite",
+                TeamLink:
+                  "/261079/battle-in-the-bay/teams/sv-soldiers-12u-elite?divisionteamid=5351242",
+                Place: "3rd",
+                Wins: 1,
+                Losses: 1,
+                Complete: true,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(261079, {
+      eventSlug: "battle-in-the-bay",
+    });
+
+    expect(results).toEqual([]);
   });
 
   it("fills bronze from completed standings when playoff standings match the bracket finalists", async () => {

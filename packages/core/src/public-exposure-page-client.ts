@@ -278,6 +278,9 @@ export class PublicExposurePageClient {
       config.divisions.map((division) => [String(division.Id), division]),
     );
     const resultBrackets = selectResultBrackets(config.brackets, divisionsById);
+    const resultBracketDivisionIds = new Set(
+      resultBrackets.map((bracket) => String(bracket.DivisionId)),
+    );
     const results = new Map<string, DivisionResult>();
 
     for (const bracket of resultBrackets) {
@@ -312,6 +315,11 @@ export class PublicExposurePageClient {
       if (
         hasBracketResults &&
         hasDivisionPlacement(results, eventId, String(division.Id), 3)
+      )
+        continue;
+      if (
+        !hasBracketResults &&
+        resultBracketDivisionIds.has(String(division.Id))
       )
         continue;
       const standings = await this.fetchDivisionStandings(

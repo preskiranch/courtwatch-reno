@@ -1790,17 +1790,29 @@ export class PrismaStore implements CourtWatchStore {
       }
 
       const resultSnapshot = await this.snapshot(tournament.exposureEventId);
-      for (const result of deriveDivisionResultsFromGames(resultSnapshot)) {
-        await upsertDivisionResult(this.prisma, result);
-      }
-      for (const result of await fetchSourceDivisionResults(
+      const derivedDivisionResults =
+        deriveDivisionResultsFromGames(resultSnapshot);
+      const sourceDivisionResults = await fetchSourceDivisionResults(
         this.prisma,
         tournament,
         event.id,
         teamMap,
         divisionIdMap,
-      )) {
-        await upsertDivisionResult(this.prisma, result);
+      );
+      const divisionResults = [
+        ...derivedDivisionResults,
+        ...sourceDivisionResults.results,
+      ];
+      if (sourceDivisionResults.fetched) {
+        await replaceDivisionResultsForEvent(
+          this.prisma,
+          event.id,
+          divisionResults,
+        );
+      } else {
+        for (const result of divisionResults) {
+          await upsertDivisionResult(this.prisma, result);
+        }
       }
 
       const after = await this.snapshot(tournament.exposureEventId);
@@ -2625,12 +2637,12 @@ async function fetchSourceDivisionResults(
   eventId: string,
   teamMap: Map<string, Team>,
   divisionIdMap: Map<string, string>,
-): Promise<DivisionResult[]> {
+): Promise<{ fetched: boolean; results: DivisionResult[] }> {
   if (
     tournament.externalProvider !== "exposure_events" ||
     !shouldFetchPublicDivisionResults(tournament)
   )
-    return [];
+    return { fetched: false, results: [] };
 
   try {
     const results = await new PublicExposurePageClient().fetchDivisionResults(
@@ -2649,13 +2661,13 @@ async function fetchSourceDivisionResults(
         ),
       );
     }
-    return mappedResults;
+    return { fetched: true, results: mappedResults };
   } catch (error) {
     console.warn("Public bracket result fetch skipped", {
       eventId: tournament.exposureEventId,
       error: error instanceof Error ? error.message : "Unknown error",
     });
-    return [];
+    return { fetched: false, results: [] };
   }
 }
 
@@ -3384,6 +3396,32 @@ async function upsertDivisionResult(
       data: write,
     });
   }
+}
+
+async function replaceDivisionResultsForEvent(
+  prisma: PrismaClient,
+  eventId: string,
+  results: DivisionResult[],
+) {
+  for (const result of results) {
+    await upsertDivisionResult(prisma, result);
+  }
+
+  const keepConditions = Array.from(
+    new Map(
+      results.map((result) => [
+        `${result.divisionId}:${result.placement}`,
+        { divisionId: result.divisionId, placement: result.placement },
+      ]),
+    ).values(),
+  );
+
+  await prisma.divisionResult.deleteMany({
+    where: {
+      eventId,
+      ...(keepConditions.length > 0 ? { NOT: keepConditions } : {}),
+    },
+  });
 }
 
 function isPrismaUniqueConstraintError(error: unknown): boolean {
