@@ -707,12 +707,15 @@ export class PrismaStore implements CourtWatchStore {
       }),
       this.prisma.programWatchlist.findMany({ where: { active: true } }),
       this.prisma.programAlias.findMany(),
-      this.prisma.programTeamMatch.findMany({ where: { active: true } }),
+      this.prisma.programTeamMatch.findMany({
+        where: { active: true, team: { eventId: event.id } },
+      }),
       this.prisma.game.findMany({
         where: { eventId: event.id },
         orderBy: { startsAt: "asc" },
       }),
       this.prisma.gameChangeEvent.findMany({
+        where: { game: { eventId: event.id } },
         orderBy: { createdAt: "desc" },
         take: 100,
       }),
@@ -1777,7 +1780,9 @@ export class PrismaStore implements CourtWatchStore {
         orderBy: { startsAt: "asc" },
       }),
       this.prisma.programWatchlist.findMany({ where: { active: true } }),
-      this.prisma.programTeamMatch.findMany({ where: { active: true } }),
+      this.prisma.programTeamMatch.findMany({
+        where: { active: true, team: { eventId: event.id } },
+      }),
     ]);
     const followerCounts = teamFollowerCounts(
       programs.map(prismaProgramToCore),
@@ -1952,7 +1957,6 @@ export class PrismaStore implements CourtWatchStore {
 
     const existing = activeGameHydrationPromises.get(event.exposureEventId);
     if (existing) {
-      await existing;
       return;
     }
 
@@ -1968,7 +1972,6 @@ export class PrismaStore implements CourtWatchStore {
         activeGameHydrationPromises.delete(event.exposureEventId);
       });
     activeGameHydrationPromises.set(event.exposureEventId, promise);
-    await promise;
   }
 
   private async ensureSelectedProgram(
