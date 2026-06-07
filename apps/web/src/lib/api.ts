@@ -64,6 +64,8 @@ export type PresenceResponse = {
 
 export type AccountStatsResponse = {
   registeredUsers: number;
+  unregisteredFollowerDevices: number;
+  totalFollowerUsers: number;
 };
 
 export type AdminRegisteredUser = {

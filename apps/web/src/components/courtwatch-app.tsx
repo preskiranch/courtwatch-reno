@@ -537,6 +537,9 @@ export function CourtWatchApp() {
             accountSession?.totalRegisteredUsers ??
             null
           }
+          unregisteredFollowerDevices={
+            accountStatsQuery.data?.unregisteredFollowerDevices ?? null
+          }
           onRefresh={refresh}
           refreshing={dashboardQuery.isFetching || gamesQuery.isFetching}
           onSelectEvent={selectEvent}
@@ -831,6 +834,7 @@ function AppHeader({
   offline,
   activeUsers,
   registeredUsers,
+  unregisteredFollowerDevices,
   onRefresh,
   refreshing,
   onSelectEvent,
@@ -841,6 +845,7 @@ function AppHeader({
   offline: boolean;
   activeUsers: number | null;
   registeredUsers: number | null;
+  unregisteredFollowerDevices: number | null;
   onRefresh: () => void;
   refreshing: boolean;
   onSelectEvent: (eventId: number) => void;
@@ -993,7 +998,9 @@ function AppHeader({
         </span>
         <span className="hidden shrink-0 items-center gap-1.5 rounded-md bg-white/8 px-2 py-1 text-[11px] font-black text-white min-[390px]:inline-flex">
           <Users className="h-3.5 w-3.5 text-orange-300" />
-          {registeredUsers ?? "-"} registered
+          <span>{registeredUsers ?? "-"} registered</span>
+          <span className="text-slate-500">·</span>
+          <span>{unregisteredFollowerDevices ?? "-"} followers</span>
         </span>
         <span className="shrink-0 text-right">
           {lastUpdated
@@ -1003,7 +1010,9 @@ function AppHeader({
       </div>
       <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-white/8 px-2 py-1 text-[11px] font-black text-white min-[390px]:hidden">
         <Users className="h-3.5 w-3.5 text-orange-300" />
-        {registeredUsers ?? "-"} registered users
+        <span>{registeredUsers ?? "-"} registered</span>
+        <span className="text-slate-500">·</span>
+        <span>{unregisteredFollowerDevices ?? "-"} team followers</span>
       </div>
     </header>
   );
@@ -4055,6 +4064,7 @@ function TeamsScreen({
     queryClient.invalidateQueries({ queryKey: ["results"] });
     queryClient.invalidateQueries({ queryKey: ["teams"] });
     queryClient.invalidateQueries({ queryKey: ["points-leaders"] });
+    queryClient.invalidateQueries({ queryKey: ["account-stats"] });
   };
   const knownTeamsById = useMemo(
     () => new Map(followStateTeams.map((team) => [team.id, team])),

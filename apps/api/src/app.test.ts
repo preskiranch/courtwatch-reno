@@ -15,6 +15,16 @@ describe("CourtWatch API", () => {
     expect(response.body.programs[0].teams).toHaveLength(0);
   });
 
+  it("returns public registered and follower stats", async () => {
+    const app = createApp(new MockStore(), null);
+    const response = await request(app).get("/api/accounts/stats").expect(200);
+    expect(response.body).toMatchObject({
+      registeredUsers: 0,
+      unregisteredFollowerDevices: 0,
+      totalFollowerUsers: 0,
+    });
+  });
+
   it("does not mark events tracked until the current device follows a team", async () => {
     const app = createApp(new MockStore(), null);
     const response = await request(app).get("/api/events").expect(200);

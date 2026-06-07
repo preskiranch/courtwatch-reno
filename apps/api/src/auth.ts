@@ -177,6 +177,23 @@ export async function registeredAccountCount(
   });
 }
 
+export async function unregisteredFollowerDeviceCount(
+  prismaClient: PrismaClient | null,
+): Promise<number> {
+  if (!prismaClient) return 0;
+  return prismaClient.user.count({
+    where: {
+      email: null,
+      clientId: { not: null },
+      watchlists: {
+        some: {
+          matches: { some: {} },
+        },
+      },
+    },
+  });
+}
+
 function authSecret(): string {
   const secret = process.env.JWT_SECRET ?? config.JWT_SECRET;
   if (secret) return secret;

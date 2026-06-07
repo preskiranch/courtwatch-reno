@@ -25,6 +25,7 @@ import {
   shouldExposeResetToken,
   signAccountToken,
   tokenHash,
+  unregisteredFollowerDeviceCount,
   verifyAccountToken,
   verifyPassword,
 } from "./auth.js";
@@ -100,8 +101,14 @@ export function createApp(
 
   app.get("/api/accounts/stats", async (_req, res, next) => {
     try {
+      const [registeredUsers, unregisteredFollowerDevices] = await Promise.all([
+        registeredAccountCount(prismaClient),
+        unregisteredFollowerDeviceCount(prismaClient),
+      ]);
       res.json({
-        registeredUsers: await registeredAccountCount(prismaClient),
+        registeredUsers,
+        unregisteredFollowerDevices,
+        totalFollowerUsers: registeredUsers + unregisteredFollowerDevices,
       });
     } catch (error) {
       next(error);

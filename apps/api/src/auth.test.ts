@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import type { PrismaClient } from "@courtwatch/db";
+import { describe, expect, it, vi } from "vitest";
 import {
   accountClientId,
   hashPassword,
   signAccountToken,
+  unregisteredFollowerDeviceCount,
   verifyAccountToken,
   verifyPassword,
 } from "./auth.js";
@@ -30,5 +32,23 @@ describe("account auth helpers", () => {
     });
     expect(accountClientId(session?.userId ?? "")).toBe("account:user-test-1");
     delete process.env.JWT_SECRET;
+  });
+
+  it("counts anonymous devices that have followed at least one team", async () => {
+    const count = vi.fn().mockResolvedValue(42);
+    const prisma = { user: { count } } as unknown as PrismaClient;
+
+    await expect(unregisteredFollowerDeviceCount(prisma)).resolves.toBe(42);
+    expect(count).toHaveBeenCalledWith({
+      where: {
+        email: null,
+        clientId: { not: null },
+        watchlists: {
+          some: {
+            matches: { some: {} },
+          },
+        },
+      },
+    });
   });
 });
