@@ -188,6 +188,26 @@ function courtWatchDropdownEventWhere(
   });
 }
 
+function withTrackedDropdownGroups(
+  events: TournamentEvent[],
+  trackedExposureEventIds: Set<number>,
+): TournamentEvent[] {
+  return events.map((event) => ({
+    ...event,
+    dropdownGroup: trackedExposureEventIds.has(event.exposureEventId)
+      ? "tracked"
+      : event.dropdownGroup,
+  }));
+}
+
+function mergeDropdownEvents(events: TournamentEvent[]): TournamentEvent[] {
+  const byExposureId = new Map<number, TournamentEvent>();
+  for (const event of events) {
+    byExposureId.set(event.exposureEventId, event);
+  }
+  return sortTournamentEvents(Array.from(byExposureId.values()));
+}
+
 export interface CourtWatchStore {
   events(clientId?: string | null): Promise<TournamentEvent[]>;
   snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot>;
@@ -628,37 +648,55 @@ export class PrismaStore implements CourtWatchStore {
   constructor(private readonly prisma: PrismaClient) {}
 
   async events(clientId?: string | null): Promise<TournamentEvent[]> {
-    if (!clientId) {
-      const cached = publicEventsCacheHit();
-      if (cached) return cached;
-    }
     const configured = configuredTournaments();
     const configuredByExposureId = new Map(
       configured.map((event) => [event.exposureEventId, event]),
     );
     const trackedExposureEventIds =
       await this.trackedExposureEventIdsForClient(clientId);
+    const cached = publicEventsCacheHit();
+    if (cached) {
+      const cachedExposureIds = new Set(
+        cached.map((event) => event.exposureEventId),
+      );
+      const missingTrackedExposureIds = Array.from(
+        trackedExposureEventIds,
+      ).filter((exposureEventId) => !cachedExposureIds.has(exposureEventId));
+      const trackedEvents =
+        missingTrackedExposureIds.length > 0
+          ? await this.eventsForExposureIds(
+              missingTrackedExposureIds,
+              configuredByExposureId,
+              trackedExposureEventIds,
+            )
+          : [];
+      return mergeDropdownEvents(
+        withTrackedDropdownGroups(cached, trackedExposureEventIds).concat(
+          trackedEvents,
+        ),
+      );
+    }
     const dbEvents = await this.prisma.event.findMany({
       where: courtWatchDropdownEventWhere(trackedExposureEventIds),
       orderBy: [{ startDate: "asc" }, { name: "asc" }],
     });
     const dbEventIds = dbEvents.map((event) => event.id);
     const [teamCounts, latestSuccesses] = await Promise.all([
-        this.prisma.team.groupBy({
-          by: ["eventId"],
-          where: { eventId: { in: dbEventIds } },
-          _count: { _all: true },
-        }),
-        this.prisma.syncRun.groupBy({
-          by: ["eventId"],
-          where: {
-            eventId: { in: dbEventIds },
-            status: "success",
-            completedAt: { not: null },
-          },
-          _max: { completedAt: true },
-        }),
-      ]);
+      this.prisma.team.groupBy({
+        by: ["eventId"],
+        where: { eventId: { in: dbEventIds } },
+        _count: { _all: true },
+      }),
+      this.prisma.syncRun.groupBy({
+        by: ["eventId"],
+        where: {
+          eventId: { in: dbEventIds },
+          status: "success",
+          completedAt: { not: null },
+        },
+        _max: { completedAt: true },
+      }),
+    ]);
     const teamCountByEventId = new Map(
       teamCounts.map((count) => [count.eventId, count._count._all]),
     );
@@ -703,6 +741,66 @@ export class PrismaStore implements CourtWatchStore {
     });
     if (!clientId) writePublicEventsCache(events);
     return events;
+  }
+
+  private async eventsForExposureIds(
+    exposureEventIds: number[],
+    configuredByExposureId: Map<number, TournamentSource>,
+    trackedExposureEventIds: Set<number>,
+  ): Promise<TournamentEvent[]> {
+    const dbEvents = await this.prisma.event.findMany({
+      where: courtWatchScopedEventWhere({
+        exposureEventId: { in: exposureEventIds },
+        status: { notIn: ["cancelled", "unavailable"] },
+      }),
+      orderBy: [{ startDate: "asc" }, { name: "asc" }],
+    });
+    const dbEventIds = dbEvents.map((event) => event.id);
+    const [teamCounts, latestSuccesses] = await Promise.all([
+      this.prisma.team.groupBy({
+        by: ["eventId"],
+        where: { eventId: { in: dbEventIds } },
+        _count: { _all: true },
+      }),
+      this.prisma.syncRun.groupBy({
+        by: ["eventId"],
+        where: {
+          eventId: { in: dbEventIds },
+          status: "success",
+          completedAt: { not: null },
+        },
+        _max: { completedAt: true },
+      }),
+    ]);
+    const teamCountByEventId = new Map(
+      teamCounts.map((count) => [count.eventId, count._count._all]),
+    );
+    const latestSuccessByEventId = new Map(
+      latestSuccesses.map((run) => [
+        run.eventId,
+        run._max.completedAt?.toISOString() ?? null,
+      ]),
+    );
+
+    return dbEvents
+      .map((event) => {
+        const source = configuredByExposureId.get(event.exposureEventId);
+        const coreEvent = prismaEventToCore(
+          event,
+          source,
+          teamCountByEventId.get(event.id),
+          latestSuccessByEventId.get(event.id) ?? null,
+        );
+        const supportedRegion = courtWatchSupportedTournamentRegion(coreEvent);
+        return {
+          ...coreEvent,
+          region: supportedRegion ?? coreEvent.region,
+          dropdownGroup: trackedExposureEventIds.has(coreEvent.exposureEventId)
+            ? ("tracked" as const)
+            : ("upcoming" as const),
+        };
+      })
+      .filter(isCourtWatchSupportedTournamentRegion);
   }
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
