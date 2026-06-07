@@ -32,6 +32,7 @@ import {
   seedPrograms,
   seedSnapshot,
   seedTeams,
+  RECENT_COMPLETED_TOURNAMENT_DAYS,
   tournamentTodayKey,
   tournamentWindowEndKey,
   withEffectiveGameStatus,
@@ -148,6 +149,43 @@ function courtWatchScopedEventWhere(
   where: Prisma.EventWhereInput,
 ): Prisma.EventWhereInput {
   return { AND: [courtWatchEventScopeWhere(), where] };
+}
+
+function courtWatchDropdownEventWhere(
+  trackedExposureEventIds: Set<number>,
+): Prisma.EventWhereInput {
+  const todayKey = tournamentTodayKey();
+  const windowEndKey = tournamentWindowEndKey(
+    todayKey,
+    config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
+  );
+  const recentCompletedStartKey = addDaysKey(
+    todayKey,
+    -RECENT_COMPLETED_TOURNAMENT_DAYS,
+  );
+  const today = new Date(`${todayKey}T00:00:00.000Z`);
+  const windowEnd = new Date(`${windowEndKey}T00:00:00.000Z`);
+  const recentCompletedStart = new Date(
+    `${recentCompletedStartKey}T00:00:00.000Z`,
+  );
+  const trackedExposureIds = Array.from(trackedExposureEventIds);
+
+  return courtWatchScopedEventWhere({
+    status: { notIn: ["cancelled", "unavailable"] },
+    OR: [
+      {
+        startDate: { lte: windowEnd },
+        endDate: { gte: today },
+      },
+      {
+        endDate: { gte: recentCompletedStart, lt: today },
+        hasPublicTeamList: true,
+      },
+      ...(trackedExposureIds.length > 0
+        ? [{ exposureEventId: { in: trackedExposureIds } }]
+        : []),
+    ],
+  });
 }
 
 export interface CourtWatchStore {
@@ -598,13 +636,14 @@ export class PrismaStore implements CourtWatchStore {
     const configuredByExposureId = new Map(
       configured.map((event) => [event.exposureEventId, event]),
     );
+    const trackedExposureEventIds =
+      await this.trackedExposureEventIdsForClient(clientId);
     const dbEvents = await this.prisma.event.findMany({
-      where: courtWatchEventScopeWhere(),
+      where: courtWatchDropdownEventWhere(trackedExposureEventIds),
       orderBy: [{ startDate: "asc" }, { name: "asc" }],
     });
     const dbEventIds = dbEvents.map((event) => event.id);
-    const [teamCounts, latestSuccesses, trackedExposureEventIds] =
-      await Promise.all([
+    const [teamCounts, latestSuccesses] = await Promise.all([
         this.prisma.team.groupBy({
           by: ["eventId"],
           where: { eventId: { in: dbEventIds } },
@@ -619,7 +658,6 @@ export class PrismaStore implements CourtWatchStore {
           },
           _max: { completedAt: true },
         }),
-        this.trackedExposureEventIdsForClient(clientId),
       ]);
     const teamCountByEventId = new Map(
       teamCounts.map((count) => [count.eventId, count._count._all]),
