@@ -29,6 +29,31 @@ let failureCount = 0;
 let shuttingDown = false;
 let lastDiscoveryAt = 0;
 
+function courtWatchEventScopeWhere() {
+  return {
+    OR: [
+      { state: { in: ["CA", "Ca", "ca", "California", "california"] } },
+      { state: { in: ["NV", "Nv", "nv", "Nevada", "nevada"] } },
+      { location: { contains: "California" } },
+      { location: { contains: ", CA" } },
+      { location: { contains: "Nevada" } },
+      { location: { contains: ", NV" } },
+      {
+        region: {
+          in: [
+            "CA",
+            "California",
+            "Northern California",
+            "Southern California",
+            "NV",
+            "Nevada",
+          ],
+        },
+      },
+    ],
+  };
+}
+
 process.on("SIGTERM", () => {
   shuttingDown = true;
   logger.info("received SIGTERM, stopping after current sync");
@@ -191,10 +216,15 @@ function needsPublishedTeamHydration(event: TournamentEvent) {
 async function activeGamePriorityExposureIds(): Promise<Set<number>> {
   const events = await prisma.event.findMany({
     where: {
-      externalProvider: "exposure_events",
-      hasPublicTeamList: true,
-      registeredTeamCount: { gt: 0 },
-      status: { notIn: ["cancelled", "unavailable"] },
+      AND: [
+        courtWatchEventScopeWhere(),
+        {
+          externalProvider: "exposure_events",
+          hasPublicTeamList: true,
+          registeredTeamCount: { gt: 0 },
+          status: { notIn: ["cancelled", "unavailable"] },
+        },
+      ],
     },
     select: {
       id: true,

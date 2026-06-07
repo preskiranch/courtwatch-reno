@@ -33,6 +33,27 @@ describe("California tournament region cutoff", () => {
     expect(californiaTournamentRegionFromPlace("San Diego, CA")).toBe(
       "Southern California",
     );
+    expect(californiaTournamentRegionFromPlace("Carson, CA")).toBe(
+      "Southern California",
+    );
+    expect(californiaTournamentRegionFromPlace("Ladera Ranch, CA")).toBe(
+      "Southern California",
+    );
+    expect(californiaTournamentRegionFromPlace("Lake Forest, CA")).toBe(
+      "Southern California",
+    );
+    expect(californiaTournamentRegionFromPlace("San Marcos, CA")).toBe(
+      "Southern California",
+    );
+    expect(californiaTournamentRegionFromPlace("Santa Barbara, CA")).toBe(
+      "Southern California",
+    );
+    expect(californiaTournamentRegionFromPlace("Seal Beach, CA")).toBe(
+      "Southern California",
+    );
+    expect(californiaTournamentRegionFromPlace("Ontartio, CA")).toBe(
+      "Southern California",
+    );
   });
 
   it("uses the city before broad regional tags", () => {
