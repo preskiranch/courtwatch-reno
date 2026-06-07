@@ -11,6 +11,7 @@ export * from "./game-status.js";
 export * from "./score-utils.js";
 export * from "./scoring-leaders.js";
 export * from "./california-region.js";
+export * from "./tournament-region-scope.js";
 export * from "./courtvision-types.js";
 export * from "./courtvision-calibration.js";
 export * from "./courtvision-scoring.js";

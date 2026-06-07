@@ -14,6 +14,7 @@ import {
   tournamentTodayKey,
   tournamentWindowEndKey,
 } from "./tournament-eligibility.js";
+import { isCourtWatchSupportedTournamentRegion } from "./tournament-region-scope.js";
 
 export type TournamentProviderName =
   | "exposure_events"
@@ -174,7 +175,7 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
   {
     name: "Zero Gravity Basketball",
     provider: "exposure_events",
-    enabled: true,
+    enabled: false,
     url: "https://basketball.exposureevents.com/organizations/18316/zero-gravity-basketball",
     eventUrls: [
       "https://basketball.exposureevents.com/260505/zero-gravity-hoops-challenge",
@@ -304,7 +305,7 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
   {
     name: "Exposure Basketball Directory",
     provider: "aau_event_finder",
-    enabled: true,
+    enabled: false,
     url: "https://basketball.exposureevents.com/youth-basketball-events",
     maxEvents: 2600,
     metadataOnly: true,
@@ -359,7 +360,9 @@ export class TournamentDiscoveryService {
           now: options.now,
         });
         let metadataTeamHydrations = 0;
-        for (const event of events) {
+        for (const event of events.filter(
+          isCourtWatchSupportedTournamentRegion,
+        )) {
           const keys = tournamentDiscoveryDedupeKeys(event);
           if (keys.some((key) => seen.has(key))) continue;
           for (const key of keys) seen.add(key);
@@ -688,9 +691,9 @@ function shouldHydrateMetadataOnlyTeams(
   const status = deriveTournamentStatus(event, startDate);
   if (status === "active") return true;
   if (status !== "upcoming") return false;
-  return event.startDate <= tournamentWindowEndKey(
-    startDate,
-    metadataTeamHydrationWindowDays(),
+  return (
+    event.startDate <=
+    tournamentWindowEndKey(startDate, metadataTeamHydrationWindowDays())
   );
 }
 

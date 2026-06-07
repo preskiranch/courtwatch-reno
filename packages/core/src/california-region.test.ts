@@ -27,8 +27,25 @@ describe("California tournament region cutoff", () => {
     expect(californiaTournamentRegionFromPlace("Lancaster, CA")).toBe(
       "Southern California",
     );
+    expect(californiaTournamentRegionFromPlace("Northridge, CA")).toBe(
+      "Southern California",
+    );
     expect(californiaTournamentRegionFromPlace("San Diego, CA")).toBe(
       "Southern California",
     );
+  });
+
+  it("uses the city before broad regional tags", () => {
+    expect(
+      californiaTournamentRegionFromPlace(
+        "Westminster, CA Northern California",
+      ),
+    ).toBe("Southern California");
+    expect(californiaTournamentRegionFromPlace("Ontario, CA NorCal")).toBe(
+      "Southern California",
+    );
+    expect(
+      californiaTournamentRegionFromPlace("San Ramon, CA Southern California"),
+    ).toBe("Northern California");
   });
 });

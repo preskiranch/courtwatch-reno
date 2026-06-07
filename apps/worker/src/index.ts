@@ -3,6 +3,7 @@ import {
   TournamentDiscoveryService,
   calculatePollDelayMs,
   isAnyActiveTournamentWindow,
+  isCourtWatchSupportedTournamentRegion,
 } from "@courtwatch/core";
 import type { TournamentEvent } from "@courtwatch/core";
 import { prisma } from "@courtwatch/db";
@@ -198,13 +199,21 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
     select: {
       id: true,
       exposureEventId: true,
+      city: true,
+      state: true,
+      location: true,
+      region: true,
       startDate: true,
       endDate: true,
       lastCheckedAt: true,
       lastSyncedAt: true,
     },
   });
-  const activeEvents = events.filter(eventIsInGameHydrationWindow);
+  const activeEvents = events.filter(
+    (event) =>
+      isCourtWatchSupportedTournamentRegion(event) &&
+      eventIsInGameHydrationWindow(event),
+  );
   if (activeEvents.length === 0) return new Set();
 
   const gameCounts = await prisma.game.groupBy({

@@ -50,6 +50,7 @@ const CALIFORNIA_CITY_LATITUDES: Record<string, number> = {
   murrieta: 33.5539,
   napa: 38.2975,
   "newport beach": 33.6189,
+  northridge: 34.2381,
   oakland: 37.8044,
   oceanside: 33.1959,
   ontario: 34.0633,
@@ -102,10 +103,6 @@ export function californiaTournamentRegionFromPlace(
 ): CaliforniaTournamentRegion {
   const place = normalizeCaliforniaPlace(value);
   if (!place) return "Northern California";
-  if (/\bsouthern california\b|\bsocal\b/.test(place))
-    return "Southern California";
-  if (/\bnorthern california\b|\bnorcal\b|\bbay area\b/.test(place))
-    return "Northern California";
 
   for (const [city, latitude] of CALIFORNIA_CITY_ENTRIES) {
     if (placeHasCity(place, city)) {
@@ -114,6 +111,11 @@ export function californiaTournamentRegionFromPlace(
         : "Northern California";
     }
   }
+
+  if (/\bsouthern california\b|\bsocal\b/.test(place))
+    return "Southern California";
+  if (/\bnorthern california\b|\bnorcal\b|\bbay area\b/.test(place))
+    return "Northern California";
 
   return "Northern California";
 }

@@ -2,7 +2,7 @@
 
 import {
   buildTeamScoringLeaders,
-  californiaTournamentRegionFromPlace,
+  courtWatchSupportedTournamentRegion,
   filterTeamScoringLeadersByDivisionIds,
   isAnyActiveTournamentWindow,
   withEffectiveGameStatus,
@@ -125,6 +125,7 @@ const LIVE_SYNC_STATUS_REFETCH_MS = 1_000;
 const ALL_TOURNAMENT_REGIONS = "all";
 const NORTHERN_CALIFORNIA_REGION = "norcal";
 const SOUTHERN_CALIFORNIA_REGION = "socal";
+const NEVADA_REGION = "state:NV";
 
 type TournamentRegionFilter = string;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
@@ -160,8 +161,11 @@ export function CourtWatchApp() {
     refetchOnWindowFocus: "always",
   });
   const fetchedEvents = eventsQuery.data ?? [];
+  const selectedFetchedEvent = selectedEventId
+    ? fetchedEvents.find((event) => event.exposureEventId === selectedEventId)
+    : null;
   const activeEventId =
-    selectedEventId ??
+    selectedFetchedEvent?.exposureEventId ??
     fetchedEvents[0]?.exposureEventId ??
     DEFAULT_TRACKED_EXPOSURE_EVENT_ID;
   const fetchedActiveEvent =
@@ -299,7 +303,15 @@ export function CourtWatchApp() {
         eventsQuery.data.some((event) => event.exposureEventId === current)
       )
         return current;
-      return eventsQuery.data[0]?.exposureEventId ?? null;
+      const next = eventsQuery.data[0]?.exposureEventId ?? null;
+      if (typeof window !== "undefined") {
+        if (next) {
+          window.localStorage.setItem(SELECTED_EVENT_STORAGE_KEY, String(next));
+        } else {
+          window.localStorage.removeItem(SELECTED_EVENT_STORAGE_KEY);
+        }
+      }
+      return next;
     });
   }, [eventsQuery.data]);
 
@@ -1021,13 +1033,17 @@ function TournamentPickerSheet({
   onClose: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
-  const regionOptions = useMemo(
-    () => tournamentRegionOptions(events),
+  const visibleEvents = useMemo(
+    () => events.filter(isSupportedTournamentEventForUi),
     [events],
   );
+  const regionOptions = useMemo(
+    () => tournamentRegionOptions(visibleEvents),
+    [visibleEvents],
+  );
   const sections = useMemo(
-    () => tournamentPickerSections(events, regionFilter),
-    [events, regionFilter],
+    () => tournamentPickerSections(visibleEvents, regionFilter),
+    [visibleEvents, regionFilter],
   );
 
   useEffect(() => {
@@ -1282,21 +1298,13 @@ function tournamentRegionOptions(events: TournamentEvent[]): Array<{
       label: "Southern California",
       count: counts.get(SOUTHERN_CALIFORNIA_REGION) ?? 0,
     },
+    {
+      id: NEVADA_REGION,
+      label: "Nevada",
+      count: counts.get(NEVADA_REGION) ?? 0,
+    },
   ];
-  const otherRegions = [...counts.entries()]
-    .filter(
-      ([id]) =>
-        id !== NORTHERN_CALIFORNIA_REGION && id !== SOUTHERN_CALIFORNIA_REGION,
-    )
-    .sort(([a], [b]) =>
-      tournamentRegionName(a).localeCompare(tournamentRegionName(b)),
-    )
-    .map(([id, count]) => ({
-      id,
-      label: tournamentRegionName(id),
-      count,
-    }));
-  return [...options, ...otherRegions].filter(
+  return options.filter(
     (option) => option.id === ALL_TOURNAMENT_REGIONS || option.count > 0,
   );
 }
@@ -1305,7 +1313,9 @@ function tournamentMatchesRegion(
   event: TournamentEvent,
   regionFilter: TournamentRegionFilter,
 ): boolean {
-  if (regionFilter === ALL_TOURNAMENT_REGIONS) return true;
+  if (regionFilter === ALL_TOURNAMENT_REGIONS) {
+    return isSupportedTournamentEventForUi(event);
+  }
   return tournamentRegionKey(event) === regionFilter;
 }
 
@@ -1317,6 +1327,7 @@ function tournamentRegionName(region: TournamentRegionFilter): string {
   if (region === ALL_TOURNAMENT_REGIONS) return "All";
   if (region === NORTHERN_CALIFORNIA_REGION) return "Northern CA";
   if (region === SOUTHERN_CALIFORNIA_REGION) return "Southern CA";
+  if (region === NEVADA_REGION) return "Nevada";
   if (region.startsWith("state:")) {
     const state = region.slice("state:".length);
     return STATE_LABELS[state] ?? state;
@@ -1325,37 +1336,15 @@ function tournamentRegionName(region: TournamentRegionFilter): string {
 }
 
 function tournamentRegionKey(event: TournamentEvent): TournamentRegionFilter {
-  const state = normalizeStateCode(event.state, event.location);
-  if (state === "CA") {
-    return isSouthernCaliforniaEvent(event)
-      ? SOUTHERN_CALIFORNIA_REGION
-      : NORTHERN_CALIFORNIA_REGION;
-  }
-  return `state:${state || "OTHER"}`;
+  const region = courtWatchSupportedTournamentRegion(event);
+  if (region === "Northern California") return NORTHERN_CALIFORNIA_REGION;
+  if (region === "Southern California") return SOUTHERN_CALIFORNIA_REGION;
+  if (region === "Nevada") return NEVADA_REGION;
+  return "state:OTHER";
 }
 
-function isSouthernCaliforniaEvent(event: TournamentEvent): boolean {
-  return (
-    californiaTournamentRegionFromPlace(
-      `${event.city ?? ""} ${event.location ?? ""} ${event.region ?? ""}`,
-    ) === "Southern California"
-  );
-}
-
-function normalizeStateCode(
-  state: string | null,
-  location: string | null,
-): string {
-  const source = `${state ?? ""} ${location ?? ""}`.toLowerCase();
-  if (/\bca\b|california/.test(source)) return "CA";
-  if (/\bnv\b|nevada/.test(source)) return "NV";
-  if (/\btx\b|texas/.test(source)) return "TX";
-  if (/\bfl\b|florida/.test(source)) return "FL";
-  if (/\baz\b|arizona/.test(source)) return "AZ";
-  if (/\bwa\b|washington/.test(source)) return "WA";
-  if (/\bor\b|oregon/.test(source)) return "OR";
-  if (/\bco\b|colorado/.test(source)) return "CO";
-  return (state ?? "Other").trim().toUpperCase();
+function isSupportedTournamentEventForUi(event: TournamentEvent): boolean {
+  return courtWatchSupportedTournamentRegion(event) !== null;
 }
 
 const STATE_LABELS: Record<string, string> = {

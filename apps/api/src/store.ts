@@ -19,6 +19,7 @@ import {
   eligibleTournamentEvents,
   extractDivisionMeta,
   hashSource,
+  isCourtWatchSupportedTournamentRegion,
   normalizeName,
   normalizeProgramName,
   sanitizeBasketballScore,
@@ -551,21 +552,23 @@ export class PrismaStore implements CourtWatchStore {
     );
     const merged = new Map<number, TournamentEvent>();
 
-    for (const event of configured) {
+    for (const event of configured.filter(
+      isCourtWatchSupportedTournamentRegion,
+    )) {
       merged.set(event.exposureEventId, event);
     }
 
     for (const event of dbEvents) {
       const source = configuredByExposureId.get(event.exposureEventId);
-      merged.set(
-        event.exposureEventId,
-        prismaEventToCore(
-          event,
-          source,
-          teamCountByEventId.get(event.id),
-          latestSuccessByEventId.get(event.id) ?? null,
-        ),
+      const coreEvent = prismaEventToCore(
+        event,
+        source,
+        teamCountByEventId.get(event.id),
+        latestSuccessByEventId.get(event.id) ?? null,
       );
+      if (isCourtWatchSupportedTournamentRegion(coreEvent)) {
+        merged.set(event.exposureEventId, coreEvent);
+      }
     }
 
     return dropdownEventsWithUpcomingExposureFallback(
@@ -1253,7 +1256,9 @@ export class PrismaStore implements CourtWatchStore {
       return [await this.tournamentSourceForSync(exposureEventId)];
 
     const byExposureId = new Map<number, TournamentSource>();
-    for (const tournament of configuredTournaments()) {
+    for (const tournament of configuredTournaments().filter(
+      isCourtWatchSupportedTournamentRegion,
+    )) {
       byExposureId.set(tournament.exposureEventId, tournament);
     }
     const eventsWithTeams = await this.eventsWithStoredTeamData();
@@ -1316,14 +1321,16 @@ export class PrismaStore implements CourtWatchStore {
       where: { id: { in: eventIds } },
       orderBy: [{ startDate: "asc" }, { name: "asc" }],
     });
-    return events.map((event) =>
-      prismaEventToCore(
-        event,
-        undefined,
-        teamCountByEventId.get(event.id),
-        latestSuccessByEventId.get(event.id) ?? null,
-      ),
-    );
+    return events
+      .map((event) =>
+        prismaEventToCore(
+          event,
+          undefined,
+          teamCountByEventId.get(event.id),
+          latestSuccessByEventId.get(event.id) ?? null,
+        ),
+      )
+      .filter(isCourtWatchSupportedTournamentRegion);
   }
 
   private async eventsNeedingTeamHydration(): Promise<TournamentEvent[]> {
@@ -1372,7 +1379,8 @@ export class PrismaStore implements CourtWatchStore {
           teamCountByEventId.get(event.id) ?? null,
           latestSuccessByEventId.get(event.id) ?? null,
         ),
-      );
+      )
+      .filter(isCourtWatchSupportedTournamentRegion);
   }
 
   private async tournamentSourceForSync(
@@ -2013,7 +2021,8 @@ function dropdownEventsFromSnapshot(
 function dropdownEventsWithUpcomingExposureFallback(
   events: TournamentEvent[],
 ): TournamentEvent[] {
-  const eligible = eligibleTournamentEvents(events, {
+  const supportedEvents = events.filter(isCourtWatchSupportedTournamentRegion);
+  const eligible = eligibleTournamentEvents(supportedEvents, {
     windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
     cacheHours: config.TOURNAMENT_DROPDOWN_CACHE_HOURS,
   });
@@ -2025,7 +2034,7 @@ function dropdownEventsWithUpcomingExposureFallback(
     todayKey,
     config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
   );
-  const upcomingExposureEvents = events
+  const upcomingExposureEvents = supportedEvents
     .filter((event) => {
       if (eligibleExposureIds.has(event.exposureEventId)) return false;
       if (!isExposureEvent(event)) return false;

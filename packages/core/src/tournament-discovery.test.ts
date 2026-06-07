@@ -99,12 +99,28 @@ describe("TournamentDiscoveryService", () => {
         expect.objectContaining({
           name: "Exposure Basketball Directory",
           provider: "aau_event_finder",
+          enabled: false,
           url: "https://basketball.exposureevents.com/youth-basketball-events",
           maxEvents: 2600,
           metadataOnly: true,
           directoryEventType: "",
           ignoreDiscoveryWindowEnd: true,
           sanctioningTags: expect.arrayContaining(["Exposure Events"]),
+        }),
+      ]),
+    );
+  });
+
+  it("keeps the default discovery set focused on CA/NV while broad feeds are disabled", () => {
+    expect(DEFAULT_MAJOR_TOURNAMENT_SOURCES).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "Zero Gravity Basketball",
+          enabled: false,
+        }),
+        expect.objectContaining({
+          name: "Exposure Basketball Directory",
+          enabled: false,
         }),
       ]),
     );
@@ -644,13 +660,12 @@ describe("TournamentDiscoveryService", () => {
     expect(result.failures).toEqual([]);
     expect(result.candidates.map((candidate) => candidate.event.name)).toEqual([
       "Bakersfield Classic",
-      "Desert Classic",
     ]);
     expect(
       result.candidates.map((candidate) => candidate.event.region),
-    ).toEqual(["Northern California", "AZ"]);
+    ).toEqual(["Northern California"]);
     expect(result.candidates.map((candidate) => candidate.event.state)).toEqual(
-      ["CA", "AZ"],
+      ["CA"],
     );
   });
 
@@ -663,30 +678,28 @@ describe("TournamentDiscoveryService", () => {
           headers: { "Content-Type": "text/plain" },
         });
       if (url.endsWith("/events")) {
-        return htmlResponse(
-          '<a href="/metro-hoop-classic">Metro Hoop Classic</a>',
-        );
+        return htmlResponse('<a href="/bay-hoop-classic">Bay Hoop Classic</a>');
       }
-      if (url.endsWith("/metro-hoop-classic")) {
+      if (url.endsWith("/bay-hoop-classic")) {
         return htmlResponse(`
           <html>
-            <head><title>Metro Hoop Classic - Jun 15-16, 2026 - Phoenix, AZ</title></head>
+            <head><title>Bay Hoop Classic - Jun 15-16, 2026 - Oakland, CA</title></head>
             <body>
-              <h1>Metro Hoop Classic</h1>
+              <h1>Bay Hoop Classic</h1>
               <p>Major grassroots basketball tournament.</p>
-              <a href="/metro-hoop-classic/teams">Registered Teams</a>
+              <a href="/bay-hoop-classic/teams">Registered Teams</a>
             </body>
           </html>
         `);
       }
-      if (url.endsWith("/metro-hoop-classic/teams")) {
+      if (url.endsWith("/bay-hoop-classic/teams")) {
         return htmlResponse(`
           <html>
-            <head><title>Metro Hoop Classic Registered Teams</title></head>
+            <head><title>Bay Hoop Classic Registered Teams</title></head>
             <body>
               <h1>Registered Teams</h1>
-              <div data-team-name="Phoenix Elite" data-division="Boys 8th Grade"></div>
-              <div data-team-name="Desert Select" data-division="Boys 8th Grade"></div>
+              <div data-team-name="Oakland Elite" data-division="Boys 8th Grade"></div>
+              <div data-team-name="Bay Select" data-division="Boys 8th Grade"></div>
             </body>
           </html>
         `);
@@ -702,11 +715,11 @@ describe("TournamentDiscoveryService", () => {
           provider: "public_html",
           enabled: true,
           url: "https://public-hoops.example/events",
-          eventLinkPatterns: ["metro-hoop-classic"],
+          eventLinkPatterns: ["bay-hoop-classic"],
           teamSelectors: ["[data-team-name]"],
           organizerName: "Metro Hoops",
           sanctioningTags: ["Grassroots"],
-          timezone: "America/Phoenix",
+          timezone: "America/Los_Angeles",
         },
       ],
       { now: new Date("2026-05-24T12:00:00.000Z") },
@@ -716,17 +729,17 @@ describe("TournamentDiscoveryService", () => {
     expect(result.candidates).toHaveLength(1);
     expect(result.candidates[0]?.event).toMatchObject({
       externalProvider: "public_html",
-      externalId: "public-hoops.example/metro-hoop-classic",
-      name: "Metro Hoop Classic",
+      externalId: "public-hoops.example/bay-hoop-classic",
+      name: "Bay Hoop Classic",
       organizer: "Metro Hoops",
-      city: "Phoenix",
-      state: "AZ",
+      city: "Oakland",
+      state: "CA",
       registeredTeamCount: 2,
       hasPublicTeamList: true,
     });
     expect(result.candidates[0]?.teams.teams.map((team) => team.name)).toEqual([
-      "Phoenix Elite",
-      "Desert Select",
+      "Oakland Elite",
+      "Bay Select",
     ]);
   });
 
@@ -741,7 +754,7 @@ describe("TournamentDiscoveryService", () => {
       if (url.endsWith("/teams-hidden")) {
         return htmlResponse(`
           <html>
-            <head><title>Teams Hidden Classic - Jun 15-16, 2026 - Phoenix, AZ</title></head>
+            <head><title>Teams Hidden Classic - Jun 15-16, 2026 - Oakland, CA</title></head>
             <body><h1>Teams Hidden Classic</h1><p>Basketball tournament.</p></body>
           </html>
         `);
@@ -822,14 +835,14 @@ describe("TournamentDiscoveryService", () => {
       gender: null,
       ageOrGradeDivisions: [],
       venueName: null,
-      city: "Phoenix",
-      state: "AZ",
-      region: "AZ",
+      city: "Reno",
+      state: "NV",
+      region: "Nevada",
       startDate: "2026-06-15",
       endDate: "2026-06-16",
-      location: "Phoenix, AZ",
+      location: "Reno, NV",
       officialUrl: "https://basketball.exposureevents.com/910100/same-classic",
-      timezone: "America/Phoenix",
+      timezone: "America/Los_Angeles",
       registeredTeamCount: 0,
       hasPublicTeamList: false,
       lastCheckedAt: null,
