@@ -981,6 +981,8 @@ export class PrismaStore implements CourtWatchStore {
   async dashboard(clientId?: string | null, exposureEventId?: number | null) {
     return buildDashboard(
       await this.snapshotForClient(clientId, exposureEventId),
+      new Date(),
+      { includeEvents: false, includePointsLeaders: false },
     );
   }
 

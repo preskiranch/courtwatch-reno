@@ -135,7 +135,10 @@ export function buildProgramSummaries(
 export function buildDashboard(
   snapshot: CourtWatchSnapshot,
   now = new Date(),
+  options: { includeEvents?: boolean; includePointsLeaders?: boolean } = {},
 ): DashboardResponse {
+  const includeEvents = options.includeEvents ?? true;
+  const includePointsLeaders = options.includePointsLeaders ?? true;
   const effectiveSnapshot = {
     ...snapshot,
     games: withEffectiveGameStatuses(snapshot.games, now),
@@ -176,14 +179,14 @@ export function buildDashboard(
 
   return {
     event: snapshot.event,
-    events: snapshot.events,
+    events: includeEvents ? snapshot.events : [],
     nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
     programs,
-    pointsLeaders: buildTeamScoringLeaders(
-      effectiveSnapshot.games,
-      effectiveSnapshot.teams,
-      { includeUnscoredTeams: true },
-    ),
+    pointsLeaders: includePointsLeaders
+      ? buildTeamScoringLeaders(effectiveSnapshot.games, effectiveSnapshot.teams, {
+          includeUnscoredTeams: true,
+        })
+      : [],
     alerts: watchedAlerts
       .sort(
         (left, right) =>
