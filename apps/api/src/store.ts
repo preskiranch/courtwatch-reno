@@ -19,6 +19,7 @@ import {
   eligibleTournamentEvents,
   extractDivisionMeta,
   hashSource,
+  courtWatchSupportedTournamentRegion,
   isCourtWatchSupportedTournamentRegion,
   normalizeName,
   normalizeProgramName,
@@ -652,12 +653,16 @@ export class PrismaStore implements CourtWatchStore {
 
     const events: TournamentEvent[] = dropdownEventsWithUpcomingExposureFallback(
       Array.from(merged.values()),
-    ).map((event): TournamentEvent => ({
-      ...event,
-      dropdownGroup: trackedExposureEventIds.has(event.exposureEventId)
-        ? "tracked"
-        : "upcoming",
-    }));
+    ).map((event): TournamentEvent => {
+      const supportedRegion = courtWatchSupportedTournamentRegion(event);
+      return {
+        ...event,
+        region: supportedRegion ?? event.region,
+        dropdownGroup: trackedExposureEventIds.has(event.exposureEventId)
+          ? "tracked"
+          : "upcoming",
+      };
+    });
     if (!clientId) writePublicEventsCache(events);
     return events;
   }
