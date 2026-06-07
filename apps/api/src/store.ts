@@ -73,6 +73,16 @@ const teamSortCollator = new Intl.Collator("en-US", {
   sensitivity: "base",
 });
 
+const activeGameHydrationPromises = new Map<number, Promise<void>>();
+const ACTIVE_GAME_HYDRATION_STALE_MS = Math.max(
+  30_000,
+  Number(process.env.ACTIVE_GAME_HYDRATION_STALE_MS ?? 90_000),
+);
+const RECENTLY_COMPLETED_HYDRATION_DAYS = Math.max(
+  1,
+  Number(process.env.RECENTLY_COMPLETED_HYDRATION_DAYS ?? 3),
+);
+
 export interface CourtWatchStore {
   events(clientId?: string | null): Promise<TournamentEvent[]>;
   snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot>;
@@ -152,8 +162,7 @@ export class MockStore implements CourtWatchStore {
     const followedTeamIds = new Set(
       this.data.matches
         .filter(
-          (match) =>
-            match.active && match.programWatchlistId === program.id,
+          (match) => match.active && match.programWatchlistId === program.id,
         )
         .map((match) => match.teamId),
     );
@@ -292,6 +301,7 @@ export class MockStore implements CourtWatchStore {
   }
 
   async courts(exposureEventId?: number | null) {
+    await this.hydrateActiveGamesIfStale(exposureEventId);
     return new CourtFinderService().listCourts(
       await this.snapshot(exposureEventId),
     );
@@ -473,6 +483,10 @@ export class MockStore implements CourtWatchStore {
       syncedCount: 0,
       failures: [],
     };
+  }
+
+  private async hydrateActiveGamesIfStale(_exposureEventId?: number | null) {
+    return;
   }
 
   private snapshotForClient(
@@ -942,7 +956,11 @@ export class PrismaStore implements CourtWatchStore {
   ) {
     if (allEvents) return this.teamsAcrossEvents(search, clientId);
     await this.hydratePublishedTeamsIfMissing(exposureEventId);
-    const snapshot = await this.teamsSnapshotForEvent(clientId, exposureEventId);
+    await this.hydrateActiveGamesIfStale(exposureEventId);
+    const snapshot = await this.teamsSnapshotForEvent(
+      clientId,
+      exposureEventId,
+    );
     const normalized = normalizeName(search);
     return filterTeamsForSearch(snapshot, normalized);
   }
@@ -1601,6 +1619,7 @@ export class PrismaStore implements CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
   ): Promise<CourtWatchSnapshot> {
+    await this.hydrateActiveGamesIfStale(exposureEventId);
     const program = await this.ensureSelectedProgram(clientId);
     return scopeSnapshot(await this.snapshot(exposureEventId), program.id);
   }
@@ -1766,6 +1785,67 @@ export class PrismaStore implements CourtWatchStore {
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
+  }
+
+  private async hydrateActiveGamesIfStale(exposureEventId?: number | null) {
+    const requestedTournament = tournamentForExposureEventId(exposureEventId);
+    const event = await this.prisma.event.findUnique({
+      where: { exposureEventId: requestedTournament.exposureEventId },
+    });
+    if (!event || !isExposureEvent(prismaEventToCore(event))) return;
+
+    const tournament =
+      configuredTournaments().find(
+        (source) => source.exposureEventId === event.exposureEventId,
+      ) ?? prismaEventToCore(event);
+    if (!isExposureEvent(tournament)) return;
+    if (event.status === "cancelled") return;
+    if (
+      event.status === "completed" &&
+      !isRecentlyCompletedTournament(tournament)
+    ) {
+      return;
+    }
+    if (!hasTournamentStarted(tournament)) return;
+    if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return;
+
+    const [storedGames, latestGame] = await Promise.all([
+      this.prisma.game.count({ where: { eventId: event.id } }),
+      this.prisma.game.findFirst({
+        where: { eventId: event.id },
+        orderBy: { updatedAt: "desc" },
+        select: { updatedAt: true },
+      }),
+    ]);
+    const lastDataAt =
+      event.lastCheckedAt ?? latestGame?.updatedAt ?? event.lastSyncedAt;
+    if (
+      storedGames > 0 &&
+      lastDataAt &&
+      Date.now() - lastDataAt.getTime() < ACTIVE_GAME_HYDRATION_STALE_MS
+    ) {
+      return;
+    }
+
+    const existing = activeGameHydrationPromises.get(event.exposureEventId);
+    if (existing) {
+      await existing;
+      return;
+    }
+
+    const promise = this.syncTournament(tournament)
+      .then(() => undefined)
+      .catch((error) => {
+        console.warn("Unable to hydrate active game data", {
+          exposureEventId: event.exposureEventId,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      })
+      .finally(() => {
+        activeGameHydrationPromises.delete(event.exposureEventId);
+      });
+    activeGameHydrationPromises.set(event.exposureEventId, promise);
+    await promise;
   }
 
   private async ensureSelectedProgram(
@@ -2339,6 +2419,17 @@ function hasTournamentStarted(tournament: TournamentSource): boolean {
   return todayKey >= tournament.startDate;
 }
 
+function isRecentlyCompletedTournament(tournament: TournamentSource): boolean {
+  const todayKey =
+    process.env.COURTWATCH_TODAY ??
+    dateKeyInTournamentTimeZone(new Date(), tournament.timezone);
+  const cutoff = addDaysKey(
+    tournament.endDate,
+    RECENTLY_COMPLETED_HYDRATION_DAYS,
+  );
+  return todayKey <= cutoff;
+}
+
 function dateKeyInTournamentTimeZone(date: Date, timeZone: string): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone,
@@ -2350,6 +2441,12 @@ function dateKeyInTournamentTimeZone(date: Date, timeZone: string): string {
     parts.map((part) => [part.type, part.value]),
   );
   return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function addDaysKey(dateKey: string, days: number): string {
+  const date = new Date(`${dateKey}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 async function mapPublicDivisionResult(

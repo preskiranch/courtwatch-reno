@@ -232,33 +232,40 @@ export class PublicExposurePageClient {
       eventSlug,
       this.baseUrl,
     );
-    const games: Game[] = [];
-
-    for (const division of divisions) {
-      const rawGroups = await this.fetchEventGames(
-        eventId,
-        eventSlug,
-        division.Id,
-      );
-      for (const group of rawGroups) {
-        if (!Array.isArray(group.Games)) continue;
-        for (const rawGame of group.Games) {
-          const mapped = mapPublicExposureGame(
-            rawGame,
-            eventId,
-            bracketsByDivision.get(String(rawGame.DivisionId ?? division.Id)) ??
-              [],
-            eventSlug,
-            this.baseUrl,
-            timezone,
-          );
-          if (mapped) games.push(mapped);
+    const gamesByDivision = await mapWithConcurrency(
+      divisions,
+      positiveInteger(process.env.EXPOSURE_PUBLIC_GAMES_CONCURRENCY, 4),
+      async (division) => {
+        const games: Game[] = [];
+        const rawGroups = await this.fetchEventGames(
+          eventId,
+          eventSlug,
+          division.Id,
+        );
+        for (const group of rawGroups) {
+          if (!Array.isArray(group.Games)) continue;
+          for (const rawGame of group.Games) {
+            const mapped = mapPublicExposureGame(
+              rawGame,
+              eventId,
+              bracketsByDivision.get(
+                String(rawGame.DivisionId ?? division.Id),
+              ) ?? [],
+              eventSlug,
+              this.baseUrl,
+              timezone,
+            );
+            if (mapped) games.push(mapped);
+          }
         }
-      }
-      await sleep(Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125));
-    }
+        await sleep(
+          Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125),
+        );
+        return games;
+      },
+    );
 
-    return games;
+    return gamesByDivision.flat();
   }
 
   async fetchDivisionResults(
@@ -1306,7 +1313,11 @@ function mapPublicStatus(
       statusText.includes("complete"))
   )
     return "final";
-  if (raw.Started) return "playing_now";
+  if (raw.Started)
+    return deriveEffectiveGameStatus({
+      startsAt: startsAt.toISOString(),
+      status: "playing_now",
+    });
   return deriveEffectiveGameStatus({
     startsAt: startsAt.toISOString(),
     status: "upcoming",
@@ -1338,6 +1349,35 @@ function stringOrNull(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   const text = String(value).trim();
   return text ? text : null;
+}
+
+function positiveInteger(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.floor(parsed);
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex;
+        nextIndex += 1;
+        results[currentIndex] = await mapper(
+          items[currentIndex]!,
+          currentIndex,
+        );
+      }
+    }),
+  );
+  return results;
 }
 
 function sleep(ms: number) {

@@ -16,6 +16,8 @@ const EnvSchema = z.object({
   TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(6),
   TOURNAMENT_DISCOVERY_WINDOW_DAYS: z.coerce.number().default(183),
   WORKER_SYNC_BATCH_SIZE: z.coerce.number().default(8),
+  WORKER_SYNC_CONCURRENCY: z.coerce.number().default(3),
+  WORKER_ACTIVE_GAME_STALE_MS: z.coerce.number().default(90_000),
   WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
 });
@@ -46,27 +48,30 @@ async function syncOnce() {
     );
   }
   const targets = await syncTargets();
-  const results = [];
-  for (const target of targets) {
-    try {
-      results.push(await syncSingleEvent(target));
-    } catch (error) {
-      logger.warn(
-        {
-          exposureEventId: target.exposureEventId,
-          name: target.name,
-          error: error instanceof Error ? error.message : error,
-        },
-        "event sync skipped",
-      );
-      results.push({
-        status: "failed",
-        teamsCount: 0,
-        gamesCount: 0,
-        changesDetected: 0,
-      });
-    }
-  }
+  const results = await mapWithConcurrency(
+    targets,
+    env.WORKER_SYNC_CONCURRENCY,
+    async (target) => {
+      try {
+        return await syncSingleEvent(target);
+      } catch (error) {
+        logger.warn(
+          {
+            exposureEventId: target.exposureEventId,
+            name: target.name,
+            error: error instanceof Error ? error.message : error,
+          },
+          "event sync skipped",
+        );
+        return {
+          status: "failed",
+          teamsCount: 0,
+          gamesCount: 0,
+          changesDetected: 0,
+        };
+      }
+    },
+  );
 
   return {
     status: results.every((result) => result.status === "success")
@@ -83,21 +88,34 @@ async function syncOnce() {
 }
 
 async function syncTargets(): Promise<TournamentEvent[]> {
-  const response = await fetchWithTimeout(new URL("/api/events", env.API_BASE_URL));
+  const response = await fetchWithTimeout(
+    new URL("/api/events", env.API_BASE_URL),
+  );
   if (!response.ok) {
     throw new Error(
       `events failed with ${response.status}: ${await response.text()}`,
     );
   }
   const events = (await response.json()) as TournamentEvent[];
+  const activeGamePriorityIds = await activeGamePriorityExposureIds();
   const preferredIds = preferredExposureEventIds();
   const today = new Date().toISOString().slice(0, 10);
   return events
     .filter((event) => event.status !== "cancelled")
     .sort((left, right) => {
+      const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
+        ? 0
+        : 1;
+      const rightNeedsGames = activeGamePriorityIds.has(right.exposureEventId)
+        ? 0
+        : 1;
+      if (leftNeedsGames !== rightNeedsGames)
+        return leftNeedsGames - rightNeedsGames;
+
       const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
       const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
-      if (leftPreferred !== rightPreferred) return leftPreferred - rightPreferred;
+      if (leftPreferred !== rightPreferred)
+        return leftPreferred - rightPreferred;
 
       const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
       const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
@@ -167,6 +185,79 @@ function needsPublishedTeamHydration(event: TournamentEvent) {
     event.registeredTeamCount > 0 &&
     !event.lastSyncedAt
   );
+}
+
+async function activeGamePriorityExposureIds(): Promise<Set<number>> {
+  const events = await prisma.event.findMany({
+    where: {
+      externalProvider: "exposure_events",
+      hasPublicTeamList: true,
+      registeredTeamCount: { gt: 0 },
+      status: { notIn: ["cancelled", "unavailable"] },
+    },
+    select: {
+      id: true,
+      exposureEventId: true,
+      startDate: true,
+      endDate: true,
+      lastCheckedAt: true,
+      lastSyncedAt: true,
+    },
+  });
+  const activeEvents = events.filter(eventIsInGameHydrationWindow);
+  if (activeEvents.length === 0) return new Set();
+
+  const gameCounts = await prisma.game.groupBy({
+    by: ["eventId"],
+    where: { eventId: { in: activeEvents.map((event) => event.id) } },
+    _count: { _all: true },
+  });
+  const countsByEventId = new Map(
+    gameCounts.map((item) => [item.eventId, item._count._all]),
+  );
+  const now = Date.now();
+  return new Set(
+    activeEvents
+      .filter((event) => {
+        const gameCount = countsByEventId.get(event.id) ?? 0;
+        if (gameCount === 0) return true;
+        const lastDataAt = event.lastCheckedAt ?? event.lastSyncedAt;
+        return (
+          !lastDataAt ||
+          now - lastDataAt.getTime() > env.WORKER_ACTIVE_GAME_STALE_MS
+        );
+      })
+      .map((event) => event.exposureEventId),
+  );
+}
+
+function eventIsInGameHydrationWindow(event: {
+  startDate: Date;
+  endDate: Date;
+}) {
+  const todayKey = dateKeyInPacific(new Date());
+  const startKey = event.startDate.toISOString().slice(0, 10);
+  const endKey = addDaysKey(event.endDate.toISOString().slice(0, 10), 3);
+  return todayKey >= startKey && todayKey <= endKey;
+}
+
+function dateKeyInPacific(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function addDaysKey(dateKey: string, days: number): string {
+  const date = new Date(`${dateKey}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 function preferredExposureEventIds() {
@@ -321,6 +412,32 @@ async function activeTournamentOverride(): Promise<boolean | undefined> {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(
+    Math.max(1, Math.floor(concurrency)),
+    items.length,
+  );
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex;
+        nextIndex += 1;
+        results[currentIndex] = await mapper(
+          items[currentIndex]!,
+          currentIndex,
+        );
+      }
+    }),
+  );
+  return results;
 }
 
 async function fetchWithTimeout(

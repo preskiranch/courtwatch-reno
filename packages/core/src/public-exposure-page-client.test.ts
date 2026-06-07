@@ -135,6 +135,54 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("expires old public started games when Exposure never posts a score", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1278469,"Name":"Boys 2nd/3rd Level 3 Blue"}],
+              standingsUrl: "/standings",
+              brackets: [],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      return jsonResponse([
+        {
+          Name: "Wednesday, January 1, 2020",
+          Games: [
+            {
+              Id: 40477691,
+              VenueName: "Reno-Sparks Convention Center",
+              CourtName: "Court CC1",
+              HomeTeamName: "CV Hornets Conner",
+              AwayTeamName: "Splash City",
+              DivisionName: "Boys 2nd/3rd Level 3 Blue",
+              DivisionId: 1278469,
+              DateFormatted: "1/1/2020",
+              TimeFormatted: "10:00 AM PST",
+              HomeTeamScoreDisplay: "",
+              AwayTeamScoreDisplay: "",
+              Started: true,
+            },
+          ],
+        },
+      ]);
+    }) as unknown as typeof fetch;
+
+    const games = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchGames(255539, {
+      divisionIds: ["1278469"],
+    });
+
+    expect(games[0]?.status).toBe("unknown");
+  });
+
   it("reads official placement rows from primary bracket pages", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);
