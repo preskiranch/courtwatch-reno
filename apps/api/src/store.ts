@@ -24,7 +24,7 @@ import {
   normalizeName,
   normalizeProgramName,
   sanitizeBasketballScore,
-  watchedAlertEvents,
+  watchedAlertsForSnapshot,
   seedAliases,
   seedChangeEvents,
   seedDivisions,
@@ -1345,15 +1345,11 @@ export class PrismaStore implements CourtWatchStore {
         )
         .map((game) => game.id),
     );
-    return watchedAlertEvents(
-      snapshot.changeEvents,
+    return watchedAlertsForSnapshot(
+      snapshot,
       watchedTeamIds,
       watchedGameIds,
       activeProgramIds,
-    ).sort(
-      (left, right) =>
-        new Date(right.createdAt).getTime() -
-        new Date(left.createdAt).getTime(),
     );
   }
 
@@ -3326,6 +3322,23 @@ async function upsertDivisionResult(
   prisma: PrismaClient,
   result: DivisionResult,
 ) {
+  const existingPlacement = await prisma.divisionResult.findUnique({
+    where: {
+      eventId_divisionId_placement: {
+        eventId: result.eventId,
+        divisionId: result.divisionId,
+        placement: result.placement,
+      },
+    },
+    select: {
+      teamId: true,
+      teamNameSnapshot: true,
+      medalLabel: true,
+      bracketLabel: true,
+      sourceUrl: true,
+      isOfficial: true,
+    },
+  });
   const existingById = await prisma.divisionResult.findUnique({
     where: { id: result.id },
     select: { id: true, eventId: true, divisionId: true, placement: true },
@@ -3353,10 +3366,12 @@ async function upsertDivisionResult(
       existingById.placement !== result.placement)
   ) {
     try {
-      return await prisma.divisionResult.update({
+      const saved = await prisma.divisionResult.update({
         where: { id: result.id },
         data: write,
       });
+      await recordFinalPlacementChangeEvent(prisma, result, existingPlacement);
+      return saved;
     } catch (error) {
       if (!isPrismaUniqueConstraintError(error)) throw error;
       await prisma.divisionResult.delete({ where: { id: result.id } });
@@ -3364,7 +3379,7 @@ async function upsertDivisionResult(
   }
 
   try {
-    return await prisma.divisionResult.upsert({
+    const saved = await prisma.divisionResult.upsert({
       where: {
         eventId_divisionId_placement: {
           eventId: result.eventId,
@@ -3389,13 +3404,119 @@ async function upsertDivisionResult(
         ...write,
       },
     });
+    await recordFinalPlacementChangeEvent(prisma, result, existingPlacement);
+    return saved;
   } catch (error) {
     if (!isPrismaUniqueConstraintError(error)) throw error;
-    return prisma.divisionResult.update({
+    const saved = await prisma.divisionResult.update({
       where: { id: result.id },
       data: write,
     });
+    await recordFinalPlacementChangeEvent(prisma, result, existingPlacement);
+    return saved;
   }
+}
+
+async function recordFinalPlacementChangeEvent(
+  prisma: PrismaClient,
+  result: DivisionResult,
+  previous: {
+    teamId: string | null;
+    teamNameSnapshot: string;
+    medalLabel: string;
+    bracketLabel: string | null;
+    sourceUrl: string | null;
+    isOfficial: boolean;
+  } | null,
+) {
+  if (!shouldRecordFinalPlacementChange(previous, result)) return;
+
+  const dedupeKey = finalPlacementChangeDedupeKey(result);
+  await prisma.gameChangeEvent.upsert({
+    where: { dedupeKey },
+    update: {},
+    create: {
+      gameId: null,
+      affectedTeamId: result.teamId,
+      affectedProgramWatchlistId: null,
+      eventType: "final_placement",
+      previousValue: previous
+        ? finalPlacementPreviousPayload(previous)
+        : Prisma.JsonNull,
+      newValue: finalPlacementChangePayload(result),
+      dedupeKey,
+    },
+  });
+}
+
+function shouldRecordFinalPlacementChange(
+  previous: {
+    teamId: string | null;
+    teamNameSnapshot: string;
+    medalLabel: string;
+    bracketLabel: string | null;
+    sourceUrl: string | null;
+    isOfficial: boolean;
+  } | null,
+  result: DivisionResult,
+): boolean {
+  if (!result.teamNameSnapshot.trim()) return false;
+  if (!previous) return true;
+  return (
+    previous.teamId !== result.teamId ||
+    previous.teamNameSnapshot !== result.teamNameSnapshot ||
+    previous.medalLabel !== result.medalLabel ||
+    previous.bracketLabel !== result.bracketLabel ||
+    previous.sourceUrl !== result.sourceUrl ||
+    previous.isOfficial !== result.isOfficial
+  );
+}
+
+function finalPlacementChangeDedupeKey(result: DivisionResult): string {
+  return [
+    "final-placement",
+    result.eventId,
+    result.divisionId,
+    String(result.placement),
+    result.teamId ?? normalizeName(result.teamNameSnapshot),
+  ].join(":");
+}
+
+function finalPlacementChangePayload(result: DivisionResult) {
+  return {
+    teamName: result.teamNameSnapshot,
+    divisionName: result.divisionName,
+    placement: result.placement,
+    medalLabel: result.medalLabel,
+    placementLabel: finalPlacementLabel(result.placement),
+    bracketLabel: result.bracketLabel,
+    sourceUrl: result.sourceUrl,
+    isOfficial: result.isOfficial,
+  };
+}
+
+function finalPlacementPreviousPayload(previous: {
+  teamId: string | null;
+  teamNameSnapshot: string;
+  medalLabel: string;
+  bracketLabel: string | null;
+  sourceUrl: string | null;
+  isOfficial: boolean;
+}) {
+  return {
+    teamId: previous.teamId,
+    teamName: previous.teamNameSnapshot,
+    medalLabel: previous.medalLabel,
+    bracketLabel: previous.bracketLabel,
+    sourceUrl: previous.sourceUrl,
+    isOfficial: previous.isOfficial,
+  };
+}
+
+function finalPlacementLabel(placement: ResultPlacement): string {
+  if (placement === 1) return "Champion / 1st / Gold";
+  if (placement === 2) return "2nd / Silver";
+  return "3rd / Bronze";
 }
 
 async function replaceDivisionResultsForEvent(

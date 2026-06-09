@@ -1,6 +1,7 @@
 import type {
   CourtWatchSnapshot,
   DashboardResponse,
+  DivisionResult,
   Game,
   GameChangeEvent,
   ProgramSummary,
@@ -100,6 +101,7 @@ export function buildProgramSummaries(
           teamGames(team, games).map((game) => game.id),
         ),
       );
+      const programTeamIds = new Set(teams.map((team) => team.id));
       const programGames = games.filter((game) => programGameIds.has(game.id));
       const nextGame =
         programGames
@@ -109,10 +111,14 @@ export function buildProgramSummaries(
         programGames
           .filter((game) => game.status === "final")
           .sort((left, right) => compareStartsAt(right, left))[0] ?? null;
-      const alertsCount = snapshot.changeEvents.filter(
-        (event) =>
-          event.affectedProgramWatchlistId === program.id ||
-          (event.gameId && programGameIds.has(event.gameId)),
+      const alertsCount = mergeAlertEvents(
+        watchedAlertEvents(
+          snapshot.changeEvents,
+          programTeamIds,
+          programGameIds,
+          new Set([program.id]),
+        ),
+        watchedFinalPlacementAlertEvents(snapshot, programTeamIds),
       ).length;
 
       return {
@@ -170,11 +176,14 @@ export function buildDashboard(
         new Date(right.startedAt).getTime() -
         new Date(left.startedAt).getTime(),
     )[0] ?? null;
-  const watchedAlerts = watchedAlertEvents(
-    snapshot.changeEvents,
-    watchedTeamIds,
-    watchedGameIds,
-    activeProgramIds,
+  const watchedAlerts = mergeAlertEvents(
+    watchedAlertEvents(
+      snapshot.changeEvents,
+      watchedTeamIds,
+      watchedGameIds,
+      activeProgramIds,
+    ),
+    watchedFinalPlacementAlertEvents(effectiveSnapshot, watchedTeamIds),
   );
 
   return {
@@ -187,13 +196,7 @@ export function buildDashboard(
           includeUnscoredTeams: true,
         })
       : [],
-    alerts: watchedAlerts
-      .sort(
-        (left, right) =>
-          new Date(right.createdAt).getTime() -
-          new Date(left.createdAt).getTime(),
-      )
-      .slice(0, 20),
+    alerts: watchedAlerts.slice(0, 20),
     lastUpdated: snapshot.event.lastSyncedAt,
     sourceStatus: {
       source: lastRun?.source ?? "mock",
@@ -209,6 +212,23 @@ export function buildDashboard(
     },
     disclaimer: DISCLAIMER,
   };
+}
+
+export function watchedAlertsForSnapshot(
+  snapshot: CourtWatchSnapshot,
+  watchedTeamIds: Set<string>,
+  watchedGameIds: Set<string>,
+  activeProgramIds: Set<string>,
+): GameChangeEvent[] {
+  return mergeAlertEvents(
+    watchedAlertEvents(
+      snapshot.changeEvents,
+      watchedTeamIds,
+      watchedGameIds,
+      activeProgramIds,
+    ),
+    watchedFinalPlacementAlertEvents(snapshot, watchedTeamIds),
+  );
 }
 
 export function watchedAlertEvents(
@@ -228,4 +248,122 @@ export function watchedAlertEvents(
     if (event.gameId && watchedGameIds.has(event.gameId)) return true;
     return false;
   });
+}
+
+export function watchedFinalPlacementAlertEvents(
+  snapshot: CourtWatchSnapshot,
+  watchedTeamIds: Set<string>,
+): GameChangeEvent[] {
+  if (watchedTeamIds.size === 0 || snapshot.divisionResults.length === 0)
+    return [];
+
+  const watchedTeams = snapshot.teams.filter((team) =>
+    watchedTeamIds.has(team.id),
+  );
+  return snapshot.divisionResults.flatMap((result) => {
+    const team = matchedWatchedTeamForResult(result, watchedTeams);
+    if (!team) return [];
+    return [finalPlacementAlertForResult(result, team)];
+  });
+}
+
+function mergeAlertEvents(...groups: GameChangeEvent[][]): GameChangeEvent[] {
+  const alerts = new Map<string, GameChangeEvent>();
+  for (const group of groups) {
+    for (const alert of group) {
+      const key = alert.dedupeKey || alert.id;
+      if (!alerts.has(key)) alerts.set(key, alert);
+    }
+  }
+  return Array.from(alerts.values()).sort(
+    (left, right) =>
+      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+  );
+}
+
+function matchedWatchedTeamForResult(
+  result: Pick<
+    DivisionResult,
+    "divisionId" | "teamId" | "teamNameSnapshot" | "teamSourceUrl"
+  >,
+  watchedTeams: Team[],
+): Team | null {
+  if (result.teamId) {
+    const team = watchedTeams.find((item) => item.id === result.teamId);
+    if (team) return team;
+  }
+  const sourceUrl = normalizeUrl(result.teamSourceUrl);
+  if (sourceUrl) {
+    const team = watchedTeams.find(
+      (item) => normalizeUrl(item.sourceUrl) === sourceUrl,
+    );
+    if (team) return team;
+  }
+  const resultName = normalizeTeamMatchName(result.teamNameSnapshot);
+  return (
+    watchedTeams.find(
+      (team) =>
+        team.divisionId === result.divisionId &&
+        normalizeTeamMatchName(team.name) === resultName,
+    ) ?? null
+  );
+}
+
+function finalPlacementAlertForResult(
+  result: DivisionResult,
+  team: Team,
+): GameChangeEvent {
+  const placementLabel = resultPlacementAlertLabel(result);
+  return {
+    id: `result-alert-${result.id}`,
+    gameId: null,
+    affectedTeamId: team.id,
+    affectedProgramWatchlistId: null,
+    eventType: "final_placement",
+    previousValue: null,
+    newValue: {
+      teamName: result.teamNameSnapshot,
+      divisionName: result.divisionName,
+      placement: result.placement,
+      medalLabel: result.medalLabel,
+      placementLabel,
+      sourceUrl: result.sourceUrl,
+      isOfficial: result.isOfficial,
+    },
+    createdAt: result.lastSeenAt,
+    notificationSent: true,
+    dedupeKey: [
+      "final-placement",
+      result.eventId,
+      result.divisionId,
+      String(result.placement),
+      result.teamId ?? normalizeTeamMatchName(result.teamNameSnapshot),
+    ].join(":"),
+  };
+}
+
+function resultPlacementAlertLabel(result: Pick<DivisionResult, "placement">) {
+  if (result.placement === 1) return "Champion / 1st / Gold";
+  if (result.placement === 2) return "2nd / Silver";
+  return "3rd / Bronze";
+}
+
+function normalizeTeamMatchName(value: string | null | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/\b(splash city)\s*(\d+u)\b/g, "$1 $2")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeUrl(value: string | null | undefined): string {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return value.trim();
+  }
 }

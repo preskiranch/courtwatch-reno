@@ -1539,6 +1539,8 @@ function DashboardScreen({
         game={effectiveDashboard.nextGame}
         records={teamRecords}
         timezone={dashboard.event.timezone}
+        hasFollowedTeams={finalResultFollowedTeams.length > 0}
+        tournamentFinished={isTournamentFinished(dashboard.event)}
       />
 
       <button
@@ -1555,6 +1557,7 @@ function DashboardScreen({
           <ProgramCard
             key={program.program.id}
             program={program}
+            event={dashboard.event}
             records={teamRecords}
             recordsLoading={recordsLoading}
             timezone={dashboard.event.timezone}
@@ -1596,12 +1599,26 @@ function NextGameBanner({
   game,
   records,
   timezone,
+  hasFollowedTeams,
+  tournamentFinished,
 }: {
   game: Game | null;
   records: Map<string, TeamRecord>;
   timezone?: string | null;
+  hasFollowedTeams: boolean;
+  tournamentFinished: boolean;
 }) {
   if (!game) {
+    const title = tournamentFinished
+      ? "Tournament finished"
+      : hasFollowedTeams
+        ? "No next game posted"
+        : "Choose teams to follow";
+    const subtitle = tournamentFinished
+      ? "Final results are posted below when available."
+      : hasFollowedTeams
+        ? "Court Watch AAU is watching for bracket updates."
+        : "Search registered teams from the Teams tab.";
     return (
       <section className="court-card court-line-bg sticky top-[92px] z-20 overflow-hidden p-4">
         <div className="flex items-center gap-3">
@@ -1612,11 +1629,9 @@ function NextGameBanner({
             <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">
               Next Game
             </p>
-            <h2 className="text-xl font-black text-slate-950">
-              Choose teams to follow
-            </h2>
+            <h2 className="text-xl font-black text-slate-950">{title}</h2>
             <p className="text-sm font-medium text-slate-600">
-              Search registered teams from the Teams tab.
+              {subtitle}
             </p>
           </div>
         </div>
@@ -1661,16 +1676,19 @@ function NextGameBanner({
 
 function ProgramCard({
   program,
+  event,
   records,
   recordsLoading,
   timezone,
 }: {
   program: ProgramSummary;
+  event: TournamentEvent;
   records: Map<string, TeamRecord>;
   recordsLoading: boolean;
   timezone?: string | null;
 }) {
   const found = program.teams.length;
+  const tournamentFinished = isTournamentFinished(event);
   return (
     <article className="court-card p-4">
       <div className="flex items-start justify-between gap-3">
@@ -1696,7 +1714,9 @@ function ProgramCard({
           value={
             program.nextGame
               ? formatNextGameSummary(program.nextGame, timezone)
-              : "TBD"
+              : tournamentFinished
+                ? "Finished"
+                : "TBD"
           }
         />
         <Metric label="Alerts" value={String(program.alertsCount)} />
@@ -1727,7 +1747,9 @@ function ProgramCard({
             <p className="mt-2 text-sm text-slate-700">
               {team.nextGame
                 ? formatNextGameSummary(team.nextGame, timezone)
-                : "Next game awaiting bracket"}
+                : tournamentFinished
+                  ? "Tournament finished"
+                  : "Next game awaiting bracket"}
             </p>
           </div>
         ))}
@@ -4232,6 +4254,7 @@ function TeamsScreen({
                 eventId={eventId}
                 record={teamRecordForTeam(team, records)}
                 recordsLoading={recordsLoading}
+                tournamentFinished={isTournamentFinished(dashboard.event)}
                 focused={focusedTeamId === team.id}
                 onFocus={() => setFocusedTeamId(team.id)}
                 onUnfollow={() => {
@@ -4253,6 +4276,7 @@ function TeamsScreen({
           record={teamRecordForTeam(focusedTeam, records)}
           records={records}
           recordsLoading={recordsLoading}
+          tournamentFinished={isTournamentFinished(dashboard.event)}
           timezone={timezone}
         />
       ) : null}
@@ -4458,6 +4482,7 @@ function FollowedTeamRow({
   eventId,
   record,
   recordsLoading,
+  tournamentFinished,
   focused,
   onFocus,
   onUnfollow,
@@ -4468,6 +4493,7 @@ function FollowedTeamRow({
   eventId: number | null;
   record: TeamRecord | undefined;
   recordsLoading: boolean;
+  tournamentFinished: boolean;
   focused: boolean;
   onFocus: () => void;
   onUnfollow: () => void;
@@ -4519,7 +4545,9 @@ function FollowedTeamRow({
           value={
             team.nextGame
               ? formatNextGameSummary(team.nextGame, timezone)
-              : "TBD"
+              : tournamentFinished
+                ? "Finished"
+                : "TBD"
           }
         />
         <Metric
@@ -4594,6 +4622,7 @@ function TeamFocusPanel({
   record,
   records,
   recordsLoading,
+  tournamentFinished,
   timezone,
 }: {
   team: ProgramSummary["teams"][number];
@@ -4601,6 +4630,7 @@ function TeamFocusPanel({
   record: TeamRecord | undefined;
   records: Map<string, TeamRecord>;
   recordsLoading: boolean;
+  tournamentFinished: boolean;
   timezone?: string | null;
 }) {
   const divisionGamesQuery = useQuery({
@@ -4651,7 +4681,9 @@ function TeamFocusPanel({
           value={
             team.nextGame
               ? formatNextGameSummary(team.nextGame, timezone)
-              : "TBD"
+              : tournamentFinished
+                ? "Finished"
+                : "TBD"
           }
         />
         <Metric
@@ -5702,6 +5734,17 @@ function dataRefetchIntervalForEvent(
     : PASSIVE_DATA_REFETCH_MS;
 }
 
+function isTournamentFinished(
+  event: Pick<TournamentEvent, "endDate" | "status" | "timezone">,
+): boolean {
+  if (event.status === "completed") return true;
+  const todayKey = dateKeyInTimeZone(
+    new Date(),
+    event.timezone || DEFAULT_TOURNAMENT_TIME_ZONE,
+  );
+  return event.endDate < todayKey;
+}
+
 function groupGamesByDate(games: Game[], todayKey: string, timeZone: string) {
   const grouped = new Map<string, Game[]>();
   for (const game of games) {
@@ -6338,7 +6381,8 @@ function labelStatus(status: string): string {
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
     .replace("Playing Now", "LIVE")
     .replace("Schedule Changed", "CHANGED")
-    .replace("New Game Added", "NEW GAME");
+    .replace("New Game Added", "NEW GAME")
+    .replace("Final Placement", "FINAL RESULT");
 }
 
 function formatShortTime(
@@ -6438,6 +6482,13 @@ function alertHeadline(
     return teamName ? `New team found: ${teamName}` : "New watched team found";
   }
 
+  if (alert.eventType === "final_placement") {
+    const teamName = readString(value, ["teamName", "name", "team"]);
+    const placement =
+      readString(value, ["placementLabel", "medalLabel"]) ?? "Final placement";
+    return teamName ? `${teamName} - ${placement}` : "Final result posted";
+  }
+
   return "Watched schedule update";
 }
 
@@ -6453,6 +6504,7 @@ function alertMeta(
         ),
     game?.courtName ?? readString(value, ["courtName", "court"]),
     game?.venueName ?? readString(value, ["venueName", "venue"]),
+    readString(value, ["divisionName", "division"]),
   ].filter((part): part is string => Boolean(part));
 
   return parts.length > 0 ? parts.join(" • ") : null;
@@ -6507,6 +6559,15 @@ function alertDetail(
       return "Score was posted by the tournament source.";
     case "final_score":
       return "Final score was posted by the tournament source.";
+    case "final_placement": {
+      const teamName = readString(value, ["teamName", "name", "team"]);
+      const divisionName = readString(value, ["divisionName", "division"]);
+      const placement =
+        readString(value, ["placementLabel", "medalLabel"]) ?? "final placement";
+      if (teamName && divisionName)
+        return `${teamName} posted ${placement} in ${divisionName}.`;
+      return "Official final placement was posted by the tournament source.";
+    }
     case "bracket_update":
     case "team_advanced":
       return "Bracket information was updated.";

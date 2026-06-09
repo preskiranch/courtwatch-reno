@@ -12,6 +12,7 @@ const PREF_BY_EVENT: Record<ChangeEventType, string> = {
   home_away_changed: "opponentAssigned",
   score_posted: "scorePosted",
   final_score: "finalScore",
+  final_placement: "bracketUpdate",
   bracket_update: "bracketUpdate",
   team_advanced: "bracketUpdate",
   starting_soon: "gameStartReminderMinutes"
@@ -48,6 +49,21 @@ export function formatNotification(event: GameChangeEvent, game: Game | null, te
       return { title: `Score posted: ${teamName}`, body: scoreLine(game) };
     case "final_score":
       return { title: `Final: ${teamName}`, body: scoreLine(game) };
+    case "final_placement": {
+      const value = event.newValue as Record<string, unknown> | null;
+      const placedTeamName =
+        typeof value?.teamName === "string" ? value.teamName : teamName;
+      const division =
+        typeof value?.divisionName === "string" ? value.divisionName : "division";
+      const placement =
+        typeof value?.placementLabel === "string"
+          ? value.placementLabel
+          : "final placement";
+      return {
+        title: `Final result: ${placedTeamName}`,
+        body: `${placedTeamName} posted ${placement} in ${division}.`,
+      };
+    }
     case "bracket_update":
     case "team_advanced":
       return { title: `Bracket update for ${teamName}`, body: `${game?.gameType ?? "Bracket game"} posted${court}.` };

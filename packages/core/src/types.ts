@@ -30,6 +30,7 @@ export type ChangeEventType =
   | "home_away_changed"
   | "score_posted"
   | "final_score"
+  | "final_placement"
   | "bracket_update"
   | "team_advanced"
   | "starting_soon";
