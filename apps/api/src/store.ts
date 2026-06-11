@@ -89,6 +89,14 @@ const EVENTS_CACHE_TTL_MS = Math.max(
   5_000,
   Number(process.env.EVENTS_CACHE_TTL_MS ?? 30_000),
 );
+const TEAM_LIST_HYDRATION_STALE_MS = Math.max(
+  60_000,
+  Number(process.env.TEAM_LIST_HYDRATION_STALE_MS ?? 15 * 60_000),
+);
+const TEAM_LIST_HYDRATION_WINDOW_DAYS = Math.max(
+  1,
+  Number(process.env.TEAM_LIST_HYDRATION_WINDOW_DAYS ?? 14),
+);
 let publicEventsCache:
   | { expiresAt: number; events: TournamentEvent[] }
   | null = null;
@@ -2002,6 +2010,10 @@ export class PrismaStore implements CourtWatchStore {
     const storedTeams = await this.prisma.team.count({
       where: { eventId: event.id },
     });
+    const shouldRefreshEmptyPublishedList = shouldRecheckPublicTeamList(
+      event,
+      storedTeams,
+    );
     if (storedTeams >= event.registeredTeamCount && storedTeams > 0) {
       if (
         !event.lastSyncedAt ||
@@ -2021,7 +2033,12 @@ export class PrismaStore implements CourtWatchStore {
       }
       return;
     }
-    if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return;
+    if (
+      !event.hasPublicTeamList &&
+      event.registeredTeamCount <= 0 &&
+      !shouldRefreshEmptyPublishedList
+    )
+      return;
 
     const tournament =
       configuredTournaments().find(
@@ -2036,6 +2053,7 @@ export class PrismaStore implements CourtWatchStore {
           where: { id: event.id },
           data: { lastCheckedAt: new Date() },
         });
+        invalidateEventsCache();
         return;
       }
       const teamListChanged = sourceTeams.teams.length !== storedTeams;
@@ -2051,6 +2069,7 @@ export class PrismaStore implements CourtWatchStore {
           lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
         },
       });
+      invalidateEventsCache();
     } catch (error) {
       console.warn("Unable to hydrate published team list", {
         exposureEventId,
@@ -2397,6 +2416,44 @@ function prismaEventToCore(
     status,
     dropdownGroup: source ? "tracked" : "upcoming",
   };
+}
+
+function shouldRecheckPublicTeamList(
+  event: {
+    externalProvider: string;
+    sourceUrl: string | null;
+    officialUrl: string;
+    startDate: Date;
+    endDate: Date;
+    lastCheckedAt: Date | null;
+    status: string;
+  },
+  storedTeams: number,
+) {
+  if (storedTeams > 0) return false;
+  const exposureUrl =
+    event.sourceUrl?.includes("basketball.exposureevents.com") ||
+    event.officialUrl.includes("basketball.exposureevents.com");
+  if (event.externalProvider !== "exposure_events" && !exposureUrl)
+    return false;
+  const status = deriveTournamentStatus({
+    startDate: event.startDate.toISOString().slice(0, 10),
+    endDate: event.endDate.toISOString().slice(0, 10),
+    status: event.status as TournamentEvent["status"],
+  });
+  if (status === "cancelled" || status === "unavailable") return false;
+
+  const todayKey = tournamentTodayKey();
+  const startKey = event.startDate.toISOString().slice(0, 10);
+  const endKey = event.endDate.toISOString().slice(0, 10);
+  if (startKey > addDaysKey(todayKey, TEAM_LIST_HYDRATION_WINDOW_DAYS))
+    return false;
+  if (endKey < addDaysKey(todayKey, -1)) return false;
+
+  return (
+    !event.lastCheckedAt ||
+    Date.now() - event.lastCheckedAt.getTime() >= TEAM_LIST_HYDRATION_STALE_MS
+  );
 }
 
 function aggregateSyncResults(

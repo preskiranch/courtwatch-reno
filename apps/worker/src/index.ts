@@ -19,6 +19,10 @@ const EnvSchema = z.object({
   WORKER_SYNC_BATCH_SIZE: z.coerce.number().default(8),
   WORKER_SYNC_CONCURRENCY: z.coerce.number().default(3),
   WORKER_ACTIVE_GAME_STALE_MS: z.coerce.number().default(90_000),
+  WORKER_TEAM_LIST_RECHECK_STALE_MS: z.coerce
+    .number()
+    .default(15 * 60_000),
+  WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS: z.coerce.number().default(14),
   WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
 });
@@ -148,6 +152,11 @@ async function syncTargets(): Promise<TournamentEvent[]> {
       if (leftNeedsTeams !== rightNeedsTeams)
         return leftNeedsTeams - rightNeedsTeams;
 
+      const leftNeedsTeamRefresh = needsPublicTeamListRecheck(left) ? 0 : 1;
+      const rightNeedsTeamRefresh = needsPublicTeamListRecheck(right) ? 0 : 1;
+      if (leftNeedsTeamRefresh !== rightNeedsTeamRefresh)
+        return leftNeedsTeamRefresh - rightNeedsTeamRefresh;
+
       const leftStatus = syncStatusPriority(left.status);
       const rightStatus = syncStatusPriority(right.status);
       if (leftStatus !== rightStatus) return leftStatus - rightStatus;
@@ -210,6 +219,37 @@ function needsPublishedTeamHydration(event: TournamentEvent) {
     event.hasPublicTeamList &&
     event.registeredTeamCount > 0 &&
     !event.lastSyncedAt
+  );
+}
+
+function needsPublicTeamListRecheck(event: TournamentEvent) {
+  if (!isCourtWatchSupportedTournamentRegion(event)) return false;
+  if (event.status === "cancelled" || event.status === "unavailable")
+    return false;
+  if (!isExposureTournament(event)) return false;
+
+  const todayKey = dateKeyInPacific(new Date());
+  if (
+    event.startDate >
+    addDaysKey(todayKey, env.WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS)
+  )
+    return false;
+  if (event.endDate < addDaysKey(todayKey, -1)) return false;
+
+  const lastCheckedAt = event.lastCheckedAt
+    ? Date.parse(event.lastCheckedAt)
+    : Number.NaN;
+  return (
+    Number.isNaN(lastCheckedAt) ||
+    Date.now() - lastCheckedAt >= env.WORKER_TEAM_LIST_RECHECK_STALE_MS
+  );
+}
+
+function isExposureTournament(event: TournamentEvent) {
+  return (
+    event.externalProvider === "exposure_events" ||
+    event.sourceUrl?.includes("basketball.exposureevents.com") ||
+    event.officialUrl.includes("basketball.exposureevents.com")
   );
 }
 
