@@ -5523,6 +5523,7 @@ function AccountPanel({
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
   const [resetPassword, setResetPassword] = useState("");
+  const [resetCodeRequested, setResetCodeRequested] = useState(false);
   const [accountMessage, setAccountMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -5531,7 +5532,8 @@ function AccountPanel({
     if (!token) return;
     setMode("forgot");
     setResetToken(token);
-    setAccountMessage("Paste a new password to finish the reset.");
+    setResetCodeRequested(true);
+    setAccountMessage("Reset code loaded. Enter a new password to finish.");
   }, []);
 
   const applySession = async (response: AccountSession) => {
@@ -5568,13 +5570,17 @@ function AccountPanel({
     onSuccess: (response) => {
       if (response.resetToken) {
         setResetToken(response.resetToken);
+        setResetCodeRequested(true);
         setAccountMessage("Reset code created. Enter a new password below.");
         return;
       }
+      setResetToken("");
+      setResetPassword("");
+      setResetCodeRequested(response.emailSent);
       setAccountMessage(
         response.emailSent
-          ? "Check your email for the reset code."
-          : "If that account exists, reset instructions were created. Email delivery is not ready yet.",
+          ? "Check your email for the reset code, then paste it below."
+          : "No reset email was sent. Use the same email you used to create your Court Watch account, or create a free account first.",
       );
     },
     onError: (error) => setAccountMessage(errorText(error)),
@@ -5590,10 +5596,16 @@ function AccountPanel({
       setPassword("");
       setResetPassword("");
       setResetToken("");
+      setResetCodeRequested(false);
       setMode("login");
       setAccountMessage("Password updated. Sign in with the new password.");
     },
-    onError: (error) => setAccountMessage(errorText(error)),
+    onError: (error) =>
+      setAccountMessage(
+        resetToken.trim().length < 16
+          ? "Paste the reset code from your email before resetting your password."
+          : errorText(error),
+      ),
   });
 
   const busy =
@@ -5737,6 +5749,11 @@ function AccountPanel({
                 placeholder="Account email"
                 type="email"
               />
+              <p className="rounded-lg bg-slate-100 p-3 text-xs font-bold leading-5 text-slate-600">
+                Enter the email you used when creating your free Court Watch
+                account. If that email is registered, a reset code will be sent
+                there.
+              </p>
               <button
                 type="button"
                 disabled={busy || !(resetEmail || email)}
@@ -5745,27 +5762,35 @@ function AccountPanel({
               >
                 Send reset code
               </button>
-              <AccountInput
-                icon={KeyRound}
-                value={resetToken}
-                onChange={setResetToken}
-                placeholder="Reset code"
-              />
-              <AccountInput
-                icon={KeyRound}
-                value={resetPassword}
-                onChange={setResetPassword}
-                placeholder="New password"
-                type="password"
-              />
-              <button
-                type="button"
-                disabled={busy || !resetToken || resetPassword.length < 8}
-                onClick={() => resetMutation.mutate()}
-                className="min-h-11 w-full rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-50"
-              >
-                Reset password
-              </button>
+              {resetCodeRequested || resetToken ? (
+                <>
+                  <AccountInput
+                    icon={KeyRound}
+                    value={resetToken}
+                    onChange={setResetToken}
+                    placeholder="Reset code from email"
+                  />
+                  <AccountInput
+                    icon={KeyRound}
+                    value={resetPassword}
+                    onChange={setResetPassword}
+                    placeholder="New password"
+                    type="password"
+                  />
+                  <button
+                    type="button"
+                    disabled={
+                      busy ||
+                      resetToken.trim().length < 16 ||
+                      resetPassword.length < 8
+                    }
+                    onClick={() => resetMutation.mutate()}
+                    className="min-h-11 w-full rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99] disabled:opacity-50"
+                  >
+                    Reset password
+                  </button>
+                </>
+              ) : null}
             </div>
           ) : null}
         </>

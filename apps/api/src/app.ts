@@ -311,12 +311,20 @@ export function createApp(
         res.status(503).json({ error: "Accounts require a database" });
         return;
       }
-      const body = z
+      const parsedBody = z
         .object({
           token: z.string().trim().min(16).max(200),
           password: z.string().min(8).max(160),
         })
-        .parse(req.body ?? {});
+        .safeParse(req.body ?? {});
+      if (!parsedBody.success) {
+        res.status(400).json({
+          error:
+            "Paste the reset code from your email and enter a password with at least 8 characters.",
+        });
+        return;
+      }
+      const body = parsedBody.data;
       const resetToken = await prismaClient.passwordResetToken.findUnique({
         where: { tokenHash: tokenHash(body.token) },
       });
