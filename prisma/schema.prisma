@@ -19,10 +19,10 @@ model User {
   expoPushToken        String?   @map("expo_push_token")
   timezone             String    @default("America/Los_Angeles")
 
-  watchlists           ProgramWatchlist[]
+  watchlists              ProgramWatchlist[]
   notificationPreferences NotificationPreference[]
-  notificationLogs     NotificationLog[]
-  passwordResetTokens  PasswordResetToken[]
+  notificationLogs        NotificationLog[]
+  passwordResetTokens     PasswordResetToken[]
 
   @@map("users")
 }
@@ -35,7 +35,7 @@ model PasswordResetToken {
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -91,10 +91,10 @@ model ProgramWatchlist {
   active                Boolean  @default(true)
   createdAt             DateTime @default(now()) @map("created_at")
 
-  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  aliases               ProgramAlias[]
-  matches               ProgramTeamMatch[]
-  changeEvents          GameChangeEvent[]
+  user         User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aliases      ProgramAlias[]
+  matches      ProgramTeamMatch[]
+  changeEvents GameChangeEvent[]
 
   @@unique([userId, normalizedProgramName])
   @@map("program_watchlist")
@@ -107,7 +107,7 @@ model ProgramAlias {
   normalizedAlias    String   @map("normalized_alias")
   createdAt          DateTime @default(now()) @map("created_at")
 
-  programWatchlist   ProgramWatchlist @relation(fields: [programWatchlistId], references: [id], onDelete: Cascade)
+  programWatchlist ProgramWatchlist @relation(fields: [programWatchlistId], references: [id], onDelete: Cascade)
 
   @@unique([programWatchlistId, normalizedAlias])
   @@map("program_aliases")
@@ -123,10 +123,10 @@ model Division {
   level              String?
   rawJson            Json?   @map("raw_json")
 
-  event              Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  teams              Team[]
-  games              Game[]
-  results            DivisionResult[]
+  event   Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  teams   Team[]
+  games   Game[]
+  results DivisionResult[]
 
   @@unique([eventId, exposureDivisionId])
   @@map("divisions")
@@ -150,14 +150,14 @@ model Team {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  event              Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  division           Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
-  matches            ProgramTeamMatch[]
-  players            Player[]
-  divisionResults    DivisionResult[]
-  homeGames          Game[]   @relation("HomeTeam")
-  awayGames          Game[]   @relation("AwayTeam")
-  changeEvents       GameChangeEvent[]
+  event           Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  division        Division?          @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  matches         ProgramTeamMatch[]
+  players         Player[]
+  divisionResults DivisionResult[]
+  homeGames       Game[]             @relation("HomeTeam")
+  awayGames       Game[]             @relation("AwayTeam")
+  changeEvents    GameChangeEvent[]
 
   @@unique([eventId, exposureTeamId])
   @@index([normalizedName])
@@ -179,8 +179,8 @@ model Player {
   rawJson          Json?    @map("raw_json")
   lastSeenAt       DateTime @map("last_seen_at")
 
-  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  team             Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  team  Team? @relation(fields: [teamId], references: [id], onDelete: SetNull)
 
   @@unique([eventId, exposurePlayerId])
   @@index([normalizedName])
@@ -197,8 +197,8 @@ model ProgramTeamMatch {
   active             Boolean  @default(true)
   createdAt          DateTime @default(now()) @map("created_at")
 
-  programWatchlist   ProgramWatchlist @relation(fields: [programWatchlistId], references: [id], onDelete: Cascade)
-  team               Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  programWatchlist ProgramWatchlist @relation(fields: [programWatchlistId], references: [id], onDelete: Cascade)
+  team             Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([programWatchlistId, teamId])
   @@map("program_team_matches")
@@ -230,11 +230,11 @@ model Game {
   sourceHash           String   @map("source_hash")
   rawJson              Json?    @map("raw_json")
 
-  event                Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  division             Division? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
-  homeTeam             Team?     @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: SetNull)
-  awayTeam             Team?     @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: SetNull)
-  changeEvents         GameChangeEvent[]
+  event        Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  division     Division?         @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  homeTeam     Team?             @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: SetNull)
+  awayTeam     Team?             @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: SetNull)
+  changeEvents GameChangeEvent[]
 
   @@unique([eventId, exposureGameId])
   @@index([startsAt])
@@ -253,10 +253,10 @@ model GameChangeEvent {
   notificationSent           Boolean  @default(false) @map("notification_sent")
   dedupeKey                  String   @unique @map("dedupe_key")
 
-  game                       Game?    @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  affectedTeam               Team?    @relation(fields: [affectedTeamId], references: [id], onDelete: SetNull)
-  affectedProgramWatchlist   ProgramWatchlist? @relation(fields: [affectedProgramWatchlistId], references: [id], onDelete: SetNull)
-  notificationLogs           NotificationLog[]
+  game                     Game?             @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  affectedTeam             Team?             @relation(fields: [affectedTeamId], references: [id], onDelete: SetNull)
+  affectedProgramWatchlist ProgramWatchlist? @relation(fields: [affectedProgramWatchlistId], references: [id], onDelete: SetNull)
+  notificationLogs         NotificationLog[]
 
   @@index([createdAt])
   @@map("game_change_events")
@@ -280,9 +280,9 @@ model DivisionResult {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
-  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  division         Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
-  team             Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  team     Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
 
   @@unique([eventId, divisionId, placement])
   @@index([divisionId])
@@ -291,21 +291,21 @@ model DivisionResult {
 }
 
 model NotificationPreference {
-  id                         String   @id @default(cuid())
-  userId                     String   @map("user_id")
-  newTeamDiscovered          Boolean  @default(true) @map("new_team_discovered")
-  newGameAdded               Boolean  @default(true) @map("new_game_added")
-  gameTimeChanged            Boolean  @default(true) @map("game_time_changed")
-  courtChanged               Boolean  @default(true) @map("court_changed")
-  venueChanged               Boolean  @default(true) @map("venue_changed")
-  opponentAssigned           Boolean  @default(true) @map("opponent_assigned")
-  scorePosted                Boolean  @default(true) @map("score_posted")
-  finalScore                 Boolean  @default(true) @map("final_score")
-  bracketUpdate              Boolean  @default(true) @map("bracket_update")
-  gameStartReminderMinutes   Int[]    @default([60, 30, 15]) @map("game_start_reminder_minutes")
-  dailyDigest                Boolean  @default(true) @map("daily_digest")
+  id                       String  @id @default(cuid())
+  userId                   String  @map("user_id")
+  newTeamDiscovered        Boolean @default(true) @map("new_team_discovered")
+  newGameAdded             Boolean @default(true) @map("new_game_added")
+  gameTimeChanged          Boolean @default(true) @map("game_time_changed")
+  courtChanged             Boolean @default(true) @map("court_changed")
+  venueChanged             Boolean @default(true) @map("venue_changed")
+  opponentAssigned         Boolean @default(true) @map("opponent_assigned")
+  scorePosted              Boolean @default(true) @map("score_posted")
+  finalScore               Boolean @default(true) @map("final_score")
+  bracketUpdate            Boolean @default(true) @map("bracket_update")
+  gameStartReminderMinutes Int[]   @default([60, 30, 15]) @map("game_start_reminder_minutes")
+  dailyDigest              Boolean @default(true) @map("daily_digest")
 
-  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
   @@map("notification_preferences")
@@ -323,11 +323,34 @@ model NotificationLog {
   errorMessage      String?  @map("error_message")
   dedupeKey         String   @map("dedupe_key")
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gameChangeEvent   GameChangeEvent? @relation(fields: [gameChangeEventId], references: [id], onDelete: SetNull)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameChangeEvent GameChangeEvent? @relation(fields: [gameChangeEventId], references: [id], onDelete: SetNull)
 
   @@unique([userId, dedupeKey, channel])
   @@map("notification_log")
+}
+
+model FavoriteTeamWatch {
+  id             String   @id @default(cuid())
+  ownerHash      String   @map("owner_hash")
+  displayName    String   @map("display_name")
+  normalizedName String   @map("normalized_name")
+  source         String   @default("custom")
+  sourceTeamId   String?  @map("source_team_id")
+  sourceTeamName String?  @map("source_team_name")
+  eventName      String?  @map("event_name")
+  divisionName   String?  @map("division_name")
+  gender         String?
+  gradeLevel     String?  @map("grade_level")
+  level          String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerHash])
+  @@index([normalizedName])
+  @@index([sourceTeamId])
+  @@map("favorite_team_watches")
 }
 
 model SyncRun {
@@ -342,7 +365,7 @@ model SyncRun {
   changesDetected Int       @default(0) @map("changes_detected")
   errorMessage    String?   @map("error_message")
 
-  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([startedAt])
   @@map("sync_runs")

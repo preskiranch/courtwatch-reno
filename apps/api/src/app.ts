@@ -474,14 +474,60 @@ export function createApp(
 
   app.get("/api/teams", async (req, res, next) => {
     try {
+      const limit = numericQuery(req.query.limit, 1, 100);
       res.json(
         await store.teams(
           typeof req.query.search === "string" ? req.query.search : undefined,
           requestClientIdentity(req),
           requestExposureEventId(req),
           stringQuery(req.query.scope) === "all",
+          limit,
         ),
       );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/favorite-team-watches", async (req, res, next) => {
+    try {
+      res.json(await store.favoriteTeamWatches(requestClientIdentity(req)));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/favorite-team-watches", async (req, res, next) => {
+    try {
+      const body = z
+        .object({
+          displayName: z.string().trim().min(2).max(120),
+          sourceTeamId: z.string().trim().min(1).max(120).nullable().optional(),
+          sourceTeamName: z.string().trim().max(160).nullable().optional(),
+          eventName: z.string().trim().max(220).nullable().optional(),
+          divisionName: z.string().trim().max(180).nullable().optional(),
+          gender: z.string().trim().max(40).nullable().optional(),
+          gradeLevel: z.string().trim().max(40).nullable().optional(),
+          level: z.string().trim().max(80).nullable().optional(),
+        })
+        .parse(req.body ?? {});
+      res
+        .status(201)
+        .json(
+          await store.saveFavoriteTeamWatch(body, requestClientIdentity(req)),
+        );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/api/favorite-team-watches/:watchId", async (req, res, next) => {
+    try {
+      await store.deleteFavoriteTeamWatch(
+        req.params.watchId,
+        requestClientIdentity(req),
+      );
+      res.status(204).end();
     } catch (error) {
       next(error);
     }
@@ -862,6 +908,16 @@ function presencePayload(clientId?: string) {
 
 function stringQuery(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function numericQuery(
+  value: unknown,
+  min: number,
+  max: number,
+): number | undefined {
+  const raw = typeof value === "string" ? Number(value) : NaN;
+  if (!Number.isFinite(raw)) return undefined;
+  return Math.min(max, Math.max(min, Math.trunc(raw)));
 }
 
 function requestClientId(req: express.Request): string | null {

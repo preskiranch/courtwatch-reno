@@ -43,6 +43,8 @@ import type {
   Division,
   DivisionResult,
   DivisionResultGroup,
+  FavoriteTeamWatch,
+  FavoriteTeamWatchInput,
   Game,
   GameChangeEvent,
   MatchType,
@@ -97,9 +99,8 @@ const TEAM_LIST_HYDRATION_WINDOW_DAYS = Math.max(
   1,
   Number(process.env.TEAM_LIST_HYDRATION_WINDOW_DAYS ?? 14),
 );
-let publicEventsCache:
-  | { expiresAt: number; events: TournamentEvent[] }
-  | null = null;
+let publicEventsCache: { expiresAt: number; events: TournamentEvent[] } | null =
+  null;
 
 function invalidateEventsCache() {
   publicEventsCache = null;
@@ -246,7 +247,17 @@ export interface CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
     allEvents?: boolean,
+    limit?: number,
   ): Promise<Team[]>;
+  favoriteTeamWatches(clientId?: string | null): Promise<FavoriteTeamWatch[]>;
+  saveFavoriteTeamWatch(
+    input: FavoriteTeamWatchInput,
+    clientId?: string | null,
+  ): Promise<FavoriteTeamWatch>;
+  deleteFavoriteTeamWatch(
+    watchId: string,
+    clientId?: string | null,
+  ): Promise<void>;
   scoringLeaders(
     clientId?: string | null,
     exposureEventId?: number | null,
@@ -285,6 +296,8 @@ export interface CourtWatchStore {
 
 export class MockStore implements CourtWatchStore {
   private data: CourtWatchSnapshot;
+  private favoriteWatches: Array<FavoriteTeamWatch & { ownerHash: string }> =
+    [];
 
   constructor(initialData: CourtWatchSnapshot = seedSnapshot) {
     this.data = structuredClone(initialData);
@@ -458,13 +471,89 @@ export class MockStore implements CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
     allEvents = false,
+    limit?: number,
   ) {
     const normalized = normalizeName(search);
     const program = this.ensureSelectedProgram(clientId);
     const snapshot = allEvents
       ? scopeSnapshot(structuredClone(this.data), program.id)
       : this.snapshotForClient(clientId, exposureEventId);
-    return filterTeamsForSearch(snapshot, normalized);
+    const teams = filterTeamsForSearch(snapshot, normalized);
+    return typeof limit === "number" ? teams.slice(0, limit) : teams;
+  }
+
+  async favoriteTeamWatches(
+    clientId?: string | null,
+  ): Promise<FavoriteTeamWatch[]> {
+    const ownerHash = favoriteWatchOwnerHash(clientId);
+    return structuredClone(
+      this.favoriteWatches
+        .filter((watch) => watch.ownerHash === ownerHash && watch.active)
+        .map(({ ownerHash: _ownerHash, ...watch }) => watch),
+    );
+  }
+
+  async saveFavoriteTeamWatch(
+    input: FavoriteTeamWatchInput,
+    clientId?: string | null,
+  ): Promise<FavoriteTeamWatch> {
+    const ownerHash = favoriteWatchOwnerHash(clientId);
+    const displayName = input.displayName.trim();
+    const normalizedName = normalizeName(displayName);
+    const sourceTeamId = input.sourceTeamId?.trim() || null;
+    const existing = this.favoriteWatches.find(
+      (watch) =>
+        watch.ownerHash === ownerHash &&
+        watch.normalizedName === normalizedName &&
+        (watch.sourceTeamId ?? null) === sourceTeamId,
+    );
+    if (existing) {
+      existing.active = true;
+      existing.displayName = displayName;
+      existing.source = sourceTeamId ? "registered" : "custom";
+      existing.sourceTeamName = input.sourceTeamName ?? null;
+      existing.eventName = input.eventName ?? null;
+      existing.divisionName = input.divisionName ?? null;
+      existing.gender = input.gender ?? null;
+      existing.gradeLevel = input.gradeLevel ?? null;
+      existing.level = input.level ?? null;
+      existing.updatedAt = new Date().toISOString();
+      const { ownerHash: _ownerHash, ...watch } = existing;
+      return structuredClone(watch);
+    }
+    const now = new Date().toISOString();
+    const watch: FavoriteTeamWatch & { ownerHash: string } = {
+      id: `favorite-watch-${ownerHash}-${Date.now()}`,
+      ownerHash,
+      displayName,
+      normalizedName,
+      source: sourceTeamId ? "registered" : "custom",
+      sourceTeamId,
+      sourceTeamName: input.sourceTeamName ?? null,
+      eventName: input.eventName ?? null,
+      divisionName: input.divisionName ?? null,
+      gender: input.gender ?? null,
+      gradeLevel: input.gradeLevel ?? null,
+      level: input.level ?? null,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.favoriteWatches.push(watch);
+    const { ownerHash: _ownerHash, ...savedWatch } = watch;
+    return structuredClone(savedWatch);
+  }
+
+  async deleteFavoriteTeamWatch(
+    watchId: string,
+    clientId?: string | null,
+  ): Promise<void> {
+    const ownerHash = favoriteWatchOwnerHash(clientId);
+    this.favoriteWatches = this.favoriteWatches.map((watch) =>
+      watch.ownerHash === ownerHash && watch.id === watchId
+        ? { ...watch, active: false, updatedAt: new Date().toISOString() }
+        : watch,
+    );
   }
 
   async scoringLeaders(
@@ -735,18 +824,19 @@ export class PrismaStore implements CourtWatchStore {
       }
     }
 
-    const events: TournamentEvent[] = dropdownEventsWithUpcomingExposureFallback(
-      Array.from(merged.values()),
-    ).map((event): TournamentEvent => {
-      const supportedRegion = courtWatchSupportedTournamentRegion(event);
-      return {
-        ...event,
-        region: supportedRegion ?? event.region,
-        dropdownGroup: trackedExposureEventIds.has(event.exposureEventId)
-          ? "tracked"
-          : "upcoming",
-      };
-    });
+    const events: TournamentEvent[] =
+      dropdownEventsWithUpcomingExposureFallback(
+        Array.from(merged.values()),
+      ).map((event): TournamentEvent => {
+        const supportedRegion = courtWatchSupportedTournamentRegion(event);
+        return {
+          ...event,
+          region: supportedRegion ?? event.region,
+          dropdownGroup: trackedExposureEventIds.has(event.exposureEventId)
+            ? "tracked"
+            : "upcoming",
+        };
+      });
     if (!clientId) writePublicEventsCache(events);
     return events;
   }
@@ -1191,8 +1281,9 @@ export class PrismaStore implements CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
     allEvents = false,
+    limit?: number,
   ) {
-    if (allEvents) return this.teamsAcrossEvents(search, clientId);
+    if (allEvents) return this.teamsAcrossEvents(search, clientId, limit);
     await this.hydratePublishedTeamsIfMissing(exposureEventId);
     await this.hydrateActiveGamesIfStale(exposureEventId);
     const snapshot = await this.teamsSnapshotForEvent(
@@ -1206,22 +1297,33 @@ export class PrismaStore implements CourtWatchStore {
   private async teamsAcrossEvents(
     search?: string,
     clientId?: string | null,
+    limit?: number,
   ): Promise<Team[]> {
     const program = await this.ensureSelectedProgram(clientId);
     const normalized = normalizeName(search);
-    const [teams, players, programs, matches, games] = await Promise.all([
-      this.prisma.team.findMany({
-        include: { division: true, event: true },
-        orderBy: [{ name: "asc" }, { id: "asc" }],
-      }),
-      this.prisma.player.findMany(),
+    const teamWhere = allEventsTeamSearchWhere(search);
+    const teams = await this.prisma.team.findMany({
+      where: teamWhere,
+      include: { division: true, event: true },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+      ...(typeof limit === "number" ? { take: limit } : {}),
+    });
+    const teamIds = teams.map((team) => team.id);
+    const [programs, matches, games] = await Promise.all([
       this.prisma.programWatchlist.findMany({ where: { active: true } }),
       this.prisma.programTeamMatch.findMany({ where: { active: true } }),
-      this.prisma.game.findMany({ orderBy: { startsAt: "asc" } }),
+      teamIds.length > 0
+        ? this.prisma.game.findMany({
+            where: {
+              OR: [
+                { homeTeamId: { in: teamIds } },
+                { awayTeamId: { in: teamIds } },
+              ],
+            },
+            orderBy: { startsAt: "asc" },
+          })
+        : Promise.resolve([]),
     ]);
-    const playerNamesByTeam = groupPlayerNamesByTeam(
-      players.map(prismaPlayerToCore),
-    );
     const followerCounts = teamFollowerCounts(
       programs,
       matches.map(prismaMatchToCore),
@@ -1257,7 +1359,7 @@ export class PrismaStore implements CourtWatchStore {
       exposureEventId: team.event.exposureEventId,
       eventName: team.event.name,
       eventLocation: team.event.location,
-      playerNames: playerNamesByTeam.get(team.id) ?? [],
+      playerNames: [],
       isFollowed: followedTeamIds.has(team.id),
       followerCount: followerCounts.get(team.id) ?? 0,
     }));
@@ -1278,6 +1380,67 @@ export class PrismaStore implements CourtWatchStore {
       ...team,
       isFollowed: followedTeamIds.has(team.id),
     }));
+  }
+
+  async favoriteTeamWatches(
+    clientId?: string | null,
+  ): Promise<FavoriteTeamWatch[]> {
+    const ownerHash = favoriteWatchOwnerHash(clientId);
+    const watches = await this.prisma.favoriteTeamWatch.findMany({
+      where: { ownerHash, active: true },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+    return watches.map(prismaFavoriteTeamWatchToCore);
+  }
+
+  async saveFavoriteTeamWatch(
+    input: FavoriteTeamWatchInput,
+    clientId?: string | null,
+  ): Promise<FavoriteTeamWatch> {
+    const ownerHash = favoriteWatchOwnerHash(clientId);
+    const displayName = input.displayName.trim();
+    const normalizedName = normalizeName(displayName);
+    const sourceTeamId = input.sourceTeamId?.trim() || null;
+    const existing = await this.prisma.favoriteTeamWatch.findFirst({
+      where: {
+        ownerHash,
+        normalizedName,
+        sourceTeamId,
+      },
+    });
+    const data = {
+      displayName,
+      normalizedName,
+      source: sourceTeamId ? "registered" : "custom",
+      sourceTeamId,
+      sourceTeamName: input.sourceTeamName ?? null,
+      eventName: input.eventName ?? null,
+      divisionName: input.divisionName ?? null,
+      gender: input.gender ?? null,
+      gradeLevel: input.gradeLevel ?? null,
+      level: input.level ?? null,
+      active: true,
+    };
+    const watch = existing
+      ? await this.prisma.favoriteTeamWatch.update({
+          where: { id: existing.id },
+          data,
+        })
+      : await this.prisma.favoriteTeamWatch.create({
+          data: { ownerHash, ...data },
+        });
+    return prismaFavoriteTeamWatchToCore(watch);
+  }
+
+  async deleteFavoriteTeamWatch(
+    watchId: string,
+    clientId?: string | null,
+  ): Promise<void> {
+    const ownerHash = favoriteWatchOwnerHash(clientId);
+    await this.prisma.favoriteTeamWatch.updateMany({
+      where: { id: watchId, ownerHash },
+      data: { active: false },
+    });
   }
 
   async scoringLeaders(
@@ -1590,12 +1753,12 @@ export class PrismaStore implements CourtWatchStore {
     );
     const events = await this.prisma.event.findMany({
       where: courtWatchScopedEventWhere({
-          externalProvider: "exposure_events",
-          hasPublicTeamList: true,
-          registeredTeamCount: { gt: 0 },
-          startDate: { lte: new Date(`${windowEndKey}T00:00:00.000Z`) },
-          endDate: { gte: new Date(`${todayKey}T00:00:00.000Z`) },
-          status: { notIn: ["cancelled", "unavailable"] },
+        externalProvider: "exposure_events",
+        hasPublicTeamList: true,
+        registeredTeamCount: { gt: 0 },
+        startDate: { lte: new Date(`${windowEndKey}T00:00:00.000Z`) },
+        endDate: { gte: new Date(`${todayKey}T00:00:00.000Z`) },
+        status: { notIn: ["cancelled", "unavailable"] },
       }),
       orderBy: [{ startDate: "asc" }, { name: "asc" }],
     });
@@ -2563,6 +2726,10 @@ function selectedProgramIdForClient(clientId?: string | null): string {
 
 function selectedUserIdForClient(clientId: string): string {
   return `user-device-${clientHash(clientId)}`;
+}
+
+function favoriteWatchOwnerHash(clientId?: string | null): string {
+  return clientId ? clientHash(clientId) : "anonymous";
 }
 
 async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
@@ -3894,10 +4061,41 @@ function filterTeamsForSearch(
       return (
         team.normalizedName.includes(normalizedSearch) ||
         normalizeName(team.clubName).includes(normalizedSearch) ||
-        normalizeName(team.divisionName).includes(normalizedSearch)
+        normalizeName(team.divisionName).includes(normalizedSearch) ||
+        normalizeName(team.eventName).includes(normalizedSearch)
       );
     })
     .sort(compareRegisteredTeams);
+}
+
+function allEventsTeamSearchWhere(search?: string): Prisma.TeamWhereInput {
+  const trimmed = search?.trim() ?? "";
+  const normalized = normalizeName(trimmed);
+  const scopedEvents: Prisma.TeamWhereInput = {
+    event: { is: courtWatchEventScopeWhere() },
+  };
+  if (!normalized) return scopedEvents;
+  return {
+    AND: [
+      scopedEvents,
+      {
+        OR: [
+          { normalizedName: { contains: normalized } },
+          { normalizedClubName: { contains: normalized } },
+          { name: { contains: trimmed, mode: "insensitive" } },
+          { clubName: { contains: trimmed, mode: "insensitive" } },
+          {
+            division: {
+              is: { name: { contains: trimmed, mode: "insensitive" } },
+            },
+          },
+          {
+            event: { is: { name: { contains: trimmed, mode: "insensitive" } } },
+          },
+        ],
+      },
+    ],
+  };
 }
 
 function buildTeamRecordSummaryMap(
@@ -4128,6 +4326,40 @@ function prismaMatchToCore(match: {
     matchConfidence: Number(match.matchConfidence),
     active: match.active,
     createdAt: match.createdAt.toISOString(),
+  };
+}
+
+function prismaFavoriteTeamWatchToCore(watch: {
+  id: string;
+  displayName: string;
+  normalizedName: string;
+  source: string;
+  sourceTeamId: string | null;
+  sourceTeamName: string | null;
+  eventName: string | null;
+  divisionName: string | null;
+  gender: string | null;
+  gradeLevel: string | null;
+  level: string | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}): FavoriteTeamWatch {
+  return {
+    id: watch.id,
+    displayName: watch.displayName,
+    normalizedName: watch.normalizedName,
+    source: watch.source === "registered" ? "registered" : "custom",
+    sourceTeamId: watch.sourceTeamId,
+    sourceTeamName: watch.sourceTeamName,
+    eventName: watch.eventName,
+    divisionName: watch.divisionName,
+    gender: watch.gender,
+    gradeLevel: watch.gradeLevel,
+    level: watch.level,
+    active: watch.active,
+    createdAt: watch.createdAt.toISOString(),
+    updatedAt: watch.updatedAt.toISOString(),
   };
 }
 

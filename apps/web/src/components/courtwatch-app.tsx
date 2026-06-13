@@ -11,6 +11,7 @@ import {
   type CourtSummary,
   type DashboardResponse,
   type DivisionResult,
+  type FavoriteTeamWatch,
   type Game,
   type GameChangeEvent,
   type ProgramSummary,
@@ -1630,9 +1631,7 @@ function NextGameBanner({
               Next Game
             </p>
             <h2 className="text-xl font-black text-slate-950">{title}</h2>
-            <p className="text-sm font-medium text-slate-600">
-              {subtitle}
-            </p>
+            <p className="text-sm font-medium text-slate-600">{subtitle}</p>
           </div>
         </div>
       </section>
@@ -3970,8 +3969,13 @@ function TeamsScreen({
 }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [favoriteTeamSearch, setFavoriteTeamSearch] = useState("");
+  const [favoriteDropdownOpen, setFavoriteDropdownOpen] = useState(false);
   const [focusedTeamId, setFocusedTeamId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
+  const deferredFavoriteTeamSearch = useDeferredValue(
+    favoriteTeamSearch.trim(),
+  );
   const searchActive = Boolean(deferredSearch);
   const {
     records,
@@ -3996,6 +4000,23 @@ function TeamsScreen({
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
+  });
+  const favoriteTeamWatchesQuery = useQuery({
+    queryKey: ["favorite-team-watches", clientId],
+    queryFn: () => CourtWatchApi.favoriteTeamWatches(),
+    enabled: Boolean(clientId),
+    staleTime: 60_000,
+  });
+  const favoriteTeamOptionsQuery = useQuery({
+    queryKey: ["favorite-team-options", clientId, deferredFavoriteTeamSearch],
+    queryFn: () =>
+      CourtWatchApi.teams(deferredFavoriteTeamSearch, null, {
+        allEvents: true,
+        limit: 60,
+      }),
+    enabled: deferredFavoriteTeamSearch.length >= 2,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
   const dashboardFollowedTeams = useMemo(
     () =>
@@ -4092,6 +4113,61 @@ function TeamsScreen({
     () => new Map(followStateTeams.map((team) => [team.id, team])),
     [followStateTeams],
   );
+  const favoriteTeamWatches = favoriteTeamWatchesQuery.data ?? [];
+  const favoriteTeamOptions = useMemo(
+    () => uniqueFavoriteTeamOptions(favoriteTeamOptionsQuery.data ?? []),
+    [favoriteTeamOptionsQuery.data],
+  );
+  const customFavoriteOptionAvailable = useMemo(
+    () =>
+      deferredFavoriteTeamSearch.length >= 2 &&
+      !favoriteTeamOptions.some(
+        (team) =>
+          normalizeDisplayText(team.name) ===
+          normalizeDisplayText(deferredFavoriteTeamSearch),
+      ) &&
+      !favoriteTeamWatches.some(
+        (watch) =>
+          normalizeDisplayText(watch.displayName) ===
+          normalizeDisplayText(deferredFavoriteTeamSearch),
+      ),
+    [deferredFavoriteTeamSearch, favoriteTeamOptions, favoriteTeamWatches],
+  );
+  const refreshFavoriteWatches = () => {
+    queryClient.invalidateQueries({ queryKey: ["favorite-team-watches"] });
+  };
+  const saveFavoriteTeamWatch = useMutation({
+    mutationFn: (
+      input: Parameters<typeof CourtWatchApi.saveFavoriteTeamWatch>[0],
+    ) => CourtWatchApi.saveFavoriteTeamWatch(input),
+    onSuccess: () => {
+      setFavoriteTeamSearch("");
+      setFavoriteDropdownOpen(false);
+      refreshFavoriteWatches();
+    },
+  });
+  const deleteFavoriteTeamWatch = useMutation({
+    mutationFn: (watchId: string) =>
+      CourtWatchApi.deleteFavoriteTeamWatch(watchId),
+    onSuccess: refreshFavoriteWatches,
+  });
+  const saveCustomFavoriteTeamWatch = () => {
+    const displayName = favoriteTeamSearch.trim();
+    if (displayName.length < 2) return;
+    saveFavoriteTeamWatch.mutate({ displayName });
+  };
+  const saveRegisteredFavoriteTeamWatch = (team: Team) => {
+    saveFavoriteTeamWatch.mutate({
+      displayName: team.name,
+      sourceTeamId: team.id,
+      sourceTeamName: team.name,
+      eventName: team.eventName ?? null,
+      divisionName: team.divisionName ?? null,
+      gender: team.gender ?? null,
+      gradeLevel: team.gradeLevel ?? null,
+      level: team.level ?? null,
+    });
+  };
   const followTeam = useMutation({
     mutationFn: (teamId: string) => CourtWatchApi.followTeam(teamId),
     onMutate: () => {
@@ -4230,6 +4306,26 @@ function TeamsScreen({
         </label>
       </section>
 
+      <FavoriteTeamWatchSelector
+        search={favoriteTeamSearch}
+        deferredSearch={deferredFavoriteTeamSearch}
+        onSearchChange={(value) => {
+          setFavoriteTeamSearch(value);
+          setFavoriteDropdownOpen(true);
+        }}
+        dropdownOpen={favoriteDropdownOpen}
+        onDropdownOpenChange={setFavoriteDropdownOpen}
+        options={favoriteTeamOptions}
+        watches={favoriteTeamWatches}
+        loading={favoriteTeamOptionsQuery.isLoading}
+        saving={saveFavoriteTeamWatch.isPending}
+        deletingWatchId={String(deleteFavoriteTeamWatch.variables ?? "")}
+        customOptionAvailable={customFavoriteOptionAvailable}
+        onSaveCustom={saveCustomFavoriteTeamWatch}
+        onSaveTeam={saveRegisteredFavoriteTeamWatch}
+        onDelete={(watchId) => deleteFavoriteTeamWatch.mutate(watchId)}
+      />
+
       <AccountPanel
         accountSession={accountSession}
         onAccountSessionChange={onAccountSessionChange}
@@ -4283,6 +4379,195 @@ function TeamsScreen({
 
       {!searchActive ? teamResultsSection : null}
     </div>
+  );
+}
+
+function FavoriteTeamWatchSelector({
+  search,
+  deferredSearch,
+  onSearchChange,
+  dropdownOpen,
+  onDropdownOpenChange,
+  options,
+  watches,
+  loading,
+  saving,
+  deletingWatchId,
+  customOptionAvailable,
+  onSaveCustom,
+  onSaveTeam,
+  onDelete,
+}: {
+  search: string;
+  deferredSearch: string;
+  onSearchChange: (value: string) => void;
+  dropdownOpen: boolean;
+  onDropdownOpenChange: (open: boolean) => void;
+  options: Team[];
+  watches: FavoriteTeamWatch[];
+  loading: boolean;
+  saving: boolean;
+  deletingWatchId: string;
+  customOptionAvailable: boolean;
+  onSaveCustom: () => void;
+  onSaveTeam: (team: Team) => void;
+  onDelete: (watchId: string) => void;
+}) {
+  const showDropdown = dropdownOpen && deferredSearch.length >= 2;
+  const savedSourceTeamIds = useMemo(
+    () =>
+      new Set(
+        watches
+          .map((watch) => watch.sourceTeamId)
+          .filter((teamId): teamId is string => Boolean(teamId)),
+      ),
+    [watches],
+  );
+
+  return (
+    <section className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">
+            Favorite Team Watch
+          </p>
+          <h2 className="mt-1 text-2xl font-black text-slate-950">
+            {watches.length} saved team{watches.length === 1 ? "" : "s"}
+          </h2>
+        </div>
+        <div className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-orange-300">
+          <Bell className="h-5 w-5" />
+        </div>
+      </div>
+
+      <label className="mt-4 flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 focus-within:border-orange-500">
+        <Search className="h-5 w-5 text-slate-400" />
+        <input
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
+          onFocus={() => onDropdownOpenChange(true)}
+          placeholder="Type any team name"
+          className="min-h-11 flex-1 bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+          autoComplete="off"
+        />
+        {search ? (
+          <button
+            type="button"
+            onClick={() => {
+              onSearchChange("");
+              onDropdownOpenChange(false);
+            }}
+            className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-500"
+            aria-label="Clear favorite team search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </label>
+
+      {showDropdown ? (
+        <div className="mt-2 max-h-80 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+          {customOptionAvailable ? (
+            <button
+              type="button"
+              onClick={onSaveCustom}
+              disabled={saving}
+              className="mb-2 flex w-full items-start justify-between gap-3 rounded-lg bg-orange-50 px-3 py-3 text-left"
+            >
+              <span>
+                <span className="block text-sm font-black text-slate-950">
+                  Watch "{deferredSearch}"
+                </span>
+                <span className="mt-0.5 block text-xs font-bold text-orange-700">
+                  Custom team name
+                </span>
+              </span>
+              <span className="rounded-md bg-orange-500 px-2 py-1 text-xs font-black text-white">
+                Save
+              </span>
+            </button>
+          ) : null}
+
+          {loading ? (
+            <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm font-bold text-slate-600">
+              Searching registered teams...
+            </div>
+          ) : null}
+
+          {!loading && options.length === 0 ? (
+            <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm font-bold text-slate-600">
+              No posted teams match yet.
+            </div>
+          ) : null}
+
+          <div className="space-y-1">
+            {options.map((team) => {
+              const saved = savedSourceTeamIds.has(team.id);
+              return (
+                <button
+                  type="button"
+                  key={team.id}
+                  onClick={() => onSaveTeam(team)}
+                  disabled={saving || saved}
+                  className={clsx(
+                    "flex w-full items-start justify-between gap-3 rounded-lg px-3 py-3 text-left",
+                    saved ? "bg-emerald-50" : "hover:bg-slate-50",
+                  )}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black text-slate-950">
+                      {team.name}
+                    </span>
+                    <span className="mt-0.5 block text-xs font-bold text-slate-600">
+                      {favoriteTeamOptionMeta(team)}
+                    </span>
+                  </span>
+                  <span
+                    className={clsx(
+                      "shrink-0 rounded-md px-2 py-1 text-xs font-black",
+                      saved
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-slate-950 text-white",
+                    )}
+                  >
+                    {saved ? "Saved" : "Save"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {watches.length > 0 ? (
+        <div className="mt-3 space-y-2">
+          {watches.map((watch) => (
+            <div
+              key={watch.id}
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-slate-950">
+                  {watch.displayName}
+                </p>
+                <p className="mt-0.5 truncate text-xs font-bold text-slate-600">
+                  {favoriteTeamWatchMeta(watch)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onDelete(watch.id)}
+                disabled={deletingWatchId === watch.id}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-slate-500 shadow-sm"
+                aria-label={`Remove ${watch.displayName}`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -6184,6 +6469,44 @@ function teamRecordLabel(
     : `${record.wins}-${record.losses}`;
 }
 
+function uniqueFavoriteTeamOptions(teams: Team[]): Team[] {
+  const seen = new Set<string>();
+  const unique: Team[] = [];
+  for (const team of teams) {
+    if (seen.has(team.id)) continue;
+    seen.add(team.id);
+    unique.push(team);
+  }
+  return unique;
+}
+
+function normalizeDisplayText(value: string | null | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function favoriteTeamOptionMeta(team: Team): string {
+  return [
+    team.eventName,
+    team.eventLocation,
+    team.divisionName,
+    team.gradeLevel,
+    team.level,
+  ]
+    .filter(Boolean)
+    .join(" - ");
+}
+
+function favoriteTeamWatchMeta(watch: FavoriteTeamWatch): string {
+  if (watch.source === "custom") return "Custom team name";
+  return [watch.eventName, watch.divisionName, watch.gradeLevel, watch.level]
+    .filter(Boolean)
+    .join(" - ");
+}
+
 function recordCaption(
   record?: Pick<TeamRecord, "ties" | "gamesSeen">,
 ): string {
@@ -6563,7 +6886,8 @@ function alertDetail(
       const teamName = readString(value, ["teamName", "name", "team"]);
       const divisionName = readString(value, ["divisionName", "division"]);
       const placement =
-        readString(value, ["placementLabel", "medalLabel"]) ?? "final placement";
+        readString(value, ["placementLabel", "medalLabel"]) ??
+        "final placement";
       if (teamName && divisionName)
         return `${teamName} posted ${placement} in ${divisionName}.`;
       return "Official final placement was posted by the tournament source.";

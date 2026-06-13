@@ -80,6 +80,44 @@ describe("CourtWatch API", () => {
     expect(unfollowed.body.programs[0].teams).toHaveLength(0);
   });
 
+  it("keeps favorite team watches separate by browser client id", async () => {
+    const app = createApp(new MockStore(), null);
+
+    await request(app)
+      .post("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .send({ displayName: "Splash City Future 12U" })
+      .expect(201);
+
+    const alpha = await request(app)
+      .get("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(200);
+    const beta = await request(app)
+      .get("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", "client-beta-456")
+      .expect(200);
+
+    expect(alpha.body).toHaveLength(1);
+    expect(alpha.body[0]).toMatchObject({
+      displayName: "Splash City Future 12U",
+      source: "custom",
+      sourceTeamId: null,
+    });
+    expect(beta.body).toHaveLength(0);
+
+    await request(app)
+      .delete(`/api/favorite-team-watches/${alpha.body[0].id}`)
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(204);
+
+    const alphaAfterDelete = await request(app)
+      .get("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(200);
+    expect(alphaAfterDelete.body).toHaveLength(0);
+  });
+
   it("keeps followed teams separate by browser client id", async () => {
     const app = createApp(new MockStore(), null);
 

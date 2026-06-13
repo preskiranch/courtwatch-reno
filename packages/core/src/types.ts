@@ -120,6 +120,34 @@ export interface Team {
   record?: TeamRecordSummary;
 }
 
+export interface FavoriteTeamWatch {
+  id: string;
+  displayName: string;
+  normalizedName: string;
+  source: "registered" | "custom";
+  sourceTeamId: string | null;
+  sourceTeamName: string | null;
+  eventName: string | null;
+  divisionName: string | null;
+  gender: string | null;
+  gradeLevel: string | null;
+  level: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FavoriteTeamWatchInput {
+  displayName: string;
+  sourceTeamId?: string | null;
+  sourceTeamName?: string | null;
+  eventName?: string | null;
+  divisionName?: string | null;
+  gender?: string | null;
+  gradeLevel?: string | null;
+  level?: string | null;
+}
+
 export interface TeamRecordSummary {
   wins: number;
   losses: number;
