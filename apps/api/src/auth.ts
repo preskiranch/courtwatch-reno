@@ -226,9 +226,7 @@ export function shouldExposeResetToken(): boolean {
     process.env.PASSWORD_RESET_EXPOSE_TOKEN !== undefined
       ? process.env.PASSWORD_RESET_EXPOSE_TOKEN.toLowerCase() === "true"
       : config.PASSWORD_RESET_EXPOSE_TOKEN;
-  return (
-    exposeToken && (process.env.NODE_ENV ?? config.NODE_ENV) !== "production"
-  );
+  return exposeToken && isLocalPasswordResetDebug();
 }
 
 export async function registeredAccountCount(
@@ -263,6 +261,17 @@ function authSecret(): string {
   if ((process.env.NODE_ENV ?? config.NODE_ENV) !== "production")
     return "courtwatch-dev-auth-secret";
   throw new Error("JWT_SECRET is required for account sessions");
+}
+
+function isLocalPasswordResetDebug(): boolean {
+  const webBaseUrl = process.env.WEB_BASE_URL ?? config.WEB_BASE_URL;
+  if (!webBaseUrl) return false;
+  try {
+    const hostname = new URL(webBaseUrl).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
 }
 
 function nonEmptyString(value: string | undefined | null): string | undefined {

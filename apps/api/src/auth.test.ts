@@ -72,12 +72,17 @@ describe("account auth helpers", () => {
   it("never exposes password reset tokens in production", () => {
     const originalNodeEnv = process.env.NODE_ENV;
     const originalExposeToken = process.env.PASSWORD_RESET_EXPOSE_TOKEN;
+    const originalWebBaseUrl = process.env.WEB_BASE_URL;
 
     process.env.NODE_ENV = "production";
     process.env.PASSWORD_RESET_EXPOSE_TOKEN = "true";
+    process.env.WEB_BASE_URL = "https://courtwatchaau.com";
     expect(shouldExposeResetToken()).toBe(false);
 
     process.env.NODE_ENV = "development";
+    expect(shouldExposeResetToken()).toBe(false);
+
+    process.env.WEB_BASE_URL = "http://localhost:3000";
     expect(shouldExposeResetToken()).toBe(true);
 
     if (originalNodeEnv === undefined) {
@@ -89,6 +94,11 @@ describe("account auth helpers", () => {
       delete process.env.PASSWORD_RESET_EXPOSE_TOKEN;
     } else {
       process.env.PASSWORD_RESET_EXPOSE_TOKEN = originalExposeToken;
+    }
+    if (originalWebBaseUrl === undefined) {
+      delete process.env.WEB_BASE_URL;
+    } else {
+      process.env.WEB_BASE_URL = originalWebBaseUrl;
     }
   });
 
