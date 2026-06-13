@@ -4657,16 +4657,33 @@ function useStoredFollowedTeams(
   useEffect(() => {
     if (!clientId || !eventId) return;
     if (options.authoritative) {
-      setStoredFollowedTeams(
-        replaceStoredFollowedTeams(clientId, eventId, mergeableObservedTeams),
+      const nextStoredFollowedTeams = replaceStoredFollowedTeams(
+        clientId,
+        eventId,
+        mergeableObservedTeams,
+      );
+      setStoredFollowedTeams((current) =>
+        followedTeamsStateSignature(current) ===
+        followedTeamsStateSignature(nextStoredFollowedTeams)
+          ? current
+          : nextStoredFollowedTeams,
       );
       return;
     }
     if (observedFollowedSignature.length === 0) return;
-    setStoredFollowedTeams(
-      mergeStoredFollowedTeams(clientId, eventId, mergeableObservedTeams, {
+    const nextStoredFollowedTeams = mergeStoredFollowedTeams(
+      clientId,
+      eventId,
+      mergeableObservedTeams,
+      {
         onlyExistingWhenStored: true,
-      }),
+      },
+    );
+    setStoredFollowedTeams((current) =>
+      followedTeamsStateSignature(current) ===
+      followedTeamsStateSignature(nextStoredFollowedTeams)
+        ? current
+        : nextStoredFollowedTeams,
     );
   }, [
     clientId,
@@ -4699,6 +4716,34 @@ function useStoredFollowedTeams(
       );
     },
   };
+}
+
+function followedTeamsStateSignature(teams: Team[]): string {
+  return JSON.stringify(
+    teams
+      .map((team) => {
+        const teamWithGames = team as Team & {
+          nextGame?: Pick<Game, "id" | "status" | "startsAt"> | null;
+          lastResult?: Pick<Game, "id" | "status" | "updatedAt"> | null;
+        };
+        return {
+          id: team.id,
+          name: team.name,
+          divisionId: team.divisionId,
+          divisionName: team.divisionName,
+          followerCount: team.followerCount ?? null,
+          isFollowed: Boolean(team.isFollowed),
+          record: team.record ?? null,
+          nextGameId: teamWithGames.nextGame?.id ?? null,
+          nextGameStatus: teamWithGames.nextGame?.status ?? null,
+          nextGameStartsAt: teamWithGames.nextGame?.startsAt ?? null,
+          lastResultId: teamWithGames.lastResult?.id ?? null,
+          lastResultStatus: teamWithGames.lastResult?.status ?? null,
+          lastResultUpdatedAt: teamWithGames.lastResult?.updatedAt ?? null,
+        };
+      })
+      .sort((left, right) => left.id.localeCompare(right.id)),
+  );
 }
 
 function teamsWithTrustedFollowState(
