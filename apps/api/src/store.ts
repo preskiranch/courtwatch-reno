@@ -4061,8 +4061,7 @@ function filterTeamsForSearch(
       return (
         team.normalizedName.includes(normalizedSearch) ||
         normalizeName(team.clubName).includes(normalizedSearch) ||
-        normalizeName(team.divisionName).includes(normalizedSearch) ||
-        normalizeName(team.eventName).includes(normalizedSearch)
+        normalizeName(team.divisionName).includes(normalizedSearch)
       );
     })
     .sort(compareRegisteredTeams);
@@ -4088,9 +4087,6 @@ function allEventsTeamSearchWhere(search?: string): Prisma.TeamWhereInput {
             division: {
               is: { name: { contains: trimmed, mode: "insensitive" } },
             },
-          },
-          {
-            event: { is: { name: { contains: trimmed, mode: "insensitive" } } },
           },
         ],
       },
