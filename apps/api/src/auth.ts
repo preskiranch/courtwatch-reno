@@ -222,9 +222,12 @@ export async function sendPasswordResetEmail(input: {
 }
 
 export function shouldExposeResetToken(): boolean {
+  const exposeToken =
+    process.env.PASSWORD_RESET_EXPOSE_TOKEN !== undefined
+      ? process.env.PASSWORD_RESET_EXPOSE_TOKEN.toLowerCase() === "true"
+      : config.PASSWORD_RESET_EXPOSE_TOKEN;
   return (
-    config.PASSWORD_RESET_EXPOSE_TOKEN ||
-    (process.env.NODE_ENV ?? config.NODE_ENV) !== "production"
+    exposeToken && (process.env.NODE_ENV ?? config.NODE_ENV) !== "production"
   );
 }
 

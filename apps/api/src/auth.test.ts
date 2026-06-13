@@ -4,6 +4,7 @@ import {
   accountClientId,
   hashPassword,
   sendPasswordResetEmail,
+  shouldExposeResetToken,
   signAccountToken,
   unregisteredFollowerDeviceCount,
   verifyAccountToken,
@@ -66,6 +67,29 @@ describe("account auth helpers", () => {
       from: "Court Watch AAU <no-reply@courtwatchaau.com>",
     });
     expect(result.resetUrl).toContain("resetToken=reset-token-1234567890");
+  });
+
+  it("never exposes password reset tokens in production", () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalExposeToken = process.env.PASSWORD_RESET_EXPOSE_TOKEN;
+
+    process.env.NODE_ENV = "production";
+    process.env.PASSWORD_RESET_EXPOSE_TOKEN = "true";
+    expect(shouldExposeResetToken()).toBe(false);
+
+    process.env.NODE_ENV = "development";
+    expect(shouldExposeResetToken()).toBe(true);
+
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+    if (originalExposeToken === undefined) {
+      delete process.env.PASSWORD_RESET_EXPOSE_TOKEN;
+    } else {
+      process.env.PASSWORD_RESET_EXPOSE_TOKEN = originalExposeToken;
+    }
   });
 
   it("sends password reset email through Resend with the Court Watch domain", async () => {
