@@ -50,7 +50,7 @@ services:
           name: courtwatch-reno-db
           property: connectionString
       - key: WEB_BASE_URL
-        value: https://app.courtwatchaau.com
+        value: https://courtwatchaau.com
       - key: WEB_ALLOWED_ORIGINS
         value: https://courtwatch-reno-web.onrender.com,https://courtwatchaau.com,https://www.courtwatchaau.com,https://app.courtwatchaau.com
       - key: API_BASE_URL
@@ -112,7 +112,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: PASSWORD_RESET_FROM_EMAIL
-        sync: false
+        value: Court Watch AAU <no-reply@courtwatchaau.com>
       - key: PASSWORD_RESET_EXPOSE_TOKEN
         value: "false"
 

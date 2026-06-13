@@ -12,6 +12,18 @@ const PASSWORD_ITERATIONS = 210_000;
 const PASSWORD_KEY_LENGTH = 32;
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30;
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const DEFAULT_PASSWORD_RESET_FROM_EMAIL =
+  "Court Watch AAU <no-reply@courtwatchaau.com>";
+
+export type PasswordResetEmailResult = {
+  configured: boolean;
+  sent: boolean;
+  resetUrl: string;
+  from: string;
+  messageId?: string;
+  status?: number;
+  error?: string;
+};
 
 export type AccountUser = {
   id: string;
@@ -134,31 +146,79 @@ export function resetTokenExpiresAt(): Date {
 export async function sendPasswordResetEmail(input: {
   email: string;
   resetToken: string;
-}): Promise<boolean> {
-  if (!config.RESEND_API_KEY || !config.PASSWORD_RESET_FROM_EMAIL) return false;
-  const resetUrl = `${config.WEB_BASE_URL}/?resetToken=${encodeURIComponent(
+}): Promise<PasswordResetEmailResult> {
+  const resendApiKey =
+    nonEmptyString(process.env.RESEND_API_KEY) ?? config.RESEND_API_KEY;
+  const from =
+    nonEmptyString(process.env.PASSWORD_RESET_FROM_EMAIL) ??
+    nonEmptyString(config.PASSWORD_RESET_FROM_EMAIL) ??
+    DEFAULT_PASSWORD_RESET_FROM_EMAIL;
+  const webBaseUrl =
+    nonEmptyString(process.env.WEB_BASE_URL) ??
+    nonEmptyString(config.WEB_BASE_URL) ??
+    "https://courtwatchaau.com";
+  const resetUrl = `${webBaseUrl}/?resetToken=${encodeURIComponent(
     input.resetToken,
   )}`;
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: config.PASSWORD_RESET_FROM_EMAIL,
-      to: input.email,
-      subject: "Court Watch AAU password reset",
-      text: [
-        "Use this Court Watch AAU reset code within 60 minutes:",
-        "",
-        input.resetToken,
-        "",
-        `Open Court Watch AAU and paste the code in Forgot Password. You can also open ${resetUrl}`,
-      ].join("\n"),
-    }),
-  });
-  return response.ok;
+  if (!resendApiKey) return { configured: false, sent: false, resetUrl, from };
+
+  let response: Response;
+  try {
+    response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: input.email,
+        subject: "Court Watch AAU password reset",
+        text: [
+          "Reset your Court Watch AAU password",
+          "",
+          "Use this secure reset link within 60 minutes:",
+          "",
+          resetUrl,
+          "",
+          "If the button does not open, copy the reset code below and paste it in Forgot Password:",
+          "",
+          input.resetToken,
+          "",
+          "If you did not request this reset, you can ignore this email.",
+        ].join("\n"),
+        html: passwordResetEmailHtml(resetUrl, input.resetToken),
+      }),
+    });
+  } catch (error) {
+    return {
+      configured: true,
+      sent: false,
+      resetUrl,
+      from,
+      error: error instanceof Error ? error.message : "Resend request failed",
+    };
+  }
+
+  const payload = await readResendResponse(response);
+  if (!response.ok) {
+    return {
+      configured: true,
+      sent: false,
+      resetUrl,
+      from,
+      status: response.status,
+      error: payload.error,
+    };
+  }
+  return {
+    configured: true,
+    sent: true,
+    resetUrl,
+    from,
+    status: response.status,
+    messageId: payload.id,
+  };
 }
 
 export function shouldExposeResetToken(): boolean {
@@ -200,6 +260,80 @@ function authSecret(): string {
   if ((process.env.NODE_ENV ?? config.NODE_ENV) !== "production")
     return "courtwatch-dev-auth-secret";
   throw new Error("JWT_SECRET is required for account sessions");
+}
+
+function nonEmptyString(value: string | undefined | null): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+async function readResendResponse(
+  response: Response,
+): Promise<{ id?: string; error?: string }> {
+  const text = await response.text().catch(() => "");
+  if (!text) return {};
+  try {
+    const parsed = JSON.parse(text) as {
+      id?: unknown;
+      name?: unknown;
+      message?: unknown;
+      error?: unknown;
+    };
+    const id = typeof parsed.id === "string" ? parsed.id : undefined;
+    const error =
+      typeof parsed.message === "string"
+        ? parsed.message
+        : typeof parsed.error === "string"
+          ? parsed.error
+          : typeof parsed.name === "string"
+            ? parsed.name
+            : undefined;
+    return { id, error };
+  } catch {
+    return { error: text.slice(0, 500) };
+  }
+}
+
+function passwordResetEmailHtml(resetUrl: string, resetToken: string): string {
+  const escapedResetUrl = escapeHtml(resetUrl);
+  const escapedResetToken = escapeHtml(resetToken);
+  return `<!doctype html>
+<html lang="en">
+  <body style="margin:0;background:#0b1726;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#101828;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;">
+      <div style="background:#111827;padding:24px;color:#ffffff;">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#fb923c;">Court Watch AAU</div>
+        <h1 style="margin:10px 0 0;font-size:26px;line-height:1.15;">Reset your password</h1>
+      </div>
+      <div style="padding:24px;">
+        <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#334155;">Use the button below within 60 minutes to reset your Court Watch AAU password.</p>
+        <a href="${escapedResetUrl}" style="display:inline-block;background:#f97316;color:#ffffff;text-decoration:none;font-weight:800;border-radius:10px;padding:13px 18px;">Reset password</a>
+        <p style="margin:22px 0 8px;font-size:13px;line-height:1.5;color:#64748b;">If the button does not open, paste this reset code in Forgot Password:</p>
+        <div style="word-break:break-all;background:#f1f5f9;border-radius:10px;padding:12px;font-size:14px;font-weight:700;color:#0f172a;">${escapedResetToken}</div>
+        <p style="margin:22px 0 0;font-size:13px;line-height:1.5;color:#64748b;">If you did not request this reset, you can ignore this email.</p>
+      </div>
+    </div>
+  </body>
+</html>`;
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      default:
+        return character;
+    }
+  });
 }
 
 function base64UrlJson(value: unknown): string {

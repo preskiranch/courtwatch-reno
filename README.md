@@ -195,7 +195,7 @@ Push notifications:
 Optional free account password reset:
 
 - `RESEND_API_KEY`
-- `PASSWORD_RESET_FROM_EMAIL` such as `Court Watch AAU <support@yourdomain.com>`
+- `PASSWORD_RESET_FROM_EMAIL`, defaulting to `Court Watch AAU <no-reply@courtwatchaau.com>`
 - `PASSWORD_RESET_EXPOSE_TOKEN=false` in production
 
 Render automation:
@@ -278,7 +278,18 @@ Following a team triggers a limited schedule sync for that team's division so th
 
 Saved teams remain per device by default. Users can create a free account from Settings to sync followed teams across their phone, tablet, and computer. Signing in uploads that device's saved teams into the account; it does not erase the device copy.
 
-Forgot password uses `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Configure Resend with `RESEND_API_KEY` and `PASSWORD_RESET_FROM_EMAIL` so reset codes can be emailed. Do not enable `PASSWORD_RESET_EXPOSE_TOKEN` in production.
+Forgot password uses `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Configure Resend with `RESEND_API_KEY`; the app sends reset emails from `Court Watch AAU <no-reply@courtwatchaau.com>` unless `PASSWORD_RESET_FROM_EMAIL` overrides it. Do not enable `PASSWORD_RESET_EXPOSE_TOKEN` in production.
+
+Resend setup for `courtwatchaau.com`:
+
+1. In Resend, add the sending domain `courtwatchaau.com`.
+2. Copy the DNS records Resend generates for the domain, including DKIM and SPF/return-path records, into the DNS provider for `courtwatchaau.com`.
+3. In Resend, click **Verify DNS Records** and wait until the domain status is verified.
+4. Create a Resend API key with email-sending access.
+5. In Render, set `RESEND_API_KEY` on `courtwatch-reno-api`.
+6. Keep `PASSWORD_RESET_FROM_EMAIL=Court Watch AAU <no-reply@courtwatchaau.com>` and redeploy the API service.
+
+If reset emails do not arrive, check the `courtwatch-reno-api` logs for `Password reset email was not sent`. The log includes whether Resend is configured, which sender was used, the provider status code, and the provider error without printing reset tokens.
 
 ## Push Notifications
 

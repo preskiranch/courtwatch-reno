@@ -5574,7 +5574,7 @@ function AccountPanel({
       setAccountMessage(
         response.emailSent
           ? "Check your email for the reset code."
-          : "If that account exists, reset instructions were created. Email delivery is not configured yet.",
+          : "If that account exists, reset instructions were created. Email delivery is not ready yet.",
       );
     },
     onError: (error) => setAccountMessage(errorText(error)),

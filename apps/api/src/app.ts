@@ -272,7 +272,26 @@ export function createApp(
             expiresAt: resetTokenExpiresAt(),
           },
         });
-        emailSent = await sendPasswordResetEmail({ email, resetToken });
+        const delivery = await sendPasswordResetEmail({ email, resetToken });
+        emailSent = delivery.sent;
+        if (!delivery.sent) {
+          const logger = (
+            req as express.Request & {
+              log?: {
+                warn: (payload: unknown, message?: string) => void;
+              };
+            }
+          ).log;
+          logger?.warn(
+            {
+              configured: delivery.configured,
+              from: delivery.from,
+              status: delivery.status,
+              error: delivery.error,
+            },
+            "Password reset email was not sent",
+          );
+        }
       }
       res.json({
         ok: true,

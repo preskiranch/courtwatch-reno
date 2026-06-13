@@ -29,7 +29,9 @@ const ConfigSchema = z.object({
   JWT_SECRET: z.string().optional(),
   ADMIN_SECRET: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
-  PASSWORD_RESET_FROM_EMAIL: z.string().optional(),
+  PASSWORD_RESET_FROM_EMAIL: z
+    .string()
+    .default("Court Watch AAU <no-reply@courtwatchaau.com>"),
   PASSWORD_RESET_EXPOSE_TOKEN: z.coerce.boolean().default(false),
 });
 
