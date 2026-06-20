@@ -2,8 +2,6 @@ import type {
   DashboardResponse,
   CourtSummary,
   DivisionResultGroup,
-  FavoriteTeamWatch,
-  FavoriteTeamWatchInput,
   Game,
   GameChangeEvent,
   ProgramAlias,
@@ -41,7 +39,6 @@ type CacheKey =
   | "syncStatus"
   | "event"
   | "events"
-  | "favoriteTeamWatches"
   | "results"
   | "resultsAll"
   | "teams";
@@ -55,7 +52,6 @@ const DEVICE_SCOPED_CACHE_KEYS = new Set<CacheKey>([
   "alerts",
   "programs",
   "results",
-  "favoriteTeamWatches",
   "teams",
 ]);
 
@@ -225,15 +221,6 @@ export const CourtWatchApi = {
       "teams",
     );
   },
-  favoriteTeamWatches: () =>
-    apiGet<FavoriteTeamWatch[]>(
-      "/api/favorite-team-watches",
-      "favoriteTeamWatches",
-    ),
-  saveFavoriteTeamWatch: (input: FavoriteTeamWatchInput) =>
-    apiPost<FavoriteTeamWatch>("/api/favorite-team-watches", input),
-  deleteFavoriteTeamWatch: (watchId: string) =>
-    apiDelete(`/api/favorite-team-watches/${watchId}`),
   pointsLeaders: (eventId?: number | null) =>
     apiGet<TeamScoringLeader[]>(withEvent("/api/points-leaders", eventId)),
   accountStats: () =>
