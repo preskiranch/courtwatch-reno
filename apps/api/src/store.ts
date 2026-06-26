@@ -87,6 +87,10 @@ const RECENTLY_COMPLETED_HYDRATION_DAYS = Math.max(
   1,
   Number(process.env.RECENTLY_COMPLETED_HYDRATION_DAYS ?? 3),
 );
+const PRESTART_GAME_HYDRATION_WINDOW_DAYS = Math.max(
+  0,
+  Number(process.env.PRESTART_GAME_HYDRATION_WINDOW_DAYS ?? 7),
+);
 const EVENTS_CACHE_TTL_MS = Math.max(
   5_000,
   Number(process.env.EVENTS_CACHE_TTL_MS ?? 30_000),
@@ -1836,6 +1840,7 @@ export class PrismaStore implements CourtWatchStore {
   private async syncTournament(
     tournament: TournamentSource,
     preloadedTeams?: PublicTournamentCandidate["teams"],
+    options: { forceFetchAllGames?: boolean } = {},
   ) {
     const startedAt = new Date();
     const source =
@@ -1913,6 +1918,7 @@ export class PrismaStore implements CourtWatchStore {
       const sourceGames = await fetchSourceGames(
         selectedDivisionIds,
         tournament,
+        options,
       );
       for (const sourceGame of sourceGames) {
         const mapped = isCoreGame(sourceGame)
@@ -2265,7 +2271,16 @@ export class PrismaStore implements CourtWatchStore {
       event.id,
     );
     const tournamentStarted = hasTournamentStarted(tournament);
-    if (!tournamentStarted && selectedDivisionIds.length === 0) return;
+    const hydrateViewedPrestartEvent =
+      !tournamentStarted &&
+      selectedDivisionIds.length === 0 &&
+      isTournamentInPrestartGameHydrationWindow(tournament);
+    if (
+      !tournamentStarted &&
+      selectedDivisionIds.length === 0 &&
+      !hydrateViewedPrestartEvent
+    )
+      return;
     if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return;
 
     const selectedDivisionDbIds =
@@ -2311,7 +2326,9 @@ export class PrismaStore implements CourtWatchStore {
       return;
     }
 
-    const promise = this.syncTournament(tournament)
+    const promise = this.syncTournament(tournament, undefined, {
+      forceFetchAllGames: hydrateViewedPrestartEvent,
+    })
       .then(() => undefined)
       .catch((error) => {
         console.warn("Unable to hydrate active game data", {
@@ -2853,6 +2870,7 @@ async function fetchSourceTeams(
 async function fetchSourceGames(
   selectedDivisionIds: string[],
   tournament: TournamentSource,
+  options: { forceFetchAllGames?: boolean } = {},
 ): Promise<Array<Record<string, unknown> | Game>> {
   if (tournament.externalProvider !== "exposure_events") return [];
   try {
@@ -2867,7 +2885,8 @@ async function fetchSourceGames(
   }
 
   const publicClient = new PublicExposurePageClient();
-  const fetchAllPublicGames = shouldFetchAllPublicGames(tournament);
+  const fetchAllPublicGames =
+    options.forceFetchAllGames || shouldFetchAllPublicGames(tournament);
   if (!fetchAllPublicGames && selectedDivisionIds.length === 0) return [];
   return publicClient.fetchGames(tournament.exposureEventId, {
     divisionIds: fetchAllPublicGames ? [] : selectedDivisionIds,
@@ -2937,6 +2956,20 @@ function hasTournamentStarted(tournament: TournamentSource): boolean {
     process.env.COURTWATCH_TODAY ??
     dateKeyInTournamentTimeZone(new Date(), tournament.timezone);
   return todayKey >= tournament.startDate;
+}
+
+function isTournamentInPrestartGameHydrationWindow(
+  tournament: TournamentSource,
+): boolean {
+  if (PRESTART_GAME_HYDRATION_WINDOW_DAYS <= 0) return false;
+  const todayKey =
+    process.env.COURTWATCH_TODAY ??
+    dateKeyInTournamentTimeZone(new Date(), tournament.timezone);
+  return (
+    todayKey < tournament.startDate &&
+    tournament.startDate <=
+      addDaysKey(todayKey, PRESTART_GAME_HYDRATION_WINDOW_DAYS)
+  );
 }
 
 function isRecentlyCompletedTournament(tournament: TournamentSource): boolean {
