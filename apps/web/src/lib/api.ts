@@ -142,7 +142,17 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
   } catch (error) {
     if (storageKey && typeof window !== "undefined") {
       const cached = firstCachedValue(cacheKeys);
-      if (cached) return (JSON.parse(cached) as { data: T }).data;
+      if (cached) {
+        const cachedData = (JSON.parse(cached) as { data: T }).data;
+        if (
+          cacheKey === "events" &&
+          Array.isArray(cachedData) &&
+          cachedData.length === 0
+        ) {
+          throw error;
+        }
+        return cachedData;
+      }
     }
     throw error;
   }
@@ -296,7 +306,7 @@ export function apiBaseUrl() {
 export function pruneStaleApiCaches() {
   if (typeof window === "undefined") return;
   const dataVersionKey = "courtwatch-aau:data-version";
-  const dataVersion = "v30";
+  const dataVersion = "v31";
   if (window.localStorage.getItem(dataVersionKey) === dataVersion) return;
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
