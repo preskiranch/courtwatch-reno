@@ -594,6 +594,7 @@ export function CourtWatchApp() {
         <AppHeader
           dashboard={dashboard}
           events={displayEvents}
+          eventsLoading={eventsQuery.isLoading}
           selectedEventId={activeEventId}
           offline={offline}
           activeUsers={presenceQuery.data?.activeUsers ?? null}
@@ -895,6 +896,7 @@ function ShareQrCard({ layout }: { layout: "rail" | "mobile" }) {
 function AppHeader({
   dashboard,
   events,
+  eventsLoading,
   selectedEventId,
   offline,
   activeUsers,
@@ -906,6 +908,7 @@ function AppHeader({
 }: {
   dashboard?: DashboardResponse;
   events: TournamentEvent[];
+  eventsLoading: boolean;
   selectedEventId: number | null;
   offline: boolean;
   activeUsers: number | null;
@@ -1030,7 +1033,9 @@ function AppHeader({
           <span className="line-clamp-2">
             {selectedEvent
               ? tournamentOptionLabel(selectedEvent)
-              : events.length === 0
+              : eventsLoading
+                ? "Loading tournaments..."
+                : events.length === 0
                 ? "No public-source tournaments found in the next six months"
                 : "Choose tournament"}
           </span>
