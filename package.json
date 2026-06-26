@@ -19,10 +19,16 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx scripts/seed.ts",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "ios:icons": "tsx scripts/generate-ios-icons.ts",
     "outreach:generate": "node scripts/outreach/generate-outreach-candidates.mjs",
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@types/node": "^24.10.1",
     "playwright": "^1.60.0",
     "prettier": "^3.6.2",

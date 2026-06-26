@@ -159,6 +159,26 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## iOS App Store Prep
+
+Court Watch AAU includes a Capacitor iOS shell for App Store/TestFlight preparation.
+
+```bash
+npm ci
+npm run ios:icons
+npm run ios:sync
+npm run ios:open
+```
+
+Native app settings:
+
+- App name: `Court Watch AAU`
+- Bundle ID: `com.preskiranch.courtwatchaau`
+- Live site: `https://www.courtwatchaau.com`
+- Xcode project: `ios/App/App.xcodeproj`
+
+Full App Store setup notes live in `docs/app-store/README.md`.
+
 ## Environment Variables
 
 Copy `.env.example` and set real values in local shell or Render dashboard. Do not commit secrets.
