@@ -5061,11 +5061,26 @@ function TeamNextGameLocationLine({
   game: Pick<Game, "venueName" | "courtName">;
 }) {
   const location = formatGameLocation(game);
+  const mapsUrl = mapsSearchUrlFromGame(game);
   if (!location) return null;
 
   return (
     <p className="mt-2 inline-flex max-w-full items-start gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-black leading-5 text-slate-600">
-      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500" />
+      {mapsUrl ? (
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open ${game.venueName ?? "venue"} in maps`}
+          title="Open in maps"
+          className="-ml-1 -mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-orange-500 transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+          onClick={(event) => handleMapsLinkClick(event, game)}
+        >
+          <MapPin className="h-3.5 w-3.5" />
+        </a>
+      ) : (
+        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500" />
+      )}
       <span className="min-w-0">{location}</span>
     </p>
   );
