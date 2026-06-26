@@ -35,6 +35,9 @@ import {
   RECENT_COMPLETED_TOURNAMENT_DAYS,
   tournamentTodayKey,
   tournamentWindowEndKey,
+  nextGameForTeam,
+  lastResultForTeam,
+  withEffectiveGameStatuses,
   withEffectiveGameStatus,
 } from "@courtwatch/core";
 import type {
@@ -4100,7 +4103,9 @@ function filterTeamsForSearch(
   snapshot: CourtWatchSnapshot,
   normalizedSearch: string,
 ): Team[] {
-  const records = buildTeamRecordSummaryMap(snapshot.games, snapshot.teams);
+  const now = new Date();
+  const games = withEffectiveGameStatuses(snapshot.games, now);
+  const records = buildTeamRecordSummaryMap(games, snapshot.teams);
   const activeProgramIds = new Set(
     snapshot.programs
       .filter((program) => program.active)
@@ -4120,15 +4125,22 @@ function filterTeamsForSearch(
   );
 
   return snapshot.teams
-    .map((team) => ({
-      ...team,
-      isFollowed:
-        typeof team.isFollowed === "boolean"
-          ? team.isFollowed
-          : followedTeamIds.has(team.id),
-      followerCount: team.followerCount ?? followerCounts.get(team.id) ?? 0,
-      record: records.get(team.id),
-    }))
+    .map((team) => {
+      const nextGame = nextGameForTeam(team, games, now);
+      const lastResult = lastResultForTeam(team, games, now);
+      return {
+        ...team,
+        isFollowed:
+          typeof team.isFollowed === "boolean"
+            ? team.isFollowed
+            : followedTeamIds.has(team.id),
+        followerCount: team.followerCount ?? followerCounts.get(team.id) ?? 0,
+        record: records.get(team.id),
+        nextGame,
+        lastResult,
+        status: nextGame?.status ?? lastResult?.status ?? null,
+      };
+    })
     .filter((team) => {
       if (!normalizedSearch) return true;
       return (

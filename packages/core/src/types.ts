@@ -118,6 +118,9 @@ export interface Team {
   isFollowed?: boolean;
   followerCount?: number;
   record?: TeamRecordSummary;
+  nextGame?: Game | null;
+  lastResult?: Game | null;
+  status?: GameStatus | null;
 }
 
 export interface FavoriteTeamWatch {

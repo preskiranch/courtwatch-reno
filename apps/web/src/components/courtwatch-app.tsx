@@ -4181,7 +4181,7 @@ function TeamsScreen({
           team={team}
           record={teamRecordForTeam(team, records)}
           recordsLoading={recordsLoading}
-          nextGame={nextGameForTeam(team, recordGames)}
+          nextGame={nextGameForTeam(team, recordGames) ?? team.nextGame}
           timezone={timezone}
           onFollow={() => followTeam.mutate(team.id)}
           onUnfollow={() => unfollowTeam.mutate(team.id)}
