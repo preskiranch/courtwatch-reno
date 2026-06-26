@@ -1812,6 +1812,9 @@ function ProgramCard({
                   ? "Tournament finished"
                   : "Next game awaiting bracket"}
             </p>
+            {team.nextGame ? (
+              <TeamNextGameLocationLine game={team.nextGame} />
+            ) : null}
           </div>
         ))}
       </div>
@@ -4663,6 +4666,7 @@ function FollowedTeamRow({
           value={team.lastResult ? scoreSummary(team.lastResult) : "No result"}
         />
       </div>
+      {team.nextGame ? <TeamNextGameLocationLine game={team.nextGame} /> : null}
       <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
       <TeamBracketLink team={team} eventId={eventId} />
       <button
@@ -4948,9 +4952,12 @@ function TeamSearchCard({
             {team.level ?? "Level TBD"}
           </p>
           {nextGame ? (
-            <p className="mt-2 text-sm font-semibold text-slate-700">
-              Next: {formatTeamNextGameSummary(team, nextGame, timezone)}
-            </p>
+            <>
+              <p className="mt-2 text-sm font-semibold text-slate-700">
+                Next: {formatTeamNextGameSummary(team, nextGame, timezone)}
+              </p>
+              <TeamNextGameLocationLine game={nextGame} />
+            </>
           ) : null}
         </div>
         <button
@@ -4969,6 +4976,22 @@ function TeamSearchCard({
       </div>
       <OfficialTeamPageLink sourceUrl={team.sourceUrl} />
     </article>
+  );
+}
+
+function TeamNextGameLocationLine({
+  game,
+}: {
+  game: Pick<Game, "venueName" | "courtName">;
+}) {
+  const location = formatGameLocation(game);
+  if (!location) return null;
+
+  return (
+    <p className="mt-2 inline-flex max-w-full items-start gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-black leading-5 text-slate-600">
+      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500" />
+      <span className="min-w-0">{location}</span>
+    </p>
   );
 }
 
@@ -5372,6 +5395,9 @@ function AccountPanel({
   const applySession = async (response: AccountSession) => {
     const session = saveAccountSession(response);
     onAccountSessionChange(session);
+    setPassword("");
+    setResetPassword("");
+    setResetToken("");
     setAccountMessage("Signed in. Followed teams sync automatically.");
     onRefresh();
   };
@@ -5538,6 +5564,7 @@ function AccountPanel({
                 onChange={setEmail}
                 placeholder="Email"
                 type="email"
+                autoComplete="email"
               />
               {mode === "register" ? (
                 <AccountInput
@@ -5545,6 +5572,7 @@ function AccountPanel({
                   value={displayName}
                   onChange={setDisplayName}
                   placeholder="Name optional"
+                  autoComplete="name"
                 />
               ) : null}
               <AccountInput
@@ -5553,6 +5581,9 @@ function AccountPanel({
                 onChange={setPassword}
                 placeholder="Password"
                 type="password"
+                autoComplete={
+                  mode === "register" ? "new-password" : "current-password"
+                }
               />
               <button
                 type="button"
@@ -5581,6 +5612,7 @@ function AccountPanel({
                 onChange={setResetEmail}
                 placeholder="Account email"
                 type="email"
+                autoComplete="email"
               />
               <p className="rounded-lg bg-slate-100 p-3 text-xs font-bold leading-5 text-slate-600">
                 Enter the email you used when creating your free Court Watch
@@ -5602,6 +5634,7 @@ function AccountPanel({
                     value={resetToken}
                     onChange={setResetToken}
                     placeholder="Reset code from email"
+                    autoComplete="one-time-code"
                   />
                   <AccountInput
                     icon={KeyRound}
@@ -5609,6 +5642,7 @@ function AccountPanel({
                     onChange={setResetPassword}
                     placeholder="New password"
                     type="password"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -5644,12 +5678,14 @@ function AccountInput({
   onChange,
   placeholder,
   type = "text",
+  autoComplete,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   type?: string;
+  autoComplete?: string;
 }) {
   return (
     <label className="flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 focus-within:border-orange-500">
@@ -5659,6 +5695,9 @@ function AccountInput({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         type={type}
+        autoComplete={autoComplete}
+        autoCapitalize="none"
+        spellCheck={false}
         className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
       />
     </label>
@@ -5668,8 +5707,26 @@ function AccountInput({
 function errorText(error: unknown): string {
   if (!(error instanceof Error)) return "Something went wrong.";
   try {
-    const parsed = JSON.parse(error.message) as { error?: unknown };
+    const parsed = JSON.parse(error.message) as {
+      error?: unknown;
+      message?: unknown;
+    };
     if (typeof parsed.error === "string") return parsed.error;
+    if (typeof parsed.message === "string") return parsed.message;
+    if (
+      parsed.error &&
+      typeof parsed.error === "object" &&
+      "fieldErrors" in parsed.error
+    ) {
+      const fieldErrors = (parsed.error as { fieldErrors?: unknown })
+        .fieldErrors;
+      if (fieldErrors && typeof fieldErrors === "object") {
+        const messages = Object.values(fieldErrors)
+          .flatMap((value) => (Array.isArray(value) ? value : []))
+          .filter((value): value is string => typeof value === "string");
+        if (messages.length > 0) return messages.join(" ");
+      }
+    }
   } catch {
     // The API sometimes returns plain text from proxies.
   }
@@ -6622,6 +6679,16 @@ function formatTeamNextGameSummary(
     game.startsAt,
     timeZone,
   )}${matchup}, ${game.courtName ?? "Court TBD"}`;
+}
+
+function formatGameLocation(
+  game: Pick<Game, "venueName" | "courtName">,
+): string | null {
+  const venue = game.venueName?.trim();
+  const court = game.courtName?.trim();
+  if (!venue && !court) return null;
+  if (venue && court) return `${venue} · ${court}`;
+  return venue ?? court ?? null;
 }
 
 function opponentNameForTeam(
