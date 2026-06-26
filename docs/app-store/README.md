@@ -65,6 +65,15 @@ The current Mac has Command Line Tools selected at `/Library/Developer/CommandLi
 - Privacy Policy URL: `https://www.courtwatchaau.com/privacy`.
 - Support URL: `https://www.courtwatchaau.com/support`.
 - Marketing URL: `https://www.courtwatchaau.com`.
+- Privacy manifest: `ios/App/App/PrivacyInfo.xcprivacy` is included in the native bundle.
+
+When answering App Store privacy questions, keep them aligned with the privacy manifest and the website behavior:
+
+- Email address: collected only if a user creates a free sync account.
+- User ID/session data: used for account sync, device-specific followed teams, active-user/follower counts, and alerts.
+- Product interaction: followed teams, selected tournaments, and in-app actions needed for app functionality.
+- Diagnostics: operational logs for reliability and sync troubleshooting.
+- Tracking: no cross-app advertising tracking.
 
 ## Review Notes
 
