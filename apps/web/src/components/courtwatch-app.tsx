@@ -5158,9 +5158,158 @@ function AlertsScreen({
           {alerts.length} recent
         </span>
       </div>
+      <div className="mb-4">
+        <PushAlertsCard />
+      </div>
       <AlertList alerts={alerts} games={games} />
     </section>
   );
+}
+
+type PushSupportState = {
+  supported: boolean;
+  message: string | null;
+};
+
+function PushAlertsCard() {
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
+  const [permission, setPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("default");
+  const [support, setSupport] = useState<PushSupportState>({
+    supported: true,
+    message: null,
+  });
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+  const enabled = permission === "granted";
+  const canEnable = support.supported && Boolean(publicKey) && !isSubscribing;
+
+  useEffect(() => {
+    const nextSupport = pushSupportState();
+    setSupport(nextSupport);
+    if (!nextSupport.supported) {
+      setPermission("unsupported");
+      return;
+    }
+    setPermission(Notification.permission);
+  }, []);
+
+  const subscribe = async () => {
+    try {
+      if (!publicKey) {
+        setPushMessage("Push alert keys are not configured yet.");
+        return;
+      }
+      setIsSubscribing(true);
+      const subscription = await requestPushSubscription(publicKey);
+      await CourtWatchApi.subscribePush(
+        subscription,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+      );
+      setPermission(Notification.permission);
+      setPushMessage(
+        "Audible alerts are enabled. Control sound in your phone notification settings.",
+      );
+    } catch (error) {
+      setPermission(
+        typeof Notification === "undefined"
+          ? "unsupported"
+          : Notification.permission,
+      );
+      setPushMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to enable notifications.",
+      );
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  return (
+    <section className="rounded-lg border border-orange-100 bg-orange-50/80 p-3">
+      <div className="flex items-start gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-orange-500 text-white">
+          <Bell className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-black text-slate-950">
+              Audible alerts
+            </h3>
+            <span
+              className={clsx(
+                "rounded-md px-2 py-1 text-[11px] font-black uppercase",
+                enabled
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-white text-slate-500",
+              )}
+            >
+              {enabled ? "Enabled" : "Optional"}
+            </span>
+          </div>
+          <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">
+            Get score, court, bracket, and game-change notifications with your
+            device&apos;s normal alert sound when sounds are allowed.
+          </p>
+          <p className="mt-2 rounded-md bg-white px-2 py-1.5 text-[11px] font-bold leading-5 text-slate-500">
+            iPhone: add Court Watch AAU to your Home Screen, enable alerts here,
+            then use Settings &gt; Notifications &gt; Court Watch AAU to turn
+            sounds on or off.
+          </p>
+          {support.message ? (
+            <p className="mt-2 text-xs font-bold leading-5 text-orange-700">
+              {support.message}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={subscribe}
+            disabled={!canEnable}
+            className={clsx(
+              "mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-black active:scale-[0.99]",
+              canEnable
+                ? "bg-slate-950 text-white"
+                : "cursor-not-allowed bg-slate-200 text-slate-500",
+            )}
+          >
+            <Bell className="h-4 w-4" />
+            {isSubscribing
+              ? "Enabling..."
+              : enabled
+                ? "Refresh alert permission"
+                : "Enable audible alerts"}
+          </button>
+          {pushMessage ? (
+            <p className="mt-2 text-xs font-bold leading-5 text-slate-600">
+              {pushMessage}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function pushSupportState(): PushSupportState {
+  if (typeof window === "undefined") {
+    return { supported: false, message: "Checking notification support." };
+  }
+  if (!("Notification" in window)) {
+    return {
+      supported: false,
+      message: "This browser does not support web notifications.",
+    };
+  }
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return {
+      supported: false,
+      message:
+        "On iPhone, open the installed Home Screen app to enable web push alerts.",
+    };
+  }
+  return { supported: true, message: null };
 }
 
 function AlertList({
@@ -5247,7 +5396,6 @@ function SettingsScreen({
   eventId: number | null;
 }) {
   const [adminSecret, setAdminSecret] = useState("");
-  const [pushMessage, setPushMessage] = useState<string | null>(null);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const adminUsersQuery = useQuery({
     queryKey: ["admin-users"],
@@ -5267,28 +5415,6 @@ function SettingsScreen({
     onError: (error) =>
       setAdminMessage(error instanceof Error ? error.message : "Sync failed"),
   });
-
-  const subscribe = async () => {
-    try {
-      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
-      if (!publicKey) {
-        setPushMessage("VAPID public key is not configured yet.");
-        return;
-      }
-      const subscription = await requestPushSubscription(publicKey);
-      await CourtWatchApi.subscribePush(
-        subscription,
-        Intl.DateTimeFormat().resolvedOptions().timeZone,
-      );
-      setPushMessage("Push notifications enabled for this device.");
-    } catch (error) {
-      setPushMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to enable notifications.",
-      );
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -5318,19 +5444,6 @@ function SettingsScreen({
           <SettingsLink href="/privacy" title="Privacy policy" />
           <SettingsLink href="/terms" title="Terms" />
         </div>
-        <button
-          type="button"
-          onClick={subscribe}
-          className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 text-sm font-black text-white active:scale-[0.99]"
-        >
-          <Bell className="h-4 w-4" />
-          Enable Push Notifications
-        </button>
-        {pushMessage ? (
-          <p className="mt-2 text-sm font-semibold text-slate-600">
-            {pushMessage}
-          </p>
-        ) : null}
       </section>
 
       <section className="court-card p-4">

@@ -75,6 +75,31 @@ export default function InstallPage() {
 
       <WhiteCard>
         <TrophyHeading
+          title="Audible alerts"
+          body="Use the phone's normal notification sound for game, score, court, and bracket changes."
+        />
+        <div className="mt-5">
+          <SiteStepList
+            steps={[
+              {
+                title: "Install first on iPhone",
+                body: "Apple only supports web push alerts after Court Watch AAU is added to the Home Screen.",
+              },
+              {
+                title: "Enable alerts inside the app",
+                body: "Open the installed app, go to Alerts, then tap Enable audible alerts.",
+              },
+              {
+                title: "Control sound in Settings",
+                body: "After permission is granted, use Settings > Notifications > Court Watch AAU to turn sounds on or off.",
+              },
+            ]}
+          />
+        </div>
+      </WhiteCard>
+
+      <WhiteCard>
+        <TrophyHeading
           title="Saved teams"
           body="Followed teams stay per device unless you choose to sign in."
         />

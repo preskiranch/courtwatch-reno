@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-aau-v68";
+const CACHE_NAME = "courtwatch-aau-v69";
 const APP_SHELL = [
   "/install",
   "/support",
@@ -118,6 +118,8 @@ self.addEventListener("push", (event) => {
       icon: "/icons/icon.svg",
       badge: "/icons/icon.svg",
       data: { url: payload.url || "/" },
+      silent: false,
+      timestamp: Date.now(),
     }),
   );
 });
