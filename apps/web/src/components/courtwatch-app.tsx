@@ -5181,9 +5181,26 @@ function PushAlertsCard() {
     message: null,
   });
   const [isSubscribing, setIsSubscribing] = useState(false);
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+  const pushKeyQuery = useQuery({
+    queryKey: ["push-public-key"],
+    queryFn: CourtWatchApi.pushPublicKey,
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const publicKey =
+    pushKeyQuery.data?.vapidPublicKey ||
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+    "";
   const enabled = permission === "granted";
-  const canEnable = support.supported && Boolean(publicKey) && !isSubscribing;
+  const keyMessage =
+    !pushKeyQuery.isLoading && support.supported && !publicKey
+      ? "Push alert keys are not configured yet."
+      : null;
+  const canEnable =
+    support.supported &&
+    Boolean(publicKey) &&
+    !isSubscribing &&
+    !pushKeyQuery.isLoading;
 
   useEffect(() => {
     const nextSupport = pushSupportState();
@@ -5258,9 +5275,9 @@ function PushAlertsCard() {
             then use Settings &gt; Notifications &gt; Court Watch AAU to turn
             sounds on or off.
           </p>
-          {support.message ? (
+          {support.message || keyMessage ? (
             <p className="mt-2 text-xs font-bold leading-5 text-orange-700">
-              {support.message}
+              {support.message || keyMessage}
             </p>
           ) : null}
           <button
@@ -5275,11 +5292,13 @@ function PushAlertsCard() {
             )}
           >
             <Bell className="h-4 w-4" />
-            {isSubscribing
-              ? "Enabling..."
-              : enabled
-                ? "Refresh alert permission"
-                : "Enable audible alerts"}
+            {pushKeyQuery.isLoading
+              ? "Checking alert setup..."
+              : isSubscribing
+                ? "Enabling..."
+                : enabled
+                  ? "Refresh alert permission"
+                  : "Enable audible alerts"}
           </button>
           {pushMessage ? (
             <p className="mt-2 text-xs font-bold leading-5 text-slate-600">

@@ -703,6 +703,10 @@ export function createApp(
     }
   });
 
+  app.get("/api/push/public-key", (_req, res) => {
+    res.json({ vapidPublicKey: config.VAPID_PUBLIC_KEY ?? null });
+  });
+
   app.post("/api/push/subscribe", async (req, res, next) => {
     try {
       if (!prismaClient) {

@@ -282,6 +282,8 @@ export const CourtWatchApi = {
     apiPost<ProgramAlias>(`/api/programs/${programId}/aliases`, { alias }),
   deleteAlias: (programId: string, aliasId: string) =>
     apiDelete(`/api/programs/${programId}/aliases/${aliasId}`),
+  pushPublicKey: () =>
+    apiGet<{ vapidPublicKey: string | null }>("/api/push/public-key"),
   subscribePush: (subscription: PushSubscription, timezone: string) =>
     apiPost<{ ok: boolean; userId?: string }>("/api/push/subscribe", {
       subscription,
