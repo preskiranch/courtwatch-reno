@@ -2260,13 +2260,38 @@ export class PrismaStore implements CourtWatchStore {
     ) {
       return;
     }
-    if (!hasTournamentStarted(tournament)) return;
+    const selectedDivisionIds = await loadSelectedDivisionExposureIds(
+      this.prisma,
+      event.id,
+    );
+    const tournamentStarted = hasTournamentStarted(tournament);
+    if (!tournamentStarted && selectedDivisionIds.length === 0) return;
     if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return;
 
+    const selectedDivisionDbIds =
+      !tournamentStarted && selectedDivisionIds.length > 0
+        ? await this.prisma.division.findMany({
+            where: {
+              eventId: event.id,
+              exposureDivisionId: { in: selectedDivisionIds },
+            },
+            select: { id: true },
+          })
+        : [];
+    const gameHydrationWhere =
+      selectedDivisionDbIds.length > 0
+        ? {
+            eventId: event.id,
+            divisionId: {
+              in: selectedDivisionDbIds.map((division) => division.id),
+            },
+          }
+        : { eventId: event.id };
+
     const [storedGames, latestGame] = await Promise.all([
-      this.prisma.game.count({ where: { eventId: event.id } }),
+      this.prisma.game.count({ where: gameHydrationWhere }),
       this.prisma.game.findFirst({
-        where: { eventId: event.id },
+        where: gameHydrationWhere,
         orderBy: { updatedAt: "desc" },
         select: { updatedAt: true },
       }),

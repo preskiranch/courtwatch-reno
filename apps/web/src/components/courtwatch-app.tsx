@@ -5,6 +5,7 @@ import {
   courtWatchSupportedTournamentRegion,
   filterTeamScoringLeadersByDivisionIds,
   isAnyActiveTournamentWindow,
+  nextGameForTeam,
   withEffectiveGameStatus,
   withEffectiveGameStatuses,
   type CourtFinderGame,
@@ -1744,7 +1745,7 @@ function ProgramCard({
             </div>
             <p className="mt-2 text-sm text-slate-700">
               {team.nextGame
-                ? formatNextGameSummary(team.nextGame, timezone)
+                ? formatTeamNextGameSummary(team, team.nextGame, timezone)
                 : tournamentFinished
                   ? "Tournament finished"
                   : "Next game awaiting bracket"}
@@ -4180,6 +4181,8 @@ function TeamsScreen({
           team={team}
           record={teamRecordForTeam(team, records)}
           recordsLoading={recordsLoading}
+          nextGame={nextGameForTeam(team, recordGames)}
+          timezone={timezone}
           onFollow={() => followTeam.mutate(team.id)}
           onUnfollow={() => unfollowTeam.mutate(team.id)}
           pending={
@@ -4587,7 +4590,7 @@ function FollowedTeamRow({
           label="Next"
           value={
             team.nextGame
-              ? formatNextGameSummary(team.nextGame, timezone)
+              ? formatTeamNextGameSummary(team, team.nextGame, timezone)
               : tournamentFinished
                 ? "Finished"
                 : "TBD"
@@ -4723,7 +4726,7 @@ function TeamFocusPanel({
           label="Next"
           value={
             team.nextGame
-              ? formatNextGameSummary(team.nextGame, timezone)
+              ? formatTeamNextGameSummary(team, team.nextGame, timezone)
               : tournamentFinished
                 ? "Finished"
                 : "TBD"
@@ -4848,6 +4851,8 @@ function TeamSearchCard({
   team,
   record,
   recordsLoading,
+  nextGame,
+  timezone,
   onFollow,
   onUnfollow,
   pending,
@@ -4855,6 +4860,8 @@ function TeamSearchCard({
   team: Team;
   record: TeamRecord | undefined;
   recordsLoading: boolean;
+  nextGame?: Game | null;
+  timezone?: string | null;
   onFollow: () => void;
   onUnfollow: () => void;
   pending: boolean;
@@ -4878,6 +4885,11 @@ function TeamSearchCard({
             {team.gender ?? "Any"} / {team.gradeLevel ?? "Grade TBD"} /{" "}
             {team.level ?? "Level TBD"}
           </p>
+          {nextGame ? (
+            <p className="mt-2 text-sm font-semibold text-slate-700">
+              Next: {formatTeamNextGameSummary(team, nextGame, timezone)}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -6524,6 +6536,64 @@ function formatNextGameSummary(
   )} ${game.courtName ?? "Court TBD"}`;
 }
 
+function formatTeamNextGameSummary(
+  team: TeamNameDisplayInput & Pick<Team, "id">,
+  game: Pick<
+    Game,
+    | "startsAt"
+    | "courtName"
+    | "timezone"
+    | "homeTeamId"
+    | "awayTeamId"
+    | "homeTeamNameSnapshot"
+    | "awayTeamNameSnapshot"
+    | "divisionId"
+    | "rawJson"
+  >,
+  fallbackTimeZone: string | null | undefined = DEFAULT_TOURNAMENT_TIME_ZONE,
+): string {
+  const timeZone =
+    game.timezone ?? fallbackTimeZone ?? DEFAULT_TOURNAMENT_TIME_ZONE;
+  const opponent = opponentNameForTeam(team, game);
+  const matchup = opponent ? ` vs ${opponent}` : "";
+  return `${formatGameDateOnly(game.startsAt, timeZone)} at ${formatShortTime(
+    game.startsAt,
+    timeZone,
+  )}${matchup}, ${game.courtName ?? "Court TBD"}`;
+}
+
+function opponentNameForTeam(
+  team: TeamNameDisplayInput & Pick<Team, "id">,
+  game: Pick<
+    Game,
+    | "homeTeamId"
+    | "awayTeamId"
+    | "homeTeamNameSnapshot"
+    | "awayTeamNameSnapshot"
+    | "divisionId"
+    | "rawJson"
+  >,
+): string | null {
+  if (game.homeTeamId === team.id) {
+    return gameTeamDisplayName(game.awayTeamNameSnapshot, game, "Opponent TBD");
+  }
+  if (game.awayTeamId === team.id) {
+    return gameTeamDisplayName(game.homeTeamNameSnapshot, game, "Opponent TBD");
+  }
+
+  const teamNames = new Set([
+    normalizeTeamMatchName(team.name),
+    normalizeTeamMatchName(teamDisplayName(team)),
+  ]);
+  if (teamNames.has(normalizeTeamMatchName(game.homeTeamNameSnapshot))) {
+    return gameTeamDisplayName(game.awayTeamNameSnapshot, game, "Opponent TBD");
+  }
+  if (teamNames.has(normalizeTeamMatchName(game.awayTeamNameSnapshot))) {
+    return gameTeamDisplayName(game.homeTeamNameSnapshot, game, "Opponent TBD");
+  }
+  return null;
+}
+
 type AlertDisplay = {
   headline: string;
   meta: string | null;
@@ -6742,7 +6812,7 @@ function gameMatchupDisplayName(game: Game): string {
 
 function gameTeamDisplayName(
   name: string | null,
-  game: Game,
+  game: Pick<Game, "rawJson">,
   fallback = "TBD",
 ): string {
   if (!name) return fallback;
@@ -6841,7 +6911,7 @@ function divisionBracketUrlFromGame(game: Game): string | null {
   return null;
 }
 
-function divisionNameFromGame(game: Game): string | null {
+function divisionNameFromGame(game: Pick<Game, "rawJson">): string | null {
   if (
     !game.rawJson ||
     typeof game.rawJson !== "object" ||
