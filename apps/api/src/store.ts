@@ -4052,7 +4052,10 @@ function filterTeamsForSearch(
   return snapshot.teams
     .map((team) => ({
       ...team,
-      isFollowed: followedTeamIds.has(team.id),
+      isFollowed:
+        typeof team.isFollowed === "boolean"
+          ? team.isFollowed
+          : followedTeamIds.has(team.id),
       followerCount: team.followerCount ?? followerCounts.get(team.id) ?? 0,
       record: records.get(team.id),
     }))

@@ -183,6 +183,111 @@ describe("CourtWatch API", () => {
       .set("x-courtwatch-client-id", "client-alpha-123")
       .expect(200);
     expect(dashboard.body.programs[0].teams[0].followerCount).toBe(2);
+
+    const guestTeams = await request(app)
+      .get("/api/teams?search=Splash")
+      .set("x-courtwatch-client-id", "client-gamma-789")
+      .expect(200);
+    const splash4Guest = guestTeams.body.find(
+      (team: { id: string }) => team.id === "team-splash-4th",
+    );
+    expect(splash4Guest.followerCount).toBe(2);
+    expect(splash4Guest.isFollowed).toBe(false);
+  });
+
+  it("does not carry a followed team into another tournament with the same team name", async () => {
+    const snapshot = structuredClone(seedSnapshot);
+    const now = new Date().toISOString();
+    const secondEvent = {
+      ...snapshot.event,
+      id: "event-yellow-jacket-summerfest",
+      exposureEventId: 991001,
+      externalId: "991001",
+      slug: "yellow-jacket-summerfest",
+      sourceUrl:
+        "https://basketball.exposureevents.com/991001/yellow-jacket-summerfest",
+      name: "Yellow Jacket Summerfest",
+      organizer: "Sacramento Yellow Jackets",
+      city: "Sacramento",
+      state: "California",
+      region: "Northern California",
+      startDate: "2026-06-27",
+      endDate: "2026-06-27",
+      location: "Sacramento, California",
+      officialUrl:
+        "https://basketball.exposureevents.com/991001/yellow-jacket-summerfest",
+      registeredTeamCount: 1,
+      lastCheckedAt: now,
+      lastSyncedAt: now,
+      lastTeamChangeAt: now,
+      status: "upcoming" as const,
+      dropdownGroup: "upcoming" as const,
+    };
+    const secondDivision = {
+      ...snapshot.divisions[0]!,
+      id: "division-yellow-jacket-9u",
+      eventId: secondEvent.id,
+      exposureDivisionId: "yellow-jacket-9u",
+      name: "9U",
+      gradeLevel: "9U",
+      level: "Level TBD",
+    };
+    const secondTeam = {
+      ...snapshot.teams[0]!,
+      id: "team-yellow-jacket-splash-city-9u",
+      eventId: secondEvent.id,
+      divisionId: secondDivision.id,
+      exposureTeamId: "yellow-jacket-splash-city-9u",
+      name: "Splash City 9U",
+      normalizedName: normalizeName("Splash City 9U"),
+      clubName: "Splash City",
+      normalizedClubName: normalizeName("Splash City"),
+      sourceUrl:
+        "https://basketball.exposureevents.com/991001/yellow-jacket-summerfest/teams/splash-city-9u",
+      divisionName: secondDivision.name,
+      gradeLevel: secondDivision.gradeLevel,
+      level: secondDivision.level,
+      lastSeenAt: now,
+      createdAt: now,
+      updatedAt: now,
+      exposureEventId: secondEvent.exposureEventId,
+      eventName: secondEvent.name,
+      eventLocation: secondEvent.location,
+      isFollowed: false,
+      followerCount: 0,
+      record: undefined,
+    };
+
+    snapshot.events = [snapshot.event, secondEvent];
+    snapshot.divisions = [...snapshot.divisions, secondDivision];
+    snapshot.teams = [...snapshot.teams, secondTeam];
+
+    const app = createApp(new MockStore(snapshot), null);
+    await request(app)
+      .post("/api/teams/team-splash-4th/follow")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(201);
+
+    const renoTeams = await request(app)
+      .get("/api/teams?search=Splash&eventId=255539")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(200);
+    const renoSplash = renoTeams.body.find(
+      (team: { id: string }) => team.id === "team-splash-4th",
+    );
+    expect(renoSplash.isFollowed).toBe(true);
+
+    const yellowJacketTeams = await request(app)
+      .get("/api/teams?search=Splash&eventId=991001")
+      .set("x-courtwatch-client-id", "client-alpha-123")
+      .expect(200);
+    expect(yellowJacketTeams.body).toHaveLength(1);
+    expect(yellowJacketTeams.body[0]).toMatchObject({
+      id: "team-yellow-jacket-splash-city-9u",
+      name: "Splash City 9U",
+      isFollowed: false,
+      followerCount: 0,
+    });
   });
 
   it("searches registered teams without using player names", async () => {

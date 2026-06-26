@@ -4900,9 +4900,10 @@ function TeamSearchCard({
 
 function FollowerCountBadge({ count }: { count: number }) {
   if (count <= 0) return null;
+  const label = count === 1 ? "follower" : "followers";
   return (
     <span className="shrink-0 rounded-md bg-orange-100 px-2 py-1 text-[11px] font-black text-orange-700">
-      {count} following
+      {count} {label}
     </span>
   );
 }
