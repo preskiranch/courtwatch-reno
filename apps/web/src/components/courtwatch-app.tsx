@@ -3959,6 +3959,7 @@ function GameRow({
   recordsLoading: boolean;
 }) {
   const bracketUrl = bracketUrlFromGame(game);
+  const mapsUrl = mapsSearchUrlFromGame(game);
   const matchup = gameMatchupDisplayName(game);
   return (
     <article className="court-card p-4">
@@ -3998,7 +3999,21 @@ function GameRow({
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-slate-700">
         <span className="flex items-center gap-1.5">
-          <MapPin className="h-4 w-4 text-orange-500" />
+          {mapsUrl ? (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Open ${game.venueName ?? "venue"} in maps`}
+              title="Open in maps"
+              className="-ml-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-orange-500 transition active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+              onClick={(event) => handleMapsLinkClick(event, game)}
+            >
+              <MapPin className="h-4 w-4" />
+            </a>
+          ) : (
+            <MapPin className="h-4 w-4 text-orange-500" />
+          )}
           {game.venueName ?? "Venue TBD"}
         </span>
         <span className="flex items-center gap-1.5">
@@ -6696,6 +6711,64 @@ function formatGameLocation(
   if (!venue && !court) return null;
   if (venue && court) return `${venue} · ${court}`;
   return venue ?? court ?? null;
+}
+
+function mapsSearchUrlFromGame(
+  game: Pick<Game, "venueName" | "courtName">,
+): string | null {
+  const query = mapsSearchQueryFromGame(game);
+  if (!query) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    query,
+  )}`;
+}
+
+function handleMapsLinkClick(
+  event: {
+    defaultPrevented: boolean;
+    metaKey: boolean;
+    ctrlKey: boolean;
+    shiftKey: boolean;
+    preventDefault: () => void;
+  },
+  game: Pick<Game, "venueName" | "courtName">,
+) {
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey)
+    return;
+
+  const query = mapsSearchQueryFromGame(game);
+  if (!query || typeof navigator === "undefined") return;
+
+  const userAgent = navigator.userAgent;
+  if (/Android/i.test(userAgent)) {
+    event.preventDefault();
+    window.location.href = `geo:0,0?q=${encodeURIComponent(query)}`;
+    return;
+  }
+
+  const isAppleTouchDevice =
+    /iPad|iPhone|iPod/i.test(userAgent) ||
+    (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
+  if (isAppleTouchDevice) {
+    event.preventDefault();
+    window.location.href = `https://maps.apple.com/?q=${encodeURIComponent(
+      query,
+    )}`;
+  }
+}
+
+function mapsSearchQueryFromGame(
+  game: Pick<Game, "venueName" | "courtName">,
+): string | null {
+  const venue = game.venueName?.trim();
+  if (!venue) return null;
+
+  const withoutNotes = venue
+    .replace(/\s*\([^)]*\)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return withoutNotes || venue;
 }
 
 function opponentNameForTeam(
