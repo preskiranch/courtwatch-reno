@@ -17,9 +17,15 @@ import {
   type ProgramSummary,
   type Team,
   type TeamScoringLeader,
+  type SyncStatus,
   type TournamentEvent,
 } from "@courtwatch/core";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import clsx from "clsx";
 import {
   Activity,
@@ -132,6 +138,18 @@ type TournamentRegionFilter = string;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
+function invalidateLiveDataQueries(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+    queryClient.invalidateQueries({ queryKey: ["games"] }),
+    queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+    queryClient.invalidateQueries({ queryKey: ["events"] }),
+    queryClient.invalidateQueries({ queryKey: ["results"] }),
+    queryClient.invalidateQueries({ queryKey: ["teams"] }),
+    queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
+  ]);
+}
+
 export function CourtWatchApp() {
   useVisualViewportBottomGap();
 
@@ -143,6 +161,7 @@ export function CourtWatchApp() {
     null,
   );
   const [browserOnline, setBrowserOnline] = useState(true);
+  const [syncStreamConnected, setSyncStreamConnected] = useState(false);
   const queryClient = useQueryClient();
   const accountScope = accountSession
     ? `account:${accountSession.user.id}`
@@ -180,10 +199,13 @@ export function CourtWatchApp() {
     ? dataRefetchIntervalForEvent(fetchedActiveEvent, todayKey)
     : LIVE_DATA_REFETCH_MS;
   const anyFetchedEventIsActive = isAnyActiveTournamentWindow(fetchedEvents);
-  const syncStatusRefetchInterval =
+  const syncStatusFallbackRefetchInterval =
     anyFetchedEventIsActive || dataRefetchInterval === LIVE_DATA_REFETCH_MS
       ? LIVE_SYNC_STATUS_REFETCH_MS
       : PASSIVE_DATA_REFETCH_MS;
+  const syncStatusRefetchInterval = syncStreamConnected
+    ? PASSIVE_DATA_REFETCH_MS
+    : syncStatusFallbackRefetchInterval;
   const lastTodayKeyRef = useRef(todayKey);
   const lastSyncFingerprintRef = useRef<string | null>(null);
   const dashboardQuery = useQuery({
@@ -345,16 +367,56 @@ export function CourtWatchApp() {
     }
     if (lastSyncFingerprintRef.current === fingerprint) return;
     lastSyncFingerprintRef.current = fingerprint;
-    void Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
-      queryClient.invalidateQueries({ queryKey: ["games"] }),
-      queryClient.invalidateQueries({ queryKey: ["alerts"] }),
-      queryClient.invalidateQueries({ queryKey: ["events"] }),
-      queryClient.invalidateQueries({ queryKey: ["results"] }),
-      queryClient.invalidateQueries({ queryKey: ["teams"] }),
-      queryClient.invalidateQueries({ queryKey: ["points-leaders"] }),
-    ]);
+    void invalidateLiveDataQueries(queryClient);
   }, [queryClient, syncStatusQuery.data?.fingerprint]);
+
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      !activeEventId ||
+      !("EventSource" in window)
+    ) {
+      setSyncStreamConnected(false);
+      return;
+    }
+
+    let closed = false;
+    const streamUrl = new URL("/api/realtime/sync-status", apiBaseUrl());
+    streamUrl.searchParams.set("scope", "all");
+    const source = new EventSource(streamUrl.toString());
+
+    const handleStatus = (event: MessageEvent<string>) => {
+      try {
+        const status = JSON.parse(event.data) as SyncStatus;
+        const fingerprint = status.fingerprint;
+        if (!fingerprint) return;
+        if (!lastSyncFingerprintRef.current) {
+          lastSyncFingerprintRef.current = fingerprint;
+          return;
+        }
+        if (lastSyncFingerprintRef.current === fingerprint) return;
+        lastSyncFingerprintRef.current = fingerprint;
+        void invalidateLiveDataQueries(queryClient);
+      } catch {
+        // Ignore malformed stream payloads and keep the polling fallback alive.
+      }
+    };
+
+    source.addEventListener("sync-status", handleStatus as EventListener);
+    source.onopen = () => {
+      if (!closed) setSyncStreamConnected(true);
+    };
+    source.onerror = () => {
+      if (!closed) setSyncStreamConnected(false);
+    };
+
+    return () => {
+      closed = true;
+      setSyncStreamConnected(false);
+      source.removeEventListener("sync-status", handleStatus as EventListener);
+      source.close();
+    };
+  }, [activeEventId, queryClient]);
 
   useEffect(() => {
     if (

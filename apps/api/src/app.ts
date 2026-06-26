@@ -38,6 +38,8 @@ import { NotificationService } from "./notification-service.js";
 import type { CourtWatchStore } from "./store.js";
 
 const PRESENCE_TTL_MS = 45_000;
+const SYNC_STATUS_STREAM_INTERVAL_MS = 1_000;
+const SYNC_STATUS_STREAM_HEARTBEAT_MS = 15_000;
 const ADMIN_ACCOUNT_EMAIL = "courtwatchaau@gmail.com";
 const activePresence = new Map<
   string,
@@ -50,6 +52,7 @@ export function createApp(
 ) {
   const app = express();
   const notifications = new NotificationService(prismaClient);
+  const syncStatusStreams = new SyncStatusStreamBroker(store);
   const runSync = async (exposureEventId?: number | null) => {
     const result = await store.syncNow(exposureEventId);
     await notifications.sendPending();
@@ -402,6 +405,18 @@ export function createApp(
     } catch (error) {
       next(error);
     }
+  });
+
+  app.get("/api/realtime/sync-status", (_req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders?.();
+    res.write("retry: 2000\n\n");
+
+    const unsubscribe = syncStatusStreams.subscribe(res);
+    _req.on("close", unsubscribe);
   });
 
   app.get("/api/dashboard", async (req, res, next) => {
@@ -899,6 +914,94 @@ export function createApp(
   );
 
   return app;
+}
+
+type SyncStreamClient = {
+  id: string;
+  res: express.Response;
+  lastFingerprint: string | null;
+  lastHeartbeatAt: number;
+};
+
+class SyncStatusStreamBroker {
+  private clients = new Map<string, SyncStreamClient>();
+  private interval: ReturnType<typeof setInterval> | null = null;
+  private latestStatus: Awaited<
+    ReturnType<CourtWatchStore["syncStatus"]>
+  > | null = null;
+  private polling = false;
+
+  constructor(private readonly store: CourtWatchStore) {}
+
+  subscribe(res: express.Response) {
+    const client: SyncStreamClient = {
+      id: randomUUID(),
+      res,
+      lastFingerprint: null,
+      lastHeartbeatAt: Date.now(),
+    };
+
+    this.clients.set(client.id, client);
+    if (this.latestStatus) this.sendStatus(client, this.latestStatus);
+    this.start();
+    void this.poll();
+
+    return () => {
+      this.clients.delete(client.id);
+      if (this.clients.size === 0) this.stop();
+    };
+  }
+
+  private start() {
+    if (this.interval) return;
+    this.interval = setInterval(() => {
+      void this.poll();
+    }, SYNC_STATUS_STREAM_INTERVAL_MS);
+  }
+
+  private stop() {
+    if (!this.interval) return;
+    clearInterval(this.interval);
+    this.interval = null;
+  }
+
+  private async poll() {
+    if (this.polling || this.clients.size === 0) return;
+    this.polling = true;
+    try {
+      const status = await this.store.syncStatus(null, "all");
+      this.latestStatus = status;
+      const now = Date.now();
+
+      for (const client of this.clients.values()) {
+        try {
+          if (client.lastFingerprint !== status.fingerprint) {
+            this.sendStatus(client, status);
+          } else if (
+            now - client.lastHeartbeatAt >=
+            SYNC_STATUS_STREAM_HEARTBEAT_MS
+          ) {
+            client.res.write(`: heartbeat ${now}\n\n`);
+            client.lastHeartbeatAt = now;
+          }
+        } catch {
+          this.clients.delete(client.id);
+        }
+      }
+    } finally {
+      this.polling = false;
+    }
+  }
+
+  private sendStatus(
+    client: SyncStreamClient,
+    status: Awaited<ReturnType<CourtWatchStore["syncStatus"]>>,
+  ) {
+    client.res.write(`event: sync-status\n`);
+    client.res.write(`data: ${JSON.stringify(status)}\n\n`);
+    client.lastFingerprint = status.fingerprint;
+    client.lastHeartbeatAt = Date.now();
+  }
 }
 
 function allowedOriginsFromEnv(value: string | undefined): string[] {
