@@ -184,10 +184,12 @@ export function CourtWatchApp() {
   const selectedFetchedEvent = selectedEventId
     ? fetchedEvents.find((event) => event.exposureEventId === selectedEventId)
     : null;
-  const activeEventId =
-    selectedFetchedEvent?.exposureEventId ??
-    fetchedEvents[0]?.exposureEventId ??
-    DEFAULT_TRACKED_EXPOSURE_EVENT_ID;
+  const eventsLoaded = Boolean(eventsQuery.data);
+  const activeEventId = eventsLoaded
+    ? (selectedFetchedEvent?.exposureEventId ??
+      fetchedEvents[0]?.exposureEventId ??
+      null)
+    : null;
   const fetchedActiveEvent =
     fetchedEvents.find((event) => event.exposureEventId === activeEventId) ??
     null;
