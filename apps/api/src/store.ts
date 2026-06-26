@@ -2248,10 +2248,17 @@ export class PrismaStore implements CourtWatchStore {
   }
 
   private async hydrateActiveGamesIfStale(exposureEventId?: number | null) {
-    const requestedTournament = tournamentForExposureEventId(exposureEventId);
-    const event = await this.prisma.event.findUnique({
-      where: { exposureEventId: requestedTournament.exposureEventId },
-    });
+    const directEvent = exposureEventId
+      ? await this.prisma.event.findUnique({ where: { exposureEventId } })
+      : null;
+    const event =
+      directEvent ??
+      (await this.prisma.event.findUnique({
+        where: {
+          exposureEventId:
+            tournamentForExposureEventId(exposureEventId).exposureEventId,
+        },
+      }));
     if (!event || !isExposureEvent(prismaEventToCore(event))) return;
 
     const tournament =
