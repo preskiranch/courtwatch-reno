@@ -135,6 +135,95 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("falls back to official team schedules when division games are not posted yet", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1448860,"Name":"9U, Pool A"}],
+              standingsUrl: "/standings",
+              brackets: [],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/eventgames")) return jsonResponse([]);
+      if (url.includes("/e/teamgames?divisionteamid=5412439")) {
+        return jsonResponse([
+          {
+            Name: "Saturday, June 27, 2026",
+            Games: [
+              {
+                Id: 40900101,
+                VenueName: "Christian Brothers High School",
+                CourtName: "Aux #1",
+                AwayDivisionTeamId: 5412439,
+                HomeDivisionTeamId: 5411916,
+                GameTypeName: "Pool A",
+                HomeTeamName: "Yellow Jackets 9U Gold",
+                AwayTeamName: "Splash City",
+                DivisionName: "9U, Pool A",
+                DivisionId: 1448860,
+                DateFormatted: "6/27/2099",
+                TimeFormatted: "8:50 AM PDT",
+                HomeTeamScoreDisplay: "",
+                AwayTeamScoreDisplay: "",
+                Started: false,
+              },
+              {
+                Id: 40900102,
+                VenueName: "Christian Brothers High School",
+                CourtName: "Aux #1",
+                AwayDivisionTeamId: 5412100,
+                HomeDivisionTeamId: 5412439,
+                GameTypeName: "Pool A",
+                HomeTeamName: "Splash City",
+                AwayTeamName: "Peaceful Warriors",
+                DivisionName: "9U, Pool A",
+                DivisionId: 1448860,
+                DateFormatted: "6/27/2099",
+                TimeFormatted: "10:30 AM PDT",
+                HomeTeamScoreDisplay: "",
+                AwayTeamScoreDisplay: "",
+                Started: false,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const games = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchGames(256066, {
+      eventSlug: "yellow-jackets-summerfest",
+      teamIds: ["5412439"],
+      timezone: "America/Los_Angeles",
+    });
+
+    expect(games).toHaveLength(2);
+    expect(games[0]).toMatchObject({
+      exposureGameId: "40900101",
+      scheduledTime: "8:50 AM",
+      courtName: "Aux #1",
+      homeTeamId: "public-team-256066-5411916",
+      awayTeamId: "public-team-256066-5412439",
+      homeTeamNameSnapshot: "Yellow Jackets 9U Gold",
+      awayTeamNameSnapshot: "Splash City",
+      status: "upcoming",
+    });
+    expect(games[1]).toMatchObject({
+      scheduledTime: "10:30 AM",
+      homeTeamNameSnapshot: "Splash City",
+      awayTeamNameSnapshot: "Peaceful Warriors",
+    });
+  });
+
   it("expires old public started games when Exposure never posts a score", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

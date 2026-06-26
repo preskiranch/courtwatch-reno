@@ -1915,10 +1915,14 @@ export class PrismaStore implements CourtWatchStore {
         this.prisma,
         event.id,
       );
+      const sourceTeamIds = sourceTeams.teams
+        .map((team) => team.exposureTeamId)
+        .filter((value): value is string => Boolean(value));
       const sourceGames = await fetchSourceGames(
         selectedDivisionIds,
         tournament,
         options,
+        sourceTeamIds,
       );
       for (const sourceGame of sourceGames) {
         const mapped = isCoreGame(sourceGame)
@@ -2280,7 +2284,6 @@ export class PrismaStore implements CourtWatchStore {
     const tournamentStarted = hasTournamentStarted(tournament);
     const hydrateViewedPrestartEvent =
       !tournamentStarted &&
-      selectedDivisionIds.length === 0 &&
       isTournamentInPrestartGameHydrationWindow(tournament);
     if (
       !tournamentStarted &&
@@ -2878,6 +2881,7 @@ async function fetchSourceGames(
   selectedDivisionIds: string[],
   tournament: TournamentSource,
   options: { forceFetchAllGames?: boolean } = {},
+  sourceTeamIds: string[] = [],
 ): Promise<Array<Record<string, unknown> | Game>> {
   if (tournament.externalProvider !== "exposure_events") return [];
   try {
@@ -2898,6 +2902,7 @@ async function fetchSourceGames(
   return publicClient.fetchGames(tournament.exposureEventId, {
     divisionIds: fetchAllPublicGames ? [] : selectedDivisionIds,
     eventSlug: tournament.slug,
+    teamIds: fetchAllPublicGames ? sourceTeamIds : [],
     timezone: tournament.timezone,
   });
 }

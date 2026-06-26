@@ -40,6 +40,7 @@ const placementMedals: Record<ResultPlacement, ResultMedalLabel> = {
 export interface PublicExposureGameOptions {
   divisionIds?: string[];
   eventSlug?: string;
+  teamIds?: string[];
   timezone?: string;
 }
 
@@ -265,7 +266,19 @@ export class PublicExposurePageClient {
       },
     );
 
-    return gamesByDivision.flat();
+    const games = gamesByDivision.flat();
+    const fallbackTeamIds = Array.from(
+      new Set((options.teamIds ?? []).map(String).filter(Boolean)),
+    );
+    if (games.length > 0 || fallbackTeamIds.length === 0) return games;
+
+    return this.fetchTeamGames(
+      eventId,
+      eventSlug,
+      fallbackTeamIds,
+      bracketsByDivision,
+      timezone,
+    );
   }
 
   async fetchDivisionResults(
@@ -398,6 +411,66 @@ export class PublicExposurePageClient {
     if (!response.ok)
       throw new Error(
         `Public eventgames request failed with ${response.status} for division ${divisionId}`,
+      );
+    return (await response.json()) as PublicExposureGameGroup[];
+  }
+
+  private async fetchTeamGames(
+    eventId: number,
+    eventSlug: string,
+    teamIds: string[],
+    bracketsByDivision: Map<string, PublicExposureBracketLink[]>,
+    timezone: string,
+  ): Promise<Game[]> {
+    const gamesByTeam = await mapWithConcurrency(
+      teamIds,
+      positiveInteger(process.env.EXPOSURE_PUBLIC_TEAM_GAMES_CONCURRENCY, 4),
+      async (teamId) => {
+        const games: Game[] = [];
+        const rawGroups = await this.fetchTeamGamesForTeam(eventId, teamId);
+        for (const group of rawGroups) {
+          if (!Array.isArray(group.Games)) continue;
+          for (const rawGame of group.Games) {
+            const mapped = mapPublicExposureGame(
+              rawGame,
+              eventId,
+              bracketsByDivision.get(String(rawGame.DivisionId)) ?? [],
+              eventSlug,
+              this.baseUrl,
+              timezone,
+            );
+            if (mapped) games.push(mapped);
+          }
+        }
+        await sleep(
+          Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125),
+        );
+        return games;
+      },
+    );
+    const deduped = new Map<string, Game>();
+    for (const game of gamesByTeam.flat()) {
+      deduped.set(game.exposureGameId ?? game.id, game);
+    }
+    return Array.from(deduped.values());
+  }
+
+  private async fetchTeamGamesForTeam(eventId: number, teamId: string) {
+    const url = `${this.baseUrl}/${eventId}/e/teamgames?divisionteamid=${encodeURIComponent(teamId)}`;
+    const response = await this.fetchWithTimeout(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent":
+          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+      },
+      body: "",
+    });
+    if (!response.ok)
+      throw new Error(
+        `Public teamgames request failed with ${response.status} for team ${teamId}`,
       );
     return (await response.json()) as PublicExposureGameGroup[];
   }
