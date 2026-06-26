@@ -158,6 +158,18 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
   }
 }
 
+export function cachedApiData<T>(
+  path: string,
+  cacheKey: CacheKey,
+): T | undefined {
+  if (typeof window === "undefined") return undefined;
+  const clientId = cacheScopeClientId(stableClientId());
+  const cached = firstCachedValue(cacheLookupKeys(cacheKey, path, clientId));
+  if (!cached) return undefined;
+  const data = cachedDataFromString(cached);
+  return data === null || data === undefined ? undefined : (data as T);
+}
+
 export async function apiPost<T>(
   path: string,
   body: unknown,
@@ -297,6 +309,24 @@ export const CourtWatchApi = {
       {},
       { "x-admin-secret": adminSecret },
     ),
+};
+
+export const CourtWatchCache = {
+  events: () => cachedApiData<TournamentEvent[]>("/api/events", "events"),
+  dashboard: (eventId?: number | null) =>
+    cachedApiData<DashboardResponse>(
+      withEvent("/api/dashboard", eventId),
+      "dashboard",
+    ),
+  games: (eventId?: number | null) =>
+    cachedApiData<Game[]>(withEvent("/api/games", eventId), "games"),
+  alerts: (eventId?: number | null) =>
+    cachedApiData<GameChangeEvent[]>(
+      withEvent("/api/alerts", eventId),
+      "alerts",
+    ),
+  accountStats: () =>
+    cachedApiData<AccountStatsResponse>("/api/accounts/stats", "accountStats"),
 };
 
 export function apiBaseUrl() {

@@ -20,22 +20,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     pruneStaleApiCaches();
-    if ("caches" in window) {
-      void window.caches
-        .keys()
-        .then((keys) =>
-          Promise.all(
-            keys
-              .filter(
-                (key) =>
-                  key.startsWith("courtwatch-reno-") ||
-                  key.startsWith("courtwatch-aau-"),
-              )
-              .map((key) => window.caches.delete(key)),
-          ),
-        )
-        .catch(() => undefined);
-    }
     if ("serviceWorker" in navigator) {
       let refreshing = false;
       navigator.serviceWorker.addEventListener("controllerchange", () => {

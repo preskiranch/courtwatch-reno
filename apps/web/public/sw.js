@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-aau-v67";
+const CACHE_NAME = "courtwatch-aau-v68";
 const APP_SHELL = [
   "/install",
   "/support",
@@ -65,7 +65,16 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.url.includes("/_next/static/")) {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        });
+      }),
+    );
     return;
   }
 

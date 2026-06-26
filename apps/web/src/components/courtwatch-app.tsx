@@ -60,7 +60,7 @@ import {
 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CourtWatchApi, apiBaseUrl } from "../lib/api";
+import { CourtWatchApi, CourtWatchCache, apiBaseUrl } from "../lib/api";
 import {
   clearAccountSession,
   loadAccountSession,
@@ -136,6 +136,7 @@ const NEVADA_REGION = "state:NV";
 
 type TournamentRegionFilter = string;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
+const DEFER_HEAVY_DASHBOARD_DATA_MS = 1_500;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
 function invalidateLiveDataQueries(queryClient: QueryClient) {
@@ -175,6 +176,8 @@ export function CourtWatchApp() {
   const eventsQuery = useQuery({
     queryKey: ["events"],
     queryFn: CourtWatchApi.events,
+    initialData: CourtWatchCache.events,
+    initialDataUpdatedAt: 0,
     staleTime: 5 * 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
@@ -185,11 +188,12 @@ export function CourtWatchApp() {
     ? fetchedEvents.find((event) => event.exposureEventId === selectedEventId)
     : null;
   const eventsLoaded = Boolean(eventsQuery.data);
-  const activeEventId = eventsLoaded
-    ? (selectedFetchedEvent?.exposureEventId ??
-      fetchedEvents[0]?.exposureEventId ??
-      null)
-    : null;
+  const activeEventId =
+    selectedEventId && (!eventsLoaded || selectedFetchedEvent)
+      ? selectedEventId
+      : eventsLoaded
+        ? (fetchedEvents[0]?.exposureEventId ?? null)
+        : null;
   const fetchedActiveEvent =
     fetchedEvents.find((event) => event.exposureEventId === activeEventId) ??
     null;
@@ -214,14 +218,26 @@ export function CourtWatchApp() {
     queryKey: ["dashboard", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.dashboard(activeEventId),
     enabled: clientReady && Boolean(activeEventId),
+    initialData: () =>
+      activeEventId ? CourtWatchCache.dashboard(activeEventId) : undefined,
+    initialDataUpdatedAt: 0,
     refetchInterval: dataRefetchInterval,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
+  const auxiliaryEventDataEnabled =
+    clientReady &&
+    Boolean(activeEventId) &&
+    (activeTab === "schedule" ||
+      activeTab === "alerts" ||
+      Boolean(dashboardQuery.data));
   const gamesQuery = useQuery({
     queryKey: ["games", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.games("", activeEventId),
-    enabled: clientReady && Boolean(activeEventId),
+    enabled: auxiliaryEventDataEnabled,
+    initialData: () =>
+      activeEventId ? CourtWatchCache.games(activeEventId) : undefined,
+    initialDataUpdatedAt: 0,
     refetchInterval: dataRefetchInterval,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
@@ -229,7 +245,10 @@ export function CourtWatchApp() {
   const alertsQuery = useQuery({
     queryKey: ["alerts", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.alerts(activeEventId),
-    enabled: clientReady && Boolean(activeEventId),
+    enabled: auxiliaryEventDataEnabled,
+    initialData: () =>
+      activeEventId ? CourtWatchCache.alerts(activeEventId) : undefined,
+    initialDataUpdatedAt: 0,
     refetchInterval: dataRefetchInterval,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
@@ -257,6 +276,8 @@ export function CourtWatchApp() {
   const accountStatsQuery = useQuery({
     queryKey: ["account-stats"],
     queryFn: CourtWatchApi.accountStats,
+    initialData: CourtWatchCache.accountStats,
+    initialDataUpdatedAt: 0,
     staleTime: 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
@@ -575,7 +596,7 @@ export function CourtWatchApp() {
     !eventsQuery.isLoading && displayEvents.length === 0 && !dashboard;
   const isLoading =
     !presenceClientId ||
-    eventsQuery.isLoading ||
+    (!dashboard && eventsQuery.isLoading) ||
     (!hasNoEvents && (!activeEventId || dashboardQuery.isLoading));
   const allPrimarySourceQueriesFailed =
     dashboardQuery.isError &&
@@ -1036,8 +1057,8 @@ function AppHeader({
               : eventsLoading
                 ? "Loading tournaments..."
                 : events.length === 0
-                ? "No public-source tournaments found in the next six months"
-                : "Choose tournament"}
+                  ? "No public-source tournaments found in the next six months"
+                  : "Choose tournament"}
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 text-slate-300" />
         </button>
@@ -1491,9 +1512,21 @@ function DashboardScreen({
   onRefresh: () => void;
   eventId: number | null;
 }) {
+  const [loadHeavyDashboardData, setLoadHeavyDashboardData] = useState(false);
+  useEffect(() => {
+    setLoadHeavyDashboardData(false);
+    if (!eventId || typeof window === "undefined") return;
+    const timeout = window.setTimeout(
+      () => setLoadHeavyDashboardData(true),
+      DEFER_HEAVY_DASHBOARD_DATA_MS,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [eventId]);
+
   const allGamesQuery = useQuery({
     queryKey: ["games", "all", eventId],
     queryFn: () => CourtWatchApi.allGames(eventId),
+    enabled: loadHeavyDashboardData && Boolean(eventId),
     staleTime: 60_000,
     refetchInterval: 60_000,
     refetchIntervalInBackground: true,
@@ -1502,6 +1535,7 @@ function DashboardScreen({
   const teamsQuery = useQuery({
     queryKey: ["teams", "all", clientId, eventId],
     queryFn: () => CourtWatchApi.teams("", eventId),
+    enabled: loadHeavyDashboardData && Boolean(eventId),
     staleTime: 60_000,
     refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
@@ -1510,23 +1544,31 @@ function DashboardScreen({
   const pointsLeadersQuery = useQuery({
     queryKey: ["points-leaders", eventId],
     queryFn: () => CourtWatchApi.pointsLeaders(eventId),
-    enabled: Boolean(eventId),
+    enabled: loadHeavyDashboardData && Boolean(eventId),
     staleTime: 60_000,
     refetchInterval: 60_000,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
+  const dashboardPointLeaders = dashboard.pointsLeaders ?? [];
   const fallbackPointLeaders = useMemo(() => {
+    if (!loadHeavyDashboardData || dashboardPointLeaders.length > 0) return [];
     const teams = teamsQuery.data ?? [];
+    if (teams.length === 0) return [];
     const teamsById = new Map(teams.map((team) => [team.id, team]));
-    return buildTeamScoringLeaders(allGamesQuery.data ?? [], teams, {
+    return buildTeamScoringLeaders(allGamesQuery.data ?? games, teams, {
       includeUnscoredTeams: true,
     }).map((leader) => {
       const team = leader.teamId ? teamsById.get(leader.teamId) : null;
       return team ? { ...leader, teamName: teamDisplayName(team) } : leader;
     });
-  }, [allGamesQuery.data, teamsQuery.data]);
-  const dashboardPointLeaders = dashboard.pointsLeaders ?? [];
+  }, [
+    allGamesQuery.data,
+    dashboardPointLeaders.length,
+    games,
+    loadHeavyDashboardData,
+    teamsQuery.data,
+  ]);
   const pointLeaders =
     pointsLeadersQuery.data && pointsLeadersQuery.data.length > 0
       ? pointsLeadersQuery.data
@@ -1571,29 +1613,41 @@ function DashboardScreen({
   );
   const trustedRegisteredTeams = useMemo(
     () =>
-      teamsWithTrustedFollowState(teamsQuery.data ?? [], storedFollowedTeams),
-    [storedFollowedTeams, teamsQuery.data],
+      teamsWithTrustedFollowState(
+        loadHeavyDashboardData
+          ? (teamsQuery.data ?? [])
+          : dashboardFollowedTeams,
+        storedFollowedTeams,
+      ),
+    [
+      dashboardFollowedTeams,
+      loadHeavyDashboardData,
+      storedFollowedTeams,
+      teamsQuery.data,
+    ],
   );
   const teamsForFollowState = useMemo(
     () => mergeTeamLists(trustedRegisteredTeams, storedFollowedTeams),
     [storedFollowedTeams, trustedRegisteredTeams],
   );
+  const recordGames = allGamesQuery.data ?? games;
   const teamRecords = useMemo(
-    () => buildTeamRecordMap(allGamesQuery.data ?? [], teamsForFollowState),
-    [allGamesQuery.data, teamsForFollowState],
+    () => buildTeamRecordMap(recordGames, teamsForFollowState),
+    [recordGames, teamsForFollowState],
   );
-  const recordsLoading = allGamesQuery.isLoading || teamsQuery.isLoading;
+  const recordsLoading =
+    loadHeavyDashboardData && (allGamesQuery.isLoading || teamsQuery.isLoading);
   const effectiveDashboard = useMemo(
     () =>
       dashboardWithRegisteredFollows(
         dashboardWithoutSuppressedFollows,
         teamsForFollowState,
-        allGamesQuery.data ?? [],
+        recordGames,
         teamRecords,
       ),
     [
-      allGamesQuery.data,
       dashboardWithoutSuppressedFollows,
+      recordGames,
       teamRecords,
       teamsForFollowState,
     ],
@@ -6733,7 +6787,12 @@ function handleMapsLinkClick(
   },
   game: Pick<Game, "venueName" | "courtName">,
 ) {
-  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey)
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey
+  )
     return;
 
   const query = mapsSearchQueryFromGame(game);
