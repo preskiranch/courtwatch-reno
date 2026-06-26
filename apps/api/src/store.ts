@@ -2830,6 +2830,13 @@ async function fetchSourceTeams(
       const teams = await new ExposureClient().fetchTeams(
         tournament.exposureEventId,
       );
+      if (teams.length === 0) {
+        return new PublicExposurePageClient().fetchTeams(
+          tournament.exposureEventId,
+          tournament.slug,
+          tournament.timezone,
+        );
+      }
       const divisions = new Map<string, Division>();
       const mappedTeams = teams.map((team) => {
         const divisionName = String(team.Division?.Name ?? "Unknown Division");
