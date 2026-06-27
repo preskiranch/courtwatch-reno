@@ -58,7 +58,14 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { CourtWatchApi, CourtWatchCache, apiBaseUrl } from "../lib/api";
 import {
@@ -139,6 +146,29 @@ const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
 const DEFER_HEAVY_DASHBOARD_DATA_MS = 1_500;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 
+function tabFromDeepLink(value: string | null): Tab | null {
+  if (
+    value === "dashboard" ||
+    value === "schedule" ||
+    value === "teams" ||
+    value === "alerts"
+  ) {
+    return value;
+  }
+  return null;
+}
+
+function positiveEventIdFromSearch(
+  params: URLSearchParams,
+): number | null {
+  const eventId = Number(params.get("eventId"));
+  return Number.isFinite(eventId) && eventId > 0 ? eventId : null;
+}
+
+function gameCardElementId(gameId: string): string {
+  return `courtwatch-game-${gameId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
 function invalidateLiveDataQueries(queryClient: QueryClient) {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
@@ -156,6 +186,13 @@ export function CourtWatchApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [notificationTargetGameId, setNotificationTargetGameId] = useState<
+    string | null
+  >(null);
+  const clearNotificationTargetGame = useCallback(
+    () => setNotificationTargetGameId(null),
+    [],
+  );
   const [accountSession, setAccountSession] = useState<AccountSession | null>(
     null,
   );
@@ -333,6 +370,25 @@ export function CourtWatchApp() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const linkedEventId = positiveEventIdFromSearch(params);
+    const linkedTab = tabFromDeepLink(params.get("tab"));
+    const linkedGameId = params.get("gameId")?.trim() ?? "";
+    if (linkedEventId) {
+      setSelectedEventId(linkedEventId);
+      window.localStorage.setItem(
+        SELECTED_EVENT_STORAGE_KEY,
+        String(linkedEventId),
+      );
+    }
+    if (linkedTab) {
+      setActiveTab(linkedTab);
+    }
+    if (linkedGameId) {
+      setNotificationTargetGameId(linkedGameId);
+    }
+    if (linkedEventId) return;
+
     const saved = Number(
       window.localStorage.getItem(SELECTED_EVENT_STORAGE_KEY),
     );
@@ -663,6 +719,8 @@ export function CourtWatchApp() {
               todayKey={todayKey}
               timezone={dashboard.event.timezone}
               eventId={activeEventId}
+              targetGameId={notificationTargetGameId}
+              onTargetGameHandled={clearNotificationTargetGame}
             />
           ) : null}
           {!isLoading && dashboard && activeTab === "teams" ? (
@@ -3557,12 +3615,16 @@ function ScheduleScreen({
   todayKey,
   timezone,
   eventId,
+  targetGameId,
+  onTargetGameHandled,
 }: {
   games: Game[];
   programs: ProgramSummary[];
   todayKey: string;
   timezone: string;
   eventId: number | null;
+  targetGameId: string | null;
+  onTargetGameHandled: () => void;
 }) {
   const [scheduleView, setScheduleView] = useState<"timeline" | "courts">(
     "timeline",
@@ -3614,6 +3676,24 @@ function ScheduleScreen({
   });
 
   const groups = groupGamesByDate(filteredGames, todayKey, timezone);
+
+  useEffect(() => {
+    if (!targetGameId || scheduleView !== "timeline") return;
+    if (!games.some((game) => game.id === targetGameId)) return;
+
+    let clearHighlightTimeout: number | undefined;
+    const timeout = window.setTimeout(() => {
+      const element = document.getElementById(gameCardElementId(targetGameId));
+      if (!element) return;
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      clearHighlightTimeout = window.setTimeout(onTargetGameHandled, 3_000);
+    }, 150);
+
+    return () => {
+      window.clearTimeout(timeout);
+      if (clearHighlightTimeout) window.clearTimeout(clearHighlightTimeout);
+    };
+  }, [games, onTargetGameHandled, scheduleView, targetGameId]);
 
   return (
     <div className="space-y-4">
@@ -3719,6 +3799,7 @@ function ScheduleScreen({
                   game={game}
                   records={records}
                   recordsLoading={recordsLoading}
+                  highlighted={game.id === targetGameId}
                 />
               ))}
             </section>
@@ -3971,16 +4052,25 @@ function GameRow({
   game,
   records,
   recordsLoading,
+  highlighted = false,
 }: {
   game: Game;
   records: Map<string, TeamRecord>;
   recordsLoading: boolean;
+  highlighted?: boolean;
 }) {
   const bracketUrl = bracketUrlFromGame(game);
   const mapsUrl = mapsSearchUrlFromGame(game);
   const matchup = gameMatchupDisplayName(game);
   return (
-    <article className="court-card p-4">
+    <article
+      id={gameCardElementId(game.id)}
+      data-game-id={game.id}
+      className={clsx(
+        "court-card scroll-mt-44 p-4 transition-shadow",
+        highlighted && "ring-4 ring-orange-400 shadow-2xl shadow-orange-500/25",
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-const CACHE_NAME = "courtwatch-aau-v69";
+const CACHE_NAME = "courtwatch-aau-v70";
 const APP_SHELL = [
   "/install",
   "/support",
@@ -127,5 +127,23 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification.data?.url || "/";
-  event.waitUntil(self.clients.openWindow(url));
+  const targetUrl = new URL(url, self.location.origin).href;
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        const appClient = clients.find((client) =>
+          client.url.startsWith(self.location.origin),
+        );
+        if (appClient) {
+          return appClient.focus().then((client) => {
+            if ("navigate" in client) {
+              return client.navigate(targetUrl);
+            }
+            return self.clients.openWindow(targetUrl);
+          });
+        }
+        return self.clients.openWindow(targetUrl);
+      }),
+  );
 });

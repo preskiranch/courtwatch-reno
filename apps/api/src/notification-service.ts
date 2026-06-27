@@ -3,6 +3,7 @@ import { formatNotification, notificationHash } from "@courtwatch/core";
 import type { Game, GameChangeEvent, Team } from "@courtwatch/core";
 import webpush from "web-push";
 import { config } from "./config.js";
+import { notificationClickUrl } from "./notification-click-url.js";
 
 export class NotificationService {
   constructor(private readonly prisma: PrismaClient | null) {
@@ -27,7 +28,10 @@ export class NotificationService {
     });
     const changes = await this.prisma.gameChangeEvent.findMany({
       where: { notificationSent: false },
-      include: { game: true, affectedTeam: true },
+      include: {
+        game: { include: { event: true } },
+        affectedTeam: { include: { event: true } }
+      },
       orderBy: { createdAt: "asc" },
       take: 50
     });
@@ -60,6 +64,12 @@ export class NotificationService {
         }
         const team = change.affectedTeam ? prismaTeamToCore(change.affectedTeam) : null;
         const message = formatNotification(coreEvent, game, team);
+        const exposureEventId = change.game?.event.exposureEventId ?? change.affectedTeam?.event.exposureEventId ?? null;
+        const clickUrl = notificationClickUrl({
+          webBaseUrl: config.WEB_BASE_URL,
+          exposureEventId,
+          gameId: change.gameId
+        });
         const dedupeKey = notificationHash(coreEvent, user.id, "web_push");
         const existing = await this.prisma.notificationLog.findUnique({
           where: { userId_dedupeKey_channel: { userId: user.id, dedupeKey, channel: "web_push" } }
@@ -72,7 +82,7 @@ export class NotificationService {
         try {
           await webpush.sendNotification(
             user.pushSubscriptionJson as unknown as webpush.PushSubscription,
-            JSON.stringify({ title: message.title, body: message.body, url: config.WEB_BASE_URL })
+            JSON.stringify({ title: message.title, body: message.body, url: clickUrl })
           );
           await this.prisma.notificationLog.create({
             data: {
