@@ -67,8 +67,20 @@ export function formatNotification(event: GameChangeEvent, game: Game | null, te
     case "bracket_update":
     case "team_advanced":
       return { title: `Bracket update for ${teamName}`, body: `${game?.gameType ?? "Bracket game"} posted${court}.` };
-    case "starting_soon":
-      return { title: `${teamName} starts soon`, body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.` };
+    case "starting_soon": {
+      const value = event.newValue as Record<string, unknown> | null;
+      const reminderMinutes =
+        typeof value?.reminderMinutes === "number"
+          ? value.reminderMinutes
+          : null;
+      const title =
+        reminderMinutes === 0
+          ? `${teamName} is live now`
+          : reminderMinutes
+            ? `${teamName} starts in ${reminderMinutes} min`
+            : `${teamName} starts soon`;
+      return { title, body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.` };
+    }
     default:
       return { title: "Court Watch AAU update", body: "A watched schedule item changed." };
   }

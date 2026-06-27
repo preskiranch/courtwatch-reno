@@ -39,7 +39,7 @@ describe("dashboard response", () => {
           },
         ],
       },
-      new Date("2026-05-26T00:58:00.000Z"),
+      new Date("2026-05-26T00:20:00.000Z"),
     );
 
     expect(dashboard.nextGame?.status).toBe("playing_now");

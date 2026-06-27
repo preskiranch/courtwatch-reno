@@ -3,6 +3,7 @@ import {
   DashboardService,
   ExposureClient,
   LEGACY_AUTO_PROGRAM_IDS,
+  LIVE_GAME_WINDOW_MINUTES,
   PublicExposurePageClient,
   RENO_TIMEZONE,
   ScheduleService,
@@ -37,6 +38,7 @@ import {
   tournamentWindowEndKey,
   nextGameForTeam,
   lastResultForTeam,
+  startingSoonChangeEventsForGame,
   withEffectiveGameStatuses,
   withEffectiveGameStatus,
 } from "@courtwatch/core";
@@ -1968,6 +1970,10 @@ export class PrismaStore implements CourtWatchStore {
           });
         }
       }
+      changesDetected += await upsertStartingSoonEventsForEvent(
+        this.prisma,
+        event.id,
+      );
 
       const resultSnapshot = await this.snapshot(tournament.exposureEventId);
       const derivedDivisionResults =
@@ -3595,6 +3601,52 @@ async function upsertGame(prisma: PrismaClient, game: Game) {
       ...gameWrite(game),
     },
   });
+}
+
+async function upsertStartingSoonEventsForEvent(
+  prisma: PrismaClient,
+  eventId: string,
+): Promise<number> {
+  const now = new Date();
+  const games = await prisma.game.findMany({
+    where: {
+      eventId,
+      status: { not: "final" },
+      startsAt: {
+        gte: new Date(now.getTime() - LIVE_GAME_WINDOW_MINUTES * 60_000),
+        lte: new Date(now.getTime() + 60 * 60_000),
+      },
+    },
+  });
+
+  let createdCount = 0;
+  for (const game of games) {
+    for (const change of startingSoonChangeEventsForGame(
+      prismaGameToCore(game),
+      now,
+    )) {
+      const existing = await prisma.gameChangeEvent.findUnique({
+        where: { dedupeKey: change.dedupeKey },
+        select: { id: true },
+      });
+      if (existing) continue;
+
+      await prisma.gameChangeEvent.create({
+        data: {
+          gameId: change.gameId,
+          affectedTeamId: change.affectedTeamId,
+          affectedProgramWatchlistId: change.affectedProgramWatchlistId,
+          eventType: change.eventType,
+          previousValue: Prisma.JsonNull,
+          newValue: change.newValue as object,
+          dedupeKey: change.dedupeKey,
+        },
+      });
+      createdCount += 1;
+    }
+  }
+
+  return createdCount;
 }
 
 function gameWrite(game: Game) {

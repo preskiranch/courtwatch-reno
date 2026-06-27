@@ -1,6 +1,6 @@
 import type { Game, GameStatus } from "./types.js";
 
-export const LIVE_GAME_WINDOW_MINUTES = 95;
+export const LIVE_GAME_WINDOW_MINUTES = 60;
 
 export function deriveEffectiveGameStatus(
   game: Pick<Game, "startsAt" | "status">,

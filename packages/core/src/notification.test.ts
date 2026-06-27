@@ -38,4 +38,66 @@ describe("notification deduplication", () => {
       body: "NBC Bulls posted Champion / 1st / Gold in 13u Division 2.",
     });
   });
+
+  it("formats live-now start alerts clearly", () => {
+    const event: GameChangeEvent = {
+      id: "start-alert-1",
+      gameId: "game-1",
+      affectedTeamId: "team-1",
+      affectedProgramWatchlistId: null,
+      eventType: "starting_soon",
+      previousValue: null,
+      newValue: { reminderMinutes: 0 },
+      createdAt: "2026-06-27T15:50:00.000Z",
+      notificationSent: false,
+      dedupeKey: "game-1:starting-now:team-1",
+    };
+
+    expect(
+      formatNotification(
+        event,
+        {
+          id: "game-1",
+          eventId: "event-1",
+          divisionId: "division-1",
+          exposureGameId: "game-1",
+          gameNumber: null,
+          gameType: "Pool A",
+          scheduledDate: "2026-06-27",
+          scheduledTime: "8:50 AM",
+          startsAt: "2026-06-27T15:50:00.000Z",
+          timezone: "America/Los_Angeles",
+          venueName: "Christian Brothers High School",
+          courtName: "Aux #1",
+          homeTeamId: "team-1",
+          awayTeamId: "team-2",
+          homeTeamNameSnapshot: "Splash City 9U",
+          awayTeamNameSnapshot: "Yellow Jackets 9U Gold",
+          homeScore: null,
+          awayScore: null,
+          status: "playing_now",
+          officialUrl: null,
+          streamingUrl: null,
+          updatedAt: "2026-06-27T15:50:00.000Z",
+          sourceHash: "hash",
+        },
+        {
+          id: "team-1",
+          eventId: "event-1",
+          divisionId: "division-1",
+          exposureTeamId: "team-1",
+          name: "Splash City 9U",
+          normalizedName: "splash city 9u",
+          clubName: null,
+          normalizedClubName: null,
+          coachName: null,
+          sourceUrl: null,
+          lastSeenAt: "2026-06-27T15:50:00.000Z",
+        },
+      ),
+    ).toEqual({
+      title: "Splash City 9U is live now",
+      body: "8:50 AM on Aux #1 vs Yellow Jackets 9U Gold.",
+    });
+  });
 });

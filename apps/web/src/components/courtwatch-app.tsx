@@ -4075,6 +4075,7 @@ function TeamsScreen({
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [focusedTeamId, setFocusedTeamId] = useState<string | null>(null);
+  const focusedTeamPanelRef = useRef<HTMLDivElement | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
   const searchActive = Boolean(deferredSearch);
   const {
@@ -4253,6 +4254,29 @@ function TeamsScreen({
   const focusedTeam =
     selectedProgram?.teams.find((team) => team.id === focusedTeamId) ?? null;
 
+  useEffect(() => {
+    if (!focusedTeam) return;
+    const scrollTimer = window.setTimeout(() => {
+      focusedTeamPanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+    return () => window.clearTimeout(scrollTimer);
+  }, [focusedTeam?.id]);
+
+  const focusTeamScheduleAndBracket = (teamId: string) => {
+    if (focusedTeamId === teamId) {
+      window.setTimeout(() => {
+        focusedTeamPanelRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 0);
+    }
+    setFocusedTeamId(teamId);
+  };
+
   const teamResultsSection = (
     <section className="space-y-2">
       <div className="flex items-center justify-between gap-3 px-1">
@@ -4362,7 +4386,7 @@ function TeamsScreen({
                 recordsLoading={recordsLoading}
                 tournamentFinished={isTournamentFinished(dashboard.event)}
                 focused={focusedTeamId === team.id}
-                onFocus={() => setFocusedTeamId(team.id)}
+                onFocus={() => focusTeamScheduleAndBracket(team.id)}
                 onUnfollow={() => {
                   if (focusedTeamId === team.id) setFocusedTeamId(null);
                   unfollowTeam.mutate(team.id);
@@ -4376,15 +4400,17 @@ function TeamsScreen({
       ) : null}
 
       {focusedTeam ? (
-        <TeamFocusPanel
-          team={focusedTeam}
-          eventId={eventId}
-          record={teamRecordForTeam(focusedTeam, records)}
-          records={records}
-          recordsLoading={recordsLoading}
-          tournamentFinished={isTournamentFinished(dashboard.event)}
-          timezone={timezone}
-        />
+        <div ref={focusedTeamPanelRef} className="scroll-mt-28">
+          <TeamFocusPanel
+            team={focusedTeam}
+            eventId={eventId}
+            record={teamRecordForTeam(focusedTeam, records)}
+            records={records}
+            recordsLoading={recordsLoading}
+            tournamentFinished={isTournamentFinished(dashboard.event)}
+            timezone={timezone}
+          />
+        </div>
       ) : null}
 
       {!searchActive ? teamResultsSection : null}
@@ -4712,7 +4738,7 @@ function FollowedTeamRow({
       <button
         type="button"
         onClick={onFocus}
-        className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-black text-white active:scale-[0.99]"
+        className="mt-3 flex min-h-10 w-full select-none items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-black text-white touch-manipulation active:scale-[0.99]"
       >
         <Trophy className="h-4 w-4 text-orange-300" />
         Schedule & bracket

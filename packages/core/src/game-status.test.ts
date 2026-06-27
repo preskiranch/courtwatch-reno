@@ -11,7 +11,7 @@ describe("game status fallback", () => {
           startsAt: "2026-05-25T23:30:00.000Z",
           status: "upcoming",
         },
-        new Date("2026-05-26T00:58:00.000Z"),
+        new Date("2026-05-26T00:20:00.000Z"),
       ),
     ).toBe("playing_now");
   });
@@ -27,7 +27,7 @@ describe("game status fallback", () => {
       deriveEffectiveGameStatus(game, new Date("2026-05-25T23:29:00.000Z")),
     ).toBe("upcoming");
     expect(
-      deriveEffectiveGameStatus(game, new Date("2026-05-26T01:30:01.000Z")),
+      deriveEffectiveGameStatus(game, new Date("2026-05-26T00:30:01.000Z")),
     ).toBe("upcoming");
   });
 
@@ -39,10 +39,10 @@ describe("game status fallback", () => {
     };
 
     expect(
-      deriveEffectiveGameStatus(game, new Date("2026-05-26T00:58:00.000Z")),
+      deriveEffectiveGameStatus(game, new Date("2026-05-26T00:20:00.000Z")),
     ).toBe("playing_now");
     expect(
-      deriveEffectiveGameStatus(game, new Date("2026-05-26T01:30:01.000Z")),
+      deriveEffectiveGameStatus(game, new Date("2026-05-26T00:30:01.000Z")),
     ).toBe("unknown");
   });
 
@@ -54,7 +54,7 @@ describe("game status fallback", () => {
           startsAt: "2026-05-25T23:30:00.000Z",
           status: "final",
         },
-        new Date("2026-05-26T00:58:00.000Z"),
+        new Date("2026-05-26T00:20:00.000Z"),
       ),
     ).toBe("final");
   });

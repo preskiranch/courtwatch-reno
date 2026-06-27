@@ -95,7 +95,7 @@ describe("game record enrichment", () => {
         teams: seedTeams,
       },
       { scope: "all", status: "playing_now" },
-      new Date("2026-05-26T00:58:00.000Z"),
+      new Date("2026-05-26T00:20:00.000Z"),
     );
 
     expect(games).toHaveLength(1);

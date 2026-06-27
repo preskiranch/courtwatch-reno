@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { ChangeEventType, Game, GameChangeEvent } from "./types.js";
+import { LIVE_GAME_WINDOW_MINUTES } from "./game-status.js";
 
 function stableStringify(value: unknown): string {
   if (value === null || value === undefined || typeof value !== "object") {
@@ -115,4 +116,65 @@ export function detectGameChanges(previous: Game | null, next: Game): GameChange
   }
 
   return changes;
+}
+
+const STARTING_SOON_REMINDER_MINUTES = [15, 30, 60] as const;
+
+export function startingSoonReminderMinuteForGame(
+  game: Pick<Game, "startsAt" | "status">,
+  now = new Date(),
+): number | null {
+  if (game.status === "final") return null;
+
+  const startMs = Date.parse(game.startsAt);
+  if (!Number.isFinite(startMs)) return null;
+
+  const nowMs = now.getTime();
+  const liveUntilMs = startMs + LIVE_GAME_WINDOW_MINUTES * 60_000;
+  if (nowMs >= startMs && nowMs <= liveUntilMs) return 0;
+  if (nowMs > liveUntilMs || nowMs < startMs - 60 * 60_000) return null;
+
+  const minutesUntil = Math.ceil((startMs - nowMs) / 60_000);
+  return (
+    STARTING_SOON_REMINDER_MINUTES.find(
+      (reminderMinute) => minutesUntil <= reminderMinute,
+    ) ?? null
+  );
+}
+
+export function startingSoonChangeEventsForGame(
+  game: Game,
+  now = new Date(),
+): GameChangeEvent[] {
+  const reminderMinutes = startingSoonReminderMinuteForGame(game, now);
+  if (reminderMinutes === null) return [];
+
+  const affectedTeamIds = Array.from(
+    new Set([game.homeTeamId, game.awayTeamId].filter(Boolean)),
+  ) as string[];
+  if (affectedTeamIds.length === 0) return [];
+
+  return affectedTeamIds.map((teamId) => {
+    const key = dedupeKey([game.id, "starting_soon", teamId, reminderMinutes]);
+    return {
+      id: key.slice(0, 24),
+      gameId: game.id,
+      affectedTeamId: teamId,
+      affectedProgramWatchlistId: null,
+      eventType: "starting_soon",
+      previousValue: null,
+      newValue: {
+        reminderMinutes,
+        startsAt: game.startsAt,
+        scheduledTime: game.scheduledTime,
+        courtName: game.courtName,
+        venueName: game.venueName,
+        homeTeamNameSnapshot: game.homeTeamNameSnapshot,
+        awayTeamNameSnapshot: game.awayTeamNameSnapshot,
+      },
+      createdAt: now.toISOString(),
+      notificationSent: false,
+      dedupeKey: key,
+    };
+  });
 }
