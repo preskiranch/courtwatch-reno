@@ -1246,8 +1246,11 @@ function parseStandingPlacementResults(input: {
       ? `Pool ${poolName} standings`
       : "Standings";
 
-    for (const team of pool.Teams ?? []) {
-      const placement = placementFromText(String(team.Place ?? ""));
+    for (const [index, team] of (pool.Teams ?? []).entries()) {
+      const placeText = cleanText(team.Place);
+      const placement = placeText
+        ? placementFromText(placeText)
+        : placementFromStandingsOrder(index);
       if (!placement) continue;
       const name = cleanText(team.Name);
       if (!name) continue;
@@ -1272,6 +1275,7 @@ function parseStandingPlacementResults(input: {
         DivisionTeamId: divisionTeamId,
         TeamLink: href,
         Place: team.Place,
+        InferredPlacementFromOrder: !placeText,
         Wins: team.Wins,
         Losses: team.Losses,
         PointsScored: team.PointsScored,
@@ -1336,6 +1340,13 @@ function placementFromText(text: string): ResultPlacement | null {
   if (/\b(1st|first)\s+place\b/.test(normalized)) return 1;
   if (/\b(2nd|second)\s+place\b/.test(normalized)) return 2;
   if (/\b(3rd|third)\s+place\b/.test(normalized)) return 3;
+  return null;
+}
+
+function placementFromStandingsOrder(index: number): ResultPlacement | null {
+  if (index === 0) return 1;
+  if (index === 1) return 2;
+  if (index === 2) return 3;
   return null;
 }
 

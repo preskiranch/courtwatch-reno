@@ -832,6 +832,84 @@ describe("PublicExposurePageClient", () => {
     });
   });
 
+  it("infers official standings placements from row order when Exposure omits Place", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1448862,"Name":"11U"}],
+              brackets: [],
+              standingsUrl: "/256066/yellow-jackets-summerfest/standings?eventid=256066",
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/standings")) {
+        return jsonResponse([
+          {
+            PoolName: "B",
+            Teams: [
+              {
+                Name: "CTB Academy",
+                TeamLink:
+                  "/256066/yellow-jackets-summerfest/teams/ctb-academy?divisionteamid=5412481",
+                Complete: true,
+                Wins: 2,
+                Losses: 0,
+              },
+              {
+                Name: "Splash City Orange",
+                TeamLink:
+                  "/256066/yellow-jackets-summerfest/teams/splash-city-orange?divisionteamid=5412442",
+                Complete: true,
+                Wins: 2,
+                Losses: 0,
+              },
+              {
+                Name: "Yellow Jackets 10U Black",
+                TeamLink:
+                  "/256066/yellow-jackets-summerfest/teams/yellow-jackets-10u-black?divisionteamid=5411919",
+                Complete: true,
+                Wins: 1,
+                Losses: 1,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(256066, {
+      eventSlug: "yellow-jackets-summerfest",
+    });
+
+    expect(
+      results.map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.source,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [1, "CTB Academy", "official_standings", "Standings"],
+      [2, "Splash City Orange", "official_standings", "Standings"],
+      [3, "Yellow Jackets 10U Black", "official_standings", "Standings"],
+    ]);
+    expect(results[0]?.rawJson).toMatchObject({
+      OfficialPlacement: true,
+      InferredPlacementFromOrder: true,
+      Wins: 2,
+      Losses: 0,
+    });
+  });
+
   it("keeps official placements for each completed standings pool", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

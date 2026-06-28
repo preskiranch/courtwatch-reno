@@ -94,10 +94,11 @@ export function buildDivisionResultGroups(
     }
   }
 
+  const storedResults = Array.from(resultsByKey.values());
   const divisionIds =
     scope === "watched"
-      ? watchedDivisionIds(snapshot)
-      : registeredDivisionIds(snapshot, Array.from(resultsByKey.values()));
+      ? watchedDivisionIds(snapshot, storedResults)
+      : registeredDivisionIds(snapshot, storedResults);
   if (scope === "watched" && divisionIds.size === 0) return [];
 
   const results = Array.from(resultsByKey.values())
@@ -172,7 +173,10 @@ function parentDivisionNameFromPoolGroup(divisionName: string): string | null {
   return match?.[1]?.trim() || null;
 }
 
-function watchedDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
+function watchedDivisionIds(
+  snapshot: CourtWatchSnapshot,
+  results: DivisionResult[],
+): Set<string> {
   const activeProgramIds = new Set(
     snapshot.programs
       .filter((program) => program.active)
@@ -186,11 +190,17 @@ function watchedDivisionIds(snapshot: CourtWatchSnapshot): Set<string> {
       )
       .map((match) => match.teamId),
   );
-  return new Set(
+  const divisionIds = new Set(
     snapshot.teams
       .filter((team) => watchedTeamIds.has(team.id) && team.divisionId)
       .map((team) => team.divisionId as string),
   );
+  for (const result of results) {
+    if (result.teamId && watchedTeamIds.has(result.teamId)) {
+      divisionIds.add(result.divisionId);
+    }
+  }
+  return divisionIds;
 }
 
 function registeredDivisionIds(
