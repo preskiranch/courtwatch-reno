@@ -33,6 +33,14 @@ let failureCount = 0;
 let shuttingDown = false;
 let lastDiscoveryAt = 0;
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function errorStack(error: unknown) {
+  return error instanceof Error ? error.stack : undefined;
+}
+
 function courtWatchEventScopeWhere() {
   return {
     OR: [
@@ -68,12 +76,27 @@ process.on("SIGINT", () => {
   logger.info("received SIGINT, stopping after current sync");
 });
 
+process.on("unhandledRejection", (reason) => {
+  logger.fatal(
+    { error: errorMessage(reason), stack: errorStack(reason) },
+    "unhandled promise rejection",
+  );
+});
+
+process.on("uncaughtException", (error) => {
+  logger.fatal(
+    { error: errorMessage(error), stack: errorStack(error) },
+    "uncaught exception",
+  );
+  process.exit(1);
+});
+
 async function syncOnce() {
   try {
     await discoverTournamentsIfDue();
   } catch (error) {
     logger.error(
-      { error: error instanceof Error ? error.message : error },
+      { error: errorMessage(error), stack: errorStack(error) },
       "tournament discovery failed; continuing with normal sync",
     );
   }
@@ -89,7 +112,7 @@ async function syncOnce() {
           {
             exposureEventId: target.exposureEventId,
             name: target.name,
-            error: error instanceof Error ? error.message : error,
+            error: errorMessage(error),
           },
           "event sync skipped",
         );
@@ -299,7 +322,6 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
     activeEvents
       .filter((event) => {
         const gameCount = countsByEventId.get(event.id) ?? 0;
-        if (gameCount === 0) return true;
         const lastDataAt = event.lastCheckedAt ?? event.lastSyncedAt;
         return (
           !lastDataAt ||
@@ -458,7 +480,7 @@ async function loop() {
     } catch (error) {
       failureCount += 1;
       logger.error(
-        { error: error instanceof Error ? error.message : error, failureCount },
+        { error: errorMessage(error), stack: errorStack(error), failureCount },
         "sync failed",
       );
     }
@@ -482,7 +504,7 @@ async function activeTournamentOverride(): Promise<boolean | undefined> {
     return isAnyActiveTournamentWindow(events);
   } catch (error) {
     logger.warn(
-      { error: error instanceof Error ? error.message : error },
+      { error: errorMessage(error), stack: errorStack(error) },
       "active tournament window check failed",
     );
     return undefined;
@@ -535,4 +557,10 @@ async function fetchWithTimeout(
 }
 
 logger.info({ apiBaseUrl: env.API_BASE_URL }, "starting worker");
-void loop();
+void loop().catch((error) => {
+  logger.fatal(
+    { error: errorMessage(error), stack: errorStack(error) },
+    "worker loop crashed",
+  );
+  process.exit(1);
+});

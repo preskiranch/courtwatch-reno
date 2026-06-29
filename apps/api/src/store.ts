@@ -2053,10 +2053,11 @@ export class PrismaStore implements CourtWatchStore {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown sync error";
+      const sourceUnavailable = isPublicSourceUnavailableError(errorMessage);
       await this.prisma.syncRun.update({
         where: { id: run.id },
         data: {
-          status: "failed",
+          status: sourceUnavailable ? "skipped" : "failed",
           completedAt: new Date(),
           teamsCount,
           gamesCount,
@@ -2071,6 +2072,15 @@ export class PrismaStore implements CourtWatchStore {
           status: syncFailureStatus(tournament, errorMessage),
         },
       });
+      if (sourceUnavailable) {
+        return {
+          status: "skipped",
+          source,
+          teamsCount,
+          gamesCount,
+          changesDetected,
+        };
+      }
       throw error;
     }
   }
@@ -2689,10 +2699,10 @@ function aggregateSyncResults(
     changesDetected: number;
   }>,
 ) {
+  const hasFailure = results.some((result) => result.status === "failed");
+  const hasSkipped = results.some((result) => result.status === "skipped");
   return {
-    status: results.every((result) => result.status === "success")
-      ? "success"
-      : "failed",
+    status: hasFailure ? "failed" : hasSkipped ? "partial" : "success",
     source:
       Array.from(new Set(results.map((result) => result.source))).join("+") ||
       "mock",
@@ -2726,6 +2736,15 @@ function syncFailureStatus(
     endDate: tournament.endDate,
     status: tournament.status,
   });
+}
+
+function isPublicSourceUnavailableError(errorMessage: string) {
+  return (
+    errorMessage.includes("Public teams page request failed with 403") ||
+    errorMessage.includes("Public eventgames request failed with 403") ||
+    errorMessage.includes("Public page request failed with 403") ||
+    errorMessage.includes("Public search request failed with 403")
+  );
 }
 
 function slugFromOfficialUrl(officialUrl: string): string | null {
