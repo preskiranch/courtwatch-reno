@@ -158,9 +158,7 @@ function tabFromDeepLink(value: string | null): Tab | null {
   return null;
 }
 
-function positiveEventIdFromSearch(
-  params: URLSearchParams,
-): number | null {
+function positiveEventIdFromSearch(params: URLSearchParams): number | null {
   const eventId = Number(params.get("eventId"));
   return Number.isFinite(eventId) && eventId > 0 ? eventId : null;
 }
@@ -1289,6 +1287,7 @@ function TournamentPickerEvent({
     event.city && event.state
       ? `${event.city}, ${event.state}`
       : event.location;
+  const organizer = event.organizer?.trim() || "Organizer TBD";
   return (
     <button
       type="button"
@@ -1315,6 +1314,10 @@ function TournamentPickerEvent({
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 text-sm font-black leading-5 text-white">
           {event.name}
+        </span>
+        <span className="mt-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-orange-300">
+          <Radio className="h-3 w-3 shrink-0" aria-hidden="true" />
+          <span className="line-clamp-1">{organizer}</span>
         </span>
         <span className="mt-1 block text-xs font-semibold text-slate-300">
           {place} — {date}
