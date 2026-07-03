@@ -46,6 +46,64 @@ describe("PublicExposurePageClient", () => {
     });
   });
 
+  it("falls back to the official teams page when public search is unavailable", async () => {
+    const seenUserAgents: string[] = [];
+    const fetchImpl = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        const headers = (init?.headers ?? {}) as Record<string, string>;
+        if (headers["User-Agent"]) seenUserAgents.push(headers["User-Agent"]);
+
+        if (url.includes("/search")) {
+          return new Response("Forbidden", { status: 403 });
+        }
+
+        if (url.includes("/teams")) {
+          return htmlResponse(`
+            <div id="content">
+              <p>The following teams are officially participating in the Independence Day Championship.</p>
+              <h2>2nd/3rd Grade (8U/9U) Boys Division</h2>
+              <ul>
+                <li><a href="/264317/independence-day-championship/teams/eb-elite-9u?divisionteamid=5430400">EB Elite 9U</a></li>
+                <li><a href="/264317/independence-day-championship/teams/tm-9u?divisionteamid=5430399">TM 9U</a></li>
+              </ul>
+              <h2>5th Grade (11U) Boys Division</h2>
+              <ul>
+                <li><a href="/264317/independence-day-championship/teams/bay-area-blue-devils-11u?divisionteamid=5430420">Bay Area Blue Devils 11U</a></li>
+              </ul>
+            </div>
+          `);
+        }
+
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    ) as unknown as typeof fetch;
+
+    const result = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchTeams(
+      264317,
+      "independence-day-championship",
+      "America/Los_Angeles",
+    );
+
+    expect(seenUserAgents.every((agent) => agent.includes("Mozilla/5.0"))).toBe(
+      true,
+    );
+    expect(result.divisions.map((division) => division.name)).toEqual([
+      "2nd/3rd Grade (8U/9U) Boys Division",
+      "5th Grade (11U) Boys Division",
+    ]);
+    expect(result.teams.map((team) => [team.exposureTeamId, team.name])).toEqual(
+      [
+        ["5430400", "EB Elite 9U"],
+        ["5430399", "TM 9U"],
+        ["5430420", "Bay Area Blue Devils 11U"],
+      ],
+    );
+  });
+
   it("maps public eventgames into real games with courts and bracket links without inventing finals", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

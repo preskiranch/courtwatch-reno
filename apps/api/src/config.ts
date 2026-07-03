@@ -250,12 +250,12 @@ const gsgBamSummerTournamentData = [
   },
   {
     exposureEventId: 264317,
-    slug: "gsg-x-bam-july-4th-shootout",
-    name: "GSG x BAM - July 4th Shootout",
+    slug: "independence-day-championship",
+    name: "Independence Day Championship",
     startDate: "2026-07-04",
     endDate: "2026-07-05",
-    location: "San Ramon/San Leandro/Oakland, CA",
-    city: "San Ramon/San Leandro/Oakland",
+    location: "Hayward/Oakland/Richmond, CA",
+    city: "Hayward/Oakland/Richmond",
   },
   {
     exposureEventId: 264318,

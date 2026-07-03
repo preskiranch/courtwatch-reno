@@ -115,7 +115,7 @@ const GSG_BAM_EXPOSURE_EVENT_URLS = [
   "https://basketball.exposureevents.com/264314/the-east-bay-summer-battle-powered-by-4ballers-only-x-gsg-x-justhoop",
   "https://basketball.exposureevents.com/264315/gsg-x-bam-fathers-day-shootout",
   "https://basketball.exposureevents.com/264316/bam-x-gsg-summer-slam",
-  "https://basketball.exposureevents.com/264317/gsg-x-bam-july-4th-shootout",
+  "https://basketball.exposureevents.com/264317/independence-day-championship",
   "https://basketball.exposureevents.com/264318/bam-x-gsg-norcal-summer-classic",
   "https://basketball.exposureevents.com/264319/gsg-x-bam-summer-showdown",
   "https://basketball.exposureevents.com/264320/bam-x-gsg-summer-jam",
@@ -1992,7 +1992,10 @@ function escapeRegex(value: string): string {
 }
 
 function publicUserAgent(): string {
-  return "CourtWatchAAU/0.1 (+independent companion tracker; public cache-backed tournament discovery)";
+  return (
+    process.env.EXPOSURE_PUBLIC_USER_AGENT?.trim() ||
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  );
 }
 
 function errorMessage(error: unknown): string {

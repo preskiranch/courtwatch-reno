@@ -37,6 +37,10 @@ const placementMedals: Record<ResultPlacement, ResultMedalLabel> = {
   3: "Bronze",
 };
 
+const EXPOSURE_PUBLIC_USER_AGENT =
+  process.env.EXPOSURE_PUBLIC_USER_AGENT?.trim() ||
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
 export interface PublicExposureGameOptions {
   divisionIds?: string[];
   eventSlug?: string;
@@ -132,8 +136,7 @@ export class PublicExposurePageClient {
     const url = `${this.baseUrl}/${eventId}/${eventSlug}/teams`;
     const response = await this.fetchWithTimeout(url, {
       headers: {
-        "User-Agent":
-          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
       },
     });
     if (!response.ok) {
@@ -379,8 +382,7 @@ export class PublicExposurePageClient {
       headers: {
         Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent":
-          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
       },
     });
     if (!response.ok)
@@ -400,8 +402,7 @@ export class PublicExposurePageClient {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent":
-          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
       },
       body: new URLSearchParams({
         divisionId: String(divisionId),
@@ -463,8 +464,7 @@ export class PublicExposurePageClient {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent":
-          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
       },
       body: "",
     });
@@ -487,8 +487,7 @@ export class PublicExposurePageClient {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent":
-          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
       },
       body: new URLSearchParams({ divisionId }).toString(),
     });
@@ -503,8 +502,7 @@ export class PublicExposurePageClient {
     const response = await this.fetchWithTimeout(url, {
       headers: {
         Accept: "text/html",
-        "User-Agent":
-          "CourtWatchAAU/0.1 (+independent companion tracker; respectful cache-backed polling)",
+        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
       },
     });
     if (!response.ok)
