@@ -78,7 +78,7 @@ export class PublicExposurePageClient {
     const searchResult = await this.fetchSearch(eventId, eventSlug).catch(
       () => null,
     );
-    if (Array.isArray(searchResult?.Teams)) {
+    if (Array.isArray(searchResult?.Teams) && searchResult.Teams.length > 0) {
       const divisions = new Map<string, Division>();
       const teams: Team[] = [];
 

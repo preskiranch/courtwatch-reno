@@ -1763,8 +1763,6 @@ export class PrismaStore implements CourtWatchStore {
     const events = await this.prisma.event.findMany({
       where: courtWatchScopedEventWhere({
         externalProvider: "exposure_events",
-        hasPublicTeamList: true,
-        registeredTeamCount: { gt: 0 },
         startDate: { lte: new Date(`${windowEndKey}T00:00:00.000Z`) },
         endDate: { gte: new Date(`${todayKey}T00:00:00.000Z`) },
         status: { notIn: ["cancelled", "unavailable"] },
@@ -1800,7 +1798,13 @@ export class PrismaStore implements CourtWatchStore {
     return events
       .filter((event) => {
         const storedTeams = teamCountByEventId.get(event.id) ?? 0;
-        return storedTeams < event.registeredTeamCount;
+        if (
+          event.hasPublicTeamList &&
+          event.registeredTeamCount > 0 &&
+          storedTeams < event.registeredTeamCount
+        )
+          return true;
+        return shouldRecheckPublicTeamList(event, storedTeams);
       })
       .map((event) =>
         prismaEventToCore(

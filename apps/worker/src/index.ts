@@ -165,20 +165,20 @@ async function syncTargets(): Promise<TournamentEvent[]> {
       if (leftNeedsGames !== rightNeedsGames)
         return leftNeedsGames - rightNeedsGames;
 
-      const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
-      const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
-      if (leftPreferred !== rightPreferred)
-        return leftPreferred - rightPreferred;
+      const leftNeedsTeamRefresh = needsPublicTeamListRecheck(left) ? 0 : 1;
+      const rightNeedsTeamRefresh = needsPublicTeamListRecheck(right) ? 0 : 1;
+      if (leftNeedsTeamRefresh !== rightNeedsTeamRefresh)
+        return leftNeedsTeamRefresh - rightNeedsTeamRefresh;
 
       const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
       const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
       if (leftNeedsTeams !== rightNeedsTeams)
         return leftNeedsTeams - rightNeedsTeams;
 
-      const leftNeedsTeamRefresh = needsPublicTeamListRecheck(left) ? 0 : 1;
-      const rightNeedsTeamRefresh = needsPublicTeamListRecheck(right) ? 0 : 1;
-      if (leftNeedsTeamRefresh !== rightNeedsTeamRefresh)
-        return leftNeedsTeamRefresh - rightNeedsTeamRefresh;
+      const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
+      const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
+      if (leftPreferred !== rightPreferred)
+        return leftPreferred - rightPreferred;
 
       const leftStatus = syncStatusPriority(left.status);
       const rightStatus = syncStatusPriority(right.status);

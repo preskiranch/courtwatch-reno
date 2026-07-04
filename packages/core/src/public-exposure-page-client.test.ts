@@ -104,6 +104,49 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("falls back to the official teams page when public search is empty", async () => {
+    const fetchImpl = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        const headers = (init?.headers ?? {}) as Record<string, string>;
+        expect(headers["User-Agent"]).toContain("Mozilla/5.0");
+
+        if (url.includes("/search")) {
+          return jsonResponse({ Teams: [], Players: [] });
+        }
+
+        if (url.includes("/teams")) {
+          return htmlResponse(`
+            <div id="content">
+              <h2>9U</h2>
+              <a href="/266837/hwp-and-aog-july-4-5th-red-white-and-hoop/teams/sac-yellow-jackets?divisionteamid=5432350">Sac Yellow Jackets</a>
+              <a href="/266837/hwp-and-aog-july-4-5th-red-white-and-hoop/teams/team-rampage?divisionteamid=5432348">Team Rampage</a>
+            </div>
+          `);
+        }
+
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    ) as unknown as typeof fetch;
+
+    const result = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchTeams(
+      266837,
+      "hwp-and-aog-july-4-5th-red-white-and-hoop",
+      "America/Los_Angeles",
+    );
+
+    expect(result.divisions.map((division) => division.name)).toEqual(["9U"]);
+    expect(result.teams.map((team) => [team.exposureTeamId, team.name])).toEqual(
+      [
+        ["5432350", "Sac Yellow Jackets"],
+        ["5432348", "Team Rampage"],
+      ],
+    );
+  });
+
   it("maps public eventgames into real games with courts and bracket links without inventing finals", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);
