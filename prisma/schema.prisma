@@ -80,6 +80,9 @@ model Event {
 
   @@unique([externalProvider, externalId])
   @@index([status, startDate])
+  @@index([region, status, startDate], map: "events_region_status_start_date_idx")
+  @@index([startDate, endDate], map: "events_start_end_date_idx")
+  @@index([lastCheckedAt], map: "events_last_checked_at_idx")
   @@map("events")
 }
 
@@ -129,6 +132,7 @@ model Division {
   results DivisionResult[]
 
   @@unique([eventId, exposureDivisionId])
+  @@index([eventId], map: "divisions_event_id_idx")
   @@map("divisions")
 }
 
@@ -161,6 +165,8 @@ model Team {
 
   @@unique([eventId, exposureTeamId])
   @@index([normalizedName])
+  @@index([eventId, normalizedName], map: "teams_event_id_normalized_name_idx")
+  @@index([eventId, divisionId], map: "teams_event_id_division_id_idx")
   @@map("teams")
 }
 
@@ -201,6 +207,8 @@ model ProgramTeamMatch {
   team             Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([programWatchlistId, teamId])
+  @@index([teamId], map: "program_team_matches_team_id_idx")
+  @@index([programWatchlistId, active], map: "program_team_matches_program_active_idx")
   @@map("program_team_matches")
 }
 
@@ -238,6 +246,11 @@ model Game {
 
   @@unique([eventId, exposureGameId])
   @@index([startsAt])
+  @@index([eventId, startsAt], map: "games_event_id_starts_at_idx")
+  @@index([eventId, status, startsAt], map: "games_event_id_status_starts_at_idx")
+  @@index([homeTeamId, startsAt], map: "games_home_team_id_starts_at_idx")
+  @@index([awayTeamId, startsAt], map: "games_away_team_id_starts_at_idx")
+  @@index([divisionId, startsAt], map: "games_division_id_starts_at_idx")
   @@map("games")
 }
 
@@ -259,6 +272,10 @@ model GameChangeEvent {
   notificationLogs         NotificationLog[]
 
   @@index([createdAt])
+  @@index([gameId, createdAt], map: "game_change_events_game_id_created_at_idx")
+  @@index([affectedTeamId, createdAt], map: "game_change_events_team_id_created_at_idx")
+  @@index([affectedProgramWatchlistId, createdAt], map: "game_change_events_watchlist_id_created_at_idx")
+  @@index([notificationSent, createdAt], map: "game_change_events_notification_created_at_idx")
   @@map("game_change_events")
 }
 
@@ -287,6 +304,8 @@ model DivisionResult {
   @@unique([eventId, divisionId, placement])
   @@index([divisionId])
   @@index([teamId])
+  @@index([eventId, divisionId], map: "division_results_event_division_idx")
+  @@index([eventId, teamId], map: "division_results_event_team_idx")
   @@map("division_results")
 }
 
@@ -327,6 +346,8 @@ model NotificationLog {
   gameChangeEvent GameChangeEvent? @relation(fields: [gameChangeEventId], references: [id], onDelete: SetNull)
 
   @@unique([userId, dedupeKey, channel])
+  @@index([userId, sentAt], map: "notification_log_user_sent_at_idx")
+  @@index([status, sentAt], map: "notification_log_status_sent_at_idx")
   @@map("notification_log")
 }
 
@@ -350,6 +371,7 @@ model FavoriteTeamWatch {
   @@index([ownerHash])
   @@index([normalizedName])
   @@index([sourceTeamId])
+  @@index([ownerHash, active], map: "favorite_team_watches_owner_active_idx")
   @@map("favorite_team_watches")
 }
 
@@ -368,5 +390,7 @@ model SyncRun {
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([startedAt])
+  @@index([eventId, status, completedAt], map: "sync_runs_event_status_completed_idx")
+  @@index([eventId, startedAt], map: "sync_runs_event_started_idx")
   @@map("sync_runs")
 }
