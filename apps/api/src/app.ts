@@ -16,7 +16,7 @@ import { z } from "zod";
 import {
   accountClientId,
   createResetToken,
-  hashPassword,
+  hashPasswordAsync,
   normalizeEmail,
   publicAccountUser,
   registeredAccountCount,
@@ -27,7 +27,7 @@ import {
   tokenHash,
   unregisteredFollowerDeviceCount,
   verifyAccountToken,
-  verifyPassword,
+  verifyPasswordAsync,
 } from "./auth.js";
 import {
   config,
@@ -90,7 +90,48 @@ export function createApp(
       legacyHeaders: false,
     }),
   );
-  app.use((pinoHttp as unknown as () => express.Handler)());
+  app.use(
+    (pinoHttp as unknown as (options: Record<string, unknown>) => express.Handler)(
+      {
+        redact: {
+          paths: [
+            "req.headers.authorization",
+            "req.headers.cookie",
+            "req.headers['x-admin-secret']",
+            "req.body.password",
+            "req.body.token",
+            "req.body.resetToken",
+            "req.body.newPassword",
+            "req.body.confirmPassword",
+            "res.headers['set-cookie']",
+          ],
+          remove: true,
+        },
+      },
+    ),
+  );
+
+  const accountAuthRateLimit = rateLimit({
+    windowMs: 5 * 60_000,
+    limit: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many account attempts. Try again shortly." },
+  });
+  const passwordResetRateLimit = rateLimit({
+    windowMs: 15 * 60_000,
+    limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many password reset attempts. Try again shortly." },
+  });
+  const adminWriteRateLimit = rateLimit({
+    windowMs: 60_000,
+    limit: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many admin requests. Try again shortly." },
+  });
 
   app.get("/api/health", async (_req, res) => {
     res.json(
@@ -176,7 +217,7 @@ export function createApp(
     }
   });
 
-  app.post("/api/auth/register", async (req, res, next) => {
+  app.post("/api/auth/register", accountAuthRateLimit, async (req, res, next) => {
     try {
       if (!prismaClient) {
         res.status(503).json({ error: "Accounts require a database" });
@@ -201,7 +242,7 @@ export function createApp(
       const user = await prismaClient.user.create({
         data: {
           email,
-          passwordHash: hashPassword(body.password),
+          passwordHash: await hashPasswordAsync(body.password),
           displayName: body.displayName ?? email.split("@")[0],
           timezone: body.timezone ?? "America/Los_Angeles",
         },
@@ -221,7 +262,7 @@ export function createApp(
     }
   });
 
-  app.post("/api/auth/login", async (req, res, next) => {
+  app.post("/api/auth/login", accountAuthRateLimit, async (req, res, next) => {
     try {
       if (!prismaClient) {
         res.status(503).json({ error: "Accounts require a database" });
@@ -238,7 +279,7 @@ export function createApp(
       });
       if (
         !user?.passwordHash ||
-        !verifyPassword(body.password, user.passwordHash)
+        !(await verifyPasswordAsync(body.password, user.passwordHash))
       ) {
         res.status(401).json({ error: "Invalid email or password" });
         return;
@@ -253,107 +294,115 @@ export function createApp(
     }
   });
 
-  app.post("/api/auth/forgot-password", async (req, res, next) => {
-    try {
-      if (!prismaClient) {
-        res.status(503).json({ error: "Accounts require a database" });
-        return;
-      }
-      const body = z
-        .object({ email: z.string().trim().email().max(180) })
-        .parse(req.body ?? {});
-      const email = normalizeEmail(body.email);
-      const user = await prismaClient.user.findUnique({ where: { email } });
-      let emailSent = false;
-      let resetToken: string | null = null;
-      if (user?.email) {
-        resetToken = createResetToken();
-        await prismaClient.passwordResetToken.create({
-          data: {
-            userId: user.id,
-            tokenHash: tokenHash(resetToken),
-            expiresAt: resetTokenExpiresAt(),
-          },
-        });
-        const delivery = await sendPasswordResetEmail({ email, resetToken });
-        emailSent = delivery.sent;
-        if (!delivery.sent) {
-          const logger = (
-            req as express.Request & {
-              log?: {
-                warn: (payload: unknown, message?: string) => void;
-              };
-            }
-          ).log;
-          logger?.warn(
-            {
-              configured: delivery.configured,
-              from: delivery.from,
-              status: delivery.status,
-              error: delivery.error,
-            },
-            "Password reset email was not sent",
-          );
+  app.post(
+    "/api/auth/forgot-password",
+    passwordResetRateLimit,
+    async (req, res, next) => {
+      try {
+        if (!prismaClient) {
+          res.status(503).json({ error: "Accounts require a database" });
+          return;
         }
-      }
-      res.json({
-        ok: true,
-        emailSent,
-        message:
-          "If an account exists, reset instructions have been generated.",
-        resetToken: shouldExposeResetToken() ? resetToken : undefined,
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  app.post("/api/auth/reset-password", async (req, res, next) => {
-    try {
-      if (!prismaClient) {
-        res.status(503).json({ error: "Accounts require a database" });
-        return;
-      }
-      const parsedBody = z
-        .object({
-          token: z.string().trim().min(16).max(200),
-          password: z.string().min(8).max(160),
-        })
-        .safeParse(req.body ?? {});
-      if (!parsedBody.success) {
-        res.status(400).json({
-          error:
-            "Paste the reset code from your email and enter a password with at least 8 characters.",
+        const body = z
+          .object({ email: z.string().trim().email().max(180) })
+          .parse(req.body ?? {});
+        const email = normalizeEmail(body.email);
+        const user = await prismaClient.user.findUnique({ where: { email } });
+        let emailSent = false;
+        let resetToken: string | null = null;
+        if (user?.email) {
+          resetToken = createResetToken();
+          await prismaClient.passwordResetToken.create({
+            data: {
+              userId: user.id,
+              tokenHash: tokenHash(resetToken),
+              expiresAt: resetTokenExpiresAt(),
+            },
+          });
+          const delivery = await sendPasswordResetEmail({ email, resetToken });
+          emailSent = delivery.sent;
+          if (!delivery.sent) {
+            const logger = (
+              req as express.Request & {
+                log?: {
+                  warn: (payload: unknown, message?: string) => void;
+                };
+              }
+            ).log;
+            logger?.warn(
+              {
+                configured: delivery.configured,
+                from: delivery.from,
+                status: delivery.status,
+                error: delivery.error,
+              },
+              "Password reset email was not sent",
+            );
+          }
+        }
+        res.json({
+          ok: true,
+          emailSent,
+          message:
+            "If an account exists, reset instructions have been generated.",
+          resetToken: shouldExposeResetToken() ? resetToken : undefined,
         });
-        return;
+      } catch (error) {
+        next(error);
       }
-      const body = parsedBody.data;
-      const resetToken = await prismaClient.passwordResetToken.findUnique({
-        where: { tokenHash: tokenHash(body.token) },
-      });
-      if (
-        !resetToken ||
-        resetToken.usedAt ||
-        resetToken.expiresAt.getTime() < Date.now()
-      ) {
-        res.status(400).json({ error: "Reset code is invalid or expired" });
-        return;
+    },
+  );
+
+  app.post(
+    "/api/auth/reset-password",
+    passwordResetRateLimit,
+    async (req, res, next) => {
+      try {
+        if (!prismaClient) {
+          res.status(503).json({ error: "Accounts require a database" });
+          return;
+        }
+        const parsedBody = z
+          .object({
+            token: z.string().trim().min(16).max(200),
+            password: z.string().min(8).max(160),
+          })
+          .safeParse(req.body ?? {});
+        if (!parsedBody.success) {
+          res.status(400).json({
+            error:
+              "Paste the reset code from your email and enter a password with at least 8 characters.",
+          });
+          return;
+        }
+        const body = parsedBody.data;
+        const resetToken = await prismaClient.passwordResetToken.findUnique({
+          where: { tokenHash: tokenHash(body.token) },
+        });
+        if (
+          !resetToken ||
+          resetToken.usedAt ||
+          resetToken.expiresAt.getTime() < Date.now()
+        ) {
+          res.status(400).json({ error: "Reset code is invalid or expired" });
+          return;
+        }
+        await prismaClient.$transaction([
+          prismaClient.user.update({
+            where: { id: resetToken.userId },
+            data: { passwordHash: await hashPasswordAsync(body.password) },
+          }),
+          prismaClient.passwordResetToken.update({
+            where: { id: resetToken.id },
+            data: { usedAt: new Date() },
+          }),
+        ]);
+        res.json({ ok: true });
+      } catch (error) {
+        next(error);
       }
-      await prismaClient.$transaction([
-        prismaClient.user.update({
-          where: { id: resetToken.userId },
-          data: { passwordHash: hashPassword(body.password) },
-        }),
-        prismaClient.passwordResetToken.update({
-          where: { id: resetToken.id },
-          data: { usedAt: new Date() },
-        }),
-      ]);
-      res.json({ ok: true });
-    } catch (error) {
-      next(error);
-    }
-  });
+    },
+  );
 
   app.post("/api/account/sync-followed-teams", async (req, res, next) => {
     try {
@@ -864,7 +913,7 @@ export function createApp(
     },
   );
 
-  app.post("/api/admin/sync-now", async (req, res, next) => {
+  app.post("/api/admin/sync-now", adminWriteRateLimit, async (req, res, next) => {
     try {
       if (
         !isAdminAuthorized(
@@ -882,22 +931,26 @@ export function createApp(
     }
   });
 
-  app.post("/api/admin/discover-tournaments", async (req, res, next) => {
-    try {
-      if (
-        !isAdminAuthorized(
-          req.headers.authorization,
-          req.headers["x-admin-secret"],
-        )
-      ) {
-        res.status(401).json({ error: "Invalid admin secret" });
-        return;
+  app.post(
+    "/api/admin/discover-tournaments",
+    adminWriteRateLimit,
+    async (req, res, next) => {
+      try {
+        if (
+          !isAdminAuthorized(
+            req.headers.authorization,
+            req.headers["x-admin-secret"],
+          )
+        ) {
+          res.status(401).json({ error: "Invalid admin secret" });
+          return;
+        }
+        res.json(await store.discoverTournaments());
+      } catch (error) {
+        next(error);
       }
-      res.json(await store.discoverTournaments());
-    } catch (error) {
-      next(error);
-    }
-  });
+    },
+  );
 
   app.use(
     (

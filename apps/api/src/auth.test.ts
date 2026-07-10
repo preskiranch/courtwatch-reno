@@ -3,12 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import {
   accountClientId,
   hashPassword,
+  hashPasswordAsync,
   sendPasswordResetEmail,
   shouldExposeResetToken,
   signAccountToken,
   unregisteredFollowerDeviceCount,
   verifyAccountToken,
   verifyPassword,
+  verifyPasswordAsync,
 } from "./auth.js";
 
 describe("account auth helpers", () => {
@@ -18,6 +20,19 @@ describe("account auth helpers", () => {
     expect(hash).not.toContain("safe-password-123");
     expect(verifyPassword("safe-password-123", hash)).toBe(true);
     expect(verifyPassword("wrong-password", hash)).toBe(false);
+  });
+
+  it("supports non-blocking password hashing and verification", async () => {
+    const hash = await hashPasswordAsync("safe-password-123");
+
+    expect(hash).not.toContain("safe-password-123");
+    await expect(verifyPasswordAsync("safe-password-123", hash)).resolves.toBe(
+      true,
+    );
+    await expect(verifyPasswordAsync("wrong-password", hash)).resolves.toBe(
+      false,
+    );
+    expect(verifyPassword("safe-password-123", hash)).toBe(true);
   });
 
   it("signs account tokens that resolve to account-scoped client ids", () => {

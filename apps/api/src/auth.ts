@@ -2,10 +2,12 @@ import type { PrismaClient } from "@courtwatch/db";
 import {
   createHash,
   createHmac,
+  pbkdf2,
   pbkdf2Sync,
   randomBytes,
   timingSafeEqual,
 } from "node:crypto";
+import { promisify } from "node:util";
 import { config } from "./config.js";
 
 const PASSWORD_ITERATIONS = 210_000;
@@ -14,6 +16,7 @@ const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30;
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_PASSWORD_RESET_FROM_EMAIL =
   "Court Watch AAU <no-reply@courtwatchaau.com>";
+const pbkdf2Async = promisify(pbkdf2);
 
 export type PasswordResetEmailResult = {
   configured: boolean;
@@ -72,26 +75,47 @@ export function hashPassword(password: string): string {
   return `pbkdf2_sha256$${PASSWORD_ITERATIONS}$${salt}$${hash}`;
 }
 
+export async function hashPasswordAsync(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("base64url");
+  const hash = (
+    await pbkdf2Async(
+      password,
+      salt,
+      PASSWORD_ITERATIONS,
+      PASSWORD_KEY_LENGTH,
+      "sha256",
+    )
+  ).toString("base64url");
+  return `pbkdf2_sha256$${PASSWORD_ITERATIONS}$${salt}$${hash}`;
+}
+
 export function verifyPassword(password: string, storedHash: string): boolean {
-  const [algorithm, iterationsText, salt, expectedHash] = storedHash.split("$");
-  if (
-    algorithm !== "pbkdf2_sha256" ||
-    !iterationsText ||
-    !salt ||
-    !expectedHash
-  )
-    return false;
-  const iterations = Number(iterationsText);
-  if (!Number.isInteger(iterations) || iterations < 1) return false;
+  const parsed = parsePasswordHash(storedHash);
+  if (!parsed) return false;
   const actual = pbkdf2Sync(
     password,
-    salt,
-    iterations,
-    Buffer.from(expectedHash, "base64url").length,
+    parsed.salt,
+    parsed.iterations,
+    parsed.expected.length,
     "sha256",
   );
-  const expected = Buffer.from(expectedHash, "base64url");
-  return actual.length === expected.length && timingSafeEqual(actual, expected);
+  return safeComparePasswordHashes(actual, parsed.expected);
+}
+
+export async function verifyPasswordAsync(
+  password: string,
+  storedHash: string,
+): Promise<boolean> {
+  const parsed = parsePasswordHash(storedHash);
+  if (!parsed) return false;
+  const actual = await pbkdf2Async(
+    password,
+    parsed.salt,
+    parsed.iterations,
+    parsed.expected.length,
+    "sha256",
+  );
+  return safeComparePasswordHashes(actual, parsed.expected);
 }
 
 export function signAccountToken(user: {
@@ -277,6 +301,30 @@ function isLocalPasswordResetDebug(): boolean {
 function nonEmptyString(value: string | undefined | null): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
+}
+
+function parsePasswordHash(
+  storedHash: string,
+): { iterations: number; salt: string; expected: Buffer } | null {
+  const [algorithm, iterationsText, salt, expectedHash] = storedHash.split("$");
+  if (
+    algorithm !== "pbkdf2_sha256" ||
+    !iterationsText ||
+    !salt ||
+    !expectedHash
+  )
+    return null;
+  const iterations = Number(iterationsText);
+  if (!Number.isInteger(iterations) || iterations < 1) return null;
+  return {
+    iterations,
+    salt,
+    expected: Buffer.from(expectedHash, "base64url"),
+  };
+}
+
+function safeComparePasswordHashes(actual: Buffer, expected: Buffer): boolean {
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
 async function readResendResponse(
