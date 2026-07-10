@@ -203,6 +203,7 @@ Exposure API:
 
 - `EXPOSURE_API_KEY`
 - `EXPOSURE_SECRET_KEY`
+- `EXPOSURE_RELAY_BASE_URL` and `EXPOSURE_RELAY_TOKEN` (optional regional relay; configure both or neither)
 
 Push notifications:
 
@@ -225,6 +226,8 @@ Render automation:
 ## Exposure API
 
 Court Watch AAU prefers the official Exposure API when `EXPOSURE_API_KEY` and `EXPOSURE_SECRET_KEY` are configured. The API client signs requests with the documented `Timestamp` and `Authentication` headers and keeps credentials server-side only.
+
+When the primary hosting region cannot reach Exposure directly, set `EXPOSURE_RELAY_BASE_URL` and `EXPOSURE_RELAY_TOKEN` together. Only requests for `basketball.exposureevents.com` are routed through the authenticated relay; official source links and all non-Exposure providers remain unchanged.
 
 Team search is backed by Exposure teams. Player-name search is intentionally disabled because the public fallback does not expose private roster/player data and the official players endpoint requires Exposure API access.
 

@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { fromZonedTime } from "date-fns-tz";
 import type { AnyNode } from "domhandler";
 import { hashSource } from "./change-detection.js";
+import { exposureFetch } from "./exposure-fetch.js";
 import { deriveEffectiveGameStatus } from "./game-status.js";
 import { extractDivisionMeta, normalizeName } from "./normalization.js";
 import { sanitizeBasketballScore } from "./score-utils.js";
@@ -64,7 +65,7 @@ export class PublicExposurePageClient {
       options.baseUrl ??
       process.env.EXPOSURE_PUBLIC_BASE_URL ??
       "https://basketball.exposureevents.com";
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.fetchImpl = options.fetchImpl ?? exposureFetch;
     this.timeoutMs =
       options.timeoutMs ??
       Number(process.env.EXPOSURE_PUBLIC_TIMEOUT_MS ?? 12_000);

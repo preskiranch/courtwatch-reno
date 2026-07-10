@@ -80,7 +80,7 @@ const server = createServer(async (request, response) => {
       body,
       headers: upstreamRequestHeaders(request),
       method: request.method,
-      redirect: "manual",
+      redirect: "follow",
       signal: controller.signal,
     });
 

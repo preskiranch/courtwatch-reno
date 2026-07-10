@@ -91,6 +91,13 @@ services:
         sync: false
       - key: EXPOSURE_PUBLIC_BASE_URL
         value: https://basketball.exposureevents.com
+      - key: EXPOSURE_RELAY_BASE_URL
+        value: https://courtwatch-exposure-relay.onrender.com
+      - key: EXPOSURE_RELAY_TOKEN
+        fromService:
+          name: courtwatch-exposure-relay
+          type: web
+          envVarKey: RELAY_SHARED_SECRET
       - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
         value: "true"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS

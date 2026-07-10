@@ -17,6 +17,7 @@ export * from "./courtvision-calibration.js";
 export * from "./courtvision-scoring.js";
 export * from "./courtvision-vision.js";
 export * from "./seed-data.js";
+export * from "./exposure-fetch.js";
 export * from "./exposure-client.js";
 export * from "./public-exposure-page-client.js";
 export * from "./tournament-discovery.js";

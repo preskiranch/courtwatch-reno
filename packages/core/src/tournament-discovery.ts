@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
+import { exposureFetch } from "./exposure-fetch.js";
 import { extractDivisionMeta, normalizeName } from "./normalization.js";
 import {
   PublicExposurePageClient,
@@ -463,7 +464,7 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
       options.baseUrl ??
       process.env.EXPOSURE_PUBLIC_BASE_URL ??
       "https://basketball.exposureevents.com";
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.fetchImpl = options.fetchImpl ?? exposureFetch;
     this.publicClient = new PublicExposurePageClient({
       baseUrl: this.baseUrl,
       fetchImpl: this.fetchImpl,
@@ -927,7 +928,7 @@ export class AauEventFinderTournamentProvider implements TournamentProvider {
       options.baseUrl ??
       process.env.EXPOSURE_PUBLIC_BASE_URL ??
       "https://basketball.exposureevents.com";
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.fetchImpl = options.fetchImpl ?? exposureFetch;
     this.publicClient = new PublicExposurePageClient({
       baseUrl: this.baseUrl,
       fetchImpl: this.fetchImpl,

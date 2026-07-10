@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import { z } from "zod";
+import { exposureFetch } from "./exposure-fetch.js";
 
 const ExposureTeamSchema = z.object({
   Id: z.union([z.number(), z.string()]),
@@ -69,7 +70,7 @@ export class ExposureClient {
     this.apiKey = options.apiKey ?? process.env.EXPOSURE_API_KEY ?? null;
     this.secretKey = options.secretKey ?? process.env.EXPOSURE_SECRET_KEY ?? null;
     this.baseUrl = options.baseUrl ?? process.env.EXPOSURE_PUBLIC_BASE_URL ?? "https://basketball.exposureevents.com";
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.fetchImpl = options.fetchImpl ?? exposureFetch;
     this.timeoutMs =
       options.timeoutMs ?? Number(process.env.EXPOSURE_API_TIMEOUT_MS ?? 12_000);
   }
