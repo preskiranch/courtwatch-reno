@@ -26,6 +26,10 @@ const API_BASE_URL =
   process.env.API_BASE_URL ||
   renderApiFallbackUrl() ||
   "http://localhost:4000";
+const API_GET_TIMEOUT_MS = positiveNumberFromEnv(
+  process.env.NEXT_PUBLIC_API_GET_TIMEOUT_MS,
+  15_000,
+);
 
 type CacheKey =
   | "dashboard"
@@ -94,7 +98,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
     ? cacheLookupKeys(cacheKey, path, cacheClientId)
     : [];
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_BASE_URL}${networkPath(path, cacheKey)}`,
       {
         headers: {
@@ -105,6 +109,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
         },
         cache: "no-store",
       },
+      API_GET_TIMEOUT_MS,
     );
     if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
@@ -361,6 +366,29 @@ function renderApiFallbackUrl(): string | null {
     hostname === "app.courtwatchaau.com"
     ? "https://courtwatch-reno-api.onrender.com"
     : null;
+}
+
+async function fetchWithTimeout(
+  input: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  if (timeoutMs <= 0) return fetch(input, init);
+  const controller = new AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    globalThis.clearTimeout(timer);
+  }
+}
+
+function positiveNumberFromEnv(
+  value: string | undefined,
+  fallback: number,
+): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 function clientIdentityHeaders(
