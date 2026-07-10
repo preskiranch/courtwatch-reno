@@ -1,6 +1,8 @@
 import { Prisma } from "@courtwatch/db";
 import type { PrismaClient } from "@courtwatch/db";
 import {
+  isActiveTournamentWindowForEvent,
+  isCourtWatchSupportedTournamentRegion,
   normalizeProgramName,
   RenderHealthCheckService,
   SELECTED_TEAMS_PROGRAM_ID,
@@ -40,6 +42,9 @@ import type { CourtWatchStore } from "./store.js";
 const PRESENCE_TTL_MS = 45_000;
 const SYNC_STATUS_STREAM_INTERVAL_MS = 1_000;
 const SYNC_STATUS_STREAM_HEARTBEAT_MS = 15_000;
+const SLOW_REQUEST_WARNING_MS = 1_500;
+const ACTIVE_SYNC_STALE_MS = 45_000;
+const PASSIVE_SYNC_STALE_MS = 10 * 60_000;
 const ADMIN_ACCOUNT_EMAIL = "courtwatchaau@gmail.com";
 const activePresence = new Map<
   string,
@@ -110,6 +115,34 @@ export function createApp(
       },
     ),
   );
+  app.use((req, res, next) => {
+    const startedAt = process.hrtime.bigint();
+    res.on("finish", () => {
+      const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+      if (durationMs < SLOW_REQUEST_WARNING_MS && res.statusCode < 500) return;
+      const logger = (
+        req as express.Request & {
+          log?: {
+            warn: (payload: unknown, message?: string) => void;
+            error: (payload: unknown, message?: string) => void;
+          };
+        }
+      ).log;
+      const payload = {
+        method: req.method,
+        path: req.path,
+        statusCode: res.statusCode,
+        durationMs: Math.round(durationMs),
+        eventId: requestExposureEventId(req),
+      };
+      if (res.statusCode >= 500) {
+        logger?.error(payload, "api request failed");
+      } else {
+        logger?.warn(payload, "api request was slow");
+      }
+    });
+    next();
+  });
 
   const accountAuthRateLimit = rateLimit({
     windowMs: 5 * 60_000,
@@ -127,7 +160,7 @@ export function createApp(
   });
   const adminWriteRateLimit = rateLimit({
     windowMs: 60_000,
-    limit: 20,
+    limit: 240,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many admin requests. Try again shortly." },
@@ -451,6 +484,167 @@ export function createApp(
           stringQuery(req.query.scope) === "all" ? "all" : "event",
         ),
       );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/sync-health", async (req, res, next) => {
+    try {
+      if (!prismaClient) {
+        res.status(503).json({ error: "Sync health requires a database" });
+        return;
+      }
+      const requestedEventId = requestExposureEventId(req);
+      const limit = numericQuery(req.query.limit, 1, 250) ?? 100;
+      const today = dateOnlyInPacific(new Date());
+      const where: Prisma.EventWhereInput = requestedEventId
+        ? { exposureEventId: requestedEventId }
+        : {
+            status: { notIn: ["cancelled", "unavailable"] },
+            startDate: { lte: dateKeyToUtcDate(addDaysKey(today, 14)) },
+            endDate: { gte: dateKeyToUtcDate(addDaysKey(today, -3)) },
+          };
+
+      const events = await prismaClient.event.findMany({
+        where,
+        orderBy: [{ startDate: "asc" }, { name: "asc" }],
+        take: requestedEventId ? 1 : limit,
+        select: {
+          id: true,
+          exposureEventId: true,
+          externalProvider: true,
+          name: true,
+          organizer: true,
+          city: true,
+          state: true,
+          location: true,
+          region: true,
+          startDate: true,
+          endDate: true,
+          registeredTeamCount: true,
+          hasPublicTeamList: true,
+          lastCheckedAt: true,
+          lastSyncedAt: true,
+          lastTeamChangeAt: true,
+          status: true,
+        },
+      });
+      const eventIds = events.map((event) => event.id);
+      const [teamCounts, gameCounts, latestRuns] = await Promise.all([
+        prismaClient.team.groupBy({
+          by: ["eventId"],
+          where: { eventId: { in: eventIds } },
+          _count: { _all: true },
+        }),
+        prismaClient.game.groupBy({
+          by: ["eventId"],
+          where: { eventId: { in: eventIds } },
+          _count: { _all: true },
+        }),
+        prismaClient.syncRun.findMany({
+          where: { eventId: { in: eventIds } },
+          orderBy: { completedAt: "desc" },
+          select: {
+            eventId: true,
+            status: true,
+            completedAt: true,
+            errorMessage: true,
+            teamsCount: true,
+            gamesCount: true,
+            changesDetected: true,
+          },
+        }),
+      ]);
+      const teamsByEventId = countMap(teamCounts);
+      const gamesByEventId = countMap(gameCounts);
+      const latestRunByEventId = new Map<
+        string,
+        (typeof latestRuns)[number]
+      >();
+      for (const run of latestRuns) {
+        if (!latestRunByEventId.has(run.eventId))
+          latestRunByEventId.set(run.eventId, run);
+      }
+
+      const now = new Date();
+      const eventHealth = events.map((event) => {
+        const activeWindow = isActiveTournamentWindowForEvent(
+          {
+            startDate: dateOnlyKey(event.startDate),
+            endDate: dateOnlyKey(event.endDate),
+            timezone: "America/Los_Angeles",
+            status: event.status as "active" | "upcoming" | "completed",
+          },
+          now,
+        );
+        const lastDataAt = latestDate(
+          event.lastSyncedAt,
+          event.lastCheckedAt,
+          event.lastTeamChangeAt,
+          latestRunByEventId.get(event.id)?.completedAt ?? null,
+        );
+        const staleAfterMs = activeWindow
+          ? ACTIVE_SYNC_STALE_MS
+          : PASSIVE_SYNC_STALE_MS;
+        const ageMs = lastDataAt ? now.getTime() - lastDataAt.getTime() : null;
+        return {
+          exposureEventId: event.exposureEventId,
+          name: event.name,
+          organizer: event.organizer,
+          location:
+            [event.city, event.state].filter(Boolean).join(", ") ||
+            event.location,
+          region: event.region,
+          status: event.status,
+          supportedRegion: isCourtWatchSupportedTournamentRegion(event),
+          startDate: dateOnlyKey(event.startDate),
+          endDate: dateOnlyKey(event.endDate),
+          registeredTeamCount: event.registeredTeamCount,
+          hasPublicTeamList: event.hasPublicTeamList,
+          teamsStored: teamsByEventId.get(event.id) ?? 0,
+          gamesStored: gamesByEventId.get(event.id) ?? 0,
+          activeWindow,
+          lastCheckedAt: event.lastCheckedAt?.toISOString() ?? null,
+          lastSyncedAt: event.lastSyncedAt?.toISOString() ?? null,
+          lastTeamChangeAt: event.lastTeamChangeAt?.toISOString() ?? null,
+          latestSyncRun: latestRunByEventId.get(event.id)
+            ? {
+                status: latestRunByEventId.get(event.id)!.status,
+                completedAt:
+                  latestRunByEventId
+                    .get(event.id)!
+                    .completedAt?.toISOString() ?? null,
+                teamsCount: latestRunByEventId.get(event.id)!.teamsCount,
+                gamesCount: latestRunByEventId.get(event.id)!.gamesCount,
+                changesDetected: latestRunByEventId.get(event.id)!
+                  .changesDetected,
+                errorMessage: latestRunByEventId.get(event.id)!.errorMessage,
+              }
+            : null,
+          dataAgeSeconds:
+            ageMs === null ? null : Math.max(0, Math.round(ageMs / 1000)),
+          freshness:
+            ageMs === null
+              ? "never_synced"
+              : ageMs > staleAfterMs
+                ? "stale"
+                : "fresh",
+        };
+      });
+
+      res.json({
+        generatedAt: now.toISOString(),
+        activeStaleAfterSeconds: Math.round(ACTIVE_SYNC_STALE_MS / 1000),
+        passiveStaleAfterSeconds: Math.round(PASSIVE_SYNC_STALE_MS / 1000),
+        count: eventHealth.length,
+        staleCount: eventHealth.filter((event) => event.freshness === "stale")
+          .length,
+        neverSyncedCount: eventHealth.filter(
+          (event) => event.freshness === "never_synced",
+        ).length,
+        events: eventHealth,
+      });
     } catch (error) {
       next(error);
     }
@@ -1105,6 +1299,49 @@ function numericQuery(
   const raw = typeof value === "string" ? Number(value) : NaN;
   if (!Number.isFinite(raw)) return undefined;
   return Math.min(max, Math.max(min, Math.trunc(raw)));
+}
+
+function countMap(
+  values: Array<{ eventId: string; _count: { _all: number } }>,
+): Map<string, number> {
+  return new Map(values.map((item) => [item.eventId, item._count._all]));
+}
+
+function dateOnlyInPacific(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function dateOnlyKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function addDaysKey(dateKey: string, days: number): string {
+  const date = new Date(`${dateKey}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function dateKeyToUtcDate(dateKey: string): Date {
+  return new Date(`${dateKey}T00:00:00.000Z`);
+}
+
+function latestDate(
+  ...values: Array<Date | null | undefined>
+): Date | null {
+  return values.reduce<Date | null>((latest, value) => {
+    if (!value) return latest;
+    if (!latest || value.getTime() > latest.getTime()) return value;
+    return latest;
+  }, null);
 }
 
 function requestClientId(req: express.Request): string | null {

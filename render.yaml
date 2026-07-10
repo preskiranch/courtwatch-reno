@@ -150,12 +150,22 @@ services:
         value: "6"
       - key: WORKER_API_TIMEOUT_MS
         value: "300000"
+      - key: WORKER_ACTIVE_POLL_MS
+        value: "15000"
+      - key: WORKER_PASSIVE_POLL_MS
+        value: "600000"
+      - key: WORKER_MAX_BACKOFF_MS
+        value: "900000"
       - key: WORKER_SYNC_BATCH_SIZE
         value: "24"
       - key: WORKER_SYNC_CONCURRENCY
         value: "3"
       - key: WORKER_ACTIVE_GAME_STALE_MS
-        value: "90000"
+        value: "30000"
+      - key: WORKER_TEAM_LIST_RECHECK_STALE_MS
+        value: "300000"
+      - key: WORKER_SLOW_EVENT_SYNC_MS
+        value: "20000"
       - key: EXPOSURE_PUBLIC_GAMES_CONCURRENCY
         value: "4"
       - key: ENABLE_MOCK_ARSENAL

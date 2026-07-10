@@ -18,13 +18,17 @@ const EnvSchema = z.object({
   TOURNAMENT_DISCOVERY_WINDOW_DAYS: z.coerce.number().default(183),
   WORKER_SYNC_BATCH_SIZE: z.coerce.number().default(8),
   WORKER_SYNC_CONCURRENCY: z.coerce.number().default(3),
-  WORKER_ACTIVE_GAME_STALE_MS: z.coerce.number().default(90_000),
+  WORKER_ACTIVE_POLL_MS: z.coerce.number().default(15_000),
+  WORKER_PASSIVE_POLL_MS: z.coerce.number().default(10 * 60_000),
+  WORKER_MAX_BACKOFF_MS: z.coerce.number().default(15 * 60_000),
+  WORKER_ACTIVE_GAME_STALE_MS: z.coerce.number().default(30_000),
   WORKER_TEAM_LIST_RECHECK_STALE_MS: z.coerce
     .number()
     .default(15 * 60_000),
   WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS: z.coerce.number().default(14),
   WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
+  WORKER_SLOW_EVENT_SYNC_MS: z.coerce.number().default(20_000),
 });
 
 const env = EnvSchema.parse(process.env);
@@ -161,6 +165,9 @@ async function syncTargets(): Promise<TournamentEvent[]> {
   const today = new Date().toISOString().slice(0, 10);
   return events
     .filter((event) => event.status !== "cancelled")
+    .filter((event) =>
+      shouldSyncEvent(event, activeGamePriorityIds, preferredIds),
+    )
     .sort((left, right) => {
       const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
         ? 0
@@ -205,34 +212,71 @@ async function syncTargets(): Promise<TournamentEvent[]> {
 }
 
 async function syncSingleEvent(event: TournamentEvent) {
-  const response = await fetchWithTimeout(
-    new URL("/api/admin/sync-now", env.API_BASE_URL),
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
+  const startedAt = Date.now();
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const response = await fetchWithTimeout(
+      new URL("/api/admin/sync-now", env.API_BASE_URL),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
+        },
+        body: JSON.stringify({
+          source: "worker",
+          exposureEventId: event.exposureEventId,
+        }),
       },
-      body: JSON.stringify({
-        source: "worker",
-        exposureEventId: event.exposureEventId,
-      }),
-    },
-    env.WORKER_EVENT_SYNC_TIMEOUT_MS,
-  );
+      env.WORKER_EVENT_SYNC_TIMEOUT_MS,
+    );
 
-  if (!response.ok) {
+    if (response.ok) {
+      const result = (await response.json()) as {
+        status: string;
+        teamsCount: number;
+        gamesCount: number;
+        changesDetected: number;
+      };
+      const durationMs = Date.now() - startedAt;
+      const logPayload = {
+        exposureEventId: event.exposureEventId,
+        name: event.name,
+        durationMs,
+        teamsCount: result.teamsCount,
+        gamesCount: result.gamesCount,
+        changesDetected: result.changesDetected,
+      };
+      if (durationMs >= env.WORKER_SLOW_EVENT_SYNC_MS) {
+        logger.warn(logPayload, "event sync was slow");
+      } else {
+        logger.debug(logPayload, "event sync completed");
+      }
+      return result;
+    }
+
+    const responseText = await response.text();
+    if (
+      attempt === 1 &&
+      [408, 429, 500, 502, 503, 504].includes(response.status)
+    ) {
+      logger.warn(
+        {
+          exposureEventId: event.exposureEventId,
+          name: event.name,
+          status: response.status,
+          responseText,
+        },
+        "event sync request failed; retrying once",
+      );
+      await sleep(1_500);
+      continue;
+    }
     throw new Error(
-      `sync-now failed with ${response.status}: ${await response.text()}`,
+      `sync-now failed with ${response.status}: ${responseText}`,
     );
   }
 
-  return response.json() as Promise<{
-    status: string;
-    teamsCount: number;
-    gamesCount: number;
-    changesDetected: number;
-  }>;
+  throw new Error("sync-now failed without a response");
 }
 
 function syncStatusPriority(status: TournamentEvent["status"]) {
@@ -274,11 +318,58 @@ function needsPublicTeamListRecheck(event: TournamentEvent) {
   );
 }
 
+function shouldSyncEvent(
+  event: TournamentEvent,
+  activeGamePriorityIds: Set<number>,
+  preferredIds: Set<number>,
+) {
+  if (!isCourtWatchSupportedTournamentRegion(event)) return false;
+  if (activeGamePriorityIds.has(event.exposureEventId)) return true;
+  if (needsPublicTeamListRecheck(event)) return true;
+  if (needsPublishedTeamHydration(event)) return true;
+  if (needsActiveEventRefresh(event)) return true;
+
+  return (
+    preferredIds.has(event.exposureEventId) &&
+    event.status !== "completed" &&
+    isStaleEventTimestamp(event.lastSyncedAt ?? event.lastCheckedAt, 60 * 60_000)
+  );
+}
+
+function needsActiveEventRefresh(event: TournamentEvent) {
+  if (event.status === "cancelled" || event.status === "unavailable")
+    return false;
+  if (!isExposureTournament(event)) return false;
+  if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return false;
+  if (!eventIsInGameHydrationWindowFromKeys(event)) return false;
+  return isStaleEventTimestamp(
+    event.lastSyncedAt ?? event.lastCheckedAt,
+    env.WORKER_ACTIVE_GAME_STALE_MS,
+  );
+}
+
+function isStaleEventTimestamp(value: string | null | undefined, staleMs: number) {
+  if (!value) return true;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) || Date.now() - parsed >= staleMs;
+}
+
 function isExposureTournament(event: TournamentEvent) {
   return (
     event.externalProvider === "exposure_events" ||
     event.sourceUrl?.includes("basketball.exposureevents.com") ||
     event.officialUrl.includes("basketball.exposureevents.com")
+  );
+}
+
+function eventIsInGameHydrationWindowFromKeys(event: {
+  startDate: string;
+  endDate: string;
+}) {
+  const todayKey = dateKeyInPacific(new Date());
+  return (
+    todayKey >= event.startDate &&
+    todayKey <= addDaysKey(event.endDate, 3)
   );
 }
 
@@ -491,13 +582,40 @@ async function loop() {
       );
     }
 
-    const delay = calculatePollDelayMs({
+    const activeOverride = await activeTournamentOverride();
+    const calculatedDelay = calculatePollDelayMs({
       failureCount,
-      activeOverride: await activeTournamentOverride(),
+      activeOverride,
     });
-    logger.info({ delayMs: delay, failureCount }, "waiting for next sync");
+    const delay = workerPollDelay(
+      calculatedDelay,
+      failureCount,
+      activeOverride,
+    );
+    logger.info(
+      { delayMs: delay, failureCount, activeOverride },
+      "waiting for next sync",
+    );
     await sleep(delay);
   }
+}
+
+function workerPollDelay(
+  calculatedDelayMs: number,
+  currentFailureCount: number,
+  activeOverride: boolean | undefined,
+) {
+  const targetDelay =
+    activeOverride === true
+      ? env.WORKER_ACTIVE_POLL_MS
+      : env.WORKER_PASSIVE_POLL_MS;
+  if (currentFailureCount <= 0) {
+    return Math.max(1_000, Math.min(calculatedDelayMs, targetDelay));
+  }
+  return Math.min(
+    env.WORKER_MAX_BACKOFF_MS,
+    Math.max(calculatedDelayMs, targetDelay),
+  );
 }
 
 async function activeTournamentOverride(): Promise<boolean | undefined> {

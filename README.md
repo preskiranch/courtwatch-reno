@@ -268,10 +268,12 @@ Behavior:
 - Looks ahead `TOURNAMENT_DISCOVERY_WINDOW_DAYS` (default: 183 days) for public-source tournaments.
 - Tracks built-in Exposure organizer sources including Jam On It, Grassroots 365, GSG Hoops, BAMTOURNAMENTS, Touch Shooting Premiere Events, Hoop 121, NorCal Sports TV, and Bay Area Stars Academy.
 - Also imports the full future public Exposure Basketball directory as metadata-only tournament listings so thousands of events can appear without scraping every team page at once. Team, schedule, records, and results sync through the existing Exposure flow when a tournament has public data and is selected or due for sync.
-- Polls every 60 seconds during active tournament dates/hours for any tracked event.
-- Polls every 10-15 minutes outside active hours.
+- Polls every 15 seconds while any supported tournament is active and refreshes active game data once it is more than 30 seconds old.
+- Rechecks near-term tournament team lists every 5 minutes so newly posted teams appear without waiting for the next full discovery pass.
+- Polls every 10 minutes outside active hours.
 - Uses exponential backoff after failures.
 - Preserves old saved data if the source fails.
+- Logs slow event syncs and exposes sync freshness through `GET /api/sync-health`.
 
 Manual sync:
 
@@ -331,6 +333,7 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 ## API Routes
 
 - `GET /api/health`
+- `GET /api/sync-health`
 - `GET /api/events/current`
 - `GET /api/accounts/stats`
 - `GET /api/auth/me`
