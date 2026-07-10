@@ -81,6 +81,7 @@ process.on("unhandledRejection", (reason) => {
     { error: errorMessage(reason), stack: errorStack(reason) },
     "unhandled promise rejection",
   );
+  exitAfterFatal();
 });
 
 process.on("uncaughtException", (error) => {
@@ -88,8 +89,13 @@ process.on("uncaughtException", (error) => {
     { error: errorMessage(error), stack: errorStack(error) },
     "uncaught exception",
   );
-  process.exit(1);
+  exitAfterFatal();
 });
+
+function exitAfterFatal() {
+  shuttingDown = true;
+  setImmediate(() => process.exit(1));
+}
 
 async function syncOnce() {
   try {
