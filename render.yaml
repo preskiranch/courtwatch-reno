@@ -6,6 +6,30 @@ databases:
 
 services:
   - type: web
+    name: courtwatch-exposure-relay
+    runtime: node
+    region: ohio
+    plan: starter
+    repo: https://github.com/preskiranch/courtwatch-reno
+    branch: main
+    rootDir: .
+    buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/exposure-relay
+    startCommand: npm run start --workspace @courtwatch/exposure-relay
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: UPSTREAM_ORIGIN
+        value: https://basketball.exposureevents.com
+      - key: RELAY_SHARED_SECRET
+        generateValue: true
+      - key: RELAY_UPSTREAM_TIMEOUT_MS
+        value: "30000"
+      - key: RELAY_MAX_BODY_BYTES
+        value: "2097152"
+
+  - type: web
     name: courtwatch-reno-web
     runtime: node
     plan: starter
