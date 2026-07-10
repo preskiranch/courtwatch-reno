@@ -77,6 +77,7 @@ import {
   tournamentForExposureEventId,
 } from "./config.js";
 import type { TournamentSource } from "./config.js";
+import { findStaleGameIds } from "./game-reconciliation.js";
 
 const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
@@ -1933,6 +1934,7 @@ export class PrismaStore implements CourtWatchStore {
         options,
         sourceTeamIds,
       );
+      const currentExposureGameIds = new Set<string>();
       for (const sourceGame of sourceGames) {
         const mapped = isCoreGame(sourceGame)
           ? mapStoredSourceGame(sourceGame, event.id, teamMap, divisionIdMap)
@@ -1944,6 +1946,7 @@ export class PrismaStore implements CourtWatchStore {
               divisionIdMap,
             );
         if (!mapped) continue;
+        currentExposureGameIds.add(mapped.exposureGameId ?? mapped.id);
         const existing = mapped.exposureGameId
           ? await this.prisma.game.findUnique({
               where: {
@@ -1973,6 +1976,16 @@ export class PrismaStore implements CourtWatchStore {
             },
           });
         }
+      }
+      if (
+        currentExposureGameIds.size > 0 &&
+        (options.forceFetchAllGames || shouldFetchAllPublicGames(tournament))
+      ) {
+        changesDetected += await removeGamesMissingFromAuthoritativeSnapshot(
+          this.prisma,
+          event.id,
+          currentExposureGameIds,
+        );
       }
       changesDetected += await upsertStartingSoonEventsForEvent(
         this.prisma,
@@ -3568,6 +3581,31 @@ async function removeTeamsMissingFromPublicList(
         externalIds.length > 0 ? { notIn: externalIds } : { not: null },
     },
   });
+}
+
+async function removeGamesMissingFromAuthoritativeSnapshot(
+  prisma: PrismaClient,
+  eventId: string,
+  currentExposureGameIds: ReadonlySet<string>,
+): Promise<number> {
+  const storedGames = await prisma.game.findMany({
+    where: { eventId, exposureGameId: { not: null } },
+    select: { id: true, exposureGameId: true, status: true },
+  });
+  const staleGameIds = findStaleGameIds(
+    storedGames,
+    currentExposureGameIds,
+  );
+  if (staleGameIds.length === 0) return 0;
+
+  const deleted = await prisma.game.deleteMany({
+    where: { eventId, id: { in: staleGameIds } },
+  });
+  console.info("Removed obsolete schedule rows after authoritative sync", {
+    eventId,
+    removedGames: deleted.count,
+  });
+  return deleted.count;
 }
 
 async function upsertPlayer(
