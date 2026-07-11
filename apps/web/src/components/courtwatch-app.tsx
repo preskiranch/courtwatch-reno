@@ -748,12 +748,12 @@ export function CourtWatchApp() {
         </section>
 
         <AppFooterCredit />
-        <BottomTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          tabs={visibleTabs}
-        />
       </main>
+      <BottomTabs
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        tabs={visibleTabs}
+      />
     </>
   );
 }
@@ -6090,7 +6090,17 @@ function BottomTabs({
   }>;
 }) {
   return (
-    <nav className="courtwatch-bottom-tabs fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-1.5 backdrop-blur">
+    <nav
+      className="courtwatch-bottom-tabs fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-1.5 backdrop-blur"
+      style={{
+        position: "fixed",
+        insetInline: 0,
+        bottom: 0,
+        width: "100%",
+        margin: 0,
+        transform: "none",
+      }}
+    >
       <div
         className="mx-auto grid max-w-[520px] gap-1"
         style={{
