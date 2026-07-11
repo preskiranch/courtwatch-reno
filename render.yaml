@@ -110,12 +110,14 @@ services:
         value: "12000"
       - key: ACTIVE_GAME_HYDRATION_STALE_MS
         value: "90000"
+      - key: TEAM_LIST_HYDRATION_STALE_MS
+        value: "60000"
       - key: RECENTLY_COMPLETED_HYDRATION_DAYS
         value: "3"
       - key: TOURNAMENT_DISCOVERY_ENABLED
         value: "true"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
-        value: "6"
+        value: "1"
       - key: TOURNAMENT_DISCOVERY_WINDOW_DAYS
         value: "183"
       - key: TOURNAMENT_DROPDOWN_CACHE_HOURS
@@ -178,13 +180,13 @@ services:
       - key: DEFAULT_EXPOSURE_EVENT_ID
         value: "255539"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
-        value: "6"
+        value: "1"
       - key: WORKER_API_TIMEOUT_MS
         value: "300000"
       - key: WORKER_ACTIVE_POLL_MS
         value: "15000"
       - key: WORKER_PASSIVE_POLL_MS
-        value: "600000"
+        value: "60000"
       - key: WORKER_MAX_BACKOFF_MS
         value: "900000"
       - key: WORKER_SYNC_BATCH_SIZE
@@ -194,7 +196,7 @@ services:
       - key: WORKER_ACTIVE_GAME_STALE_MS
         value: "30000"
       - key: WORKER_TEAM_LIST_RECHECK_STALE_MS
-        value: "300000"
+        value: "60000"
       - key: WORKER_SLOW_EVENT_SYNC_MS
         value: "20000"
       - key: EXPOSURE_PUBLIC_GAMES_CONCURRENCY

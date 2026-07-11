@@ -37,7 +37,7 @@ import {
   isExposureConfigured,
 } from "./config.js";
 import { NotificationService } from "./notification-service.js";
-import type { CourtWatchStore } from "./store.js";
+import type { CourtWatchStore, SyncNowOptions } from "./store.js";
 
 const PRESENCE_TTL_MS = 45_000;
 const SYNC_STATUS_STREAM_INTERVAL_MS = 1_000;
@@ -58,8 +58,11 @@ export function createApp(
   const app = express();
   const notifications = new NotificationService(prismaClient);
   const syncStatusStreams = new SyncStatusStreamBroker(store);
-  const runSync = async (exposureEventId?: number | null) => {
-    const result = await store.syncNow(exposureEventId);
+  const runSync = async (
+    exposureEventId?: number | null,
+    options: SyncNowOptions = {},
+  ) => {
+    const result = await store.syncNow(exposureEventId, options);
     await notifications.sendPending();
     return result;
   };
@@ -1107,23 +1110,33 @@ export function createApp(
     },
   );
 
-  app.post("/api/admin/sync-now", adminWriteRateLimit, async (req, res, next) => {
-    try {
-      if (
-        !isAdminAuthorized(
-          req.headers.authorization,
-          req.headers["x-admin-secret"],
-        )
-      ) {
-        res.status(401).json({ error: "Invalid admin secret" });
-        return;
+  app.post(
+    "/api/admin/sync-now",
+    adminWriteRateLimit,
+    async (req, res, next) => {
+      try {
+        if (
+          !isAdminAuthorized(
+            req.headers.authorization,
+            req.headers["x-admin-secret"],
+          )
+        ) {
+          res.status(401).json({ error: "Invalid admin secret" });
+          return;
+        }
+        const body = z
+          .object({ teamListOnly: z.boolean().optional() })
+          .passthrough()
+          .parse(req.body ?? {});
+        const result = await runSync(requestExposureEventId(req), {
+          teamListOnly: body.teamListOnly,
+        });
+        res.json(result);
+      } catch (error) {
+        next(error);
       }
-      const result = await runSync(requestExposureEventId(req));
-      res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  });
+    },
+  );
 
   app.post(
     "/api/admin/discover-tournaments",

@@ -109,6 +109,10 @@ const TEAM_LIST_HYDRATION_WINDOW_DAYS = Math.max(
   1,
   Number(process.env.TEAM_LIST_HYDRATION_WINDOW_DAYS ?? 14),
 );
+
+export interface SyncNowOptions {
+  teamListOnly?: boolean;
+}
 let publicEventsCache: { expiresAt: number; events: TournamentEvent[] } | null =
   null;
 
@@ -289,7 +293,10 @@ export interface CourtWatchStore {
   unfollowTeam(teamId: string, clientId?: string | null): Promise<void>;
   addAlias(programId: string, alias: string): Promise<ProgramAlias>;
   deleteAlias(programId: string, aliasId: string): Promise<void>;
-  syncNow(exposureEventId?: number | null): Promise<{
+  syncNow(
+    exposureEventId?: number | null,
+    options?: SyncNowOptions,
+  ): Promise<{
     status: string;
     source: string;
     teamsCount: number;
@@ -650,7 +657,10 @@ export class MockStore implements CourtWatchStore {
     );
   }
 
-  async syncNow(exposureEventId?: number | null) {
+  async syncNow(
+    exposureEventId?: number | null,
+    _options: SyncNowOptions = {},
+  ) {
     const selectedEvents = exposureEventId
       ? this.data.events.filter(
           (event) => event.exposureEventId === exposureEventId,
@@ -1591,14 +1601,14 @@ export class PrismaStore implements CourtWatchStore {
     });
   }
 
-  async syncNow(exposureEventId?: number | null) {
+  async syncNow(exposureEventId?: number | null, options: SyncNowOptions = {}) {
     invalidateEventsCache();
     await this.markCompletedEvents();
     const tournaments = await this.syncTournamentTargets(exposureEventId);
     const results = [];
     for (const tournament of tournaments) {
       try {
-        results.push(await this.syncTournament(tournament));
+        results.push(await this.syncTournament(tournament, undefined, options));
       } catch (error) {
         if (exposureEventId) throw error;
         console.warn("Tournament sync skipped", {
@@ -1639,7 +1649,9 @@ export class PrismaStore implements CourtWatchStore {
         });
       } else {
         syncResults.push(
-          await this.syncTournament(candidate.event, candidate.teams),
+          await this.syncTournament(candidate.event, candidate.teams, {
+            teamListOnly: true,
+          }),
         );
       }
     }
@@ -1850,7 +1862,10 @@ export class PrismaStore implements CourtWatchStore {
   private async syncTournament(
     tournament: TournamentSource,
     preloadedTeams?: PublicTournamentCandidate["teams"],
-    options: { forceFetchAllGames?: boolean } = {},
+    options: {
+      forceFetchAllGames?: boolean;
+      teamListOnly?: boolean;
+    } = {},
   ) {
     const startedAt = new Date();
     const source =
@@ -1904,12 +1919,72 @@ export class PrismaStore implements CourtWatchStore {
         event.id,
         sourceTeams,
       );
-      if (!usingMockFallback && sourceTeams.teams.length > 0)
+      if (
+        !options.teamListOnly &&
+        !usingMockFallback &&
+        sourceTeams.teams.length > 0
+      )
         await removeTeamsMissingFromPublicList(
           this.prisma,
           event.id,
           sourceTeams.teams,
         );
+
+      if (options.teamListOnly) {
+        [teamsCount, gamesCount] = await Promise.all([
+          this.prisma.team.count({ where: { eventId: event.id } }),
+          this.prisma.game.count({ where: { eventId: event.id } }),
+        ]);
+        const syncedAt = new Date();
+        const publishedTeamListFetched = sourceTeams.teams.length > 0;
+        changesDetected = publishedTeamListFetched
+          ? countNewTeamExternalIds(previousTeamIds, sourceTeams.teams)
+          : 0;
+        const teamListChanged =
+          publishedTeamListFetched &&
+          haveTeamExternalIdsChanged(previousTeamIds, sourceTeams.teams);
+
+        await this.prisma.$transaction([
+          this.prisma.event.update({
+            where: { id: event.id },
+            data: {
+              registeredTeamCount: publishedTeamListFetched
+                ? teamsCount
+                : Math.max(
+                    event.registeredTeamCount,
+                    tournament.registeredTeamCount,
+                  ),
+              hasPublicTeamList:
+                publishedTeamListFetched || event.hasPublicTeamList,
+              lastCheckedAt: syncedAt,
+              lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
+              status: deriveTournamentStatus({
+                startDate: tournament.startDate,
+                endDate: tournament.endDate,
+                status: tournament.status,
+              }),
+            },
+          }),
+          this.prisma.syncRun.update({
+            where: { id: run.id },
+            data: {
+              status: "success",
+              completedAt: syncedAt,
+              teamsCount,
+              gamesCount,
+              changesDetected,
+            },
+          }),
+        ]);
+
+        return {
+          status: "success",
+          source,
+          teamsCount,
+          gamesCount,
+          changesDetected,
+        };
+      }
 
       const teamMap = await loadTeamMap(this.prisma, event.id);
       const sourcePlayers = await fetchSourcePlayers(
@@ -2219,11 +2294,15 @@ export class PrismaStore implements CourtWatchStore {
     const storedTeams = await this.prisma.team.count({
       where: { eventId: event.id },
     });
-    const shouldRefreshEmptyPublishedList = shouldRecheckPublicTeamList(
+    const shouldRefreshPublishedList = shouldRecheckPublicTeamList(
       event,
       storedTeams,
     );
-    if (storedTeams >= event.registeredTeamCount && storedTeams > 0) {
+    if (
+      storedTeams >= event.registeredTeamCount &&
+      storedTeams > 0 &&
+      !shouldRefreshPublishedList
+    ) {
       if (
         !event.lastSyncedAt ||
         !event.hasPublicTeamList ||
@@ -2236,7 +2315,6 @@ export class PrismaStore implements CourtWatchStore {
             registeredTeamCount: storedTeams,
             hasPublicTeamList: true,
             lastCheckedAt: now,
-            lastSyncedAt: now,
           },
         });
       }
@@ -2245,7 +2323,7 @@ export class PrismaStore implements CourtWatchStore {
     if (
       !event.hasPublicTeamList &&
       event.registeredTeamCount <= 0 &&
-      !shouldRefreshEmptyPublishedList
+      !shouldRefreshPublishedList
     )
       return;
 
@@ -2265,7 +2343,14 @@ export class PrismaStore implements CourtWatchStore {
         invalidateEventsCache();
         return;
       }
-      const teamListChanged = sourceTeams.teams.length !== storedTeams;
+      const previousTeamIds = await loadEventTeamExternalIds(
+        this.prisma,
+        event.id,
+      );
+      const teamListChanged = haveTeamExternalIdsChanged(
+        previousTeamIds,
+        sourceTeams.teams,
+      );
       const syncedAt = new Date();
       await upsertSourceDivisionsAndTeams(this.prisma, event.id, sourceTeams);
       await this.prisma.event.update({
@@ -2274,7 +2359,6 @@ export class PrismaStore implements CourtWatchStore {
           registeredTeamCount: sourceTeams.teams.length,
           hasPublicTeamList: true,
           lastCheckedAt: syncedAt,
-          lastSyncedAt: syncedAt,
           lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
         },
       });
@@ -2357,8 +2441,7 @@ export class PrismaStore implements CourtWatchStore {
         select: { updatedAt: true },
       }),
     ]);
-    const lastDataAt =
-      event.lastCheckedAt ?? latestGame?.updatedAt ?? event.lastSyncedAt;
+    const lastDataAt = latestGame?.updatedAt ?? event.lastSyncedAt;
     if (
       storedGames > 0 &&
       lastDataAt &&
@@ -2679,9 +2762,8 @@ function shouldRecheckPublicTeamList(
     lastCheckedAt: Date | null;
     status: string;
   },
-  storedTeams: number,
+  _storedTeams: number,
 ) {
-  if (storedTeams > 0) return false;
   const exposureUrl =
     event.sourceUrl?.includes("basketball.exposureevents.com") ||
     event.officialUrl.includes("basketball.exposureevents.com");
@@ -3564,6 +3646,16 @@ function haveTeamExternalIdsChanged(
     if (!previousTeamIds.has(teamId)) return true;
   }
   return false;
+}
+
+function countNewTeamExternalIds(
+  previousTeamIds: ReadonlySet<string>,
+  teams: Team[],
+): number {
+  return teams.reduce((count, team) => {
+    const teamId = team.exposureTeamId ?? team.id;
+    return previousTeamIds.has(teamId) ? count : count + 1;
+  }, 0);
 }
 
 async function removeTeamsMissingFromPublicList(

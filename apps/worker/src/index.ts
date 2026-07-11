@@ -9,6 +9,7 @@ import type { TournamentEvent } from "@courtwatch/core";
 import { prisma } from "@courtwatch/db";
 import pino from "pino";
 import { z } from "zod";
+import { selectSyncMode, type SyncMode } from "./sync-policy.js";
 
 const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
@@ -36,6 +37,11 @@ const logger = pino({ name: "courtwatch-reno-sync-worker" });
 let failureCount = 0;
 let shuttingDown = false;
 let lastDiscoveryAt = 0;
+let discoveryTask: Promise<void> | null = null;
+
+type SyncTarget = TournamentEvent & {
+  syncMode: SyncMode;
+};
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -102,14 +108,7 @@ function exitAfterFatal() {
 }
 
 async function syncOnce() {
-  try {
-    await discoverTournamentsIfDue();
-  } catch (error) {
-    logger.error(
-      { error: errorMessage(error), stack: errorStack(error) },
-      "tournament discovery failed; continuing with normal sync",
-    );
-  }
+  startTournamentDiscoveryIfDue();
   const targets = await syncTargets();
   const results = await mapWithConcurrency(
     targets,
@@ -150,7 +149,7 @@ async function syncOnce() {
   };
 }
 
-async function syncTargets(): Promise<TournamentEvent[]> {
+async function syncTargets(): Promise<SyncTarget[]> {
   const response = await fetchWithTimeout(
     new URL("/api/events", env.API_BASE_URL),
   );
@@ -197,8 +196,8 @@ async function syncTargets(): Promise<TournamentEvent[]> {
       const rightStatus = syncStatusPriority(right.status);
       if (leftStatus !== rightStatus) return leftStatus - rightStatus;
 
-      const leftFreshness = left.lastSyncedAt ?? left.lastCheckedAt ?? "";
-      const rightFreshness = right.lastSyncedAt ?? right.lastCheckedAt ?? "";
+      const leftFreshness = left.lastCheckedAt ?? left.lastSyncedAt ?? "";
+      const rightFreshness = right.lastCheckedAt ?? right.lastSyncedAt ?? "";
       if (leftFreshness !== rightFreshness)
         return leftFreshness.localeCompare(rightFreshness);
 
@@ -208,10 +207,14 @@ async function syncTargets(): Promise<TournamentEvent[]> {
 
       return left.name.localeCompare(right.name);
     })
-    .slice(0, Math.max(1, env.WORKER_SYNC_BATCH_SIZE));
+    .slice(0, Math.max(1, env.WORKER_SYNC_BATCH_SIZE))
+    .map((event) => ({
+      ...event,
+      syncMode: syncModeForEvent(event, activeGamePriorityIds),
+    }));
 }
 
-async function syncSingleEvent(event: TournamentEvent) {
+async function syncSingleEvent(event: SyncTarget) {
   const startedAt = Date.now();
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const response = await fetchWithTimeout(
@@ -225,6 +228,7 @@ async function syncSingleEvent(event: TournamentEvent) {
         body: JSON.stringify({
           source: "worker",
           exposureEventId: event.exposureEventId,
+          teamListOnly: event.syncMode === "teams",
         }),
       },
       env.WORKER_EVENT_SYNC_TIMEOUT_MS,
@@ -245,6 +249,7 @@ async function syncSingleEvent(event: TournamentEvent) {
         teamsCount: result.teamsCount,
         gamesCount: result.gamesCount,
         changesDetected: result.changesDetected,
+        syncMode: event.syncMode,
       };
       if (durationMs >= env.WORKER_SLOW_EVENT_SYNC_MS) {
         logger.warn(logPayload, "event sync was slow");
@@ -277,6 +282,18 @@ async function syncSingleEvent(event: TournamentEvent) {
   }
 
   throw new Error("sync-now failed without a response");
+}
+
+function syncModeForEvent(
+  event: TournamentEvent,
+  activeGamePriorityIds: ReadonlySet<number>,
+): SyncTarget["syncMode"] {
+  return selectSyncMode({
+    activeGamePriority: activeGamePriorityIds.has(event.exposureEventId),
+    needsPublishedTeamHydration: needsPublishedTeamHydration(event),
+    needsActiveEventRefresh: needsActiveEventRefresh(event),
+    needsPublicTeamListRecheck: needsPublicTeamListRecheck(event),
+  });
 }
 
 function syncStatusPriority(status: TournamentEvent["status"]) {
@@ -419,7 +436,7 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
     activeEvents
       .filter((event) => {
         const gameCount = countsByEventId.get(event.id) ?? 0;
-        const lastDataAt = event.lastCheckedAt ?? event.lastSyncedAt;
+        const lastDataAt = event.lastSyncedAt ?? event.lastCheckedAt;
         return (
           !lastDataAt ||
           now - lastDataAt.getTime() > env.WORKER_ACTIVE_GAME_STALE_MS
@@ -475,10 +492,24 @@ function exposureEventIdFromUrl(url: string) {
   return match ? Number(match[1]) : null;
 }
 
-async function discoverTournamentsIfDue() {
+function startTournamentDiscoveryIfDue() {
   const intervalMs = env.TOURNAMENT_DISCOVERY_INTERVAL_HOURS * 60 * 60 * 1000;
-  if (Date.now() - lastDiscoveryAt < intervalMs) return;
+  if (discoveryTask || Date.now() - lastDiscoveryAt < intervalMs) return;
 
+  lastDiscoveryAt = Date.now();
+  discoveryTask = runTournamentDiscovery()
+    .catch((error) => {
+      logger.error(
+        { error: errorMessage(error), stack: errorStack(error) },
+        "tournament discovery failed; normal sync remained active",
+      );
+    })
+    .finally(() => {
+      discoveryTask = null;
+    });
+}
+
+async function runTournamentDiscovery() {
   const result = await new TournamentDiscoveryService().discover(
     DEFAULT_MAJOR_TOURNAMENT_SOURCES,
     { windowDays: env.TOURNAMENT_DISCOVERY_WINDOW_DAYS },
@@ -488,8 +519,6 @@ async function discoverTournamentsIfDue() {
     await upsertDiscoveredEvent(candidate.event);
     upsertedCount += 1;
   }
-  lastDiscoveryAt = Date.now();
-
   for (const failure of result.failures) {
     logger.warn(failure, "tournament discovery source skipped");
   }

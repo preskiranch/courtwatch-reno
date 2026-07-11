@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import { normalizeName, seedGames, seedSnapshot } from "@courtwatch/core";
 import type { Game } from "@courtwatch/core";
@@ -586,12 +586,16 @@ describe("CourtWatch API", () => {
 
   it("protects admin sync with ADMIN_SECRET when configured", async () => {
     process.env.ADMIN_SECRET = "test-secret";
-    const app = createApp(new MockStore(), null);
+    const store = new MockStore();
+    const syncNow = vi.spyOn(store, "syncNow");
+    const app = createApp(store, null);
     await request(app).post("/api/admin/sync-now").expect(401);
     await request(app)
       .post("/api/admin/sync-now")
       .set("x-admin-secret", "test-secret")
+      .send({ exposureEventId: 255539, teamListOnly: true })
       .expect(200);
+    expect(syncNow).toHaveBeenCalledWith(255539, { teamListOnly: true });
     delete process.env.ADMIN_SECRET;
   });
 });
