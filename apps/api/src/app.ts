@@ -1252,6 +1252,10 @@ class SyncStatusStreamBroker {
           this.clients.delete(client.id);
         }
       }
+    } catch (error) {
+      console.warn("Realtime sync-status poll failed; retrying", {
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       this.polling = false;
     }
