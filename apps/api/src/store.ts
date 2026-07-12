@@ -85,6 +85,18 @@ const teamSortCollator = new Intl.Collator("en-US", {
 });
 
 const activeGameHydrationPromises = new Map<number, Promise<void>>();
+const snapshotLoadPromises = new Map<number, Promise<CourtWatchSnapshot>>();
+type TournamentSyncResult = {
+  status: "success" | "skipped";
+  source: string;
+  teamsCount: number;
+  gamesCount: number;
+  changesDetected: number;
+};
+const tournamentSyncPromises = new Map<
+  string,
+  Promise<TournamentSyncResult>
+>();
 const ACTIVE_GAME_HYDRATION_STALE_MS = Math.max(
   30_000,
   Number(process.env.ACTIVE_GAME_HYDRATION_STALE_MS ?? 90_000),
@@ -923,6 +935,26 @@ export class PrismaStore implements CourtWatchStore {
 
   async snapshot(exposureEventId?: number | null): Promise<CourtWatchSnapshot> {
     const requestedTournament = tournamentForExposureEventId(exposureEventId);
+    const existing = snapshotLoadPromises.get(
+      requestedTournament.exposureEventId,
+    );
+    if (existing) return existing;
+
+    const promise = this.loadSnapshot(requestedTournament).finally(() => {
+      if (
+        snapshotLoadPromises.get(requestedTournament.exposureEventId) ===
+        promise
+      ) {
+        snapshotLoadPromises.delete(requestedTournament.exposureEventId);
+      }
+    });
+    snapshotLoadPromises.set(requestedTournament.exposureEventId, promise);
+    return promise;
+  }
+
+  private async loadSnapshot(
+    requestedTournament: TournamentSource,
+  ): Promise<CourtWatchSnapshot> {
     const event = await this.prisma.event.findUnique({
       where: { exposureEventId: requestedTournament.exposureEventId },
     });
@@ -947,7 +979,7 @@ export class PrismaStore implements CourtWatchStore {
       games,
       changeEvents,
       syncRuns,
-    ] = await Promise.all([
+    ] = await this.prisma.$transaction([
       this.prisma.division.findMany({ where: { eventId: event.id } }),
       this.prisma.team.findMany({
         where: { eventId: event.id },
@@ -1859,14 +1891,44 @@ export class PrismaStore implements CourtWatchStore {
     });
   }
 
-  private async syncTournament(
+  private syncTournament(
     tournament: TournamentSource,
     preloadedTeams?: PublicTournamentCandidate["teams"],
     options: {
       forceFetchAllGames?: boolean;
       teamListOnly?: boolean;
     } = {},
-  ) {
+  ): Promise<TournamentSyncResult> {
+    const mode = options.teamListOnly
+      ? "teams"
+      : options.forceFetchAllGames
+        ? "full-force"
+        : "full";
+    const key = `${tournament.exposureEventId}:${mode}`;
+    const existing = tournamentSyncPromises.get(key);
+    if (existing) return existing;
+
+    const promise = this.performTournamentSync(
+      tournament,
+      preloadedTeams,
+      options,
+    ).finally(() => {
+      if (tournamentSyncPromises.get(key) === promise) {
+        tournamentSyncPromises.delete(key);
+      }
+    });
+    tournamentSyncPromises.set(key, promise);
+    return promise;
+  }
+
+  private async performTournamentSync(
+    tournament: TournamentSource,
+    preloadedTeams?: PublicTournamentCandidate["teams"],
+    options: {
+      forceFetchAllGames?: boolean;
+      teamListOnly?: boolean;
+    } = {},
+  ): Promise<TournamentSyncResult> {
     const startedAt = new Date();
     const source =
       tournament.externalProvider === "exposure_events" &&
