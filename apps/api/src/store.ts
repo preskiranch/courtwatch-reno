@@ -2912,6 +2912,7 @@ function syncFailureStatus(
 
 function isPublicSourceUnavailableError(errorMessage: string) {
   return (
+    errorMessage.includes("request failed with 410") ||
     errorMessage.includes("Public teams page request failed with 403") ||
     errorMessage.includes("Public eventgames request failed with 403") ||
     errorMessage.includes("Public page request failed with 403") ||
