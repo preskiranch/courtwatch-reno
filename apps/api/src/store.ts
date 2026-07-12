@@ -97,6 +97,7 @@ const tournamentSyncPromises = new Map<
   string,
   Promise<TournamentSyncResult>
 >();
+const tournamentSyncTails = new Map<number, Promise<void>>();
 const ACTIVE_GAME_HYDRATION_STALE_MS = Math.max(
   30_000,
   Number(process.env.ACTIVE_GAME_HYDRATION_STALE_MS ?? 90_000),
@@ -1908,16 +1909,26 @@ export class PrismaStore implements CourtWatchStore {
     const existing = tournamentSyncPromises.get(key);
     if (existing) return existing;
 
-    const promise = this.performTournamentSync(
-      tournament,
-      preloadedTeams,
-      options,
-    ).finally(() => {
+    const previous =
+      tournamentSyncTails.get(tournament.exposureEventId) ?? Promise.resolve();
+    const promise = previous.then(() =>
+      this.performTournamentSync(tournament, preloadedTeams, options),
+    );
+    const tail = promise.then(
+      () => undefined,
+      () => undefined,
+    );
+    tournamentSyncTails.set(tournament.exposureEventId, tail);
+    tournamentSyncPromises.set(key, promise);
+
+    void tail.then(() => {
       if (tournamentSyncPromises.get(key) === promise) {
         tournamentSyncPromises.delete(key);
       }
+      if (tournamentSyncTails.get(tournament.exposureEventId) === tail) {
+        tournamentSyncTails.delete(tournament.exposureEventId);
+      }
     });
-    tournamentSyncPromises.set(key, promise);
     return promise;
   }
 
