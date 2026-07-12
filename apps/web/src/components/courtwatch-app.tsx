@@ -145,6 +145,7 @@ type TournamentRegionFilter = string;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
 const DEFER_HEAVY_DASHBOARD_DATA_MS = 1_500;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
+const BOTTOM_TABS_VIEWPORT_SYNC_EVENT = "courtwatch:bottom-tabs-viewport-sync";
 
 function tabFromDeepLink(value: string | null): Tab | null {
   if (
@@ -165,6 +166,10 @@ function positiveEventIdFromSearch(params: URLSearchParams): number | null {
 
 function gameCardElementId(gameId: string): string {
   return `courtwatch-game-${gameId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
+function requestBottomTabsViewportSync() {
+  window.dispatchEvent(new Event(BOTTOM_TABS_VIEWPORT_SYNC_EVENT));
 }
 
 function invalidateLiveDataQueries(queryClient: QueryClient) {
@@ -3688,7 +3693,10 @@ function ScheduleScreen({
     const timeout = window.setTimeout(() => {
       const element = document.getElementById(gameCardElementId(targetGameId));
       if (!element) return;
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      // iOS can preserve a stale fixed-element compositor layer when a push
+      // deep link starts a smooth scroll before the visual viewport settles.
+      element.scrollIntoView({ behavior: "auto", block: "center" });
+      requestBottomTabsViewportSync();
       clearHighlightTimeout = window.setTimeout(onTargetGameHandled, 3_000);
     }, 150);
 
@@ -6089,12 +6097,64 @@ function BottomTabs({
     icon: React.ComponentType<{ className?: string }>;
   }>;
 }) {
+  const [viewportEpoch, setViewportEpoch] = useState(0);
+
+  useEffect(() => {
+    let syncTimeouts: number[] = [];
+    let resizeTimeout: number | undefined;
+
+    const remountAtSettledViewport = () => {
+      setViewportEpoch((current) => current + 1);
+    };
+    const scheduleViewportSync = () => {
+      for (const timeout of syncTimeouts) window.clearTimeout(timeout);
+      syncTimeouts = [0, 200, 750].map((delay) =>
+        window.setTimeout(remountAtSettledViewport, delay),
+      );
+    };
+    const scheduleResizeSync = () => {
+      if (resizeTimeout) window.clearTimeout(resizeTimeout);
+      resizeTimeout = window.setTimeout(remountAtSettledViewport, 120);
+    };
+    const syncWhenVisible = () => {
+      if (document.visibilityState === "visible") scheduleViewportSync();
+    };
+
+    window.addEventListener("pageshow", scheduleViewportSync);
+    window.addEventListener("focus", scheduleViewportSync);
+    window.addEventListener("orientationchange", scheduleViewportSync);
+    window.addEventListener(
+      BOTTOM_TABS_VIEWPORT_SYNC_EVENT,
+      scheduleViewportSync,
+    );
+    window.visualViewport?.addEventListener("resize", scheduleResizeSync);
+    document.addEventListener("visibilitychange", syncWhenVisible);
+    scheduleViewportSync();
+
+    return () => {
+      for (const timeout of syncTimeouts) window.clearTimeout(timeout);
+      if (resizeTimeout) window.clearTimeout(resizeTimeout);
+      window.removeEventListener("pageshow", scheduleViewportSync);
+      window.removeEventListener("focus", scheduleViewportSync);
+      window.removeEventListener("orientationchange", scheduleViewportSync);
+      window.removeEventListener(
+        BOTTOM_TABS_VIEWPORT_SYNC_EVENT,
+        scheduleViewportSync,
+      );
+      window.visualViewport?.removeEventListener("resize", scheduleResizeSync);
+      document.removeEventListener("visibilitychange", syncWhenVisible);
+    };
+  }, []);
+
   return (
     <nav
-      className="courtwatch-bottom-tabs fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f]/95 px-2 pt-1.5 backdrop-blur"
+      key={viewportEpoch}
+      aria-label="Primary navigation"
+      className="courtwatch-bottom-tabs fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07111f] px-2 pt-1.5 shadow-[0_-8px_24px_rgba(0,0,0,0.24)]"
       style={{
         position: "fixed",
         insetInline: 0,
+        top: "auto",
         bottom: 0,
         width: "100%",
         margin: 0,
