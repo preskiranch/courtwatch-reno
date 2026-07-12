@@ -4245,6 +4245,12 @@ function mapStoredSourceGame(
   const homeDivisionTeamId = stringOrNull(raw.HomeDivisionTeamId);
   const awayDivisionTeamId = stringOrNull(raw.AwayDivisionTeamId);
   const divisionExposureId = stringOrNull(raw.DivisionId);
+  const currentHomeTeam =
+    (homeDivisionTeamId ? teamMap.get(homeDivisionTeamId) : null) ??
+    (game.homeTeamId ? teamMap.get(game.homeTeamId) : null);
+  const currentAwayTeam =
+    (awayDivisionTeamId ? teamMap.get(awayDivisionTeamId) : null) ??
+    (game.awayTeamId ? teamMap.get(game.awayTeamId) : null);
   return {
     ...game,
     eventId,
@@ -4253,12 +4259,12 @@ function mapStoredSourceGame(
       (game.divisionId
         ? (divisionIdMap.get(game.divisionId) ?? game.divisionId)
         : null),
-    homeTeamId:
-      (homeDivisionTeamId ? teamMap.get(homeDivisionTeamId)?.id : null) ??
-      game.homeTeamId,
-    awayTeamId:
-      (awayDivisionTeamId ? teamMap.get(awayDivisionTeamId)?.id : null) ??
-      game.awayTeamId,
+    homeTeamId: currentHomeTeam?.id ?? null,
+    awayTeamId: currentAwayTeam?.id ?? null,
+    homeTeamNameSnapshot:
+      currentHomeTeam?.name ?? game.homeTeamNameSnapshot,
+    awayTeamNameSnapshot:
+      currentAwayTeam?.name ?? game.awayTeamNameSnapshot,
   };
 }
 
