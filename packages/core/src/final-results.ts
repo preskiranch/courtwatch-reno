@@ -29,8 +29,14 @@ export function deriveDivisionResultsFromGames(
 ): DivisionResult[] {
   const results: DivisionResult[] = [];
   const gamesByDivision = new Map<string, Game[]>();
+  const allGamesByDivision = new Map<string, Game[]>();
 
   for (const game of snapshot.games) {
+    if (game.divisionId) {
+      const divisionGames = allGamesByDivision.get(game.divisionId) ?? [];
+      divisionGames.push(game);
+      allGamesByDivision.set(game.divisionId, divisionGames);
+    }
     const homeScore = sanitizeBasketballScore(game.homeScore);
     const awayScore = sanitizeBasketballScore(game.awayScore);
     if (
@@ -49,6 +55,11 @@ export function deriveDivisionResultsFromGames(
   }
 
   for (const [divisionId, games] of gamesByDivision.entries()) {
+    if (
+      hasUnresolvedPlacementGames(allGamesByDivision.get(divisionId) ?? games)
+    ) {
+      continue;
+    }
     const goldFinal =
       games.filter(isGoldFinalGame).sort(compareStartsAtDesc)[0] ?? null;
     if (goldFinal) {
@@ -57,7 +68,9 @@ export function deriveDivisionResultsFromGames(
       if (winner) {
         results.push(makeResult(snapshot, divisionId, goldFinal, 1, winner));
         if (runnerUp)
-          results.push(makeResult(snapshot, divisionId, goldFinal, 2, runnerUp));
+          results.push(
+            makeResult(snapshot, divisionId, goldFinal, 2, runnerUp),
+          );
       }
     }
 
@@ -113,7 +126,10 @@ export function buildDivisionResultGroups(
   for (const result of results.sort(compareResults)) {
     const existing = groups.get(result.divisionId);
     if (existing) {
-      if (existing.rows.length === 0 && existing.divisionName === "Division TBD") {
+      if (
+        existing.rows.length === 0 &&
+        existing.divisionName === "Division TBD"
+      ) {
         existing.divisionName = result.divisionName;
         existing.gender = result.gender;
         existing.gradeLevel = result.gradeLevel;
@@ -337,6 +353,13 @@ function isGoldFinalGame(game: Game): boolean {
   const type = normalizeGameType(game.gameType);
   if (!type || type.includes("pool")) return false;
   if (
+    type.includes("playoff") &&
+    !type.includes("final") &&
+    !hasOfficialPlacementSignal(game.rawJson)
+  ) {
+    return false;
+  }
+  if (
     [
       "semi",
       "quarter",
@@ -355,6 +378,43 @@ function isGoldFinalGame(game: Game): boolean {
     type.includes("1st place") ||
     type.includes("first place") ||
     type.includes("final")
+  );
+}
+
+function hasUnresolvedPlacementGames(games: Game[]): boolean {
+  return games.some(
+    (game) => isPotentialPlacementGame(game) && !isCompletedScoredGame(game),
+  );
+}
+
+function isPotentialPlacementGame(game: Game): boolean {
+  const type = normalizeGameType(game.gameType);
+  if (!type || type.includes("pool")) return false;
+  return [
+    "playoff",
+    "championship",
+    "champion",
+    "final",
+    "semi",
+    "quarter",
+    "play in",
+    "gold",
+    "silver",
+    "bronze",
+    "third",
+    "3rd",
+    "consolation",
+  ].some((signal) => type.includes(signal));
+}
+
+function isCompletedScoredGame(game: Game): boolean {
+  const homeScore = sanitizeBasketballScore(game.homeScore);
+  const awayScore = sanitizeBasketballScore(game.awayScore);
+  return (
+    game.status === "final" &&
+    homeScore !== null &&
+    awayScore !== null &&
+    homeScore !== awayScore
   );
 }
 
@@ -563,13 +623,13 @@ function hasTeamRecordActivity(
 ): record is TeamRecordSummary {
   return Boolean(
     record &&
-      (record.gamesSeen > 0 ||
-        record.gamesScored > 0 ||
-        record.finalGames > 0 ||
-        record.wins > 0 ||
-        record.losses > 0 ||
-        record.ties > 0 ||
-        record.totalPoints > 0),
+    (record.gamesSeen > 0 ||
+      record.gamesScored > 0 ||
+      record.finalGames > 0 ||
+      record.wins > 0 ||
+      record.losses > 0 ||
+      record.ties > 0 ||
+      record.totalPoints > 0),
   );
 }
 

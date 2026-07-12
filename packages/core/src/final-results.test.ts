@@ -53,6 +53,58 @@ describe("final division results", () => {
     ]);
   });
 
+  it("does not treat a completed opening championship playoff game as the division final", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      finalGame({
+        id: "game-playoff-opening-round",
+        gameType: "Championship Playoff (G1)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 46,
+        awayScore: 35,
+        officialPlacement: false,
+      }),
+    ];
+
+    expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
+  });
+
+  it("keeps placements pending while a later placement game is unresolved", () => {
+    const snapshot = snapshotWithFinals();
+    const pendingBronzeGame = finalGame({
+      id: "game-pending-bronze-final",
+      gameType: "3rd Place",
+      homeTeamId: "team-norcal-6",
+      awayTeamId: "team-arsenal-boys-8",
+      homeTeamNameSnapshot: "NorCal Elite Blue",
+      awayTeamNameSnapshot: "Team Arsenal 8th Black",
+      homeScore: 0,
+      awayScore: 0,
+      startsAt: "2026-05-25T23:30:00.000Z",
+    });
+    pendingBronzeGame.status = "upcoming";
+    pendingBronzeGame.homeScore = null;
+    pendingBronzeGame.awayScore = null;
+    snapshot.games = [
+      finalGame({
+        id: "game-completed-gold-final",
+        gameType: "Gold Championship Final",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-premier-10u",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Premier 10U Gold",
+        homeScore: 46,
+        awayScore: 35,
+      }),
+      pendingBronzeGame,
+    ];
+
+    expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
+  });
+
   it("does not derive placement winners from unresolved bracket placeholders", () => {
     const snapshot = snapshotWithFinals();
     snapshot.games = [
