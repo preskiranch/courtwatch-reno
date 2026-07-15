@@ -99,24 +99,26 @@ export function createApp(
     }),
   );
   app.use(
-    (pinoHttp as unknown as (options: Record<string, unknown>) => express.Handler)(
-      {
-        redact: {
-          paths: [
-            "req.headers.authorization",
-            "req.headers.cookie",
-            "req.headers['x-admin-secret']",
-            "req.body.password",
-            "req.body.token",
-            "req.body.resetToken",
-            "req.body.newPassword",
-            "req.body.confirmPassword",
-            "res.headers['set-cookie']",
-          ],
-          remove: true,
-        },
+    (
+      pinoHttp as unknown as (
+        options: Record<string, unknown>,
+      ) => express.Handler
+    )({
+      redact: {
+        paths: [
+          "req.headers.authorization",
+          "req.headers.cookie",
+          "req.headers['x-admin-secret']",
+          "req.body.password",
+          "req.body.token",
+          "req.body.resetToken",
+          "req.body.newPassword",
+          "req.body.confirmPassword",
+          "res.headers['set-cookie']",
+        ],
+        remove: true,
       },
-    ),
+    }),
   );
   app.use((req, res, next) => {
     const startedAt = process.hrtime.bigint();
@@ -253,50 +255,54 @@ export function createApp(
     }
   });
 
-  app.post("/api/auth/register", accountAuthRateLimit, async (req, res, next) => {
-    try {
-      if (!prismaClient) {
-        res.status(503).json({ error: "Accounts require a database" });
-        return;
+  app.post(
+    "/api/auth/register",
+    accountAuthRateLimit,
+    async (req, res, next) => {
+      try {
+        if (!prismaClient) {
+          res.status(503).json({ error: "Accounts require a database" });
+          return;
+        }
+        const body = z
+          .object({
+            email: z.string().trim().email().max(180),
+            password: z.string().min(8).max(160),
+            displayName: z.string().trim().min(1).max(80).optional(),
+            timezone: z.string().trim().max(80).optional(),
+          })
+          .parse(req.body ?? {});
+        const email = normalizeEmail(body.email);
+        const existing = await prismaClient.user.findUnique({
+          where: { email },
+        });
+        if (existing) {
+          res.status(409).json({ error: "An account already exists" });
+          return;
+        }
+        const user = await prismaClient.user.create({
+          data: {
+            email,
+            passwordHash: await hashPasswordAsync(body.password),
+            displayName: body.displayName ?? email.split("@")[0],
+            timezone: body.timezone ?? "America/Los_Angeles",
+          },
+        });
+        await prismaClient.notificationPreference.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: { userId: user.id },
+        });
+        res.status(201).json({
+          token: signAccountToken(user),
+          user: publicAccountUser(user),
+          totalRegisteredUsers: await registeredAccountCount(prismaClient),
+        });
+      } catch (error) {
+        next(error);
       }
-      const body = z
-        .object({
-          email: z.string().trim().email().max(180),
-          password: z.string().min(8).max(160),
-          displayName: z.string().trim().min(1).max(80).optional(),
-          timezone: z.string().trim().max(80).optional(),
-        })
-        .parse(req.body ?? {});
-      const email = normalizeEmail(body.email);
-      const existing = await prismaClient.user.findUnique({
-        where: { email },
-      });
-      if (existing) {
-        res.status(409).json({ error: "An account already exists" });
-        return;
-      }
-      const user = await prismaClient.user.create({
-        data: {
-          email,
-          passwordHash: await hashPasswordAsync(body.password),
-          displayName: body.displayName ?? email.split("@")[0],
-          timezone: body.timezone ?? "America/Los_Angeles",
-        },
-      });
-      await prismaClient.notificationPreference.upsert({
-        where: { userId: user.id },
-        update: {},
-        create: { userId: user.id },
-      });
-      res.status(201).json({
-        token: signAccountToken(user),
-        user: publicAccountUser(user),
-        totalRegisteredUsers: await registeredAccountCount(prismaClient),
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+    },
+  );
 
   app.post("/api/auth/login", accountAuthRateLimit, async (req, res, next) => {
     try {
@@ -463,6 +469,31 @@ export function createApp(
     }
   });
 
+  app.post(
+    "/api/account/sync-favorite-team-watches",
+    async (req, res, next) => {
+      try {
+        const session = requestAccountSession(req);
+        if (!session) {
+          res.status(401).json({ error: "Sign in to sync team alerts" });
+          return;
+        }
+        const sourceClientId = requestClientId(req);
+        if (!sourceClientId) {
+          res.status(400).json({ error: "Device identity is required" });
+          return;
+        }
+        const syncedCount = await store.syncFavoriteTeamWatches(
+          sourceClientId,
+          accountClientId(session.userId),
+        );
+        res.json({ ok: true, syncedCount });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
   app.get("/api/events", async (req, res, next) => {
     try {
       res.json(await store.events(requestClientIdentity(req)));
@@ -561,10 +592,7 @@ export function createApp(
       ]);
       const teamsByEventId = countMap(teamCounts);
       const gamesByEventId = countMap(gameCounts);
-      const latestRunByEventId = new Map<
-        string,
-        (typeof latestRuns)[number]
-      >();
+      const latestRunByEventId = new Map<string, (typeof latestRuns)[number]>();
       for (const run of latestRuns) {
         if (!latestRunByEventId.has(run.eventId))
           latestRunByEventId.set(run.eventId, run);
@@ -777,6 +805,16 @@ export function createApp(
     }
   });
 
+  app.get("/api/team-catalog", async (req, res, next) => {
+    try {
+      const search = stringQuery(req.query.search)?.trim() ?? "";
+      const limit = numericQuery(req.query.limit, 1, 50);
+      res.json(await store.teamCatalog(search, limit));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/favorite-team-watches", async (req, res, next) => {
     try {
       res.json(await store.favoriteTeamWatches(requestClientIdentity(req)));
@@ -797,6 +835,7 @@ export function createApp(
           gender: z.string().trim().max(40).nullable().optional(),
           gradeLevel: z.string().trim().max(40).nullable().optional(),
           level: z.string().trim().max(80).nullable().optional(),
+          autoFollow: z.boolean().optional(),
         })
         .parse(req.body ?? {});
       res
@@ -804,6 +843,24 @@ export function createApp(
         .json(
           await store.saveFavoriteTeamWatch(body, requestClientIdentity(req)),
         );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.patch("/api/favorite-team-watches/:watchId", async (req, res, next) => {
+    try {
+      const body = z
+        .object({ autoFollow: z.boolean() })
+        .strict()
+        .parse(req.body ?? {});
+      res.json(
+        await store.updateFavoriteTeamWatch(
+          req.params.watchId,
+          body,
+          requestClientIdentity(req),
+        ),
+      );
     } catch (error) {
       next(error);
     }
@@ -1351,9 +1408,7 @@ function dateKeyToUtcDate(dateKey: string): Date {
   return new Date(`${dateKey}T00:00:00.000Z`);
 }
 
-function latestDate(
-  ...values: Array<Date | null | undefined>
-): Date | null {
+function latestDate(...values: Array<Date | null | undefined>): Date | null {
   return values.reduce<Date | null>((latest, value) => {
     if (!value) return latest;
     if (!latest || value.getTime() > latest.getTime()) return value;

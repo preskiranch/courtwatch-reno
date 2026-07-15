@@ -23,4 +23,15 @@ describe("notification click URLs", () => {
       }),
     ).toBe("https://www.courtwatchaau.com/?eventId=654321&tab=alerts");
   });
+
+  it("links watched-team discoveries to the matching tournament teams screen", () => {
+    expect(
+      notificationClickUrl({
+        webBaseUrl: "https://www.courtwatchaau.com/",
+        exposureEventId: 765432,
+        gameId: null,
+        tab: "teams",
+      }),
+    ).toBe("https://www.courtwatchaau.com/?eventId=765432&tab=teams");
+  });
 });

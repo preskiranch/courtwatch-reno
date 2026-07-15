@@ -3,6 +3,7 @@ import request from "supertest";
 import { normalizeName, seedGames, seedSnapshot } from "@courtwatch/core";
 import type { Game } from "@courtwatch/core";
 import { createApp } from "./app.js";
+import { signAccountToken } from "./auth.js";
 import { MockStore } from "./store.js";
 
 describe("CourtWatch API", () => {
@@ -116,6 +117,96 @@ describe("CourtWatch API", () => {
       .set("x-courtwatch-client-id", "client-alpha-123")
       .expect(200);
     expect(alphaAfterDelete.body).toHaveLength(0);
+  });
+
+  it("searches the cross-tournament team catalog and updates auto-follow", async () => {
+    const app = createApp(new MockStore(), null);
+    const clientId = "client-team-watch-123";
+
+    const catalog = await request(app)
+      .get("/api/team-catalog?search=Splash%20City&limit=10")
+      .expect(200);
+    expect(catalog.body.length).toBeGreaterThan(0);
+    expect(catalog.body[0]).toMatchObject({
+      displayName: expect.stringContaining("Splash City"),
+    });
+
+    const created = await request(app)
+      .post("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", clientId)
+      .send({ displayName: "Splash City Future 13U", autoFollow: false })
+      .expect(201);
+    expect(created.body.autoFollow).toBe(false);
+
+    const updated = await request(app)
+      .patch(`/api/favorite-team-watches/${created.body.id}`)
+      .set("x-courtwatch-client-id", clientId)
+      .send({ autoFollow: true })
+      .expect(200);
+    expect(updated.body.autoFollow).toBe(true);
+  });
+
+  it("copies device team alerts into an account without deleting or duplicating them", async () => {
+    const app = createApp(new MockStore(), null);
+    const deviceClientId = "client-team-alert-device-123";
+    const token = signAccountToken({
+      id: "account-user-1",
+      email: "person@example.com",
+    });
+
+    await request(app)
+      .post("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", deviceClientId)
+      .send({ displayName: "Splash City Future 14U", autoFollow: true })
+      .expect(201);
+
+    const firstSync = await request(app)
+      .post("/api/account/sync-favorite-team-watches")
+      .set("x-courtwatch-client-id", deviceClientId)
+      .set("authorization", `Bearer ${token}`)
+      .send({})
+      .expect(200);
+    expect(firstSync.body).toEqual({ ok: true, syncedCount: 1 });
+
+    const accountWatches = await request(app)
+      .get("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", deviceClientId)
+      .set("authorization", `Bearer ${token}`)
+      .expect(200);
+    expect(accountWatches.body).toHaveLength(1);
+    expect(accountWatches.body[0]).toMatchObject({
+      displayName: "Splash City Future 14U",
+      autoFollow: true,
+    });
+
+    const deviceWatches = await request(app)
+      .get("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", deviceClientId)
+      .expect(200);
+    expect(deviceWatches.body).toHaveLength(1);
+
+    await request(app)
+      .post("/api/account/sync-favorite-team-watches")
+      .set("x-courtwatch-client-id", deviceClientId)
+      .set("authorization", `Bearer ${token}`)
+      .send({})
+      .expect(200);
+
+    const afterSecondSync = await request(app)
+      .get("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", deviceClientId)
+      .set("authorization", `Bearer ${token}`)
+      .expect(200);
+    expect(afterSecondSync.body).toHaveLength(1);
+  });
+
+  it("requires an account before syncing device team alerts", async () => {
+    const app = createApp(new MockStore(), null);
+    await request(app)
+      .post("/api/account/sync-favorite-team-watches")
+      .set("x-courtwatch-client-id", "client-team-alert-device-123")
+      .send({})
+      .expect(401);
   });
 
   it("keeps followed teams separate by browser client id", async () => {

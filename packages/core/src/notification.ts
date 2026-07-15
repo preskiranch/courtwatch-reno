@@ -15,10 +15,15 @@ const PREF_BY_EVENT: Record<ChangeEventType, string> = {
   final_placement: "bracketUpdate",
   bracket_update: "bracketUpdate",
   team_advanced: "bracketUpdate",
-  starting_soon: "gameStartReminderMinutes"
+  watched_team_registered: "newTeamDiscovered",
+  starting_soon: "gameStartReminderMinutes",
 };
 
-export function notificationHash(event: GameChangeEvent, userId: string, channel: "web_push" | "expo"): string {
+export function notificationHash(
+  event: GameChangeEvent,
+  userId: string,
+  channel: "web_push" | "expo",
+): string {
   return dedupeKey([userId, channel, event.dedupeKey]);
 }
 
@@ -26,25 +31,63 @@ export function preferenceKeyForEvent(eventType: ChangeEventType): string {
   return PREF_BY_EVENT[eventType];
 }
 
-export function formatNotification(event: GameChangeEvent, game: Game | null, team: Team | null): { title: string; body: string } {
-  const teamName = team?.name ?? game?.homeTeamNameSnapshot ?? "Court Watch AAU";
+export function formatNotification(
+  event: GameChangeEvent,
+  game: Game | null,
+  team: Team | null,
+): { title: string; body: string } {
+  const teamName =
+    team?.name ?? game?.homeTeamNameSnapshot ?? "Court Watch AAU";
   const court = game?.courtName ? ` on ${game.courtName}` : "";
   const opponent = game ? opponentForTeam(game, team?.id ?? null) : null;
 
   switch (event.eventType) {
     case "new_team_discovered":
-      return { title: `New ${teamName} team found`, body: `${teamName} was added to your tracker.` };
+      return {
+        title: `New ${teamName} team found`,
+        body: `${teamName} was added to your tracker.`,
+      };
+    case "watched_team_registered": {
+      const value = event.newValue as Record<string, unknown> | null;
+      const registeredTeamName =
+        typeof value?.teamName === "string" ? value.teamName : teamName;
+      const eventName =
+        typeof value?.eventName === "string"
+          ? value.eventName
+          : "a new tournament";
+      const divisionName =
+        typeof value?.divisionName === "string" ? value.divisionName : null;
+      return {
+        title: `${registeredTeamName} is registered`,
+        body: `${registeredTeamName} was added to ${eventName}${divisionName ? ` (${divisionName})` : ""}.`,
+      };
+    }
     case "new_game_added":
-      return { title: `New game posted for ${teamName}`, body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.` };
+      return {
+        title: `New game posted for ${teamName}`,
+        body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.`,
+      };
     case "game_time_changed":
     case "date_changed":
-      return { title: `Time change: ${teamName}`, body: `Now ${game?.scheduledTime ?? "TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.` };
+      return {
+        title: `Time change: ${teamName}`,
+        body: `Now ${game?.scheduledTime ?? "TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.`,
+      };
     case "court_changed":
-      return { title: `Court change: ${teamName}`, body: `${teamName} now plays${court || " on a new court"}.` };
+      return {
+        title: `Court change: ${teamName}`,
+        body: `${teamName} now plays${court || " on a new court"}.`,
+      };
     case "venue_changed":
-      return { title: `Venue change: ${teamName}`, body: `${teamName} now plays at ${game?.venueName ?? "a new venue"}.` };
+      return {
+        title: `Venue change: ${teamName}`,
+        body: `${teamName} now plays at ${game?.venueName ?? "a new venue"}.`,
+      };
     case "opponent_assigned":
-      return { title: `Opponent assigned: ${teamName}`, body: `${teamName} now plays ${opponent ?? "the posted opponent"}.` };
+      return {
+        title: `Opponent assigned: ${teamName}`,
+        body: `${teamName} now plays ${opponent ?? "the posted opponent"}.`,
+      };
     case "score_posted":
       return { title: `Score posted: ${teamName}`, body: scoreLine(game) };
     case "final_score":
@@ -54,7 +97,9 @@ export function formatNotification(event: GameChangeEvent, game: Game | null, te
       const placedTeamName =
         typeof value?.teamName === "string" ? value.teamName : teamName;
       const division =
-        typeof value?.divisionName === "string" ? value.divisionName : "division";
+        typeof value?.divisionName === "string"
+          ? value.divisionName
+          : "division";
       const placement =
         typeof value?.placementLabel === "string"
           ? value.placementLabel
@@ -66,7 +111,10 @@ export function formatNotification(event: GameChangeEvent, game: Game | null, te
     }
     case "bracket_update":
     case "team_advanced":
-      return { title: `Bracket update for ${teamName}`, body: `${game?.gameType ?? "Bracket game"} posted${court}.` };
+      return {
+        title: `Bracket update for ${teamName}`,
+        body: `${game?.gameType ?? "Bracket game"} posted${court}.`,
+      };
     case "starting_soon": {
       const value = event.newValue as Record<string, unknown> | null;
       const reminderMinutes =
@@ -79,10 +127,16 @@ export function formatNotification(event: GameChangeEvent, game: Game | null, te
           : reminderMinutes
             ? `${teamName} starts in ${reminderMinutes} min`
             : `${teamName} starts soon`;
-      return { title, body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.` };
+      return {
+        title,
+        body: `${game?.scheduledTime ?? "Tip time TBD"}${court}${opponent ? ` vs ${opponent}` : ""}.`,
+      };
     }
     default:
-      return { title: "Court Watch AAU update", body: "A watched schedule item changed." };
+      return {
+        title: "Court Watch AAU update",
+        body: "A watched schedule item changed.",
+      };
   }
 }
 
@@ -94,6 +148,7 @@ function opponentForTeam(game: Game, teamId: string | null): string | null {
 }
 
 function scoreLine(game: Game | null): string {
-  if (!game || game.homeScore === null || game.awayScore === null) return "Score was posted.";
+  if (!game || game.homeScore === null || game.awayScore === null)
+    return "Score was posted.";
   return `${game.homeTeamNameSnapshot ?? "Home"} ${game.homeScore}, ${game.awayTeamNameSnapshot ?? "Away"} ${game.awayScore}`;
 }

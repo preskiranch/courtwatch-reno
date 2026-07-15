@@ -2,10 +2,12 @@ export function notificationClickUrl({
   webBaseUrl,
   exposureEventId,
   gameId,
+  tab,
 }: {
   webBaseUrl: string;
   exposureEventId: number | null;
   gameId: string | null;
+  tab?: "dashboard" | "schedule" | "teams" | "alerts";
 }): string {
   const fallbackBaseUrl = "https://www.courtwatchaau.com";
   let url: URL;
@@ -20,7 +22,7 @@ export function notificationClickUrl({
   }
   url.searchParams.set(
     "tab",
-    gameId ? "schedule" : exposureEventId ? "alerts" : "dashboard",
+    tab ?? (gameId ? "schedule" : exposureEventId ? "alerts" : "dashboard"),
   );
   if (gameId) {
     url.searchParams.set("gameId", gameId);

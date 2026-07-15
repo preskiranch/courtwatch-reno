@@ -33,6 +33,7 @@ export type ChangeEventType =
   | "final_placement"
   | "bracket_update"
   | "team_advanced"
+  | "watched_team_registered"
   | "starting_soon";
 
 export type ResultPlacement = 1 | 2 | 3;
@@ -135,6 +136,9 @@ export interface FavoriteTeamWatch {
   gender: string | null;
   gradeLevel: string | null;
   level: string | null;
+  autoFollow: boolean;
+  lastMatchedAt: string | null;
+  registrationMatches: FavoriteTeamRegistrationMatch[];
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -149,6 +153,36 @@ export interface FavoriteTeamWatchInput {
   gender?: string | null;
   gradeLevel?: string | null;
   level?: string | null;
+  autoFollow?: boolean;
+}
+
+export interface FavoriteTeamRegistrationMatch {
+  id: string;
+  teamId: string;
+  eventId: string;
+  teamName: string;
+  divisionName: string | null;
+  exposureEventId: number;
+  eventName: string;
+  eventLocation: string;
+  eventStartDate: string;
+  eventEndDate: string;
+  eventStatus: TournamentEventStatus;
+  sourceUrl: string | null;
+  detectedAt: string;
+  autoFollowAppliedAt: string | null;
+  isTournamentFollowed: boolean;
+}
+
+export interface TeamCatalogEntry {
+  normalizedName: string;
+  displayName: string;
+  registrationCount: number;
+  latestTeamId: string;
+  latestExposureEventId: number;
+  latestEventName: string;
+  latestEventStartDate: string;
+  latestDivisionName: string | null;
 }
 
 export interface TeamRecordSummary {
@@ -253,6 +287,7 @@ export interface GameChangeEvent {
   gameId: string | null;
   affectedTeamId: string | null;
   affectedProgramWatchlistId: string | null;
+  favoriteTeamWatchId?: string | null;
   eventType: ChangeEventType;
   previousValue: unknown;
   newValue: unknown;
