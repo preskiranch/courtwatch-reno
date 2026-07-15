@@ -4695,8 +4695,8 @@ function GlobalTeamWatchPanel({
             Find my team at future tournaments
           </h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
-            Watch a team once. Court Watch will alert you when that exact team
-            name is registered at another tracked tournament.
+            Watch a team once. Court Watch will alert you when that team and age
+            group register at another tracked tournament.
           </p>
         </div>
         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-slate-950 text-orange-300">
@@ -4786,8 +4786,8 @@ function GlobalTeamWatchPanel({
                   {deferredSearch}
                 </p>
                 <p className="mt-0.5 text-xs font-bold leading-5 text-slate-500">
-                  Custom exact-name watch. It will activate when this spelling
-                  appears in a tracked tournament.
+                  Custom team watch. It will activate when this team and age
+                  spelling appears in a tracked tournament.
                 </p>
               </div>
               <button

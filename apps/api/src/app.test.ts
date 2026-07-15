@@ -131,6 +131,31 @@ describe("CourtWatch API", () => {
       displayName: expect.stringContaining("Splash City"),
     });
 
+    const ageCatalog = await request(app)
+      .get("/api/team-catalog?search=Splash%20City%2010U&limit=10")
+      .expect(200);
+    expect(ageCatalog.body).toHaveLength(1);
+    expect(ageCatalog.body[0]).toMatchObject({
+      displayName: "Splash City 10U",
+      normalizedName: "splash city 10u",
+      latestTeamId: "team-splash-4th",
+    });
+
+    const registeredWatch = await request(app)
+      .post("/api/favorite-team-watches")
+      .set("x-courtwatch-client-id", clientId)
+      .send({
+        displayName: ageCatalog.body[0].displayName,
+        sourceTeamId: ageCatalog.body[0].latestTeamId,
+        autoFollow: false,
+      })
+      .expect(201);
+    expect(registeredWatch.body).toMatchObject({
+      displayName: "Splash City 10U",
+      normalizedName: "splash city 10u",
+      sourceTeamId: "team-splash-4th",
+    });
+
     const created = await request(app)
       .post("/api/favorite-team-watches")
       .set("x-courtwatch-client-id", clientId)
