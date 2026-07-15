@@ -6,16 +6,20 @@ import {
   filterTeamScoringLeadersByDivisionIds,
   isAnyActiveTournamentWindow,
   nextGameForTeam,
+  normalizeName,
   withEffectiveGameStatus,
   withEffectiveGameStatuses,
   type CourtFinderGame,
   type CourtSummary,
   type DashboardResponse,
   type DivisionResult,
+  type FavoriteTeamWatch,
+  type FavoriteTeamWatchInput,
   type Game,
   type GameChangeEvent,
   type ProgramSummary,
   type Team,
+  type TeamCatalogEntry,
   type TeamScoringLeader,
   type SyncStatus,
   type TournamentEvent,
@@ -252,6 +256,7 @@ export function CourtWatchApp() {
     : syncStatusFallbackRefetchInterval;
   const lastTodayKeyRef = useRef(todayKey);
   const lastSyncFingerprintRef = useRef<string | null>(null);
+  const favoriteWatchSyncRef = useRef<string | null>(null);
   const dashboardQuery = useQuery({
     queryKey: ["dashboard", accountScope, activeEventId],
     queryFn: () => CourtWatchApi.dashboard(activeEventId),
@@ -418,11 +423,11 @@ export function CourtWatchApp() {
     });
   }, [eventsQuery.data]);
 
-  const selectEvent = (eventId: number) => {
+  const selectEvent = (eventId: number, nextTab: Tab = "dashboard") => {
     setSelectedEventId(eventId);
     if (typeof window !== "undefined")
       window.localStorage.setItem(SELECTED_EVENT_STORAGE_KEY, String(eventId));
-    setActiveTab("dashboard");
+    setActiveTab(nextTab);
   };
 
   useEffect(() => {
@@ -538,6 +543,47 @@ export function CourtWatchApp() {
       cancelled = true;
     };
   }, [dashboardQuery.data, presenceClientId, queryClient]);
+
+  useEffect(() => {
+    if (!accountSession || !presenceClientId) {
+      favoriteWatchSyncRef.current = null;
+      return;
+    }
+
+    const syncKey = `${accountSession.user.id}:${presenceClientId}`;
+    if (favoriteWatchSyncRef.current === syncKey) return;
+    favoriteWatchSyncRef.current = syncKey;
+
+    let cancelled = false;
+    void CourtWatchApi.syncFavoriteTeamWatches()
+      .then(({ syncedCount }) => {
+        if (cancelled) return;
+        void Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ["favorite-team-watches"],
+          }),
+          queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+          queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+          queryClient.invalidateQueries({ queryKey: ["events"] }),
+          queryClient.invalidateQueries({ queryKey: ["teams"] }),
+        ]);
+        if (syncedCount > 0) {
+          setToast(
+            `${syncedCount} team ${syncedCount === 1 ? "alert" : "alerts"} synced to your account`,
+          );
+          window.setTimeout(() => setToast(null), 2200);
+        }
+      })
+      .catch(() => {
+        if (!cancelled && favoriteWatchSyncRef.current === syncKey) {
+          favoriteWatchSyncRef.current = null;
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accountSession, presenceClientId, queryClient]);
 
   useEffect(() => {
     if (
@@ -733,6 +779,9 @@ export function CourtWatchApp() {
               clientId={accountScope ?? presenceClientId}
               accountSession={accountSession}
               onAccountSessionChange={setAccountSession}
+              onOpenTournament={(targetEventId) =>
+                selectEvent(targetEventId, "teams")
+              }
               onRefresh={refresh}
               timezone={dashboard.event.timezone}
             />
@@ -4162,6 +4211,7 @@ function TeamsScreen({
   clientId,
   accountSession,
   onAccountSessionChange,
+  onOpenTournament,
   onRefresh,
   timezone,
 }: {
@@ -4170,6 +4220,7 @@ function TeamsScreen({
   clientId: string;
   accountSession: AccountSession | null;
   onAccountSessionChange: (session: AccountSession | null) => void;
+  onOpenTournament: (eventId: number) => void;
   onRefresh: () => void;
   timezone?: string | null;
 }) {
@@ -4467,6 +4518,12 @@ function TeamsScreen({
         onRefresh={onRefresh}
       />
 
+      <GlobalTeamWatchPanel
+        clientId={clientId}
+        accountSession={accountSession}
+        onOpenTournament={onOpenTournament}
+      />
+
       {searchActive ? teamResultsSection : null}
 
       {selectedProgram && selectedProgram.teams.length > 0 ? (
@@ -4515,6 +4572,371 @@ function TeamsScreen({
       ) : null}
 
       {!searchActive ? teamResultsSection : null}
+    </div>
+  );
+}
+
+const tournamentDateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+function formatTournamentDateRange(startDate: string, endDate: string) {
+  const format = (value: string) => {
+    const date = new Date(`${value}T12:00:00.000Z`);
+    return Number.isNaN(date.getTime())
+      ? value
+      : tournamentDateFormatter.format(date);
+  };
+  const start = format(startDate);
+  const end = format(endDate);
+  return startDate === endDate ? start : `${start} - ${end}`;
+}
+
+function GlobalTeamWatchPanel({
+  clientId,
+  accountSession,
+  onOpenTournament,
+}: {
+  clientId: string;
+  accountSession: AccountSession | null;
+  onOpenTournament: (eventId: number) => void;
+}) {
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search.trim());
+  const normalizedSearch = normalizeName(deferredSearch);
+  const watchesQuery = useQuery({
+    queryKey: ["favorite-team-watches", clientId],
+    queryFn: () => CourtWatchApi.favoriteTeamWatches(),
+    staleTime: 60_000,
+    refetchOnWindowFocus: "always",
+  });
+  const catalogQuery = useQuery({
+    queryKey: ["team-catalog", normalizedSearch],
+    queryFn: () => CourtWatchApi.teamCatalog(deferredSearch, 20),
+    enabled: normalizedSearch.length >= 2,
+    staleTime: 5 * 60_000,
+  });
+
+  const refreshWatches = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ["favorite-team-watches", clientId],
+      }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+      queryClient.invalidateQueries({ queryKey: ["teams"] }),
+      queryClient.invalidateQueries({ queryKey: ["events"] }),
+    ]);
+  };
+  const saveWatch = useMutation({
+    mutationFn: (input: FavoriteTeamWatchInput) =>
+      CourtWatchApi.saveFavoriteTeamWatch(input),
+    onSuccess: async () => {
+      setSearch("");
+      await refreshWatches();
+    },
+  });
+  const updateWatch = useMutation({
+    mutationFn: ({
+      watchId,
+      autoFollow,
+    }: {
+      watchId: string;
+      autoFollow: boolean;
+    }) => CourtWatchApi.updateFavoriteTeamWatch(watchId, autoFollow),
+    onSuccess: refreshWatches,
+  });
+  const deleteWatch = useMutation({
+    mutationFn: (watchId: string) =>
+      CourtWatchApi.deleteFavoriteTeamWatch(watchId),
+    onSuccess: refreshWatches,
+  });
+
+  const watches = watchesQuery.data ?? [];
+  const catalog = catalogQuery.data ?? [];
+  const watchedNames = useMemo(
+    () => new Set(watches.map((watch) => watch.normalizedName)),
+    [watches],
+  );
+  const exactCatalogMatch = catalog.some(
+    (entry) => entry.normalizedName === normalizedSearch,
+  );
+  const busy =
+    saveWatch.isPending || updateWatch.isPending || deleteWatch.isPending;
+  const mutationError =
+    saveWatch.error ?? updateWatch.error ?? deleteWatch.error;
+
+  const watchCatalogTeam = (entry: TeamCatalogEntry) => {
+    saveWatch.mutate({
+      displayName: entry.displayName,
+      sourceTeamId: entry.latestTeamId,
+      sourceTeamName: entry.displayName,
+      eventName: entry.latestEventName,
+      divisionName: entry.latestDivisionName,
+      autoFollow: false,
+    });
+  };
+  const watchCustomTeam = () => {
+    if (normalizedSearch.length < 2) return;
+    saveWatch.mutate({ displayName: deferredSearch, autoFollow: false });
+  };
+
+  return (
+    <section className="court-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-600">
+            Team Watch
+          </p>
+          <h2 className="mt-1 text-xl font-black text-slate-950">
+            Find my team at future tournaments
+          </h2>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+            Watch a team once. Court Watch will alert you when that exact team
+            name is registered at another tracked tournament.
+          </p>
+        </div>
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-slate-950 text-orange-300">
+          <Bell className="h-5 w-5" />
+        </div>
+      </div>
+
+      <label className="mt-4 flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 focus-within:border-orange-500">
+        <Search className="h-5 w-5 shrink-0 text-slate-400" />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search every registered team"
+          className="min-h-11 min-w-0 flex-1 bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+          autoCapitalize="words"
+        />
+        {search ? (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-500"
+            aria-label="Clear team watch search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </label>
+
+      {normalizedSearch.length === 1 ? (
+        <p className="mt-2 text-xs font-bold text-slate-500">
+          Enter at least two characters.
+        </p>
+      ) : null}
+
+      {normalizedSearch.length >= 2 ? (
+        <div className="mt-3 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+          {catalogQuery.isLoading ? (
+            <p className="p-3 text-sm font-bold text-slate-500">
+              Searching registered teams...
+            </p>
+          ) : null}
+          {!catalogQuery.isLoading && catalog.length === 0 ? (
+            <p className="p-3 text-sm font-bold text-slate-500">
+              No registered spelling found yet.
+            </p>
+          ) : null}
+          {catalog.map((entry) => {
+            const watched = watchedNames.has(entry.normalizedName);
+            return (
+              <div
+                key={entry.normalizedName}
+                className="flex items-center justify-between gap-3 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-black text-slate-950">
+                    {entry.displayName}
+                  </p>
+                  <p className="mt-0.5 text-xs font-bold leading-5 text-slate-500">
+                    {entry.registrationCount} tournament registration
+                    {entry.registrationCount === 1 ? "" : "s"} · Latest:{" "}
+                    {entry.latestEventName}
+                    {entry.latestDivisionName
+                      ? ` · ${entry.latestDivisionName}`
+                      : ""}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => watchCatalogTeam(entry)}
+                  disabled={busy || watched}
+                  className={clsx(
+                    "min-h-10 shrink-0 rounded-lg px-3 text-sm font-black active:scale-[0.98] disabled:opacity-60",
+                    watched
+                      ? "bg-slate-100 text-slate-600"
+                      : "bg-orange-500 text-white",
+                  )}
+                >
+                  {watched ? "Watching" : "Watch"}
+                </button>
+              </div>
+            );
+          })}
+          {!exactCatalogMatch && !watchedNames.has(normalizedSearch) ? (
+            <div className="flex items-center justify-between gap-3 p-3">
+              <div className="min-w-0">
+                <p className="truncate font-black text-slate-950">
+                  {deferredSearch}
+                </p>
+                <p className="mt-0.5 text-xs font-bold leading-5 text-slate-500">
+                  Custom exact-name watch. It will activate when this spelling
+                  appears in a tracked tournament.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={watchCustomTeam}
+                disabled={busy}
+                className="min-h-10 shrink-0 rounded-lg border border-orange-200 bg-orange-50 px-3 text-sm font-black text-orange-700 active:scale-[0.98] disabled:opacity-60"
+              >
+                Watch exact
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {mutationError ? (
+        <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">
+          {errorText(mutationError)}
+        </p>
+      ) : null}
+
+      <div className="mt-4 border-t border-slate-200 pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-black text-slate-950">Watched teams</h3>
+          <span className="rounded-md bg-orange-100 px-2 py-1 text-xs font-black text-orange-700">
+            {watches.length}
+          </span>
+        </div>
+        <p className="mt-1 text-xs font-bold leading-5 text-slate-500">
+          {accountSession
+            ? "These watches sync anywhere you sign in."
+            : "These watches stay on this device until you create or sign in to a free account."}
+        </p>
+
+        {watchesQuery.isLoading ? (
+          <div className="mt-3 h-20 animate-pulse rounded-lg bg-slate-100" />
+        ) : null}
+        {!watchesQuery.isLoading && watches.length === 0 ? (
+          <p className="mt-3 rounded-lg bg-slate-100 p-3 text-sm font-bold text-slate-600">
+            No team watches yet. Tournament-specific teams you already follow
+            are unchanged.
+          </p>
+        ) : null}
+
+        <div className="mt-3 divide-y divide-slate-200">
+          {watches.map((watch) => (
+            <FavoriteTeamWatchRow
+              key={watch.id}
+              watch={watch}
+              busy={busy}
+              onAutoFollowChange={(autoFollow) =>
+                updateWatch.mutate({ watchId: watch.id, autoFollow })
+              }
+              onDelete={() => deleteWatch.mutate(watch.id)}
+              onOpenTournament={onOpenTournament}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FavoriteTeamWatchRow({
+  watch,
+  busy,
+  onAutoFollowChange,
+  onDelete,
+  onOpenTournament,
+}: {
+  watch: FavoriteTeamWatch;
+  busy: boolean;
+  onAutoFollowChange: (autoFollow: boolean) => void;
+  onDelete: () => void;
+  onOpenTournament: (eventId: number) => void;
+}) {
+  return (
+    <div className="py-3 first:pt-0 last:pb-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate font-black text-slate-950">
+            {watch.displayName}
+          </p>
+          <p className="mt-0.5 text-xs font-bold text-slate-500">
+            {watch.registrationMatches.length} registration
+            {watch.registrationMatches.length === 1 ? "" : "s"} found
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={busy}
+          aria-label={`Stop watching ${watch.displayName}`}
+          title="Stop watching"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 active:scale-95 disabled:opacity-50"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <label className="mt-2 flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg bg-slate-100 px-3">
+        <span className="text-sm font-black leading-5 text-slate-700">
+          Automatically Follow at new tournaments
+        </span>
+        <input
+          type="checkbox"
+          checked={watch.autoFollow}
+          disabled={busy}
+          onChange={(event) => onAutoFollowChange(event.target.checked)}
+          className="h-5 w-5 shrink-0 accent-orange-500"
+        />
+      </label>
+
+      {watch.registrationMatches.length > 0 ? (
+        <div className="mt-2 max-h-56 space-y-1.5 overflow-y-auto overscroll-contain pr-1">
+          {watch.registrationMatches.map((match) => (
+            <button
+              key={match.id}
+              type="button"
+              onClick={() => onOpenTournament(match.exposureEventId)}
+              className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left active:scale-[0.99]"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-black text-slate-950">
+                  {match.eventName}
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-500">
+                  {formatTournamentDateRange(
+                    match.eventStartDate,
+                    match.eventEndDate,
+                  )}{" "}
+                  · {match.eventLocation}
+                  {match.divisionName ? ` · ${match.divisionName}` : ""}
+                </span>
+                <span className="mt-0.5 block text-[11px] font-black uppercase text-orange-600">
+                  {match.isTournamentFollowed
+                    ? "Following in tournament"
+                    : match.eventStatus}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-xs font-bold leading-5 text-slate-500">
+          Monitoring future registrations for this exact team name.
+        </p>
+      )}
     </div>
   );
 }

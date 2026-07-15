@@ -23,6 +23,7 @@ model User {
   notificationPreferences NotificationPreference[]
   notificationLogs        NotificationLog[]
   passwordResetTokens     PasswordResetToken[]
+  favoriteTeamWatches     FavoriteTeamWatch[]
 
   @@map("users")
 }
@@ -71,12 +72,13 @@ model Event {
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  divisions       Division[]
-  teams           Team[]
-  players         Player[]
-  games           Game[]
-  divisionResults DivisionResult[]
-  syncRuns        SyncRun[]
+  divisions                       Division[]
+  teams                           Team[]
+  players                         Player[]
+  games                           Game[]
+  divisionResults                 DivisionResult[]
+  syncRuns                        SyncRun[]
+  favoriteTeamRegistrationMatches FavoriteTeamRegistrationMatch[]
 
   @@unique([externalProvider, externalId])
   @@index([status, startDate])
@@ -154,14 +156,15 @@ model Team {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  event           Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  division        Division?          @relation(fields: [divisionId], references: [id], onDelete: SetNull)
-  matches         ProgramTeamMatch[]
-  players         Player[]
-  divisionResults DivisionResult[]
-  homeGames       Game[]             @relation("HomeTeam")
-  awayGames       Game[]             @relation("AwayTeam")
-  changeEvents    GameChangeEvent[]
+  event                           Event                           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  division                        Division?                       @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  matches                         ProgramTeamMatch[]
+  players                         Player[]
+  divisionResults                 DivisionResult[]
+  homeGames                       Game[]                          @relation("HomeTeam")
+  awayGames                       Game[]                          @relation("AwayTeam")
+  changeEvents                    GameChangeEvent[]
+  favoriteTeamRegistrationMatches FavoriteTeamRegistrationMatch[]
 
   @@unique([eventId, exposureTeamId])
   @@index([normalizedName])
@@ -259,6 +262,7 @@ model GameChangeEvent {
   gameId                     String?  @map("game_id")
   affectedTeamId             String?  @map("affected_team_id")
   affectedProgramWatchlistId String?  @map("affected_program_watchlist_id")
+  favoriteTeamWatchId        String?  @map("favorite_team_watch_id")
   eventType                  String   @map("event_type")
   previousValue              Json?    @map("previous_value")
   newValue                   Json?    @map("new_value")
@@ -266,15 +270,17 @@ model GameChangeEvent {
   notificationSent           Boolean  @default(false) @map("notification_sent")
   dedupeKey                  String   @unique @map("dedupe_key")
 
-  game                     Game?             @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  affectedTeam             Team?             @relation(fields: [affectedTeamId], references: [id], onDelete: SetNull)
-  affectedProgramWatchlist ProgramWatchlist? @relation(fields: [affectedProgramWatchlistId], references: [id], onDelete: SetNull)
+  game                     Game?              @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  affectedTeam             Team?              @relation(fields: [affectedTeamId], references: [id], onDelete: SetNull)
+  affectedProgramWatchlist ProgramWatchlist?  @relation(fields: [affectedProgramWatchlistId], references: [id], onDelete: SetNull)
+  favoriteTeamWatch        FavoriteTeamWatch? @relation(fields: [favoriteTeamWatchId], references: [id], onDelete: SetNull)
   notificationLogs         NotificationLog[]
 
   @@index([createdAt])
   @@index([gameId, createdAt], map: "game_change_events_game_id_created_at_idx")
   @@index([affectedTeamId, createdAt], map: "game_change_events_team_id_created_at_idx")
   @@index([affectedProgramWatchlistId, createdAt], map: "game_change_events_watchlist_id_created_at_idx")
+  @@index([favoriteTeamWatchId, createdAt], map: "game_change_events_favorite_watch_id_created_at_idx")
   @@index([notificationSent, createdAt], map: "game_change_events_notification_created_at_idx")
   @@map("game_change_events")
 }
@@ -352,27 +358,54 @@ model NotificationLog {
 }
 
 model FavoriteTeamWatch {
-  id             String   @id @default(cuid())
-  ownerHash      String   @map("owner_hash")
-  displayName    String   @map("display_name")
-  normalizedName String   @map("normalized_name")
-  source         String   @default("custom")
-  sourceTeamId   String?  @map("source_team_id")
-  sourceTeamName String?  @map("source_team_name")
-  eventName      String?  @map("event_name")
-  divisionName   String?  @map("division_name")
+  id             String    @id @default(cuid())
+  userId         String?   @map("user_id")
+  ownerHash      String    @map("owner_hash")
+  displayName    String    @map("display_name")
+  normalizedName String    @map("normalized_name")
+  source         String    @default("custom")
+  sourceTeamId   String?   @map("source_team_id")
+  sourceTeamName String?   @map("source_team_name")
+  eventName      String?   @map("event_name")
+  divisionName   String?   @map("division_name")
   gender         String?
-  gradeLevel     String?  @map("grade_level")
+  gradeLevel     String?   @map("grade_level")
   level          String?
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  autoFollow     Boolean   @default(false) @map("auto_follow")
+  lastMatchedAt  DateTime? @map("last_matched_at")
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
+  user                User?                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrationMatches FavoriteTeamRegistrationMatch[]
+  changeEvents        GameChangeEvent[]
+
+  @@unique([ownerHash, normalizedName])
   @@index([ownerHash])
   @@index([normalizedName])
   @@index([sourceTeamId])
   @@index([ownerHash, active], map: "favorite_team_watches_owner_active_idx")
   @@map("favorite_team_watches")
+}
+
+model FavoriteTeamRegistrationMatch {
+  id                  String    @id @default(cuid())
+  favoriteTeamWatchId String    @map("favorite_team_watch_id")
+  teamId              String    @map("team_id")
+  eventId             String    @map("event_id")
+  detectedAt          DateTime  @default(now()) @map("detected_at")
+  autoFollowAppliedAt DateTime? @map("auto_follow_applied_at")
+
+  favoriteTeamWatch FavoriteTeamWatch @relation(fields: [favoriteTeamWatchId], references: [id], onDelete: Cascade)
+  team              Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  event             Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([favoriteTeamWatchId, teamId])
+  @@index([favoriteTeamWatchId, eventId], map: "favorite_team_registration_matches_watch_event_idx")
+  @@index([teamId], map: "favorite_team_registration_matches_team_idx")
+  @@index([eventId], map: "favorite_team_registration_matches_event_idx")
+  @@map("favorite_team_registration_matches")
 }
 
 model SyncRun {

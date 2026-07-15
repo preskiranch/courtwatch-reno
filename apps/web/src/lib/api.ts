@@ -2,6 +2,8 @@ import type {
   DashboardResponse,
   CourtSummary,
   DivisionResultGroup,
+  FavoriteTeamWatch,
+  FavoriteTeamWatchInput,
   Game,
   GameChangeEvent,
   ProgramAlias,
@@ -9,6 +11,7 @@ import type {
   ProgramTeamMatch,
   SyncStatus,
   Team,
+  TeamCatalogEntry,
   TeamScoringLeader,
   TournamentEvent,
 } from "@courtwatch/core";
@@ -194,6 +197,20 @@ export async function apiPost<T>(
   return (await response.json()) as T;
 }
 
+export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...clientIdentityHeaders(),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(await response.text());
+  return (await response.json()) as T;
+}
+
 export async function apiDelete(path: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "DELETE",
@@ -248,6 +265,23 @@ export const CourtWatchApi = {
       "teams",
     );
   },
+  teamCatalog: (search: string, limit = 20) => {
+    const params = new URLSearchParams({
+      search,
+      limit: String(limit),
+    });
+    return apiGet<TeamCatalogEntry[]>(`/api/team-catalog?${params}`);
+  },
+  favoriteTeamWatches: () =>
+    apiGet<FavoriteTeamWatch[]>("/api/favorite-team-watches"),
+  saveFavoriteTeamWatch: (input: FavoriteTeamWatchInput) =>
+    apiPost<FavoriteTeamWatch>("/api/favorite-team-watches", input),
+  updateFavoriteTeamWatch: (watchId: string, autoFollow: boolean) =>
+    apiPatch<FavoriteTeamWatch>(`/api/favorite-team-watches/${watchId}`, {
+      autoFollow,
+    }),
+  deleteFavoriteTeamWatch: (watchId: string) =>
+    apiDelete(`/api/favorite-team-watches/${watchId}`),
   pointsLeaders: (eventId?: number | null) =>
     apiGet<TeamScoringLeader[]>(withEvent("/api/points-leaders", eventId)),
   accountStats: () =>
@@ -276,6 +310,11 @@ export const CourtWatchApi = {
     apiPost<{ ok: boolean; syncedCount: number }>(
       withEvent("/api/account/sync-followed-teams", eventId),
       { teamIds },
+    ),
+  syncFavoriteTeamWatches: () =>
+    apiPost<{ ok: boolean; syncedCount: number }>(
+      "/api/account/sync-favorite-team-watches",
+      {},
     ),
   presence: () => apiGet<PresenceResponse>("/api/presence"),
   presenceHeartbeat: (clientId: string, page: string) =>

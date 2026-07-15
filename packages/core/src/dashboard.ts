@@ -97,9 +97,7 @@ export function buildProgramSummaries(
         );
 
       const programGameIds = new Set(
-        teams.flatMap((team) =>
-          teamGames(team, games).map((game) => game.id),
-        ),
+        teams.flatMap((team) => teamGames(team, games).map((game) => game.id)),
       );
       const programTeamIds = new Set(teams.map((team) => team.id));
       const programGames = games.filter((game) => programGameIds.has(game.id));
@@ -192,9 +190,13 @@ export function buildDashboard(
     nextGame: nextGame ? attachTeamRecordsToGame(nextGame, records) : null,
     programs,
     pointsLeaders: includePointsLeaders
-      ? buildTeamScoringLeaders(effectiveSnapshot.games, effectiveSnapshot.teams, {
-          includeUnscoredTeams: true,
-        })
+      ? buildTeamScoringLeaders(
+          effectiveSnapshot.games,
+          effectiveSnapshot.teams,
+          {
+            includeUnscoredTeams: true,
+          },
+        )
       : [],
     alerts: watchedAlerts.slice(0, 20),
     lastUpdated: snapshot.event.lastSyncedAt,
@@ -238,6 +240,8 @@ export function watchedAlertEvents(
   activeProgramIds: Set<string>,
 ): GameChangeEvent[] {
   return changeEvents.filter((event) => {
+    // Global team-registration alerts are already owner-scoped by the store.
+    if (event.favoriteTeamWatchId) return true;
     if (
       event.affectedProgramWatchlistId &&
       !activeProgramIds.has(event.affectedProgramWatchlistId)
