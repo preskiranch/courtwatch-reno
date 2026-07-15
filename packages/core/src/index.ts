@@ -1,5 +1,6 @@
 export * from "./types.js";
 export * from "./normalization.js";
+export * from "./team-identity.js";
 export * from "./matcher.js";
 export * from "./change-detection.js";
 export * from "./notification.js";
