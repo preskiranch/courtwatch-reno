@@ -1,0 +1,10 @@
+.git
+.github
+.next
+**/.next
+**/dist
+**/node_modules
+coverage
+ios
+node_modules
+npm-debug.log*
