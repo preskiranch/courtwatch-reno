@@ -103,6 +103,26 @@ describe("fetchWithExposureRelay", () => {
     expect(directRequest.headers.has("X-CourtWatch-Relay-Key")).toBe(false);
   });
 
+  it("preserves an upstream error returned through a functioning relay", async () => {
+    process.env.EXPOSURE_RELAY_BASE_URL = "https://relay.example.test";
+    process.env.EXPOSURE_RELAY_TOKEN = "relay-secret";
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response("official API unavailable", {
+          headers: { "X-CourtWatch-Relay": "cloud-run-us-west1" },
+          status: 500,
+        }),
+    );
+
+    const response = await fetchWithExposureRelay(
+      fetchImpl,
+      "https://basketball.exposureevents.com/api/v1/teams",
+    );
+
+    expect(response.status).toBe(500);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
   it("falls back to the original Exposure URL when the relay request throws", async () => {
     process.env.EXPOSURE_RELAY_BASE_URL = "https://relay.example.test";
     process.env.EXPOSURE_RELAY_TOKEN = "relay-secret";
