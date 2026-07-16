@@ -71,8 +71,14 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { CourtWatchApi, CourtWatchCache, apiBaseUrl } from "../lib/api";
 import {
+  CourtWatchApi,
+  CourtWatchCache,
+  apiBaseUrl,
+  isAuthenticationApiError,
+} from "../lib/api";
+import {
+  accountSessionIsPersistent,
   clearAccountSession,
   loadAccountSession,
   saveAccountSession,
@@ -361,8 +367,9 @@ export function CourtWatchApp() {
           }),
         );
       })
-      .catch(() => {
+      .catch((error) => {
         if (cancelled) return;
+        if (!isAuthenticationApiError(error)) return;
         clearAccountSession();
         setAccountSession(null);
       });
@@ -6128,13 +6135,17 @@ function AccountPanel({
     setAccountMessage("Reset code loaded. Enter a new password to finish.");
   }, []);
 
-  const applySession = async (response: AccountSession) => {
+  const applySession = (response: AccountSession) => {
     const session = saveAccountSession(response);
     onAccountSessionChange(session);
     setPassword("");
     setResetPassword("");
     setResetToken("");
-    setAccountMessage("Signed in. Followed teams sync automatically.");
+    setAccountMessage(
+      accountSessionIsPersistent()
+        ? "Signed in. Followed teams sync automatically."
+        : "Signed in for this visit. Your browser is blocking persistent storage.",
+    );
     onRefresh();
   };
 
@@ -6147,7 +6158,7 @@ function AccountPanel({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }),
     onSuccess: (response) => {
-      void applySession(response);
+      applySession(response);
     },
     onError: (error) => setAccountMessage(errorText(error)),
   });
@@ -6155,7 +6166,7 @@ function AccountPanel({
   const loginMutation = useMutation({
     mutationFn: () => CourtWatchApi.loginAccount({ email, password }),
     onSuccess: (response) => {
-      void applySession(response);
+      applySession(response);
     },
     onError: (error) => setAccountMessage(errorText(error)),
   });

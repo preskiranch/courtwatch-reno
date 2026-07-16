@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CourtWatchApi } from "./api";
+import { ApiResponseError, CourtWatchApi } from "./api";
 
 describe("CourtWatchApi team search", () => {
   beforeEach(() => {
@@ -24,5 +24,23 @@ describe("CourtWatchApi team search", () => {
     const [url] = vi.mocked(fetch).mock.calls[0] ?? [];
     expect(String(url)).toContain("/api/teams?search=707&scope=all");
     expect(String(url)).not.toContain("eventId=264313");
+  });
+
+  it("preserves the HTTP status on authentication failures", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: "Invalid email or password" }), {
+        status: 401,
+      }),
+    );
+
+    const request = CourtWatchApi.loginAccount({
+      email: "parent@example.com",
+      password: "incorrect-password",
+    });
+
+    await expect(request).rejects.toMatchObject({
+      status: 401,
+      message: JSON.stringify({ error: "Invalid email or password" }),
+    } satisfies Partial<ApiResponseError>);
   });
 });

@@ -17,6 +17,7 @@ import type {
 } from "@courtwatch/core";
 import {
   accountAuthToken,
+  isDisposableApiCacheKey,
   loadAccountSession,
   type AccountSession,
   type AccountUser,
@@ -33,6 +34,23 @@ const API_GET_TIMEOUT_MS = positiveNumberFromEnv(
   process.env.NEXT_PUBLIC_API_GET_TIMEOUT_MS,
   15_000,
 );
+
+export class ApiResponseError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiResponseError";
+  }
+}
+
+export function isAuthenticationApiError(error: unknown): boolean {
+  return (
+    error instanceof ApiResponseError &&
+    (error.status === 401 || error.status === 403)
+  );
+}
 
 type CacheKey =
   | "dashboard"
@@ -114,7 +132,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
       },
       API_GET_TIMEOUT_MS,
     );
-    if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+    if (!response.ok) throw await apiResponseError(response);
     const data = (await response.json()) as T;
     const previousCache =
       cacheKey && storageKey && typeof window !== "undefined"
@@ -183,17 +201,21 @@ export async function apiPost<T>(
   body: unknown,
   headers: Record<string, string> = {},
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...clientIdentityHeaders(),
-      ...headers,
+  const response = await fetchWithTimeout(
+    `${API_BASE_URL}${path}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...clientIdentityHeaders(),
+        ...headers,
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) throw new Error(await response.text());
+    API_GET_TIMEOUT_MS,
+  );
+  if (!response.ok) throw await apiResponseError(response);
   return (await response.json()) as T;
 }
 
@@ -207,7 +229,7 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
     },
     body: JSON.stringify(body),
   });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) throw await apiResponseError(response);
   return (await response.json()) as T;
 }
 
@@ -216,7 +238,7 @@ export async function apiDelete(path: string): Promise<void> {
     method: "DELETE",
     headers: { Accept: "application/json", ...clientIdentityHeaders() },
   });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) throw await apiResponseError(response);
 }
 
 export const CourtWatchApi = {
@@ -388,8 +410,7 @@ export function pruneStaleApiCaches() {
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
     const key = window.localStorage.key(index);
     if (!key) continue;
-    if (!key.startsWith("courtwatch-aau:v")) continue;
-    if (key.includes(":followed-teams:")) continue;
+    if (!isDisposableApiCacheKey(key)) continue;
     window.localStorage.removeItem(key);
   }
 
@@ -420,6 +441,17 @@ async function fetchWithTimeout(
   } finally {
     globalThis.clearTimeout(timer);
   }
+}
+
+async function apiResponseError(response: Response): Promise<ApiResponseError> {
+  let message = `Request failed with ${response.status}`;
+  try {
+    const body = await response.text();
+    if (body.trim()) message = body;
+  } catch {
+    // Preserve the status-based fallback when a proxy response has no body.
+  }
+  return new ApiResponseError(response.status, message);
 }
 
 function positiveNumberFromEnv(
