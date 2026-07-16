@@ -174,6 +174,72 @@ describe("final division results", () => {
     ]);
   });
 
+  it("uses simultaneous G1 and G2 classification games for gold, silver, and bronze", () => {
+    const snapshot = snapshotWithFinals();
+    const startsAt = "2026-07-12T22:35:00.000Z";
+    snapshot.games = [
+      finalGame({
+        id: "classification-g1",
+        gameNumber: "1",
+        gameType: "Championship (G1)",
+        homeTeamId: "team-splash-4th",
+        awayTeamId: "team-bay-area-thunder",
+        homeTeamNameSnapshot: "Splash City",
+        awayTeamNameSnapshot: "Bay Area Thunder Black",
+        homeScore: 53,
+        awayScore: 77,
+        startsAt,
+      }),
+      finalGame({
+        id: "classification-g2",
+        gameNumber: "2",
+        gameType: "Championship (G2)",
+        homeTeamId: "team-paytons-place",
+        awayTeamId: "team-bmg-prospects",
+        homeTeamNameSnapshot: "Paytons Place",
+        awayTeamNameSnapshot: "BMG Prospects",
+        homeScore: 68,
+        awayScore: 50,
+        startsAt,
+      }),
+      finalGame({
+        id: "classification-g3",
+        gameNumber: "3",
+        gameType: "Championship (G3)",
+        homeTeamId: "team-209-heat",
+        awayTeamId: "team-underrated-elite",
+        homeTeamNameSnapshot: "209 Heat",
+        awayTeamNameSnapshot: "Underrated Elite",
+        homeScore: 38,
+        awayScore: 31,
+        startsAt,
+      }),
+      finalGame({
+        id: "classification-g4",
+        gameNumber: "4",
+        gameType: "Championship (G4)",
+        homeTeamId: "team-775-select",
+        awayTeamId: "team-rattlers",
+        homeTeamNameSnapshot: "775 Select",
+        awayTeamNameSnapshot: "Rattlers",
+        homeScore: 50,
+        awayScore: 56,
+        startsAt,
+      }),
+    ];
+
+    expect(
+      deriveDivisionResultsFromGames(snapshot).map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+      ]),
+    ).toEqual([
+      [1, "Bay Area Thunder Black"],
+      [2, "Splash City"],
+      [3, "Paytons Place"],
+    ]);
+  });
+
   it("does not infer champions from non-placement bracket games that only have scores", () => {
     const snapshot = snapshotWithFinals();
     snapshot.games = [
@@ -529,6 +595,7 @@ function snapshotWithFinals(): CourtWatchSnapshot {
 
 function finalGame(input: {
   id: string;
+  gameNumber?: string;
   gameType: string;
   homeTeamId: string;
   awayTeamId: string;
@@ -544,7 +611,7 @@ function finalGame(input: {
     id: input.id,
     exposureGameId: input.id,
     divisionId: "division-boys-4th-green",
-    gameNumber: input.id,
+    gameNumber: input.gameNumber ?? input.id,
     gameType: input.gameType,
     homeTeamId: input.homeTeamId,
     awayTeamId: input.awayTeamId,

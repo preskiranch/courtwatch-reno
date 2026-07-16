@@ -60,8 +60,11 @@ export function deriveDivisionResultsFromGames(
     ) {
       continue;
     }
+    const classificationFinals = simultaneousClassificationFinals(games);
     const goldFinal =
-      games.filter(isGoldFinalGame).sort(compareStartsAtDesc)[0] ?? null;
+      classificationFinals?.goldFinal ??
+      games.filter(isGoldFinalGame).sort(compareStartsAtDesc)[0] ??
+      null;
     if (goldFinal) {
       const winner = resultTeamFromGame(goldFinal, snapshot.teams, "winner");
       const runnerUp = resultTeamFromGame(goldFinal, snapshot.teams, "loser");
@@ -76,6 +79,7 @@ export function deriveDivisionResultsFromGames(
 
     const bronzeFinal =
       games.filter(isExplicitBronzeFinalGame).sort(compareStartsAtDesc)[0] ??
+      classificationFinals?.bronzeFinal ??
       fallbackBronzeFinalGame(games, goldFinal);
     if (bronzeFinal) {
       const bronze = resultTeamFromGame(bronzeFinal, snapshot.teams, "winner");
@@ -439,6 +443,73 @@ function isExplicitBronzeFinalGame(game: Game): boolean {
   return (
     type.includes("bronze") || type.includes("third") || type.includes("3rd")
   );
+}
+
+function simultaneousClassificationFinals(
+  games: Game[],
+): { goldFinal: Game; bronzeFinal: Game } | null {
+  const gamesByStart = new Map<number, Game[]>();
+  for (const game of games.filter(isGoldFinalGame)) {
+    const start = new Date(game.startsAt).getTime();
+    if (!Number.isFinite(start)) continue;
+    const group = gamesByStart.get(start) ?? [];
+    group.push(game);
+    gamesByStart.set(start, group);
+  }
+
+  for (const [, sameStartGames] of Array.from(gamesByStart.entries()).sort(
+    ([left], [right]) => right - left,
+  )) {
+    if (sameStartGames.length < 2 || !haveDisjointParticipants(sameStartGames))
+      continue;
+    const gamesByNumber = new Map<number, Game>();
+    for (const game of sameStartGames) {
+      const number = classificationGameNumber(game);
+      if (number === null || gamesByNumber.has(number)) continue;
+      gamesByNumber.set(number, game);
+    }
+    const goldFinal = gamesByNumber.get(1);
+    const bronzeFinal = gamesByNumber.get(2);
+    if (goldFinal && bronzeFinal) return { goldFinal, bronzeFinal };
+  }
+
+  return null;
+}
+
+function classificationGameNumber(game: Game): number | null {
+  const typeMatch = game.gameType?.match(/\(\s*G\s*(\d+)\s*\)/i);
+  if (typeMatch?.[1]) return Number(typeMatch[1]);
+
+  const gameNumberMatch = game.gameNumber?.match(/^(?:G\s*)?(\d+)$/i);
+  if (gameNumberMatch?.[1]) return Number(gameNumberMatch[1]);
+
+  if (!game.rawJson || typeof game.rawJson !== "object") return null;
+  const rawNumber = (game.rawJson as Record<string, unknown>).Number;
+  const normalized = String(rawNumber ?? "").trim();
+  return /^(?:G\s*)?\d+$/i.test(normalized)
+    ? Number(normalized.replace(/^G\s*/i, ""))
+    : null;
+}
+
+function haveDisjointParticipants(games: Game[]): boolean {
+  const participants = new Set<string>();
+  for (const game of games) {
+    const gameParticipants = [
+      game.homeTeamId ?? normalizeParticipantName(game.homeTeamNameSnapshot),
+      game.awayTeamId ?? normalizeParticipantName(game.awayTeamNameSnapshot),
+    ].filter((participant): participant is string => Boolean(participant));
+    if (gameParticipants.length !== 2) return false;
+    for (const participant of gameParticipants) {
+      if (participants.has(participant)) return false;
+      participants.add(participant);
+    }
+  }
+  return true;
+}
+
+function normalizeParticipantName(name: string | null): string | null {
+  const normalized = name?.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+  return normalized || null;
 }
 
 function fallbackBronzeFinalGame(
