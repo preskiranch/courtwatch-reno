@@ -518,6 +518,78 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("keeps results from healthy divisions when another official bracket request fails", async () => {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [
+                {"Id":1001,"Name":"13U Division 1"},
+                {"Id":1002,"Name":"15U Black Division"}
+              ],
+              brackets: [
+                {"Id":2001,"Name":"Championship","DivisionId":1001,"CrossDivisionIds":[],"ShowStandings":false},
+                {"Id":2002,"Name":"Championship","DivisionId":1002,"CrossDivisionIds":[],"ShowStandings":false}
+              ],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/bracket/2001")) {
+        return new Response("Unavailable", { status: 503 });
+      }
+      if (url.includes("/bracket/2002")) {
+        return htmlResponse(`
+          <div class="bracket-winner">
+            <div class="winner-source"><span class="name"><a href="/264310/2026-west-made-nationals/teams/team-locked-in-black?divisionteamid=5500001">Team Locked IN Black</a></span></div>
+            <div>Champion</div>
+          </div>
+          <div class="bracket-winner">
+            <div class="winner-source"><span class="name"><a href="/264310/2026-west-made-nationals/teams/runner-up?divisionteamid=5500002">Runner Up</a></span></div>
+            <div>2nd Place</div>
+          </div>
+          <div class="bracket-winner">
+            <div class="winner-source"><span class="name"><a href="/264310/2026-west-made-nationals/teams/bronze-team?divisionteamid=5500003">Bronze Team</a></span></div>
+            <div>3rd Place</div>
+          </div>
+        `);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const results = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchDivisionResults(264310, {
+      eventSlug: "2026-west-made-nationals",
+    });
+
+    expect(
+      results.map((result) => [
+        result.divisionName,
+        result.placement,
+        result.teamNameSnapshot,
+      ]),
+    ).toEqual([
+      ["15U Black Division", 1, "Team Locked IN Black"],
+      ["15U Black Division", 2, "Runner Up"],
+      ["15U Black Division", 3, "Bronze Team"],
+    ]);
+    expect(warning).toHaveBeenCalledWith(
+      "Public Exposure result request skipped",
+      expect.objectContaining({
+        resource: "bracket",
+        eventId: 264310,
+        resourceId: "2001",
+      }),
+    );
+    warning.mockRestore();
+  });
+
   it("does not use standings as final placements while a result bracket is unresolved", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

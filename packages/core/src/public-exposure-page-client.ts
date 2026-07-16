@@ -307,19 +307,23 @@ export class PublicExposurePageClient {
         `/${eventId}/${eventSlug}/bracket/${bracket.Id}`,
         this.baseUrl,
       ).toString();
-      const html = await this.fetchText(url);
-      addDivisionResults(
-        results,
-        parseBracketPlacementResults({
-          html,
-          url,
-          eventId,
-          divisionId: String(division.Id),
-          divisionName: division.Name,
-          bracketId: String(bracket.Id),
-          bracketName: bracket.Name,
-        }),
-      );
+      try {
+        const html = await this.fetchText(url);
+        addDivisionResults(
+          results,
+          parseBracketPlacementResults({
+            html,
+            url,
+            eventId,
+            divisionId: String(division.Id),
+            divisionName: division.Name,
+            bracketId: String(bracket.Id),
+            bracketName: bracket.Name,
+          }),
+        );
+      } catch (error) {
+        warnResultRequestSkipped("bracket", eventId, String(bracket.Id), error);
+      }
       await sleep(Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125));
     }
 
@@ -339,11 +343,22 @@ export class PublicExposurePageClient {
         resultBracketDivisionIds.has(String(division.Id))
       )
         continue;
-      const standings = await this.fetchDivisionStandings(
-        eventId,
-        eventSlug,
-        String(division.Id),
-      );
+      let standings: PublicExposureStandingPool[];
+      try {
+        standings = await this.fetchDivisionStandings(
+          eventId,
+          eventSlug,
+          String(division.Id),
+        );
+      } catch (error) {
+        warnResultRequestSkipped(
+          "standings",
+          eventId,
+          String(division.Id),
+          error,
+        );
+        continue;
+      }
       const standingResults = parseStandingPlacementResults({
         standings,
         eventId,
@@ -527,6 +542,20 @@ export class PublicExposurePageClient {
       clearTimeout(timer);
     }
   }
+}
+
+function warnResultRequestSkipped(
+  resource: "bracket" | "standings",
+  eventId: number,
+  resourceId: string,
+  error: unknown,
+) {
+  console.warn("Public Exposure result request skipped", {
+    resource,
+    eventId,
+    resourceId,
+    error: error instanceof Error ? error.message : "Unknown error",
+  });
 }
 
 interface PublicExposureSearchResult {
