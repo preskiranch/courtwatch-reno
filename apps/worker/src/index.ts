@@ -9,7 +9,12 @@ import type { TournamentEvent } from "@courtwatch/core";
 import { prisma } from "@courtwatch/db";
 import pino from "pino";
 import { z } from "zod";
-import { selectSyncMode, type SyncMode } from "./sync-policy.js";
+import {
+  refreshStaleMsForEvent,
+  selectFairSyncBatch,
+  selectSyncMode,
+  type SyncMode,
+} from "./sync-policy.js";
 
 const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
@@ -23,9 +28,8 @@ const EnvSchema = z.object({
   WORKER_PASSIVE_POLL_MS: z.coerce.number().default(10 * 60_000),
   WORKER_MAX_BACKOFF_MS: z.coerce.number().default(15 * 60_000),
   WORKER_ACTIVE_GAME_STALE_MS: z.coerce.number().default(30_000),
-  WORKER_TEAM_LIST_RECHECK_STALE_MS: z.coerce
-    .number()
-    .default(15 * 60_000),
+  WORKER_POST_EVENT_STALE_MS: z.coerce.number().default(5 * 60_000),
+  WORKER_TEAM_LIST_RECHECK_STALE_MS: z.coerce.number().default(15 * 60_000),
   WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS: z.coerce.number().default(14),
   WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
@@ -161,57 +165,83 @@ async function syncTargets(): Promise<SyncTarget[]> {
   const events = (await response.json()) as TournamentEvent[];
   const activeGamePriorityIds = await activeGamePriorityExposureIds();
   const preferredIds = preferredExposureEventIds();
-  const today = new Date().toISOString().slice(0, 10);
-  return events
+  const today = dateKeyInPacific(new Date());
+  const candidates = events
     .filter((event) => event.status !== "cancelled")
     .filter((event) =>
       shouldSyncEvent(event, activeGamePriorityIds, preferredIds),
     )
-    .sort((left, right) => {
-      const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
-        ? 0
-        : 1;
-      const rightNeedsGames = activeGamePriorityIds.has(right.exposureEventId)
-        ? 0
-        : 1;
-      if (leftNeedsGames !== rightNeedsGames)
-        return leftNeedsGames - rightNeedsGames;
+    .sort((left, right) =>
+      compareSyncCandidates(
+        left,
+        right,
+        activeGamePriorityIds,
+        preferredIds,
+        today,
+      ),
+    );
+  const rosterDiscoveryQueue = candidates.filter(needsMissingRosterDiscovery);
+  const standardQueue = candidates.filter(
+    (event) => !needsMissingRosterDiscovery(event),
+  );
 
-      const leftNeedsTeamRefresh = needsPublicTeamListRecheck(left) ? 0 : 1;
-      const rightNeedsTeamRefresh = needsPublicTeamListRecheck(right) ? 0 : 1;
-      if (leftNeedsTeamRefresh !== rightNeedsTeamRefresh)
-        return leftNeedsTeamRefresh - rightNeedsTeamRefresh;
+  return selectFairSyncBatch(
+    standardQueue,
+    rosterDiscoveryQueue,
+    env.WORKER_SYNC_BATCH_SIZE,
+  ).map((event) => ({
+    ...event,
+    syncMode: syncModeForEvent(event, activeGamePriorityIds),
+  }));
+}
 
-      const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
-      const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
-      if (leftNeedsTeams !== rightNeedsTeams)
-        return leftNeedsTeams - rightNeedsTeams;
+function compareSyncCandidates(
+  left: TournamentEvent,
+  right: TournamentEvent,
+  activeGamePriorityIds: ReadonlySet<number>,
+  preferredIds: ReadonlySet<number>,
+  todayKey: string,
+) {
+  const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
+    ? 0
+    : 1;
+  const rightNeedsGames = activeGamePriorityIds.has(right.exposureEventId)
+    ? 0
+    : 1;
+  if (leftNeedsGames !== rightNeedsGames)
+    return leftNeedsGames - rightNeedsGames;
 
-      const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
-      const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
-      if (leftPreferred !== rightPreferred)
-        return leftPreferred - rightPreferred;
+  const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
+  const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
+  if (leftNeedsTeams !== rightNeedsTeams)
+    return leftNeedsTeams - rightNeedsTeams;
 
-      const leftStatus = syncStatusPriority(left.status);
-      const rightStatus = syncStatusPriority(right.status);
-      if (leftStatus !== rightStatus) return leftStatus - rightStatus;
+  const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
+  const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
+  if (leftPreferred !== rightPreferred) return leftPreferred - rightPreferred;
 
-      const leftFreshness = left.lastCheckedAt ?? left.lastSyncedAt ?? "";
-      const rightFreshness = right.lastCheckedAt ?? right.lastSyncedAt ?? "";
-      if (leftFreshness !== rightFreshness)
-        return leftFreshness.localeCompare(rightFreshness);
+  const leftStatus = syncStatusPriority(left.status);
+  const rightStatus = syncStatusPriority(right.status);
+  if (leftStatus !== rightStatus) return leftStatus - rightStatus;
 
-      const leftSoon = Math.abs(left.startDate.localeCompare(today));
-      const rightSoon = Math.abs(right.startDate.localeCompare(today));
-      if (leftSoon !== rightSoon) return leftSoon - rightSoon;
+  const leftSoon = dateDistanceMs(left.startDate, todayKey);
+  const rightSoon = dateDistanceMs(right.startDate, todayKey);
+  if (leftSoon !== rightSoon) return leftSoon - rightSoon;
 
-      return left.name.localeCompare(right.name);
-    })
-    .slice(0, Math.max(1, env.WORKER_SYNC_BATCH_SIZE))
-    .map((event) => ({
-      ...event,
-      syncMode: syncModeForEvent(event, activeGamePriorityIds),
-    }));
+  const leftFreshness = left.lastCheckedAt ?? left.lastSyncedAt ?? "";
+  const rightFreshness = right.lastCheckedAt ?? right.lastSyncedAt ?? "";
+  if (leftFreshness !== rightFreshness)
+    return leftFreshness.localeCompare(rightFreshness);
+
+  return left.name.localeCompare(right.name);
+}
+
+function dateDistanceMs(dateKey: string, todayKey: string) {
+  const timestamp = Date.parse(`${dateKey}T00:00:00.000Z`);
+  const todayTimestamp = Date.parse(`${todayKey}T00:00:00.000Z`);
+  return Number.isNaN(timestamp)
+    ? Number.MAX_SAFE_INTEGER
+    : Math.abs(timestamp - todayTimestamp);
 }
 
 async function syncSingleEvent(event: SyncTarget) {
@@ -276,9 +306,7 @@ async function syncSingleEvent(event: SyncTarget) {
       await sleep(1_500);
       continue;
     }
-    throw new Error(
-      `sync-now failed with ${response.status}: ${responseText}`,
-    );
+    throw new Error(`sync-now failed with ${response.status}: ${responseText}`);
   }
 
   throw new Error("sync-now failed without a response");
@@ -335,6 +363,13 @@ function needsPublicTeamListRecheck(event: TournamentEvent) {
   );
 }
 
+function needsMissingRosterDiscovery(event: TournamentEvent) {
+  return (
+    needsPublicTeamListRecheck(event) &&
+    (!event.hasPublicTeamList || event.registeredTeamCount <= 0)
+  );
+}
+
 function shouldSyncEvent(
   event: TournamentEvent,
   activeGamePriorityIds: Set<number>,
@@ -349,7 +384,10 @@ function shouldSyncEvent(
   return (
     preferredIds.has(event.exposureEventId) &&
     event.status !== "completed" &&
-    isStaleEventTimestamp(event.lastSyncedAt ?? event.lastCheckedAt, 60 * 60_000)
+    isStaleEventTimestamp(
+      event.lastSyncedAt ?? event.lastCheckedAt,
+      60 * 60_000,
+    )
   );
 }
 
@@ -358,14 +396,23 @@ function needsActiveEventRefresh(event: TournamentEvent) {
     return false;
   if (!isExposureTournament(event)) return false;
   if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return false;
-  if (!eventIsInGameHydrationWindowFromKeys(event)) return false;
+  const staleMs = refreshStaleMsForEvent(
+    event,
+    dateKeyInPacific(new Date()),
+    env.WORKER_ACTIVE_GAME_STALE_MS,
+    env.WORKER_POST_EVENT_STALE_MS,
+  );
+  if (staleMs === null) return false;
   return isStaleEventTimestamp(
     event.lastSyncedAt ?? event.lastCheckedAt,
-    env.WORKER_ACTIVE_GAME_STALE_MS,
+    staleMs,
   );
 }
 
-function isStaleEventTimestamp(value: string | null | undefined, staleMs: number) {
+function isStaleEventTimestamp(
+  value: string | null | undefined,
+  staleMs: number,
+) {
   if (!value) return true;
   const parsed = Date.parse(value);
   return Number.isNaN(parsed) || Date.now() - parsed >= staleMs;
@@ -376,17 +423,6 @@ function isExposureTournament(event: TournamentEvent) {
     event.externalProvider === "exposure_events" ||
     event.sourceUrl?.includes("basketball.exposureevents.com") ||
     event.officialUrl.includes("basketball.exposureevents.com")
-  );
-}
-
-function eventIsInGameHydrationWindowFromKeys(event: {
-  startDate: string;
-  endDate: string;
-}) {
-  const todayKey = dateKeyInPacific(new Date());
-  return (
-    todayKey >= event.startDate &&
-    todayKey <= addDaysKey(event.endDate, 3)
   );
 }
 
@@ -418,24 +454,13 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
   });
   const activeEvents = events.filter(
     (event) =>
-      isCourtWatchSupportedTournamentRegion(event) &&
-      eventIsInGameHydrationWindow(event),
+      isCourtWatchSupportedTournamentRegion(event) && eventIsActiveToday(event),
   );
   if (activeEvents.length === 0) return new Set();
-
-  const gameCounts = await prisma.game.groupBy({
-    by: ["eventId"],
-    where: { eventId: { in: activeEvents.map((event) => event.id) } },
-    _count: { _all: true },
-  });
-  const countsByEventId = new Map(
-    gameCounts.map((item) => [item.eventId, item._count._all]),
-  );
   const now = Date.now();
   return new Set(
     activeEvents
       .filter((event) => {
-        const gameCount = countsByEventId.get(event.id) ?? 0;
         const lastDataAt = event.lastSyncedAt ?? event.lastCheckedAt;
         return (
           !lastDataAt ||
@@ -446,13 +471,10 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
   );
 }
 
-function eventIsInGameHydrationWindow(event: {
-  startDate: Date;
-  endDate: Date;
-}) {
+function eventIsActiveToday(event: { startDate: Date; endDate: Date }) {
   const todayKey = dateKeyInPacific(new Date());
   const startKey = event.startDate.toISOString().slice(0, 10);
-  const endKey = addDaysKey(event.endDate.toISOString().slice(0, 10), 3);
+  const endKey = event.endDate.toISOString().slice(0, 10);
   return todayKey >= startKey && todayKey <= endKey;
 }
 
