@@ -1,5 +1,6 @@
 const EXPOSURE_HOSTNAME = "basketball.exposureevents.com";
 const RELAY_HEADER = "X-CourtWatch-Relay-Key";
+const DEFAULT_RELAY_ATTEMPT_TIMEOUT_MS = 4_000;
 
 export async function exposureFetch(
   input: string | URL | Request,
@@ -37,16 +38,50 @@ export async function fetchWithExposureRelay(
   const body = ["GET", "HEAD"].includes(originalRequest.method)
     ? undefined
     : await originalRequest.clone().arrayBuffer();
-
-  return fetchImpl(
-    new Request(relayUrl, {
-      body,
-      headers,
-      method: originalRequest.method,
-      redirect: originalRequest.redirect,
-      signal: originalRequest.signal,
-    }),
+  const relayController = new AbortController();
+  const relayTimeout = setTimeout(
+    () => relayController.abort(new Error("Exposure relay attempt timed out")),
+    relayAttemptTimeoutMs(),
   );
+  const abortRelay = () => relayController.abort(originalRequest.signal.reason);
+  originalRequest.signal.addEventListener("abort", abortRelay, { once: true });
+
+  let relayResponse: Response;
+  try {
+    relayResponse = await fetchImpl(
+      new Request(relayUrl, {
+        body,
+        headers,
+        method: originalRequest.method,
+        redirect: originalRequest.redirect,
+        signal: relayController.signal,
+      }),
+    );
+  } catch (error) {
+    if (originalRequest.signal.aborted) throw error;
+    return fetchImpl(originalRequest);
+  } finally {
+    clearTimeout(relayTimeout);
+    originalRequest.signal.removeEventListener("abort", abortRelay);
+  }
+
+  if (!isTransientRelayStatus(relayResponse.status)) return relayResponse;
+  await relayResponse.body?.cancel().catch(() => undefined);
+  if (originalRequest.signal.aborted) {
+    throw originalRequest.signal.reason ?? new Error("Request aborted");
+  }
+  return fetchImpl(originalRequest);
+}
+
+function relayAttemptTimeoutMs(): number {
+  const configured = Number(process.env.EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured > 0
+    ? configured
+    : DEFAULT_RELAY_ATTEMPT_TIMEOUT_MS;
+}
+
+function isTransientRelayStatus(status: number): boolean {
+  return [408, 425].includes(status) || status >= 500;
 }
 
 function ensureTrailingSlash(value: string): string {
