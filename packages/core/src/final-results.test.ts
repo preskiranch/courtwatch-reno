@@ -72,6 +72,95 @@ describe("final division results", () => {
     expect(deriveDivisionResultsFromGames(snapshot)).toEqual([]);
   });
 
+  it("follows championship playoff progression to the title and bronze games", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      playoffGame({
+        number: 1,
+        startsAt: "2026-07-12T16:05:00.000Z",
+        home: ["team-775-select", "775 Select", 43],
+        away: ["team-hurricanes", "Hurricanes", 55],
+      }),
+      playoffGame({
+        number: 2,
+        startsAt: "2026-07-12T15:00:00.000Z",
+        home: ["team-hoop-elite", "Hoop Elite", 48],
+        away: ["team-blueprint", "Blueprint", 34],
+      }),
+      playoffGame({
+        number: 3,
+        startsAt: "2026-07-12T19:20:00.000Z",
+        home: ["team-hurricanes", "Hurricanes", 25],
+        away: ["team-locked-in", "Team Locked IN Black", 47],
+      }),
+      playoffGame({
+        number: 4,
+        startsAt: "2026-07-12T19:20:00.000Z",
+        home: ["team-hoop-elite", "Hoop Elite", 62],
+        away: ["team-pve", "PVE Mambas", 59],
+      }),
+      playoffGame({
+        number: 5,
+        startsAt: "2026-07-12T18:15:00.000Z",
+        home: ["team-blueprint", "Blueprint", 22],
+        away: ["team-775-select", "775 Select", 46],
+      }),
+      playoffGame({
+        number: 6,
+        startsAt: "2026-07-12T22:35:00.000Z",
+        home: ["team-hoop-elite", "Hoop Elite", 21],
+        away: ["team-locked-in", "Team Locked IN Black", 24],
+      }),
+      playoffGame({
+        number: 7,
+        startsAt: "2026-07-12T21:30:00.000Z",
+        home: ["team-pve", "PVE Mambas", 75],
+        away: ["team-hurricanes", "Hurricanes", 50],
+      }),
+    ];
+
+    expect(
+      deriveDivisionResultsFromGames(snapshot).map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+        result.bracketLabel,
+      ]),
+    ).toEqual([
+      [1, "Team Locked IN Black", "Championship Playoff (G6)"],
+      [2, "Hoop Elite", "Championship Playoff (G6)"],
+      [3, "PVE Mambas", "Championship Playoff (G7)"],
+    ]);
+  });
+
+  it("infers third place from the semifinal loser in a completed three-team playoff", () => {
+    const snapshot = snapshotWithFinals();
+    snapshot.games = [
+      playoffGame({
+        number: 1,
+        startsAt: "2026-07-12T20:25:00.000Z",
+        home: ["team-justhoop", "Justhoop RISE", 32],
+        away: ["team-paytons-place", "Paytons Place", 26],
+      }),
+      playoffGame({
+        number: 2,
+        startsAt: "2026-07-12T22:35:00.000Z",
+        home: ["team-justhoop", "Justhoop RISE", 29],
+        away: ["team-regulators", "Bay Area Regulators", 30],
+      }),
+    ];
+
+    expect(
+      deriveDivisionResultsFromGames(snapshot).map((result) => [
+        result.placement,
+        result.teamNameSnapshot,
+      ]),
+    ).toEqual([
+      [1, "Bay Area Regulators"],
+      [2, "Justhoop RISE"],
+      [3, "Paytons Place"],
+    ]);
+  });
+
   it("keeps placements pending while a later placement game is unresolved", () => {
     const snapshot = snapshotWithFinals();
     const pendingBronzeGame = finalGame({
@@ -627,4 +716,25 @@ function finalGame(input: {
       OfficialPlacement: input.officialPlacement ?? true,
     },
   };
+}
+
+function playoffGame(input: {
+  number: number;
+  startsAt: string;
+  home: [id: string, name: string, score: number];
+  away: [id: string, name: string, score: number];
+}): Game {
+  return finalGame({
+    id: `playoff-g${input.number}`,
+    gameNumber: String(input.number),
+    gameType: `Championship Playoff (G${input.number})`,
+    homeTeamId: input.home[0],
+    homeTeamNameSnapshot: input.home[1],
+    homeScore: input.home[2],
+    awayTeamId: input.away[0],
+    awayTeamNameSnapshot: input.away[1],
+    awayScore: input.away[2],
+    startsAt: input.startsAt,
+    officialPlacement: false,
+  });
 }

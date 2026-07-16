@@ -24,6 +24,22 @@ type ResultTeam = {
   nameSnapshot: string;
 };
 
+type GameParticipant = {
+  id: string | null;
+  normalizedName: string | null;
+};
+
+type PlayoffFeeder = {
+  game: Game;
+  outcome: "winner" | "loser";
+};
+
+type PlayoffPlacements = {
+  goldFinal: Game;
+  bronzeFinal: Game | null;
+  inferredBronzeFeeder: Game | null;
+};
+
 export function deriveDivisionResultsFromGames(
   snapshot: Pick<CourtWatchSnapshot, "event" | "divisions" | "teams" | "games">,
 ): DivisionResult[] {
@@ -45,7 +61,9 @@ export function deriveDivisionResultsFromGames(
       homeScore === null ||
       awayScore === null ||
       homeScore === awayScore ||
-      (!isGoldFinalGame(game) && !isBronzeFinalGame(game))
+      (!isGoldFinalGame(game) &&
+        !isBronzeFinalGame(game) &&
+        !isChampionshipPlayoffGame(game))
     ) {
       continue;
     }
@@ -61,8 +79,10 @@ export function deriveDivisionResultsFromGames(
       continue;
     }
     const classificationFinals = simultaneousClassificationFinals(games);
+    const playoffPlacements = championshipPlayoffPlacements(games);
     const goldFinal =
       classificationFinals?.goldFinal ??
+      playoffPlacements?.goldFinal ??
       games.filter(isGoldFinalGame).sort(compareStartsAtDesc)[0] ??
       null;
     if (goldFinal) {
@@ -80,11 +100,29 @@ export function deriveDivisionResultsFromGames(
     const bronzeFinal =
       games.filter(isExplicitBronzeFinalGame).sort(compareStartsAtDesc)[0] ??
       classificationFinals?.bronzeFinal ??
+      playoffPlacements?.bronzeFinal ??
       fallbackBronzeFinalGame(games, goldFinal);
     if (bronzeFinal) {
       const bronze = resultTeamFromGame(bronzeFinal, snapshot.teams, "winner");
       if (bronze)
         results.push(makeResult(snapshot, divisionId, bronzeFinal, 3, bronze));
+    } else if (playoffPlacements?.inferredBronzeFeeder) {
+      const bronze = resultTeamFromGame(
+        playoffPlacements.inferredBronzeFeeder,
+        snapshot.teams,
+        "loser",
+      );
+      if (bronze) {
+        results.push(
+          makeResult(
+            snapshot,
+            divisionId,
+            playoffPlacements.inferredBronzeFeeder,
+            3,
+            bronze,
+          ),
+        );
+      }
     }
   }
 
@@ -476,6 +514,161 @@ function simultaneousClassificationFinals(
   return null;
 }
 
+function championshipPlayoffPlacements(
+  games: Game[],
+): PlayoffPlacements | null {
+  const playoffGames = games
+    .filter(isChampionshipPlayoffGame)
+    .filter(isCompletedScoredGame);
+  if (playoffGames.length < 2) return null;
+
+  const candidates = playoffGames
+    .map((game) => {
+      const feeders = gameParticipants(game)
+        .map((participant) =>
+          latestPlayoffFeeder(playoffGames, game, participant),
+        )
+        .filter((feeder): feeder is PlayoffFeeder => Boolean(feeder));
+      return {
+        game,
+        feeders,
+        winnerFeeders: feeders.filter(
+          (feeder) => feeder.outcome === "winner",
+        ).length,
+        loserFeeders: feeders.filter((feeder) => feeder.outcome === "loser")
+          .length,
+      };
+    })
+    .filter(
+      (candidate) =>
+        candidate.winnerFeeders > 0 && candidate.loserFeeders === 0,
+    )
+    .sort(
+      (left, right) =>
+        right.winnerFeeders - left.winnerFeeders ||
+        compareStartsAtDesc(left.game, right.game) ||
+        (classificationGameNumber(right.game) ?? 0) -
+          (classificationGameNumber(left.game) ?? 0),
+    );
+
+  const championship = candidates[0];
+  if (!championship) return null;
+
+  const semifinalFeeders = uniqueGames(
+    championship.feeders
+      .filter((feeder) => feeder.outcome === "winner")
+      .map((feeder) => feeder.game),
+  );
+  const semifinalLosers = semifinalFeeders
+    .map((game) => resultParticipantFromGame(game, "loser"))
+    .filter((participant): participant is GameParticipant =>
+      Boolean(participant),
+    );
+  const bronzeFinal =
+    semifinalFeeders.length === 2 && semifinalLosers.length === 2
+      ? playoffGames
+          .filter((game) => game.id !== championship.game.id)
+          .filter((game) => participantsEqual(game, semifinalLosers))
+          .sort(compareStartsAtDesc)[0] ?? null
+      : null;
+
+  return {
+    goldFinal: championship.game,
+    bronzeFinal,
+    inferredBronzeFeeder:
+      playoffGames.length === 2 && semifinalFeeders.length === 1
+        ? semifinalFeeders[0]!
+        : null,
+  };
+}
+
+function isChampionshipPlayoffGame(game: Game): boolean {
+  const type = normalizeGameType(game.gameType);
+  return type.includes("championship") && type.includes("playoff");
+}
+
+function latestPlayoffFeeder(
+  games: Game[],
+  currentGame: Game,
+  participant: GameParticipant,
+): PlayoffFeeder | null {
+  const currentStart = new Date(currentGame.startsAt).getTime();
+  const feeder = games
+    .filter((game) => game.id !== currentGame.id)
+    .filter((game) => new Date(game.startsAt).getTime() < currentStart)
+    .filter((game) => gameParticipants(game).some((item) => sameTeam(item, participant)))
+    .sort(
+      (left, right) =>
+        compareStartsAtDesc(left, right) ||
+        (classificationGameNumber(right) ?? 0) -
+          (classificationGameNumber(left) ?? 0),
+    )[0];
+  if (!feeder) return null;
+
+  const winner = resultParticipantFromGame(feeder, "winner");
+  return {
+    game: feeder,
+    outcome: winner && sameTeam(winner, participant) ? "winner" : "loser",
+  };
+}
+
+function resultParticipantFromGame(
+  game: Game,
+  side: "winner" | "loser",
+): GameParticipant | null {
+  const homeScore = sanitizeBasketballScore(game.homeScore);
+  const awayScore = sanitizeBasketballScore(game.awayScore);
+  if (homeScore === null || awayScore === null || homeScore === awayScore)
+    return null;
+  const homeWon = homeScore > awayScore;
+  const useHome = side === "winner" ? homeWon : !homeWon;
+  return gameParticipant(game, useHome ? "home" : "away");
+}
+
+function gameParticipants(game: Game): GameParticipant[] {
+  return [gameParticipant(game, "home"), gameParticipant(game, "away")];
+}
+
+function gameParticipant(
+  game: Game,
+  side: "home" | "away",
+): GameParticipant {
+  return {
+    id: side === "home" ? game.homeTeamId : game.awayTeamId,
+    normalizedName: normalizeParticipantName(
+      side === "home"
+        ? game.homeTeamNameSnapshot
+        : game.awayTeamNameSnapshot,
+    ),
+  };
+}
+
+function participantsEqual(
+  game: Game,
+  expected: GameParticipant[],
+): boolean {
+  const actual = gameParticipants(game);
+  return (
+    actual.length === expected.length &&
+    expected.every((participant) =>
+      actual.some((candidate) => sameTeam(candidate, participant)),
+    )
+  );
+}
+
+function sameTeam(left: GameParticipant, right: GameParticipant): boolean {
+  if (left.id && right.id) return left.id === right.id;
+  return Boolean(
+    left.normalizedName &&
+      right.normalizedName &&
+      left.normalizedName === right.normalizedName,
+  );
+}
+
+function uniqueGames(games: Game[]): Game[] {
+  return Array.from(new Map(games.map((game) => [game.id, game])).values());
+}
+
 function classificationGameNumber(game: Game): number | null {
   const typeMatch = game.gameType?.match(/\(\s*G\s*(\d+)\s*\)/i);
   if (typeMatch?.[1]) return Number(typeMatch[1]);
@@ -536,6 +729,7 @@ function fallbackBronzeFinalGame(
 function isFallbackPlacementFinalGame(game: Game): boolean {
   const type = normalizeGameType(game.gameType);
   if (!type || type.includes("pool")) return false;
+  if (isChampionshipPlayoffGame(game)) return false;
   if (
     ["semi", "quarter", "play in", "silver"].some((blocked) =>
       type.includes(blocked),
