@@ -97,6 +97,19 @@ describe("TournamentDiscoveryService", () => {
           ]),
         }),
         expect.objectContaining({
+          name: "Top Notch Tournamentz / Nothing BUT Net",
+          provider: "exposure_events",
+          enabled: true,
+          url: "https://basketball.exposureevents.com/organizations/28459/top-notch-tournamentz",
+          organizerName: "Top Notch Tournamentz",
+          sanctioningTags: expect.arrayContaining([
+            "Top Notch Tournamentz",
+            "Nothing BUT Net",
+            "East Bay",
+            "Northern California",
+          ]),
+        }),
+        expect.objectContaining({
           name: "Exposure Basketball Directory",
           provider: "aau_event_finder",
           enabled: false,
