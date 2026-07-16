@@ -98,6 +98,8 @@ services:
           name: courtwatch-exposure-relay
           type: web
           envVarKey: RELAY_SHARED_SECRET
+      - key: EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS
+        value: "4000"
       - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
         value: "true"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
@@ -195,6 +197,8 @@ services:
         value: "3"
       - key: WORKER_ACTIVE_GAME_STALE_MS
         value: "30000"
+      - key: WORKER_POST_EVENT_STALE_MS
+        value: "300000"
       - key: WORKER_TEAM_LIST_RECHECK_STALE_MS
         value: "60000"
       - key: WORKER_SLOW_EVENT_SYNC_MS
