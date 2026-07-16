@@ -106,7 +106,11 @@ const server = createServer(async (request, response) => {
       signal: controller.signal,
     });
 
-    updateProbe(true, upstreamResponse.status, Date.now() - startedAt);
+    updateProbe(
+      upstreamResponse.ok,
+      upstreamResponse.status,
+      Date.now() - startedAt,
+    );
     response.statusCode = upstreamResponse.status;
     copyResponseHeaders(upstreamResponse.headers, response);
     response.setHeader("Cache-Control", "no-store");

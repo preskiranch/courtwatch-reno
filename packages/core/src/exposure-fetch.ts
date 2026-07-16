@@ -1,5 +1,6 @@
 const EXPOSURE_HOSTNAME = "basketball.exposureevents.com";
 const RELAY_HEADER = "X-CourtWatch-Relay-Key";
+const RELAY_RESPONSE_HEADER = "X-CourtWatch-Relay";
 const DEFAULT_RELAY_ATTEMPT_TIMEOUT_MS = 4_000;
 
 export async function exposureFetch(
@@ -65,7 +66,15 @@ export async function fetchWithExposureRelay(
     originalRequest.signal.removeEventListener("abort", abortRelay);
   }
 
-  if (!isTransientRelayStatus(relayResponse.status)) return relayResponse;
+  // A marked response reached Exposure through the relay. Preserve its status so
+  // callers can immediately use their public-page fallback instead of retrying
+  // the blocked direct connection from Render.
+  if (
+    relayResponse.headers.has(RELAY_RESPONSE_HEADER) ||
+    !isTransientRelayStatus(relayResponse.status)
+  ) {
+    return relayResponse;
+  }
   await relayResponse.body?.cancel().catch(() => undefined);
   if (originalRequest.signal.aborted) {
     throw originalRequest.signal.reason ?? new Error("Request aborted");
