@@ -16,7 +16,8 @@ services:
     buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/exposure-relay
     startCommand: npm run start --workspace @courtwatch/exposure-relay
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 30
     envVars:
       - key: NODE_ENV
         value: production
@@ -30,6 +31,8 @@ services:
         value: "30000"
       - key: RELAY_MAX_BODY_BYTES
         value: "2097152"
+      - key: RELAY_MAX_RESPONSE_BYTES
+        value: "16777216"
 
   - type: web
     name: courtwatch-reno-web
@@ -40,7 +43,9 @@ services:
     rootDir: .
     buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
     startCommand: npm run start --workspace @courtwatch/web
-    autoDeploy: true
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 30
     envVars:
       - key: NODE_ENV
         value: production
@@ -64,10 +69,12 @@ services:
     repo: https://github.com/preskiranch/courtwatch-reno
     branch: main
     rootDir: .
-    buildCommand: npm ci --include=dev && npm run db:generate && npm run db:migrate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
+    buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
+    preDeployCommand: npm run db:migrate
     startCommand: npm run start --workspace @courtwatch/api
-    healthCheckPath: /api/health
-    autoDeploy: true
+    healthCheckPath: /api/health/ready
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 30
     envVars:
       - key: NODE_ENV
         value: production
@@ -164,7 +171,8 @@ services:
     rootDir: .
     buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/worker
     startCommand: npm run start --workspace @courtwatch/worker
-    autoDeploy: true
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 120
     envVars:
       - key: NODE_ENV
         value: production
@@ -205,8 +213,20 @@ services:
         value: "300000"
       - key: WORKER_TEAM_LIST_RECHECK_STALE_MS
         value: "60000"
+      - key: WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS
+        value: "14"
+      - key: WORKER_EVENT_SYNC_TIMEOUT_MS
+        value: "90000"
       - key: WORKER_SLOW_EVENT_SYNC_MS
         value: "20000"
+      - key: WORKER_EVENT_SYNC_ATTEMPTS
+        value: "3"
+      - key: WORKER_RETRY_BASE_MS
+        value: "750"
+      - key: WORKER_RETRY_MAX_MS
+        value: "10000"
+      - key: WORKER_POLL_JITTER_RATIO
+        value: "0.08"
       - key: EXPOSURE_PUBLIC_GAMES_CONCURRENCY
         value: "4"
       - key: ENABLE_MOCK_ARSENAL
