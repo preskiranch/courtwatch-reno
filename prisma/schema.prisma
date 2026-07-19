@@ -454,3 +454,14 @@ model SyncRun {
   @@index([eventId, startedAt], map: "sync_runs_event_started_idx")
   @@map("sync_runs")
 }
+
+model SyncLease {
+  key        String   @id
+  ownerId    String   @map("owner_id")
+  acquiredAt DateTime @default(now()) @map("acquired_at")
+  expiresAt  DateTime @map("expires_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([expiresAt], map: "sync_leases_expires_at_idx")
+  @@map("sync_leases")
+}

@@ -84,6 +84,7 @@ import {
 } from "./config.js";
 import type { TournamentSource } from "./config.js";
 import { findStaleGameIds } from "./game-reconciliation.js";
+import { acquireSyncLease } from "./sync-lease.js";
 
 const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
@@ -107,7 +108,7 @@ type FavoriteTeamWatchWithRegistrations = Prisma.FavoriteTeamWatchGetPayload<{
 const activeGameHydrationPromises = new Map<number, Promise<void>>();
 const snapshotLoadPromises = new Map<number, Promise<CourtWatchSnapshot>>();
 type TournamentSyncResult = {
-  status: "success" | "skipped";
+  status: "success" | "skipped" | "coalesced";
   source: string;
   teamsCount: number;
   gamesCount: number;
@@ -2331,7 +2332,11 @@ export class PrismaStore implements CourtWatchStore {
     const previous =
       tournamentSyncTails.get(tournament.exposureEventId) ?? Promise.resolve();
     const promise = previous.then(() =>
-      this.performTournamentSync(tournament, preloadedTeams, options),
+      this.performCoordinatedTournamentSync(
+        tournament,
+        preloadedTeams,
+        options,
+      ),
     );
     const tail = promise.then(
       () => undefined,
@@ -2349,6 +2354,62 @@ export class PrismaStore implements CourtWatchStore {
       }
     });
     return promise;
+  }
+
+  private async performCoordinatedTournamentSync(
+    tournament: TournamentSource,
+    preloadedTeams?: PublicTournamentCandidate["teams"],
+    options: {
+      forceFetchAllGames?: boolean;
+      teamListOnly?: boolean;
+    } = {},
+  ): Promise<TournamentSyncResult> {
+    const lease = await acquireSyncLease(
+      this.prisma,
+      `event:${tournament.exposureEventId}`,
+      {
+        onHeartbeatError: (error) => {
+          console.warn("Tournament sync lease heartbeat failed", {
+            exposureEventId: tournament.exposureEventId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        },
+      },
+    );
+    if (!lease) {
+      const event = await this.prisma.event.findUnique({
+        where: { exposureEventId: tournament.exposureEventId },
+        select: { id: true },
+      });
+      const [teamsCount, gamesCount] = event
+        ? await Promise.all([
+            this.prisma.team.count({ where: { eventId: event.id } }),
+            this.prisma.game.count({ where: { eventId: event.id } }),
+          ])
+        : [0, 0];
+      return {
+        status: "coalesced",
+        source: syncSourceForTournament(tournament),
+        teamsCount,
+        gamesCount,
+        changesDetected: 0,
+      };
+    }
+
+    try {
+      return await this.performTournamentSync(
+        tournament,
+        preloadedTeams,
+        options,
+      );
+    } finally {
+      await lease.release().catch((error: unknown) => {
+        console.warn("Tournament sync lease release failed", {
+          exposureEventId: tournament.exposureEventId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }
   }
 
   private async performTournamentSync(
