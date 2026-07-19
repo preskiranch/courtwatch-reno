@@ -1,4 +1,16 @@
-# CourtVision Scorekeeper MVP
+# Court Watch AAU
+
+Court Watch AAU is the production mobile-first tournament companion in this
+monorepo. It tracks public tournament teams, schedules, courts, records, alerts,
+and official placements without fabricating unavailable source data.
+
+Production documentation:
+
+- [Architecture and production readiness](docs/production-readiness.md)
+- [Operations and incident runbook](docs/runbooks/operations.md)
+- [App Store preparation](docs/app-store/README.md)
+
+## Related CourtVision Prototype
 
 CourtVision Scorekeeper is a mobile-first PWA MVP for AI camera-assisted basketball scoring. It lets a user configure solo, one-team, or two-team play, define target score and rules, calibrate 2PT/3PT court zones, mark the hoop, run a live camera preview where browser permission is available, and test the full scoring flow with debug/manual shot events.
 
@@ -93,9 +105,7 @@ The CourtVision Blueprint sets `NEXT_PUBLIC_APP_TARGET=courtvision`. Leave that 
 - Calibration editing is intentionally simple: tap to place hoop or append polygon points, or use the default template.
 - Stats and profiles are local to the browser until a persistence backend is wired in.
 
-## Legacy Project Notes
-
-# Court Watch AAU
+## Tournament Tracker
 
 Court Watch AAU is a mobile-first PWA for choosing and following registered teams across AAU basketball tournaments, including the Jam On It / Exposure Basketball Events 2026 Reno Memorial Day Tournament.
 
