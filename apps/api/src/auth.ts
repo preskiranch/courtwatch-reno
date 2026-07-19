@@ -39,6 +39,15 @@ type AccountTokenPayload = {
   sub: string;
   email: string;
   exp: number;
+  jti?: string;
+  ver?: number;
+};
+
+export type AccountSessionClaims = {
+  userId: string;
+  email: string;
+  sessionId?: string;
+  sessionVersion?: number;
 };
 
 export function normalizeEmail(email: string): string {
@@ -121,13 +130,16 @@ export async function verifyPasswordAsync(
 export function signAccountToken(user: {
   id: string;
   email: string | null;
-}): string {
+  sessionVersion?: number;
+}, sessionId?: string): string {
   if (!user.email) throw new Error("Account email is required");
   const nowSeconds = Math.floor(Date.now() / 1000);
   const payload: AccountTokenPayload = {
     sub: user.id,
     email: user.email,
     exp: nowSeconds + TOKEN_TTL_SECONDS,
+    ...(sessionId ? { jti: sessionId } : {}),
+    ...(user.sessionVersion !== undefined ? { ver: user.sessionVersion } : {}),
   };
   const encodedPayload = base64UrlJson(payload);
   const signature = createHmac("sha256", authSecret())
@@ -136,10 +148,9 @@ export function signAccountToken(user: {
   return `${encodedPayload}.${signature}`;
 }
 
-export function verifyAccountToken(token: string | null | undefined): {
-  userId: string;
-  email: string;
-} | null {
+export function verifyAccountToken(
+  token: string | null | undefined,
+): AccountSessionClaims | null {
   if (!token) return null;
   const [encodedPayload, signature] = token.split(".");
   if (!encodedPayload || !signature) return null;
@@ -152,7 +163,82 @@ export function verifyAccountToken(token: string | null | undefined): {
     return null;
   const payload = parsePayload(encodedPayload);
   if (!payload || payload.exp < Math.floor(Date.now() / 1000)) return null;
-  return { userId: payload.sub, email: payload.email };
+  return {
+    userId: payload.sub,
+    email: payload.email,
+    ...(payload.jti ? { sessionId: payload.jti } : {}),
+    ...(payload.ver !== undefined ? { sessionVersion: payload.ver } : {}),
+  };
+}
+
+export async function createAccountSession(
+  prismaClient: PrismaClient,
+  user: { id: string; email: string | null; sessionVersion?: number },
+): Promise<{ token: string; expiresAt: Date }> {
+  const id = randomBytes(24).toString("base64url");
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_SECONDS * 1000);
+  await prismaClient.accountSession.create({
+    data: { id, userId: user.id, expiresAt },
+  });
+  return { token: signAccountToken(user, id), expiresAt };
+}
+
+export async function resolveAccountSession(
+  prismaClient: PrismaClient | null,
+  token: string | null | undefined,
+): Promise<AccountSessionClaims | null> {
+  const claims = verifyAccountToken(token);
+  if (!claims || !prismaClient) return claims;
+
+  if (!claims.sessionId) {
+    const user = await prismaClient.user.findUnique({
+      where: { id: claims.userId },
+      select: { sessionVersion: true },
+    });
+    return user && (user.sessionVersion ?? 0) === (claims.sessionVersion ?? 0)
+      ? claims
+      : null;
+  }
+
+  const session = await prismaClient.accountSession.findUnique({
+    where: { id: claims.sessionId },
+    select: {
+      userId: true,
+      expiresAt: true,
+      revokedAt: true,
+      lastSeenAt: true,
+    },
+  });
+  if (
+    !session ||
+    session.userId !== claims.userId ||
+    session.revokedAt ||
+    session.expiresAt.getTime() <= Date.now()
+  ) {
+    return null;
+  }
+
+  // Avoid turning every authenticated read into a database write.
+  if (session.lastSeenAt.getTime() < Date.now() - 15 * 60_000) {
+    await prismaClient.accountSession
+      .update({
+        where: { id: claims.sessionId },
+        data: { lastSeenAt: new Date() },
+      })
+      .catch(() => undefined);
+  }
+  return claims;
+}
+
+export async function revokeAccountSession(
+  prismaClient: PrismaClient,
+  sessionId: string | undefined,
+): Promise<void> {
+  if (!sessionId) return;
+  await prismaClient.accountSession.updateMany({
+    where: { id: sessionId, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 }
 
 export function tokenHash(token: string): string {
@@ -411,7 +497,15 @@ function parsePayload(encodedPayload: string): AccountTokenPayload | null {
       typeof parsed.exp !== "number"
     )
       return null;
-    return { sub: parsed.sub, email: parsed.email, exp: parsed.exp };
+    if (parsed.jti !== undefined && typeof parsed.jti !== "string") return null;
+    if (parsed.ver !== undefined && typeof parsed.ver !== "number") return null;
+    return {
+      sub: parsed.sub,
+      email: parsed.email,
+      exp: parsed.exp,
+      ...(parsed.jti ? { jti: parsed.jti } : {}),
+      ...(parsed.ver !== undefined ? { ver: parsed.ver } : {}),
+    };
   } catch {
     return null;
   }

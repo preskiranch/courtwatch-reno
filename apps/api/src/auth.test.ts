@@ -2,8 +2,11 @@ import type { PrismaClient } from "@courtwatch/db";
 import { describe, expect, it, vi } from "vitest";
 import {
   accountClientId,
+  createAccountSession,
   hashPassword,
   hashPasswordAsync,
+  resolveAccountSession,
+  revokeAccountSession,
   sendPasswordResetEmail,
   shouldExposeResetToken,
   signAccountToken,
@@ -48,6 +51,69 @@ describe("account auth helpers", () => {
       email: "family@example.com",
     });
     expect(accountClientId(session?.userId ?? "")).toBe("account:user-test-1");
+    delete process.env.JWT_SECRET;
+  });
+
+  it("creates and validates a server-backed revocable session", async () => {
+    process.env.JWT_SECRET = "unit-test-secret";
+    const create = vi.fn().mockResolvedValue({ id: "session-1" });
+    const findUnique = vi.fn().mockResolvedValue({
+      userId: "user-test-1",
+      expiresAt: new Date(Date.now() + 60_000),
+      revokedAt: null,
+      lastSeenAt: new Date(),
+    });
+    const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+    const prisma = {
+      accountSession: { create, findUnique, updateMany },
+    } as unknown as PrismaClient;
+
+    const created = await createAccountSession(prisma, {
+      id: "user-test-1",
+      email: "family@example.com",
+      sessionVersion: 2,
+    });
+    const claims = await resolveAccountSession(prisma, created.token);
+
+    expect(create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: "user-test-1",
+        expiresAt: expect.any(Date),
+      }),
+    });
+    expect(claims).toMatchObject({
+      userId: "user-test-1",
+      email: "family@example.com",
+      sessionVersion: 2,
+      sessionId: expect.any(String),
+    });
+
+    await revokeAccountSession(prisma, claims?.sessionId);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: claims?.sessionId, revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+    delete process.env.JWT_SECRET;
+  });
+
+  it("rejects revoked server-backed sessions", async () => {
+    process.env.JWT_SECRET = "unit-test-secret";
+    const token = signAccountToken(
+      { id: "user-test-1", email: "family@example.com", sessionVersion: 0 },
+      "revoked-session",
+    );
+    const prisma = {
+      accountSession: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: "user-test-1",
+          expiresAt: new Date(Date.now() + 60_000),
+          revokedAt: new Date(),
+          lastSeenAt: new Date(),
+        }),
+      },
+    } as unknown as PrismaClient;
+
+    await expect(resolveAccountSession(prisma, token)).resolves.toBeNull();
     delete process.env.JWT_SECRET;
   });
 

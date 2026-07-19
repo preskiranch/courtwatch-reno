@@ -13,6 +13,7 @@ model User {
   clientId             String?   @unique @map("client_id")
   email                String?   @unique
   passwordHash         String?   @map("password_hash")
+  sessionVersion       Int       @default(0) @map("session_version")
   emailVerifiedAt      DateTime? @map("email_verified_at")
   displayName          String?   @map("display_name")
   pushSubscriptionJson Json?     @map("push_subscription_json")
@@ -24,8 +25,24 @@ model User {
   notificationLogs        NotificationLog[]
   passwordResetTokens     PasswordResetToken[]
   favoriteTeamWatches     FavoriteTeamWatch[]
+  accountSessions         AccountSession[]
 
   @@map("users")
+}
+
+model AccountSession {
+  id         String    @id
+  userId     String    @map("user_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime  @map("expires_at")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt, expiresAt], map: "account_sessions_user_active_idx")
+  @@index([expiresAt], map: "account_sessions_expires_at_idx")
+  @@map("account_sessions")
 }
 
 model PasswordResetToken {

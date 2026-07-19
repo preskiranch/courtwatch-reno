@@ -16,16 +16,19 @@ import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { z } from "zod";
 import {
+  type AccountSessionClaims,
   accountClientId,
+  createAccountSession,
   createResetToken,
   hashPasswordAsync,
   normalizeEmail,
   publicAccountUser,
   registeredAccountCount,
   resetTokenExpiresAt,
+  resolveAccountSession,
+  revokeAccountSession,
   sendPasswordResetEmail,
   shouldExposeResetToken,
-  signAccountToken,
   tokenHash,
   unregisteredFollowerDeviceCount,
   verifyAccountToken,
@@ -49,6 +52,10 @@ const ADMIN_ACCOUNT_EMAIL = "courtwatchaau@gmail.com";
 const activePresence = new Map<
   string,
   { lastSeenAt: number; page: string | null }
+>();
+const resolvedAccountSessions = new WeakMap<
+  express.Request,
+  AccountSessionClaims | null
 >();
 
 export function createApp(
@@ -120,6 +127,21 @@ export function createApp(
       },
     }),
   );
+  app.use(async (req, _res, next) => {
+    try {
+      const authorization = req.headers.authorization;
+      const token = authorization?.startsWith("Bearer ")
+        ? authorization.slice("Bearer ".length).trim()
+        : null;
+      resolvedAccountSessions.set(
+        req,
+        await resolveAccountSession(prismaClient, token),
+      );
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
   app.use((req, res, next) => {
     const startedAt = process.hrtime.bigint();
     res.on("finish", () => {
@@ -293,8 +315,9 @@ export function createApp(
           update: {},
           create: { userId: user.id },
         });
+        const session = await createAccountSession(prismaClient, user);
         res.status(201).json({
-          token: signAccountToken(user),
+          token: session.token,
           user: publicAccountUser(user),
           totalRegisteredUsers: await registeredAccountCount(prismaClient),
         });
@@ -326,11 +349,57 @@ export function createApp(
         res.status(401).json({ error: "Invalid email or password" });
         return;
       }
+      const session = await createAccountSession(prismaClient, user);
       res.json({
-        token: signAccountToken(user),
+        token: session.token,
         user: publicAccountUser(user),
         totalRegisteredUsers: await registeredAccountCount(prismaClient),
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/auth/logout", async (req, res, next) => {
+    try {
+      const session = requestAccountSession(req);
+      if (session && prismaClient) {
+        if (session.sessionId) {
+          await revokeAccountSession(prismaClient, session.sessionId);
+        } else {
+          // A legacy token has no individual session id, so invalidate the
+          // legacy generation for this account without touching saved data.
+          await prismaClient.user.updateMany({
+            where: { id: session.userId },
+            data: { sessionVersion: { increment: 1 } },
+          });
+        }
+      }
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/auth/logout-all", async (req, res, next) => {
+    try {
+      const session = requestAccountSession(req);
+      if (!session || !prismaClient) {
+        res.status(401).json({ error: "Not signed in" });
+        return;
+      }
+      const now = new Date();
+      await prismaClient.$transaction([
+        prismaClient.accountSession.updateMany({
+          where: { userId: session.userId, revokedAt: null },
+          data: { revokedAt: now },
+        }),
+        prismaClient.user.update({
+          where: { id: session.userId },
+          data: { sessionVersion: { increment: 1 } },
+        }),
+      ]);
+      res.status(204).end();
     } catch (error) {
       next(error);
     }
@@ -432,11 +501,18 @@ export function createApp(
         await prismaClient.$transaction([
           prismaClient.user.update({
             where: { id: resetToken.userId },
-            data: { passwordHash: await hashPasswordAsync(body.password) },
+            data: {
+              passwordHash: await hashPasswordAsync(body.password),
+              sessionVersion: { increment: 1 },
+            },
           }),
           prismaClient.passwordResetToken.update({
             where: { id: resetToken.id },
             data: { usedAt: new Date() },
+          }),
+          prismaClient.accountSession.updateMany({
+            where: { userId: resetToken.userId, revokedAt: null },
+            data: { revokedAt: new Date() },
           }),
         ]);
         res.json({ ok: true });
@@ -765,6 +841,10 @@ export function createApp(
 
   app.post("/api/programs/:programId/aliases", async (req, res, next) => {
     try {
+      if (!(await requireAdminAccount(req, prismaClient))) {
+        res.status(403).json({ error: "Admin account required" });
+        return;
+      }
       const body = z
         .object({ alias: z.string().trim().min(2).max(80) })
         .parse(req.body);
@@ -780,6 +860,10 @@ export function createApp(
     "/api/programs/:programId/aliases/:aliasId",
     async (req, res, next) => {
       try {
+        if (!(await requireAdminAccount(req, prismaClient))) {
+          res.status(403).json({ error: "Admin account required" });
+          return;
+        }
         await store.deleteAlias(req.params.programId, req.params.aliasId);
         res.status(204).end();
       } catch (error) {
@@ -1219,17 +1303,32 @@ export function createApp(
   app.use(
     (
       error: unknown,
-      _req: express.Request,
+      req: express.Request,
       res: express.Response,
       _next: express.NextFunction,
     ) => {
-      const status = error instanceof z.ZodError ? 400 : 500;
-      const message =
+      let status = error instanceof z.ZodError ? 400 : 500;
+      let message: unknown =
         error instanceof z.ZodError
           ? error.flatten()
-          : error instanceof Error
-            ? error.message
-            : "Unknown error";
+          : "Internal server error";
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+          status = 409;
+          message = "The requested record already exists";
+        } else if (error.code === "P2025") {
+          status = 404;
+          message = "The requested record was not found";
+        }
+      }
+      if (status >= 500) {
+        const logger = (
+          req as express.Request & {
+            log?: { error: (payload: unknown, message?: string) => void };
+          }
+        ).log;
+        logger?.error({ err: error }, "unhandled api error");
+      }
       res.status(status).json({ error: message });
     },
   );
@@ -1433,7 +1532,12 @@ function requestClientIdentity(req: express.Request): string | null {
 function requestAccountSession(req: express.Request): {
   userId: string;
   email: string;
+  sessionId?: string;
+  sessionVersion?: number;
 } | null {
+  if (resolvedAccountSessions.has(req)) {
+    return resolvedAccountSessions.get(req) ?? null;
+  }
   const authorization = req.headers.authorization;
   if (!authorization?.startsWith("Bearer ")) return null;
   return verifyAccountToken(authorization.slice("Bearer ".length).trim());
