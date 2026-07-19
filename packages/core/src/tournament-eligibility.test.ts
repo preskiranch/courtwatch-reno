@@ -1,9 +1,41 @@
 import { describe, expect, it } from "vitest";
 import type { TournamentEvent } from "./types.js";
 import {
+  deriveTournamentStatusAfterSuccessfulSync,
   eligibleTournamentEvents,
   tournamentTodayKey,
 } from "./tournament-eligibility.js";
+
+describe("deriveTournamentStatusAfterSuccessfulSync", () => {
+  it.each([
+    ["2026-07-24", "2026-07-26", "2026-07-18", "upcoming"],
+    ["2026-07-18", "2026-07-20", "2026-07-18", "active"],
+    ["2026-07-10", "2026-07-12", "2026-07-18", "completed"],
+  ] as const)(
+    "restores an unavailable event dated %s through %s to %s after a successful sync",
+    (startDate, endDate, todayKey, expectedStatus) => {
+      expect(
+        deriveTournamentStatusAfterSuccessfulSync(
+          { startDate, endDate, status: "unavailable" },
+          todayKey,
+        ),
+      ).toBe(expectedStatus);
+    },
+  );
+
+  it("does not revive a cancelled event", () => {
+    expect(
+      deriveTournamentStatusAfterSuccessfulSync(
+        {
+          startDate: "2026-07-24",
+          endDate: "2026-07-26",
+          status: "cancelled",
+        },
+        "2026-07-18",
+      ),
+    ).toBe("cancelled");
+  });
+});
 
 describe("eligibleTournamentEvents", () => {
   it("keeps public team-list tournaments in the six-month active/upcoming window even before teams post", () => {

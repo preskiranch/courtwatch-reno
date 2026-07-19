@@ -39,6 +39,19 @@ export function deriveTournamentStatus(
   return "upcoming";
 }
 
+export function deriveTournamentStatusAfterSuccessfulSync(
+  event: Pick<TournamentEvent, "startDate" | "endDate" | "status">,
+  todayKey = tournamentTodayKey(),
+): TournamentEventStatus {
+  return deriveTournamentStatus(
+    {
+      ...event,
+      status: event.status === "unavailable" ? "upcoming" : event.status,
+    },
+    todayKey,
+  );
+}
+
 export function isTournamentDropdownEligible(
   event: TournamentEvent,
   options: TournamentDropdownEligibilityOptions = {},

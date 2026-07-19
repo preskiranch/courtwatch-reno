@@ -16,6 +16,7 @@ import {
   buildTeamScoringLeaders,
   detectGameChanges,
   deriveTournamentStatus,
+  deriveTournamentStatusAfterSuccessfulSync,
   deriveDivisionResultsFromGames,
   eligibleTournamentEvents,
   extractDivisionMeta,
@@ -2449,7 +2450,7 @@ export class PrismaStore implements CourtWatchStore {
                 publishedTeamListFetched || event.hasPublicTeamList,
               lastCheckedAt: syncedAt,
               lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
-              status: deriveTournamentStatus({
+              status: deriveTournamentStatusAfterSuccessfulSync({
                 startDate: tournament.startDate,
                 endDate: tournament.endDate,
                 status: tournament.status,
@@ -2608,7 +2609,7 @@ export class PrismaStore implements CourtWatchStore {
           )
             ? syncedAt
             : undefined,
-          status: deriveTournamentStatus({
+          status: deriveTournamentStatusAfterSuccessfulSync({
             startDate: tournament.startDate,
             endDate: tournament.endDate,
             status: tournament.status,
