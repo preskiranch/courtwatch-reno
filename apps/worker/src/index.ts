@@ -19,6 +19,10 @@ import {
   shouldRecoverUnavailableEvent,
   type SyncMode,
 } from "./sync-policy.js";
+import {
+  createShutdownCoordinator,
+  requestSignal,
+} from "./shutdown.js";
 
 const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
@@ -47,9 +51,9 @@ const EnvSchema = z.object({
 const env = EnvSchema.parse(process.env);
 const logger = pino({ name: "courtwatch-reno-sync-worker" });
 let failureCount = 0;
-let shuttingDown = false;
 let lastDiscoveryAt = 0;
 let discoveryTask: Promise<void> | null = null;
+const shutdown = createShutdownCoordinator();
 
 type SyncTarget = Pick<TournamentEvent, "exposureEventId" | "name"> & {
   syncMode: SyncMode;
@@ -88,15 +92,14 @@ function courtWatchEventScopeWhere() {
   };
 }
 
-process.on("SIGTERM", () => {
-  shuttingDown = true;
-  logger.info("received SIGTERM, stopping after current sync");
-});
+process.on("SIGTERM", () => requestShutdown("SIGTERM"));
+process.on("SIGINT", () => requestShutdown("SIGINT"));
 
-process.on("SIGINT", () => {
-  shuttingDown = true;
-  logger.info("received SIGINT, stopping after current sync");
-});
+function requestShutdown(signal: "SIGTERM" | "SIGINT") {
+  if (shutdown.requested) return;
+  logger.info({ signal }, "shutdown requested; stopping worker");
+  shutdown.request(signal);
+}
 
 process.on("unhandledRejection", (reason) => {
   logger.fatal(
@@ -115,7 +118,7 @@ process.on("uncaughtException", (error) => {
 });
 
 function exitAfterFatal() {
-  shuttingDown = true;
+  shutdown.request("fatal process error");
   setImmediate(() => process.exit(1));
 }
 
@@ -360,6 +363,7 @@ async function syncSingleEvent(event: SyncTarget) {
         env.WORKER_EVENT_SYNC_TIMEOUT_MS,
       );
     } catch (error) {
+      if (shutdown.requested) throw error;
       if (attempt >= env.WORKER_EVENT_SYNC_ATTEMPTS) throw error;
       const delayMs = retryDelayMs(
         attempt,
@@ -376,6 +380,7 @@ async function syncSingleEvent(event: SyncTarget) {
         "event sync transport failed; retrying",
       );
       await sleep(delayMs);
+      if (shutdown.requested) throw error;
       continue;
     }
 
@@ -432,6 +437,9 @@ async function syncSingleEvent(event: SyncTarget) {
         "event sync request failed; retrying",
       );
       await sleep(delayMs);
+      if (shutdown.requested) {
+        throw new Error("worker shutdown requested during sync retry");
+      }
       continue;
     }
     throw new Error(`sync-now failed with ${response.status}: ${responseText}`);
@@ -748,7 +756,7 @@ async function upsertDiscoveredEvent(event: TournamentEvent) {
 }
 
 async function loop() {
-  while (!shuttingDown) {
+  while (!shutdown.requested) {
     try {
       const result = await syncOnce();
       failureCount = nextWorkerFailureCount(failureCount, {
@@ -765,7 +773,10 @@ async function loop() {
       );
     }
 
+    if (shutdown.requested) break;
+
     const activeOverride = await activeTournamentOverride();
+    if (shutdown.requested) break;
     const calculatedDelay = calculatePollDelayMs({
       failureCount,
       activeOverride,
@@ -821,7 +832,7 @@ async function activeTournamentOverride(): Promise<boolean | undefined> {
 }
 
 function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return shutdown.wait(ms);
 }
 
 function retryAfterMs(value: string | null): number {
@@ -863,21 +874,40 @@ async function fetchWithTimeout(
   init: RequestInit = {},
   timeoutMs = env.WORKER_API_TIMEOUT_MS,
 ) {
-  if (init.signal || timeoutMs <= 0) return fetch(input, init);
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const request = requestSignal({
+    shutdownSignal: shutdown.signal,
+    requestSignal: init.signal,
+    timeoutMs,
+  });
   try {
-    return await fetch(input, { ...init, signal: controller.signal });
+    return await fetch(input, { ...init, signal: request.signal });
   } finally {
-    clearTimeout(timer);
+    request.cleanup();
   }
 }
 
 logger.info({ apiBaseUrl: env.API_BASE_URL }, "starting worker");
-void loop().catch((error) => {
-  logger.fatal(
-    { error: errorMessage(error), stack: errorStack(error) },
-    "worker loop crashed",
-  );
-  process.exit(1);
-});
+void runWorker();
+
+async function runWorker() {
+  try {
+    await loop();
+    if (discoveryTask) await discoveryTask;
+    logger.info("worker stopped cleanly");
+  } catch (error) {
+    if (shutdown.requested) {
+      logger.info(
+        { reason: shutdown.signal.reason },
+        "worker stopped during in-flight operation",
+      );
+      return;
+    }
+    logger.fatal(
+      { error: errorMessage(error), stack: errorStack(error) },
+      "worker loop crashed",
+    );
+    process.exitCode = 1;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
