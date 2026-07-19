@@ -1,6 +1,7 @@
 import { prisma } from "@courtwatch/db";
 import { config, isDatabaseConfigured } from "./config.js";
 import { createApp } from "./app.js";
+import { CoalescedTask } from "./coalesced-task.js";
 import { NotificationService } from "./notification-service.js";
 import { MockStore, PrismaStore } from "./store.js";
 
@@ -9,7 +10,7 @@ const store = useDatabase ? new PrismaStore(prisma) : new MockStore();
 const app = createApp(store, useDatabase ? prisma : null);
 const notifications = app.locals.notificationService as NotificationService;
 
-async function dispatchNotifications() {
+const notificationDispatcher = new CoalescedTask(async () => {
   try {
     const result = await notifications.sendPending();
     if (
@@ -23,11 +24,11 @@ async function dispatchNotifications() {
   } catch (error) {
     console.error("Notification dispatch failed", error);
   }
-}
+});
 
-void dispatchNotifications();
+void notificationDispatcher.run();
 const notificationDispatchTimer = setInterval(
-  () => void dispatchNotifications(),
+  () => void notificationDispatcher.run(),
   config.NOTIFICATION_DISPATCH_INTERVAL_MS,
 );
 notificationDispatchTimer.unref();
@@ -51,6 +52,7 @@ async function shutdown(signal: string) {
 
   server.close(async (error) => {
     try {
+      await notificationDispatcher.drain();
       await prisma.$disconnect();
     } finally {
       clearTimeout(forcedExit);
