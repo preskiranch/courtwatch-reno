@@ -1,11 +1,36 @@
 import { prisma } from "@courtwatch/db";
 import { config, isDatabaseConfigured } from "./config.js";
 import { createApp } from "./app.js";
+import { NotificationService } from "./notification-service.js";
 import { MockStore, PrismaStore } from "./store.js";
 
 const useDatabase = isDatabaseConfigured();
 const store = useDatabase ? new PrismaStore(prisma) : new MockStore();
 const app = createApp(store, useDatabase ? prisma : null);
+const notifications = app.locals.notificationService as NotificationService;
+
+async function dispatchNotifications() {
+  try {
+    const result = await notifications.sendPending();
+    if (
+      result.queued > 0 ||
+      result.sent > 0 ||
+      result.retried > 0 ||
+      result.deadLettered > 0
+    ) {
+      console.info("Notification dispatch completed", result);
+    }
+  } catch (error) {
+    console.error("Notification dispatch failed", error);
+  }
+}
+
+void dispatchNotifications();
+const notificationDispatchTimer = setInterval(
+  () => void dispatchNotifications(),
+  config.NOTIFICATION_DISPATCH_INTERVAL_MS,
+);
+notificationDispatchTimer.unref();
 
 const server = app.listen(config.PORT, () => {
   console.log(`Court Watch AAU API listening on ${config.PORT}`);
@@ -16,6 +41,7 @@ async function shutdown(signal: string) {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`Received ${signal}; closing Court Watch AAU API`);
+  clearInterval(notificationDispatchTimer);
 
   const forcedExit = setTimeout(() => {
     console.error("API shutdown timed out");

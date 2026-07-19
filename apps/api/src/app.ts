@@ -64,6 +64,7 @@ export function createApp(
 ) {
   const app = express();
   const notifications = new NotificationService(prismaClient);
+  app.locals.notificationService = notifications;
   const syncStatusStreams = new SyncStatusStreamBroker(store);
   const runSync = async (
     exposureEventId?: number | null,
@@ -1195,7 +1196,7 @@ export function createApp(
         res.json(defaultNotificationPreferences());
         return;
       }
-      const user = await settingsUser(prismaClient, requestClientIdentity(req));
+      const user = await settingsUserForRequest(prismaClient, req);
       const preference = await prismaClient.notificationPreference.upsert({
         where: { userId: user.id },
         update: {},
@@ -1216,7 +1217,6 @@ export function createApp(
           return;
         }
         const schema = z.object({
-          userId: z.string().optional(),
           newTeamDiscovered: z.boolean().optional(),
           newGameAdded: z.boolean().optional(),
           gameTimeChanged: z.boolean().optional(),
@@ -1230,19 +1230,12 @@ export function createApp(
           dailyDigest: z.boolean().optional(),
         });
         const body = schema.parse(req.body);
-        const user = body.userId
-          ? await prismaClient.user.findUnique({ where: { id: body.userId } })
-          : await settingsUser(prismaClient, requestClientIdentity(req));
-        if (!user) {
-          res.status(404).json({ error: "User not found" });
-          return;
-        }
-        const { userId: _userId, ...data } = body;
+        const user = await settingsUserForRequest(prismaClient, req);
         res.json(
           await prismaClient.notificationPreference.upsert({
             where: { userId: user.id },
-            update: data,
-            create: { userId: user.id, ...data },
+            update: body,
+            create: { userId: user.id, ...body },
           }),
         );
       } catch (error) {
@@ -1309,9 +1302,7 @@ export function createApp(
     ) => {
       let status = error instanceof z.ZodError ? 400 : 500;
       let message: unknown =
-        error instanceof z.ZodError
-          ? error.flatten()
-          : "Internal server error";
+        error instanceof z.ZodError ? error.flatten() : "Internal server error";
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           status = 409;
@@ -1320,6 +1311,10 @@ export function createApp(
           status = 404;
           message = "The requested record was not found";
         }
+      }
+      if (error instanceof ApiRequestError) {
+        status = error.statusCode;
+        message = error.message;
       }
       if (status >= 500) {
         const logger = (
@@ -1563,8 +1558,7 @@ function requestExposureEventId(req: express.Request): number | null {
   const queryValue =
     stringQuery(req.query.eventId) ?? stringQuery(req.query.exposureEventId);
   const body = req.body as
-    | { eventId?: unknown; exposureEventId?: unknown }
-    | undefined;
+    { eventId?: unknown; exposureEventId?: unknown } | undefined;
   const bodyValue = body?.eventId ?? body?.exposureEventId;
   const raw =
     queryValue ??
@@ -1666,30 +1660,46 @@ async function ensureSelectedProgramForClient(
   });
 }
 
-async function settingsUser(
-  prismaClient: PrismaClient,
-  clientId: string | null,
-) {
-  if (clientId) {
-    return prismaClient.user.upsert({
-      where: { clientId },
-      update: {},
-      create: {
-        clientId,
-        displayName: "Court Watch Device",
-        timezone: "America/Los_Angeles",
-      },
-    });
+class ApiRequestError extends Error {
+  constructor(
+    readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
   }
-  return (
-    (await prismaClient.user.findFirst()) ??
-    (await prismaClient.user.create({
-      data: {
-        displayName: "Court Watch User",
-        timezone: "America/Los_Angeles",
-      },
-    }))
-  );
+}
+
+async function settingsUserForRequest(
+  prismaClient: PrismaClient,
+  req: express.Request,
+) {
+  const session = requestAccountSession(req);
+  if (session) {
+    const user = await prismaClient.user.findUnique({
+      where: { id: session.userId },
+    });
+    if (!user)
+      throw new ApiRequestError(401, "Account session is no longer valid");
+    return user;
+  }
+
+  const clientId = requestClientId(req);
+  if (!clientId) {
+    throw new ApiRequestError(
+      400,
+      "A signed-in account or device identity is required",
+    );
+  }
+  return prismaClient.user.upsert({
+    where: { clientId },
+    update: {},
+    create: {
+      clientId,
+      displayName: "Court Watch Device",
+      timezone: "America/Los_Angeles",
+    },
+  });
 }
 
 function isAdminAuthorized(

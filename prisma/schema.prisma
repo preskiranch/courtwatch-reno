@@ -354,16 +354,23 @@ model NotificationPreference {
 }
 
 model NotificationLog {
-  id                String   @id @default(cuid())
-  userId            String   @map("user_id")
-  gameChangeEventId String?  @map("game_change_event_id")
+  id                String    @id @default(cuid())
+  userId            String    @map("user_id")
+  gameChangeEventId String?   @map("game_change_event_id")
   title             String
   body              String
   channel           String
-  sentAt            DateTime @default(now()) @map("sent_at")
+  clickUrl          String?   @map("click_url")
+  sentAt            DateTime? @map("sent_at")
   status            String
-  errorMessage      String?  @map("error_message")
-  dedupeKey         String   @map("dedupe_key")
+  errorMessage      String?   @map("error_message")
+  dedupeKey         String    @map("dedupe_key")
+  attemptCount      Int       @default(0) @map("attempt_count")
+  nextAttemptAt     DateTime? @map("next_attempt_at")
+  lastAttemptAt     DateTime? @map("last_attempt_at")
+  deliveredAt       DateTime? @map("delivered_at")
+  deadLetteredAt    DateTime? @map("dead_lettered_at")
+  leaseExpiresAt    DateTime? @map("lease_expires_at")
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   gameChangeEvent GameChangeEvent? @relation(fields: [gameChangeEventId], references: [id], onDelete: SetNull)
@@ -371,6 +378,9 @@ model NotificationLog {
   @@unique([userId, dedupeKey, channel])
   @@index([userId, sentAt], map: "notification_log_user_sent_at_idx")
   @@index([status, sentAt], map: "notification_log_status_sent_at_idx")
+  @@index([status, nextAttemptAt], map: "notification_log_status_next_attempt_idx")
+  @@index([status, leaseExpiresAt], map: "notification_log_status_lease_idx")
+  @@index([gameChangeEventId, status], map: "notification_log_change_status_idx")
   @@map("notification_log")
 }
 

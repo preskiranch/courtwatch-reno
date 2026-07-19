@@ -2,11 +2,57 @@ import { describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import { normalizeName, seedGames, seedSnapshot } from "@courtwatch/core";
 import type { Game } from "@courtwatch/core";
+import type { PrismaClient } from "@courtwatch/db";
 import { createApp } from "./app.js";
 import { signAccountToken } from "./auth.js";
 import { MockStore } from "./store.js";
 
 describe("CourtWatch API", () => {
+  it("binds notification preferences to the requesting device", async () => {
+    const userUpsert = vi.fn().mockResolvedValue({ id: "device-user" });
+    const preferenceUpsert = vi.fn().mockImplementation(async ({ update }) => ({
+      id: "preference-1",
+      userId: "device-user",
+      ...update,
+    }));
+    const prisma = {
+      user: { upsert: userUpsert },
+      notificationPreference: { upsert: preferenceUpsert },
+    } as unknown as PrismaClient;
+    const app = createApp(new MockStore(), prisma);
+
+    await request(app)
+      .patch("/api/settings/notification-preferences")
+      .set("x-courtwatch-client-id", "device-owner-123")
+      .send({ userId: "another-user", scorePosted: false })
+      .expect(200);
+
+    expect(userUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { clientId: "device-owner-123" } }),
+    );
+    expect(preferenceUpsert).toHaveBeenCalledWith({
+      where: { userId: "device-user" },
+      update: { scorePosted: false },
+      create: { userId: "device-user", scorePosted: false },
+    });
+  });
+
+  it("rejects preference access without an account or device identity", async () => {
+    const prisma = {
+      user: { upsert: vi.fn() },
+      notificationPreference: { upsert: vi.fn() },
+    } as unknown as PrismaClient;
+    const app = createApp(new MockStore(), prisma);
+
+    const response = await request(app)
+      .get("/api/settings/notification-preferences")
+      .expect(400);
+
+    expect(response.body).toEqual({
+      error: "A signed-in account or device identity is required",
+    });
+  });
+
   it("returns a dashboard response", async () => {
     const app = createApp(new MockStore(), null);
     const response = await request(app).get("/api/dashboard").expect(200);

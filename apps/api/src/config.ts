@@ -33,6 +33,11 @@ const ConfigSchema = z.object({
     .string()
     .default("Court Watch AAU <no-reply@courtwatchaau.com>"),
   PASSWORD_RESET_EXPOSE_TOKEN: z.coerce.boolean().default(false),
+  NOTIFICATION_DISPATCH_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .default(5_000),
 });
 
 export const config = ConfigSchema.parse(process.env);
