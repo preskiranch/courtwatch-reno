@@ -206,6 +206,17 @@ those baselines without inventing numbers.
 
 These items are intentionally not implemented in this review.
 
+### Next.js transitive PostCSS advisory
+
+Reason: **upstream version pin with no runtime exposure in Court Watch**. The
+current stable Next.js release pins PostCSS 8.4.31, which npm reports for a
+moderate CSS-stringification XSS advisory. Court Watch neither accepts nor
+stringifies user-supplied CSS, so the vulnerable path is not exposed by the
+application. npm's proposed remediation downgrades Next.js by multiple major
+versions, and a workspace override does not replace Next.js's exact private
+dependency. Dependabot and the production audit will continue monitoring this;
+upgrade as soon as stable Next.js consumes PostCSS 8.5.10 or newer.
+
 ### Redis and a dedicated job broker
 
 Reason: **cost and current-load ROI**. PostgreSQL leases and queue rows already
