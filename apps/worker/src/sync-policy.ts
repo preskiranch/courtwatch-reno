@@ -24,6 +24,12 @@ export interface UnavailableEventRecoverySignals {
   nowMs: number;
 }
 
+export interface SyncCycleOutcome {
+  targetCount: number;
+  successfulCount: number;
+  failedCount: number;
+}
+
 export function selectSyncMode(signals: SyncSignals): SyncMode {
   if (
     signals.activeGamePriority ||
@@ -137,6 +143,42 @@ export function shouldRecoverUnavailableEvent(
     Number.isNaN(lastCheckedAt) ||
     signals.nowMs - lastCheckedAt >= signals.staleMs
   );
+}
+
+export function nextWorkerFailureCount(
+  currentFailureCount: number,
+  outcome: SyncCycleOutcome,
+): number {
+  if (outcome.targetCount === 0 || outcome.failedCount === 0) return 0;
+  if (outcome.successfulCount > 0) return 0;
+  return Math.max(0, currentFailureCount) + 1;
+}
+
+export function retryDelayMs(
+  attempt: number,
+  baseMs: number,
+  maxMs: number,
+  random: () => number = Math.random,
+): number {
+  const safeBase = Math.max(1, baseMs);
+  const safeMax = Math.max(safeBase, maxMs);
+  const exponential = Math.min(
+    safeMax,
+    safeBase * 2 ** Math.max(0, Math.floor(attempt) - 1),
+  );
+  const jitterMultiplier = 0.75 + Math.min(1, Math.max(0, random())) * 0.5;
+  return Math.max(1, Math.round(exponential * jitterMultiplier));
+}
+
+export function jitterDelayMs(
+  delayMs: number,
+  ratio: number,
+  random: () => number = Math.random,
+): number {
+  const safeDelay = Math.max(1, delayMs);
+  const safeRatio = Math.min(0.5, Math.max(0, ratio));
+  const multiplier = 1 - safeRatio + 2 * safeRatio * random();
+  return Math.max(1, Math.round(safeDelay * multiplier));
 }
 
 function addDaysKey(dateKey: string, days: number): string {

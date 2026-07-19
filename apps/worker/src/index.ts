@@ -11,6 +11,9 @@ import pino from "pino";
 import { z } from "zod";
 import {
   refreshStaleMsForEvent,
+  jitterDelayMs,
+  nextWorkerFailureCount,
+  retryDelayMs,
   selectFairSyncBatch,
   selectSyncMode,
   shouldRecoverUnavailableEvent,
@@ -35,6 +38,10 @@ const EnvSchema = z.object({
   WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
   WORKER_SLOW_EVENT_SYNC_MS: z.coerce.number().default(20_000),
+  WORKER_EVENT_SYNC_ATTEMPTS: z.coerce.number().int().min(1).max(6).default(3),
+  WORKER_RETRY_BASE_MS: z.coerce.number().int().min(100).default(750),
+  WORKER_RETRY_MAX_MS: z.coerce.number().int().min(500).default(10_000),
+  WORKER_POLL_JITTER_RATIO: z.coerce.number().min(0).max(0.5).default(0.08),
 });
 
 const env = EnvSchema.parse(process.env);
@@ -145,6 +152,9 @@ async function syncOnce() {
       ? "success"
       : "partial",
     targetsCount: targets.length,
+    successfulCount: results.filter((result) => result.status !== "failed")
+      .length,
+    failedCount: results.filter((result) => result.status === "failed").length,
     teamsCount: results.reduce((count, result) => count + result.teamsCount, 0),
     gamesCount: results.reduce((count, result) => count + result.gamesCount, 0),
     changesDetected: results.reduce(
@@ -326,23 +336,48 @@ async function unavailableConfiguredRecoveryTargets(
 
 async function syncSingleEvent(event: SyncTarget) {
   const startedAt = Date.now();
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const response = await fetchWithTimeout(
-      new URL("/api/admin/sync-now", env.API_BASE_URL),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
+  for (
+    let attempt = 1;
+    attempt <= env.WORKER_EVENT_SYNC_ATTEMPTS;
+    attempt += 1
+  ) {
+    let response: Response;
+    try {
+      response = await fetchWithTimeout(
+        new URL("/api/admin/sync-now", env.API_BASE_URL),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
+          },
+          body: JSON.stringify({
+            source: "worker",
+            exposureEventId: event.exposureEventId,
+            teamListOnly: event.syncMode === "teams",
+          }),
         },
-        body: JSON.stringify({
-          source: "worker",
+        env.WORKER_EVENT_SYNC_TIMEOUT_MS,
+      );
+    } catch (error) {
+      if (attempt >= env.WORKER_EVENT_SYNC_ATTEMPTS) throw error;
+      const delayMs = retryDelayMs(
+        attempt,
+        env.WORKER_RETRY_BASE_MS,
+        env.WORKER_RETRY_MAX_MS,
+      );
+      logger.warn(
+        {
+          attempt,
+          delayMs,
           exposureEventId: event.exposureEventId,
-          teamListOnly: event.syncMode === "teams",
-        }),
-      },
-      env.WORKER_EVENT_SYNC_TIMEOUT_MS,
-    );
+          error: errorMessage(error),
+        },
+        "event sync transport failed; retrying",
+      );
+      await sleep(delayMs);
+      continue;
+    }
 
     if (response.ok) {
       const result = (await response.json()) as {
@@ -371,19 +406,32 @@ async function syncSingleEvent(event: SyncTarget) {
 
     const responseText = await response.text();
     if (
-      attempt === 1 &&
-      [408, 429, 500, 502, 503, 504].includes(response.status)
+      attempt < env.WORKER_EVENT_SYNC_ATTEMPTS &&
+      [408, 425, 429, 500, 502, 503, 504].includes(response.status)
     ) {
+      const delayMs = Math.max(
+        Math.min(
+          env.WORKER_RETRY_MAX_MS,
+          retryAfterMs(response.headers.get("retry-after")),
+        ),
+        retryDelayMs(
+          attempt,
+          env.WORKER_RETRY_BASE_MS,
+          env.WORKER_RETRY_MAX_MS,
+        ),
+      );
       logger.warn(
         {
+          attempt,
+          delayMs,
           exposureEventId: event.exposureEventId,
           name: event.name,
           status: response.status,
           responseText,
         },
-        "event sync request failed; retrying once",
+        "event sync request failed; retrying",
       );
-      await sleep(1_500);
+      await sleep(delayMs);
       continue;
     }
     throw new Error(`sync-now failed with ${response.status}: ${responseText}`);
@@ -703,7 +751,11 @@ async function loop() {
   while (!shuttingDown) {
     try {
       const result = await syncOnce();
-      failureCount = 0;
+      failureCount = nextWorkerFailureCount(failureCount, {
+        targetCount: result.targetsCount,
+        successfulCount: result.successfulCount,
+        failedCount: result.failedCount,
+      });
       logger.info(result, "sync completed");
     } catch (error) {
       failureCount += 1;
@@ -718,10 +770,12 @@ async function loop() {
       failureCount,
       activeOverride,
     });
-    const delay = workerPollDelay(
-      calculatedDelay,
-      failureCount,
-      activeOverride,
+    const delay = Math.min(
+      failureCount > 0 ? env.WORKER_MAX_BACKOFF_MS : Number.MAX_SAFE_INTEGER,
+      jitterDelayMs(
+        workerPollDelay(calculatedDelay, failureCount, activeOverride),
+        env.WORKER_POLL_JITTER_RATIO,
+      ),
     );
     logger.info(
       { delayMs: delay, failureCount, activeOverride },
@@ -768,6 +822,14 @@ async function activeTournamentOverride(): Promise<boolean | undefined> {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function retryAfterMs(value: string | null): number {
+  if (!value) return 0;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1_000;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? 0 : Math.max(0, timestamp - Date.now());
 }
 
 async function mapWithConcurrency<T, R>(

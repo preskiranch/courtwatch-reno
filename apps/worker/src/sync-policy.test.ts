@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  jitterDelayMs,
+  nextWorkerFailureCount,
   refreshStaleMsForEvent,
+  retryDelayMs,
   selectFairSyncBatch,
   selectSyncMode,
   shouldRecoverUnavailableEvent,
@@ -131,5 +134,60 @@ describe("shouldRecoverUnavailableEvent", () => {
     expect(shouldRecoverUnavailableEvent({ ...baseSignals, ...override })).toBe(
       false,
     );
+  });
+});
+
+describe("worker failure recovery", () => {
+  it("backs off when every targeted event failed", () => {
+    expect(
+      nextWorkerFailureCount(2, {
+        targetCount: 4,
+        successfulCount: 0,
+        failedCount: 4,
+      }),
+    ).toBe(3);
+  });
+
+  it("keeps healthy events fast when only one event failed", () => {
+    expect(
+      nextWorkerFailureCount(3, {
+        targetCount: 4,
+        successfulCount: 3,
+        failedCount: 1,
+      }),
+    ).toBe(0);
+  });
+
+  it("resets after an idle or successful cycle", () => {
+    expect(
+      nextWorkerFailureCount(3, {
+        targetCount: 0,
+        successfulCount: 0,
+        failedCount: 0,
+      }),
+    ).toBe(0);
+    expect(
+      nextWorkerFailureCount(3, {
+        targetCount: 2,
+        successfulCount: 2,
+        failedCount: 0,
+      }),
+    ).toBe(0);
+  });
+});
+
+describe("retry timing", () => {
+  it("uses capped exponential backoff with bounded jitter", () => {
+    expect(retryDelayMs(1, 1_000, 5_000, () => 0.5)).toBe(1_000);
+    expect(retryDelayMs(2, 1_000, 5_000, () => 0.5)).toBe(2_000);
+    expect(retryDelayMs(4, 1_000, 5_000, () => 0.5)).toBe(5_000);
+    expect(retryDelayMs(2, 1_000, 5_000, () => 0)).toBe(1_500);
+    expect(retryDelayMs(2, 1_000, 5_000, () => 1)).toBe(2_500);
+  });
+
+  it("jitters poll cadence without unbounded drift", () => {
+    expect(jitterDelayMs(10_000, 0.1, () => 0)).toBe(9_000);
+    expect(jitterDelayMs(10_000, 0.1, () => 0.5)).toBe(10_000);
+    expect(jitterDelayMs(10_000, 0.1, () => 1)).toBe(11_000);
   });
 });
