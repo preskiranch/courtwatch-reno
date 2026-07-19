@@ -3,6 +3,7 @@ import {
   refreshStaleMsForEvent,
   selectFairSyncBatch,
   selectSyncMode,
+  shouldRecoverUnavailableEvent,
 } from "./sync-policy.js";
 
 describe("selectSyncMode", () => {
@@ -96,5 +97,39 @@ describe("refreshStaleMsForEvent", () => {
     expect(
       refreshStaleMsForEvent(event, "2026-07-16", 30_000, 300_000),
     ).toBeNull();
+  });
+});
+
+describe("shouldRecoverUnavailableEvent", () => {
+  const baseSignals = {
+    status: "unavailable",
+    configured: true,
+    supportedRegion: true,
+    startDate: "2026-07-17",
+    endDate: "2026-07-19",
+    todayKey: "2026-07-18",
+    recoveryWindowDays: 14,
+    lastCheckedAt: "2026-07-18T18:00:00.000Z",
+    staleMs: 15 * 60_000,
+    nowMs: Date.parse("2026-07-18T19:00:00.000Z"),
+  };
+
+  it("retries a stale configured tournament during its event window", () => {
+    expect(shouldRecoverUnavailableEvent(baseSignals)).toBe(true);
+  });
+
+  it.each([
+    { configured: false },
+    { supportedRegion: false },
+    { status: "cancelled" },
+    { endDate: "2026-07-16" },
+    { startDate: "2026-08-10" },
+    {
+      lastCheckedAt: "2026-07-18T18:55:00.000Z",
+    },
+  ])("does not retry an ineligible event: %o", (override) => {
+    expect(shouldRecoverUnavailableEvent({ ...baseSignals, ...override })).toBe(
+      false,
+    );
   });
 });

@@ -13,6 +13,7 @@ import {
   refreshStaleMsForEvent,
   selectFairSyncBatch,
   selectSyncMode,
+  shouldRecoverUnavailableEvent,
   type SyncMode,
 } from "./sync-policy.js";
 
@@ -43,7 +44,7 @@ let shuttingDown = false;
 let lastDiscoveryAt = 0;
 let discoveryTask: Promise<void> | null = null;
 
-type SyncTarget = TournamentEvent & {
+type SyncTarget = Pick<TournamentEvent, "exposureEventId" | "name"> & {
   syncMode: SyncMode;
 };
 
@@ -166,8 +167,17 @@ async function syncTargets(): Promise<SyncTarget[]> {
   const activeGamePriorityIds = await activeGamePriorityExposureIds();
   const preferredIds = preferredExposureEventIds();
   const today = dateKeyInPacific(new Date());
+  const batchSize = Math.max(1, env.WORKER_SYNC_BATCH_SIZE);
+  const recoveryTargets = await unavailableConfiguredRecoveryTargets(
+    preferredIds,
+    Math.min(2, batchSize),
+  );
+  const recoveryIds = new Set(
+    recoveryTargets.map((event) => event.exposureEventId),
+  );
   const candidates = events
     .filter((event) => event.status !== "cancelled")
+    .filter((event) => !recoveryIds.has(event.exposureEventId))
     .filter((event) =>
       shouldSyncEvent(event, activeGamePriorityIds, preferredIds),
     )
@@ -185,14 +195,20 @@ async function syncTargets(): Promise<SyncTarget[]> {
     (event) => !needsMissingRosterDiscovery(event),
   );
 
-  return selectFairSyncBatch(
-    standardQueue,
-    rosterDiscoveryQueue,
-    env.WORKER_SYNC_BATCH_SIZE,
-  ).map((event) => ({
-    ...event,
-    syncMode: syncModeForEvent(event, activeGamePriorityIds),
-  }));
+  const regularCapacity = batchSize - recoveryTargets.length;
+  const regularTargets =
+    regularCapacity > 0
+      ? selectFairSyncBatch(
+          standardQueue,
+          rosterDiscoveryQueue,
+          regularCapacity,
+        ).map((event) => ({
+          ...event,
+          syncMode: syncModeForEvent(event, activeGamePriorityIds),
+        }))
+      : [];
+
+  return [...recoveryTargets, ...regularTargets];
 }
 
 function compareSyncCandidates(
@@ -242,6 +258,70 @@ function dateDistanceMs(dateKey: string, todayKey: string) {
   return Number.isNaN(timestamp)
     ? Number.MAX_SAFE_INTEGER
     : Math.abs(timestamp - todayTimestamp);
+}
+
+async function unavailableConfiguredRecoveryTargets(
+  preferredIds: ReadonlySet<number>,
+  limit: number,
+): Promise<SyncTarget[]> {
+  if (preferredIds.size === 0 || limit <= 0) return [];
+
+  const todayKey = dateKeyInPacific(new Date());
+  const nowMs = Date.now();
+  const candidates = await prisma.event.findMany({
+    where: {
+      AND: [
+        courtWatchEventScopeWhere(),
+        {
+          exposureEventId: { in: [...preferredIds] },
+          status: "unavailable",
+          startDate: {
+            lte: new Date(
+              `${addDaysKey(todayKey, env.WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS)}T00:00:00.000Z`,
+            ),
+          },
+          endDate: {
+            gte: new Date(`${addDaysKey(todayKey, -1)}T00:00:00.000Z`),
+          },
+        },
+      ],
+    },
+    select: {
+      exposureEventId: true,
+      name: true,
+      city: true,
+      state: true,
+      location: true,
+      region: true,
+      status: true,
+      startDate: true,
+      endDate: true,
+      lastCheckedAt: true,
+    },
+    orderBy: [{ startDate: "asc" }, { name: "asc" }],
+  });
+
+  return candidates
+    .filter((event) =>
+      shouldRecoverUnavailableEvent({
+        status: event.status,
+        configured: preferredIds.has(event.exposureEventId),
+        supportedRegion: isCourtWatchSupportedTournamentRegion(event),
+        startDate: event.startDate.toISOString().slice(0, 10),
+        endDate: event.endDate.toISOString().slice(0, 10),
+        todayKey,
+        recoveryWindowDays: env.WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS,
+        lastCheckedAt: event.lastCheckedAt?.toISOString() ?? null,
+        staleMs: env.WORKER_TEAM_LIST_RECHECK_STALE_MS,
+        nowMs,
+      }),
+    )
+    .slice(0, limit)
+    .map((event) => ({
+      exposureEventId: event.exposureEventId,
+      name: event.name,
+      syncMode: "full" as const,
+    }));
 }
 
 async function syncSingleEvent(event: SyncTarget) {

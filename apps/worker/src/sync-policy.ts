@@ -11,6 +11,19 @@ export interface SyncQueueItem {
   exposureEventId: number;
 }
 
+export interface UnavailableEventRecoverySignals {
+  status: string;
+  configured: boolean;
+  supportedRegion: boolean;
+  startDate: string;
+  endDate: string;
+  todayKey: string;
+  recoveryWindowDays: number;
+  lastCheckedAt: string | null;
+  staleMs: number;
+  nowMs: number;
+}
+
 export function selectSyncMode(signals: SyncSignals): SyncMode {
   if (
     signals.activeGamePriority ||
@@ -97,6 +110,33 @@ export function refreshStaleMsForEvent(
     return postEventStaleMs;
   }
   return null;
+}
+
+export function shouldRecoverUnavailableEvent(
+  signals: UnavailableEventRecoverySignals,
+): boolean {
+  if (
+    signals.status !== "unavailable" ||
+    !signals.configured ||
+    !signals.supportedRegion
+  ) {
+    return false;
+  }
+
+  if (
+    signals.startDate >
+      addDaysKey(signals.todayKey, signals.recoveryWindowDays) ||
+    signals.endDate < addDaysKey(signals.todayKey, -1)
+  ) {
+    return false;
+  }
+
+  if (!signals.lastCheckedAt) return true;
+  const lastCheckedAt = Date.parse(signals.lastCheckedAt);
+  return (
+    Number.isNaN(lastCheckedAt) ||
+    signals.nowMs - lastCheckedAt >= signals.staleMs
+  );
 }
 
 function addDaysKey(dateKey: string, days: number): string {
