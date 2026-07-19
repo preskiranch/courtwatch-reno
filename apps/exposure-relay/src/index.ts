@@ -10,6 +10,7 @@ import {
   readAsyncBodyWithLimit,
   readWebBodyWithLimit,
 } from "./body-limits.js";
+import { RequestControllerRegistry } from "./request-registry.js";
 
 const relayHeader = "x-courtwatch-relay-key";
 const defaultDelegateOrigin = process.env.K_SERVICE
@@ -63,6 +64,8 @@ let upstreamProbe: UpstreamProbe = {
 };
 
 const legacyAuthCache = new Map<string, number>();
+const activeRequests = new RequestControllerRegistry();
+let shuttingDown = false;
 
 const server = createServer(async (request, response) => {
   const startedAt = Date.now();
@@ -93,7 +96,8 @@ const server = createServer(async (request, response) => {
     return;
   }
 
-  const controller = new AbortController();
+  const trackedRequest = activeRequests.create();
+  const { controller } = trackedRequest;
   let timedOut = false;
   let clientAborted = false;
   const timer = setTimeout(() => {
@@ -164,6 +168,7 @@ const server = createServer(async (request, response) => {
   } finally {
     clearTimeout(timer);
     request.off("aborted", abortUpstream);
+    trackedRequest.release();
   }
 });
 
@@ -183,11 +188,49 @@ server.listen(port, () => {
   void probeUpstream();
 });
 
-setInterval(() => void probeUpstream(), 30_000).unref();
+const probeInterval = setInterval(() => void probeUpstream(), 30_000);
+probeInterval.unref();
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+
+function shutdown(signal: "SIGTERM" | "SIGINT") {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  clearInterval(probeInterval);
+  activeRequests.abortAll(`${signal}: relay shutdown`);
+
+  const forceExit = setTimeout(() => {
+    console.error(
+      JSON.stringify({
+        activeRequestCount: activeRequests.size,
+        message: "Exposure relay shutdown timed out",
+        signal,
+      }),
+    );
+    server.closeAllConnections();
+    process.exit(1);
+  }, 10_000);
+  forceExit.unref();
+
+  server.close((error) => {
+    clearTimeout(forceExit);
+    if (error) {
+      console.error(
+        JSON.stringify({ error: error.message, message: "Relay close failed" }),
+      );
+      process.exitCode = 1;
+      return;
+    }
+    console.log(JSON.stringify({ message: "Exposure relay stopped", signal }));
+  });
+}
 
 async function probeUpstream() {
+  if (shuttingDown) return;
   const startedAt = Date.now();
-  const controller = new AbortController();
+  const trackedRequest = activeRequests.create();
+  const { controller } = trackedRequest;
   const timer = setTimeout(() => controller.abort(), upstreamTimeoutMs);
   try {
     const response = await fetch(
@@ -208,6 +251,7 @@ async function probeUpstream() {
     updateProbe(false, null, Date.now() - startedAt);
   } finally {
     clearTimeout(timer);
+    trackedRequest.release();
   }
 }
 
@@ -224,7 +268,8 @@ async function authorized(request: IncomingMessage): Promise<boolean> {
   if (cachedUntil > Date.now()) return true;
   if (cachedUntil) legacyAuthCache.delete(credentialHash);
 
-  const controller = new AbortController();
+  const trackedRequest = activeRequests.create();
+  const { controller } = trackedRequest;
   const timer = setTimeout(() => controller.abort(), 5_000);
   try {
     const response = await fetch(
@@ -247,6 +292,7 @@ async function authorized(request: IncomingMessage): Promise<boolean> {
     return false;
   } finally {
     clearTimeout(timer);
+    trackedRequest.release();
   }
 }
 
