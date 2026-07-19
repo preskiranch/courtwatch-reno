@@ -30,12 +30,12 @@
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
-    "@types/node": "^24.10.1",
+    "@types/node": "^26.1.1",
     "playwright": "^1.60.0",
     "prettier": "^3.6.2",
-    "prisma": "^6.19.0",
+    "prisma": "^7.8.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.0.13"
   },
   "engines": {
