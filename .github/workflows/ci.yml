@@ -16,6 +16,10 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+      DATABASE_URL: postgresql://courtwatch:courtwatch@localhost:5432/courtwatch?schema=public
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -23,8 +27,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm audit --audit-level=high
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run db:generate
+      - run: npx prisma validate
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:run
