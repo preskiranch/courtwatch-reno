@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { pruneStaleApiCaches } from "../lib/api";
+import { queryRetryDelay, shouldRetryQuery } from "../lib/query-policy";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -11,8 +12,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 30_000,
-            refetchInterval: 60_000,
-            retry: 1,
+            networkMode: "offlineFirst",
+            refetchOnReconnect: "always",
+            retry: shouldRetryQuery,
+            retryDelay: queryRetryDelay,
+          },
+          mutations: {
+            networkMode: "online",
+            retry: false,
           },
         },
       }),

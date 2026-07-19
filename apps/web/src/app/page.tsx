@@ -1,15 +1,16 @@
-import { CourtWatchApp } from "../components/courtwatch-app";
-import { CourtVisionApp } from "../components/courtvision-app";
+import { TargetApp } from "@courtwatch/app-target";
 import { DomainMigrationGate } from "../components/domain-migration-gate";
 
+const isCourtVision = process.env.NEXT_PUBLIC_APP_TARGET === "courtvision";
+
 export default function Home() {
-  if (process.env.NEXT_PUBLIC_APP_TARGET === "courtvision") {
-    return <CourtVisionApp />;
+  if (isCourtVision) {
+    return <TargetApp />;
   }
 
   return (
     <DomainMigrationGate>
-      <CourtWatchApp />
+      <TargetApp />
     </DomainMigrationGate>
   );
 }
