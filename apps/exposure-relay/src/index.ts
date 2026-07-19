@@ -4,6 +4,12 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
+import {
+  assertContentLengthWithinLimit,
+  PayloadLimitError,
+  readAsyncBodyWithLimit,
+  readWebBodyWithLimit,
+} from "./body-limits.js";
 
 const relayHeader = "x-courtwatch-relay-key";
 const defaultDelegateOrigin = process.env.K_SERVICE
@@ -32,6 +38,10 @@ const upstreamTimeoutMs = positiveInteger(
 const maxRequestBodyBytes = positiveInteger(
   process.env.RELAY_MAX_BODY_BYTES,
   2 * 1024 * 1024,
+);
+const maxResponseBodyBytes = positiveInteger(
+  process.env.RELAY_MAX_RESPONSE_BYTES,
+  16 * 1024 * 1024,
 );
 
 if (process.env.NODE_ENV === "production" && sharedSecret.length < 32) {
@@ -84,8 +94,16 @@ const server = createServer(async (request, response) => {
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), upstreamTimeoutMs);
-  const abortUpstream = () => controller.abort();
+  let timedOut = false;
+  let clientAborted = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, upstreamTimeoutMs);
+  const abortUpstream = () => {
+    clientAborted = true;
+    controller.abort();
+  };
   request.once("aborted", abortUpstream);
 
   try {
@@ -106,6 +124,11 @@ const server = createServer(async (request, response) => {
       signal: controller.signal,
     });
 
+    const responseBody =
+      request.method === "HEAD" || !upstreamResponse.body
+        ? undefined
+        : await readUpstreamBody(upstreamResponse, maxResponseBodyBytes);
+
     updateProbe(
       upstreamResponse.ok,
       upstreamResponse.status,
@@ -116,22 +139,14 @@ const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("X-CourtWatch-Relay", relayLocation);
 
-    if (request.method === "HEAD" || !upstreamResponse.body) {
-      response.end();
-    } else {
-      response.end(Buffer.from(await upstreamResponse.arrayBuffer()));
-    }
+    response.end(responseBody);
 
     logRequest(request, requestUrl, upstreamResponse.status, startedAt);
   } catch (error) {
-    const timedOut = controller.signal.aborted;
     updateProbe(false, null, Date.now() - startedAt);
-    if (!response.headersSent) {
-      writeJson(response, timedOut ? 504 : 502, {
-        error: timedOut
-          ? "Upstream request timed out"
-          : "Upstream request failed",
-      });
+    if (!clientAborted && !response.headersSent) {
+      const failure = relayFailure(error, timedOut);
+      writeJson(response, failure.status, { error: failure.message });
     } else {
       response.destroy();
     }
@@ -141,6 +156,8 @@ const server = createServer(async (request, response) => {
         error: error instanceof Error ? error.message : "Unknown error",
         method: request.method,
         path: requestUrl.pathname,
+        payloadDirection:
+          error instanceof PayloadLimitError ? error.direction : undefined,
         timedOut,
       }),
     );
@@ -158,6 +175,8 @@ server.listen(port, () => {
       legacyAuthOrigin,
       port,
       relayLocation,
+      maxRequestBodyBytes,
+      maxResponseBodyBytes,
       upstreamOrigin,
     }),
   );
@@ -282,6 +301,7 @@ function copyResponseHeaders(headers: Headers, response: ServerResponse) {
   const blockedHeaders = new Set([
     "connection",
     "content-encoding",
+    "content-length",
     "keep-alive",
     "transfer-encoding",
   ]);
@@ -295,15 +315,43 @@ async function readRequestBody(
   request: IncomingMessage,
   maxBytes: number,
 ): Promise<string> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of request) {
-    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    size += buffer.length;
-    if (size > maxBytes) throw new Error("Request body exceeded relay limit");
-    chunks.push(buffer);
+  assertContentLengthWithinLimit(
+    typeof request.headers["content-length"] === "string"
+      ? request.headers["content-length"]
+      : undefined,
+    maxBytes,
+    "request",
+  );
+  return (await readAsyncBodyWithLimit(request, maxBytes, "request")).toString(
+    "utf8",
+  );
+}
+
+async function readUpstreamBody(
+  upstreamResponse: Response,
+  maxBytes: number,
+): Promise<Buffer> {
+  assertContentLengthWithinLimit(
+    upstreamResponse.headers.get("content-length"),
+    maxBytes,
+    "response",
+  );
+  if (!upstreamResponse.body) return Buffer.alloc(0);
+  return readWebBodyWithLimit(upstreamResponse.body, maxBytes);
+}
+
+function relayFailure(
+  error: unknown,
+  timedOut: boolean,
+): { message: string; status: number } {
+  if (error instanceof PayloadLimitError) {
+    return error.direction === "request"
+      ? { message: "Request body is too large", status: 413 }
+      : { message: "Upstream response exceeded the relay limit", status: 502 };
   }
-  return Buffer.concat(chunks).toString("utf8");
+  return timedOut
+    ? { message: "Upstream request timed out", status: 504 }
+    : { message: "Upstream request failed", status: 502 };
 }
 
 function updateProbe(ok: boolean, status: number | null, latencyMs: number) {
