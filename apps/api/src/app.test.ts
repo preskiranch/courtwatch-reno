@@ -8,6 +8,12 @@ import { signAccountToken } from "./auth.js";
 import { MockStore } from "./store.js";
 
 describe("CourtWatch API", () => {
+  it("serves liveness without requiring an account session lookup", async () => {
+    const app = createApp(new MockStore(), {} as PrismaClient);
+    const response = await request(app).get("/api/health/live").expect(200);
+    expect(response.body).toMatchObject({ ok: true, status: "alive" });
+  });
+
   it("binds notification preferences to the requesting device", async () => {
     const userUpsert = vi.fn().mockResolvedValue({ id: "device-user" });
     const preferenceUpsert = vi.fn().mockImplementation(async ({ update }) => ({

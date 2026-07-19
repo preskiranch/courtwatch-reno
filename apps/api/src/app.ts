@@ -4,7 +4,6 @@ import {
   isActiveTournamentWindowForEvent,
   isCourtWatchSupportedTournamentRegion,
   normalizeProgramName,
-  RenderHealthCheckService,
   SELECTED_TEAMS_PROGRAM_ID,
   SELECTED_TEAMS_PROGRAM_NAME,
 } from "@courtwatch/core";
@@ -40,6 +39,7 @@ import {
   isExposureConfigured,
 } from "./config.js";
 import { NotificationService } from "./notification-service.js";
+import { checkApiReadiness } from "./health.js";
 import type { CourtWatchStore, SyncNowOptions } from "./store.js";
 
 const PRESENCE_TTL_MS = 45_000;
@@ -128,6 +128,28 @@ export function createApp(
       },
     }),
   );
+
+  app.get("/api/health/live", (_req, res) => {
+    res.json({
+      ok: true,
+      status: "alive",
+      timestamp: new Date().toISOString(),
+    });
+  });
+  const readinessHandler: express.RequestHandler = async (_req, res, next) => {
+    try {
+      const result = await checkApiReadiness(prismaClient, {
+        databaseConfigured: isDatabaseConfigured(),
+        sourceConfigured: isExposureConfigured(),
+      });
+      res.status(result.httpStatus).json(result.body);
+    } catch (error) {
+      next(error);
+    }
+  };
+  app.get("/api/health", readinessHandler);
+  app.get("/api/health/ready", readinessHandler);
+
   app.use(async (req, _res, next) => {
     try {
       const authorization = req.headers.authorization;
@@ -192,16 +214,6 @@ export function createApp(
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many admin requests. Try again shortly." },
-  });
-
-  app.get("/api/health", async (_req, res) => {
-    res.json(
-      new RenderHealthCheckService().check({
-        dbConfigured: isDatabaseConfigured(),
-        sourceConfigured: isExposureConfigured(),
-        lastSyncAt: null,
-      }),
-    );
   });
 
   app.get("/api/accounts/stats", async (_req, res, next) => {
