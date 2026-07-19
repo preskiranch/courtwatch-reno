@@ -40,6 +40,7 @@ import {
 } from "./config.js";
 import { NotificationService } from "./notification-service.js";
 import { checkApiReadiness } from "./health.js";
+import { createPresenceService } from "./presence-service.js";
 import type { CourtWatchStore, SyncNowOptions } from "./store.js";
 
 const PRESENCE_TTL_MS = 45_000;
@@ -49,10 +50,6 @@ const SLOW_REQUEST_WARNING_MS = 1_500;
 const ACTIVE_SYNC_STALE_MS = 45_000;
 const PASSIVE_SYNC_STALE_MS = 10 * 60_000;
 const ADMIN_ACCOUNT_EMAIL = "courtwatchaau@gmail.com";
-const activePresence = new Map<
-  string,
-  { lastSeenAt: number; page: string | null }
->();
 const resolvedAccountSessions = new WeakMap<
   express.Request,
   AccountSessionClaims | null
@@ -64,6 +61,7 @@ export function createApp(
 ) {
   const app = express();
   const notifications = new NotificationService(prismaClient);
+  const presence = createPresenceService(prismaClient, PRESENCE_TTL_MS);
   app.locals.notificationService = notifications;
   const syncStatusStreams = new SyncStatusStreamBroker(store);
   const runSync = async (
@@ -796,8 +794,7 @@ export function createApp(
   });
 
   app.get("/api/presence", async (_req, res) => {
-    prunePresence();
-    res.json(presencePayload());
+    res.json(await presence.snapshot());
   });
 
   app.post("/api/presence/heartbeat", async (req, res, next) => {
@@ -809,12 +806,7 @@ export function createApp(
         })
         .parse(req.body ?? {});
       const clientId = body.clientId ?? randomUUID();
-      activePresence.set(clientId, {
-        lastSeenAt: Date.now(),
-        page: body.page ?? null,
-      });
-      prunePresence();
-      res.json(presencePayload(clientId));
+      res.json(await presence.heartbeat(clientId, body.page ?? null));
     } catch (error) {
       next(error);
     }
@@ -1441,30 +1433,6 @@ function allowedOriginsFromEnv(value: string | undefined): string[] {
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
-}
-
-function prunePresence(now = Date.now()) {
-  for (const [clientId, presence] of activePresence.entries()) {
-    if (now - presence.lastSeenAt > PRESENCE_TTL_MS)
-      activePresence.delete(clientId);
-  }
-}
-
-function presencePayload(clientId?: string) {
-  const pages = Array.from(activePresence.values()).reduce<
-    Record<string, number>
-  >((counts, presence) => {
-    const key = presence.page ?? "unknown";
-    counts[key] = (counts[key] ?? 0) + 1;
-    return counts;
-  }, {});
-
-  return {
-    activeUsers: activePresence.size,
-    pages,
-    clientId: clientId ?? null,
-    updatedAt: new Date().toISOString(),
-  };
 }
 
 function stringQuery(value: unknown): string | undefined {

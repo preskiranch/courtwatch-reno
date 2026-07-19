@@ -465,3 +465,13 @@ model SyncLease {
   @@index([expiresAt], map: "sync_leases_expires_at_idx")
   @@map("sync_leases")
 }
+
+model PresenceSession {
+  clientId   String   @id @map("client_id")
+  page       String?
+  lastSeenAt DateTime @map("last_seen_at")
+
+  @@index([lastSeenAt], map: "presence_sessions_last_seen_at_idx")
+  @@index([page, lastSeenAt], map: "presence_sessions_page_last_seen_at_idx")
+  @@map("presence_sessions")
+}

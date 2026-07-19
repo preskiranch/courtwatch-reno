@@ -85,6 +85,8 @@ export type PresenceResponse = {
   pages: Record<string, number>;
   clientId: string | null;
   updatedAt: string;
+  source: "database" | "memory";
+  degraded: boolean;
 };
 
 export type AccountStatsResponse = {
