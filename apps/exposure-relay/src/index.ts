@@ -8,7 +8,7 @@ import {
 const relayHeader = "x-courtwatch-relay-key";
 const defaultDelegateOrigin = process.env.K_SERVICE
   ? undefined
-  : "https://courtwatch-exposure-relay-3oehk2tqgq-uw.a.run.app";
+  : "https://courtwatch-exposure-relay-east-3oehk2tqgq-ue.a.run.app";
 const port = positiveInteger(process.env.PORT, 10_000);
 const upstreamOrigin = normalizedOrigin(
   process.env.UPSTREAM_ORIGIN ?? "https://basketball.exposureevents.com",

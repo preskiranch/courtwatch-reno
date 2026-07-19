@@ -22,6 +22,8 @@ services:
         value: production
       - key: UPSTREAM_ORIGIN
         value: https://basketball.exposureevents.com
+      - key: RELAY_DELEGATE_ORIGIN
+        value: https://courtwatch-exposure-relay-east-3oehk2tqgq-ue.a.run.app
       - key: RELAY_SHARED_SECRET
         generateValue: true
       - key: RELAY_UPSTREAM_TIMEOUT_MS
@@ -99,7 +101,7 @@ services:
           type: web
           envVarKey: RELAY_SHARED_SECRET
       - key: EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS
-        value: "4000"
+        value: "10000"
       - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
         value: "true"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
