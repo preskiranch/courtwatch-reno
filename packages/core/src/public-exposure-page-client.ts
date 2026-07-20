@@ -134,73 +134,94 @@ export class PublicExposurePageClient {
       return { divisions: Array.from(divisions.values()), teams };
     }
 
-    const url = `${this.baseUrl}/${eventId}/${eventSlug}/teams`;
-    const response = await this.fetchWithTimeout(url, {
-      headers: {
-        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(
-        `Public teams page request failed with ${response.status}`,
-      );
-    }
-
-    const html = await response.text();
-    const $ = cheerio.load(html);
     const divisions = new Map<string, Division>();
     const teams: Team[] = [];
-    let currentDivisionName = "Unknown Division";
+    let teamsPageError: Error | null = null;
 
-    $("#content h2, #content a[href*='/teams/']").each((_, element) => {
-      const node = $(element);
-      if (element.tagName.toLowerCase() === "h2") {
-        currentDivisionName = node.text().replace(/\s+/g, " ").trim();
-        return;
+    try {
+      const url = `${this.baseUrl}/${eventId}/${eventSlug}/teams`;
+      const response = await this.fetchWithTimeout(url, {
+        headers: {
+          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Public teams page request failed with ${response.status}`,
+        );
       }
 
-      const href = node.attr("href") ?? "";
-      const name = node.text().replace(/\s+/g, " ").trim();
-      if (!name || !href.includes("/teams/")) return;
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      let currentDivisionName = "Unknown Division";
 
-      const divisionTeamId = new URL(href, this.baseUrl).searchParams.get(
-        "divisionteamid",
-      );
-      const divisionKey = normalizeName(currentDivisionName) || "unknown";
-      const divisionId = `public-division-${eventId}-${divisionKey.replace(/\s/g, "-")}`;
-      const meta = extractDivisionMeta(currentDivisionName);
-      divisions.set(divisionId, {
-        id: divisionId,
-        eventId: `event-${eventId}`,
-        exposureDivisionId: divisionKey,
-        name: currentDivisionName,
-        gender: meta.gender,
-        gradeLevel: meta.gradeLevel,
-        level: meta.level,
-        rawJson: { source: "public_page" },
+      $("#content h2, #content a[href*='/teams/']").each((_, element) => {
+        const node = $(element);
+        if (element.tagName.toLowerCase() === "h2") {
+          currentDivisionName = node.text().replace(/\s+/g, " ").trim();
+          return;
+        }
+
+        const href = node.attr("href") ?? "";
+        const name = node.text().replace(/\s+/g, " ").trim();
+        if (!name || !href.includes("/teams/")) return;
+
+        const divisionTeamId = new URL(href, this.baseUrl).searchParams.get(
+          "divisionteamid",
+        );
+        const divisionKey = normalizeName(currentDivisionName) || "unknown";
+        const divisionId = `public-division-${eventId}-${divisionKey.replace(/\s/g, "-")}`;
+        const meta = extractDivisionMeta(currentDivisionName);
+        divisions.set(divisionId, {
+          id: divisionId,
+          eventId: `event-${eventId}`,
+          exposureDivisionId: divisionKey,
+          name: currentDivisionName,
+          gender: meta.gender,
+          gradeLevel: meta.gradeLevel,
+          level: meta.level,
+          rawJson: { source: "public_page" },
+        });
+
+        teams.push({
+          id: `public-team-${eventId}-${divisionTeamId ?? normalizeName(`${currentDivisionName}-${name}`).replace(/\s/g, "-")}`,
+          eventId: `event-${eventId}`,
+          divisionId,
+          exposureTeamId: divisionTeamId,
+          name,
+          normalizedName: normalizeName(name),
+          clubName: null,
+          normalizedClubName: null,
+          coachName: null,
+          sourceUrl: new URL(href, this.baseUrl).toString(),
+          divisionName: currentDivisionName,
+          gender: meta.gender,
+          gradeLevel: meta.gradeLevel,
+          level: meta.level,
+          rawJson: { source: "public_page", href, timezone },
+          lastSeenAt: new Date().toISOString(),
+        });
       });
+    } catch (error) {
+      teamsPageError =
+        error instanceof Error ? error : new Error("Public teams page failed");
+    }
 
-      teams.push({
-        id: `public-team-${eventId}-${divisionTeamId ?? normalizeName(`${currentDivisionName}-${name}`).replace(/\s/g, "-")}`,
-        eventId: `event-${eventId}`,
-        divisionId,
-        exposureTeamId: divisionTeamId,
-        name,
-        normalizedName: normalizeName(name),
-        clubName: null,
-        normalizedClubName: null,
-        coachName: null,
-        sourceUrl: new URL(href, this.baseUrl).toString(),
-        divisionName: currentDivisionName,
-        gender: meta.gender,
-        gradeLevel: meta.gradeLevel,
-        level: meta.level,
-        rawJson: { source: "public_page", href, timezone },
-        lastSeenAt: new Date().toISOString(),
-      });
-    });
+    if (teams.length > 0) {
+      return { divisions: Array.from(divisions.values()), teams };
+    }
 
-    return { divisions: Array.from(divisions.values()), teams };
+    // Some organizers publish the official schedule before enabling Exposure's
+    // public Teams list. Recover only participants with stable division-team IDs.
+    const scheduleTeams = await this.fetchScheduleTeams(
+      eventId,
+      eventSlug,
+      timezone,
+    ).catch(() => ({ divisions: [], teams: [] }));
+    if (scheduleTeams.teams.length > 0) return scheduleTeams;
+
+    if (teamsPageError) throw teamsPageError;
+    return { divisions: [], teams: [] };
   }
 
   async fetchScheduleConfig(
@@ -432,6 +453,130 @@ export class PublicExposurePageClient {
     return (await response.json()) as PublicExposureGameGroup[];
   }
 
+  private async fetchScheduleTeams(
+    eventId: number,
+    eventSlug: string,
+    timezone: string,
+  ): Promise<PublicExposureTeamResult> {
+    const config = await this.fetchScheduleConfig(eventId, eventSlug);
+    if (config.divisions.length === 0) return { divisions: [], teams: [] };
+
+    const candidatesByDivision = await mapWithConcurrency(
+      config.divisions,
+      positiveInteger(process.env.EXPOSURE_PUBLIC_GAMES_CONCURRENCY, 4),
+      async (division) => {
+        const candidates: PublicExposureRosterCandidate[] = [];
+        try {
+          const groups = await this.fetchEventGames(
+            eventId,
+            eventSlug,
+            division.Id,
+          );
+          for (const group of groups) {
+            for (const game of group.Games ?? []) {
+              addGameRosterCandidate(candidates, game, division);
+            }
+          }
+        } catch {
+          // A standings fallback below can still recover this division.
+        }
+
+        if (candidates.length === 0) {
+          try {
+            const standings = await this.fetchDivisionStandings(
+              eventId,
+              eventSlug,
+              String(division.Id),
+            );
+            for (const pool of standings) {
+              for (const standing of pool.Teams ?? []) {
+                const teamId = divisionTeamIdFromLink(standing.TeamLink);
+                const name = cleanText(standing.Name);
+                if (!teamId || !isPublishedTeamName(name)) continue;
+                candidates.push({
+                  teamId,
+                  name,
+                  divisionId: String(division.Id),
+                  divisionName: cleanText(division.Name),
+                  source: "public_standings_roster",
+                  sourceUrl: standing.TeamLink
+                    ? new URL(standing.TeamLink, this.baseUrl).toString()
+                    : null,
+                  rawJson: {
+                    poolName: pool.PoolName ?? null,
+                    wins: standing.Wins ?? null,
+                    losses: standing.Losses ?? null,
+                  },
+                });
+              }
+            }
+          } catch {
+            // Missing standings means the organizer has not published a usable roster.
+          }
+        }
+
+        await sleep(
+          Number(process.env.EXPOSURE_PUBLIC_REQUEST_DELAY_MS ?? 125),
+        );
+        return candidates;
+      },
+    );
+
+    const divisions = new Map<string, Division>();
+    const teams = new Map<string, Team>();
+    const seenAt = new Date().toISOString();
+    for (const candidate of candidatesByDivision.flat()) {
+      if (teams.has(candidate.teamId)) continue;
+      const divisionId = `division-${eventId}-${candidate.divisionId}`;
+      const meta = extractDivisionMeta(candidate.divisionName);
+      divisions.set(divisionId, {
+        id: divisionId,
+        eventId: `event-${eventId}`,
+        exposureDivisionId: candidate.divisionId,
+        name: candidate.divisionName,
+        gender: meta.gender,
+        gradeLevel: meta.gradeLevel,
+        level: meta.level,
+        rawJson: { source: candidate.source },
+      });
+      teams.set(candidate.teamId, {
+        id: `public-team-${eventId}-${candidate.teamId}`,
+        eventId: `event-${eventId}`,
+        divisionId,
+        exposureTeamId: candidate.teamId,
+        name: candidate.name,
+        normalizedName: normalizeName(candidate.name),
+        clubName: null,
+        normalizedClubName: null,
+        coachName: null,
+        sourceUrl:
+          candidate.sourceUrl ??
+          officialTeamUrl(
+            this.baseUrl,
+            eventId,
+            eventSlug,
+            candidate.name,
+            candidate.teamId,
+          ),
+        divisionName: candidate.divisionName,
+        gender: meta.gender,
+        gradeLevel: meta.gradeLevel,
+        level: meta.level,
+        rawJson: {
+          source: candidate.source,
+          timezone,
+          ...candidate.rawJson,
+        },
+        lastSeenAt: seenAt,
+      });
+    }
+
+    return {
+      divisions: Array.from(divisions.values()),
+      teams: Array.from(teams.values()),
+    };
+  }
+
   private async fetchTeamGames(
     eventId: number,
     eventSlug: string,
@@ -569,6 +714,16 @@ interface PublicExposureSearchTeam {
   Slug?: string;
   Value?: number | string;
   Name?: string;
+}
+
+interface PublicExposureRosterCandidate {
+  teamId: string;
+  name: string;
+  divisionId: string;
+  divisionName: string;
+  source: "public_schedule_roster" | "public_standings_roster";
+  sourceUrl: string | null;
+  rawJson: Record<string, unknown>;
 }
 
 interface PublicExposureGameGroup {
@@ -749,6 +904,83 @@ function groupBracketsByDivision(
     ]);
   }
   return grouped;
+}
+
+function addGameRosterCandidate(
+  candidates: PublicExposureRosterCandidate[],
+  game: PublicExposureGameRaw,
+  fallbackDivision: { Id: number; Name: string },
+) {
+  const divisionId =
+    stringOrNull(game.DivisionId) ?? String(fallbackDivision.Id);
+  const divisionName =
+    cleanText(game.DivisionName) || cleanText(fallbackDivision.Name);
+  const sourceGameId = stringOrNull(game.Id);
+  const participants = [
+    {
+      teamId: stringOrNull(game.HomeDivisionTeamId),
+      name: cleanText(game.HomeTeamName),
+      side: "home",
+    },
+    {
+      teamId: stringOrNull(game.AwayDivisionTeamId),
+      name: cleanText(game.AwayTeamName),
+      side: "away",
+    },
+  ] as const;
+
+  for (const participant of participants) {
+    if (!participant.teamId || !isPublishedTeamName(participant.name)) continue;
+    candidates.push({
+      teamId: participant.teamId,
+      name: participant.name,
+      divisionId,
+      divisionName,
+      source: "public_schedule_roster",
+      sourceUrl: null,
+      rawJson: {
+        sourceGameId,
+        side: participant.side,
+      },
+    });
+  }
+}
+
+function divisionTeamIdFromLink(value: unknown): string | null {
+  const link = stringOrNull(value);
+  if (!link) return null;
+  try {
+    return new URL(link, "https://basketball.exposureevents.com").searchParams.get(
+      "divisionteamid",
+    );
+  } catch {
+    return null;
+  }
+}
+
+function isPublishedTeamName(value: string): boolean {
+  const name = cleanText(value);
+  if (!name) return false;
+  return !(
+    /^(?:tbd|to be determined|bye)$/i.test(name) ||
+    /^(?:w|l)\s*\d+(?:\s*\([^)]*\))?$/i.test(name) ||
+    /^(?:winner|loser)\s+(?:of\s+)?(?:game\s*)?\d+/i.test(name) ||
+    /^\d+(?:st|nd|rd|th)\s+in\s+.+$/i.test(name)
+  );
+}
+
+function officialTeamUrl(
+  baseUrl: string,
+  eventId: number,
+  eventSlug: string,
+  teamName: string,
+  teamId: string,
+) {
+  const teamSlug = normalizeName(teamName).replace(/\s+/g, "-") || "team";
+  return new URL(
+    `/${eventId}/${eventSlug}/teams/${teamSlug}?divisionteamid=${encodeURIComponent(teamId)}`,
+    baseUrl,
+  ).toString();
 }
 
 function parseBracketPlacementResults(input: {

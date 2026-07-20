@@ -147,6 +147,170 @@ describe("PublicExposurePageClient", () => {
     );
   });
 
+  it("recovers published teams from official schedules and standings when the teams page is empty", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/search")) {
+        return jsonResponse({ Teams: [], Players: [] });
+      }
+      if (url.endsWith("/teams")) {
+        return htmlResponse('<div id="content"></div>');
+      }
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [
+                {"Id":1001,"Name":"10U Boys"},
+                {"Id":1002,"Name":"13U Girls"}
+              ],
+              standingsUrl: "/standings",
+              brackets: [],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/eventgames?divisionId=1001")) {
+        return jsonResponse([
+          {
+            Name: "Saturday, July 18, 2026",
+            Games: [
+              {
+                Id: 70001,
+                DivisionId: 1001,
+                DivisionName: "10U Boys",
+                HomeDivisionTeamId: 501,
+                HomeTeamName: "Splash City 10U",
+                AwayDivisionTeamId: 502,
+                AwayTeamName: "All-Net",
+              },
+              {
+                Id: 70002,
+                DivisionId: 1001,
+                DivisionName: "10U Boys",
+                HomeTeamName: "1st in A",
+                AwayTeamName: "W3 (Championship)",
+              },
+            ],
+          },
+        ]);
+      }
+      if (url.includes("/eventgames?divisionId=1002")) {
+        return jsonResponse([]);
+      }
+      if (url.includes("/standings") && url.includes("divisionId=1002")) {
+        return jsonResponse([
+          {
+            PoolName: "Pool A",
+            Teams: [
+              {
+                Name: "PMA Knights 13U",
+                TeamLink:
+                  "/270001/example-event/teams/pma-knights-13u?divisionteamid=503",
+                Wins: 2,
+                Losses: 0,
+              },
+            ],
+          },
+        ]);
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const result = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchTeams(270001, "example-event", "America/Los_Angeles");
+
+    expect(result.divisions.map((division) => division.id)).toEqual([
+      "division-270001-1001",
+      "division-270001-1002",
+    ]);
+    expect(
+      result.teams.map((team) => [
+        team.exposureTeamId,
+        team.name,
+        team.divisionId,
+        (team.rawJson as { source?: string }).source,
+      ]),
+    ).toEqual([
+      [
+        "501",
+        "Splash City 10U",
+        "division-270001-1001",
+        "public_schedule_roster",
+      ],
+      [
+        "502",
+        "All-Net",
+        "division-270001-1001",
+        "public_schedule_roster",
+      ],
+      [
+        "503",
+        "PMA Knights 13U",
+        "division-270001-1002",
+        "public_standings_roster",
+      ],
+    ]);
+    expect(result.teams.map((team) => team.name)).not.toContain("1st in A");
+    expect(result.teams.map((team) => team.name)).not.toContain(
+      "W3 (Championship)",
+    );
+    expect(result.teams[2]?.sourceUrl).toBe(
+      "https://basketball.exposureevents.com/270001/example-event/teams/pma-knights-13u?divisionteamid=503",
+    );
+  });
+
+  it("does not fabricate teams from unresolved bracket placeholders", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/search")) {
+        return jsonResponse({ Teams: [], Players: [] });
+      }
+      if (url.endsWith("/teams")) {
+        return htmlResponse('<div id="content"></div>');
+      }
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":1001,"Name":"10U Boys"}],
+              standingsUrl: "/standings",
+              brackets: [],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/eventgames")) {
+        return jsonResponse([
+          {
+            Name: "Sunday, July 19, 2026",
+            Games: [
+              {
+                DivisionId: 1001,
+                DivisionName: "10U Boys",
+                HomeTeamName: "Winner of Game 3",
+                AwayTeamName: "2nd in Pool A",
+              },
+            ],
+          },
+        ]);
+      }
+      if (url.includes("/standings")) return jsonResponse([]);
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const result = await new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    }).fetchTeams(270001, "example-event", "America/Los_Angeles");
+
+    expect(result).toEqual({ divisions: [], teams: [] });
+  });
+
   it("maps public eventgames into real games with courts and bracket links without inventing finals", async () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);
