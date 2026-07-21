@@ -766,4 +766,26 @@ describe("CourtWatch API", () => {
     expect(syncNow).toHaveBeenCalledWith(255539, { teamListOnly: true });
     delete process.env.ADMIN_SECRET;
   });
+
+  it("reports temporary source outages without an internal server error", async () => {
+    process.env.ADMIN_SECRET = "test-secret";
+    const store = new MockStore();
+    const sourceError = new Error("Exposure request timed out");
+    sourceError.name = "AbortError";
+    vi.spyOn(store, "syncNow").mockRejectedValueOnce(sourceError);
+    const app = createApp(store, null);
+
+    const response = await request(app)
+      .post("/api/admin/sync-now")
+      .set("x-admin-secret", "test-secret")
+      .send({ exposureEventId: 255539 })
+      .expect(503);
+
+    expect(response.body).toEqual({
+      error: "Tournament source is temporarily unavailable",
+      code: "UPSTREAM_SOURCE_UNAVAILABLE",
+      retryable: true,
+    });
+    delete process.env.ADMIN_SECRET;
+  });
 });

@@ -42,6 +42,7 @@ import { NotificationService } from "./notification-service.js";
 import { checkApiReadiness } from "./health.js";
 import { createPresenceService } from "./presence-service.js";
 import type { CourtWatchStore, SyncNowOptions } from "./store.js";
+import { isUpstreamSourceUnavailableError } from "./upstream-source-error.js";
 
 const PRESENCE_TTL_MS = 45_000;
 const SYNC_STATUS_STREAM_INTERVAL_MS = 1_000;
@@ -1271,6 +1272,18 @@ export function createApp(
         });
         res.json(result);
       } catch (error) {
+        if (isUpstreamSourceUnavailableError(error)) {
+          req.log.warn(
+            { err: error },
+            "tournament source temporarily unavailable",
+          );
+          res.status(503).json({
+            error: "Tournament source is temporarily unavailable",
+            code: "UPSTREAM_SOURCE_UNAVAILABLE",
+            retryable: true,
+          });
+          return;
+        }
         next(error);
       }
     },

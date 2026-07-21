@@ -85,6 +85,7 @@ import {
 import type { TournamentSource } from "./config.js";
 import { findStaleGameIds } from "./game-reconciliation.js";
 import { acquireSyncLease } from "./sync-lease.js";
+import { isUpstreamSourceUnavailableError } from "./upstream-source-error.js";
 
 const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
@@ -113,6 +114,7 @@ type TournamentSyncResult = {
   teamsCount: number;
   gamesCount: number;
   changesDetected: number;
+  reason?: "source_unavailable";
 };
 const tournamentSyncPromises = new Map<string, Promise<TournamentSyncResult>>();
 const tournamentSyncTails = new Map<number, Promise<void>>();
@@ -2702,7 +2704,13 @@ export class PrismaStore implements CourtWatchStore {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown sync error";
-      const sourceUnavailable = isPublicSourceUnavailableError(errorMessage);
+      const sourceUnavailable = isUpstreamSourceUnavailableError(error);
+      if (sourceUnavailable) {
+        [teamsCount, gamesCount] = await Promise.all([
+          this.prisma.team.count({ where: { eventId: event.id } }),
+          this.prisma.game.count({ where: { eventId: event.id } }),
+        ]);
+      }
       await this.prisma.syncRun.update({
         where: { id: run.id },
         data: {
@@ -2728,6 +2736,7 @@ export class PrismaStore implements CourtWatchStore {
           teamsCount,
           gamesCount,
           changesDetected,
+          reason: "source_unavailable",
         };
       }
       throw error;
@@ -3424,16 +3433,6 @@ function syncFailureStatus(
     endDate: tournament.endDate,
     status: tournament.status,
   });
-}
-
-function isPublicSourceUnavailableError(errorMessage: string) {
-  return (
-    errorMessage.includes("request failed with 410") ||
-    errorMessage.includes("Public teams page request failed with 403") ||
-    errorMessage.includes("Public eventgames request failed with 403") ||
-    errorMessage.includes("Public page request failed with 403") ||
-    errorMessage.includes("Public search request failed with 403")
-  );
 }
 
 function slugFromOfficialUrl(officialUrl: string): string | null {
