@@ -158,6 +158,16 @@ describe("worker failure recovery", () => {
     ).toBe(0);
   });
 
+  it("backs off when a broad source outage affects most targeted events", () => {
+    expect(
+      nextWorkerFailureCount(2, {
+        targetCount: 8,
+        successfulCount: 2,
+        failedCount: 6,
+      }),
+    ).toBe(3);
+  });
+
   it("resets after an idle or successful cycle", () => {
     expect(
       nextWorkerFailureCount(3, {

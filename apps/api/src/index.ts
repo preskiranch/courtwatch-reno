@@ -4,11 +4,28 @@ import { createApp } from "./app.js";
 import { CoalescedTask } from "./coalesced-task.js";
 import { NotificationService } from "./notification-service.js";
 import { MockStore, PrismaStore } from "./store.js";
+import { recoverInterruptedSyncRuns } from "./sync-run-recovery.js";
 
 const useDatabase = isDatabaseConfigured();
 const store = useDatabase ? new PrismaStore(prisma) : new MockStore();
 const app = createApp(store, useDatabase ? prisma : null);
 const notifications = app.locals.notificationService as NotificationService;
+
+if (useDatabase) {
+  try {
+    const recoveredCount = await recoverInterruptedSyncRuns(
+      prisma,
+      config.SYNC_RUN_STALE_AFTER_MS,
+    );
+    if (recoveredCount > 0) {
+      console.warn("Recovered interrupted tournament sync runs", {
+        recoveredCount,
+      });
+    }
+  } catch (error) {
+    console.error("Interrupted sync recovery failed", error);
+  }
+}
 
 const notificationDispatcher = new CoalescedTask(async () => {
   try {

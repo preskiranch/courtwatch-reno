@@ -38,6 +38,11 @@ const ConfigSchema = z.object({
     .int()
     .min(1_000)
     .default(5_000),
+  SYNC_RUN_STALE_AFTER_MS: z.coerce
+    .number()
+    .int()
+    .min(60_000)
+    .default(15 * 60_000),
 });
 
 export const config = ConfigSchema.parse(process.env);

@@ -150,7 +150,11 @@ export function nextWorkerFailureCount(
   outcome: SyncCycleOutcome,
 ): number {
   if (outcome.targetCount === 0 || outcome.failedCount === 0) return 0;
-  if (outcome.successfulCount > 0) return 0;
+  const completedCount = outcome.successfulCount + outcome.failedCount;
+  const failureRatio = completedCount
+    ? outcome.failedCount / completedCount
+    : 0;
+  if (outcome.successfulCount > 0 && failureRatio < 0.75) return 0;
   return Math.max(0, currentFailureCount) + 1;
 }
 

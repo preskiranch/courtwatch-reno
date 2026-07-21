@@ -19,10 +19,7 @@ import {
   shouldRecoverUnavailableEvent,
   type SyncMode,
 } from "./sync-policy.js";
-import {
-  createShutdownCoordinator,
-  requestSignal,
-} from "./shutdown.js";
+import { createShutdownCoordinator, requestSignal } from "./shutdown.js";
 
 const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
@@ -155,9 +152,15 @@ async function syncOnce() {
       ? "success"
       : "partial",
     targetsCount: targets.length,
-    successfulCount: results.filter((result) => result.status !== "failed")
+    successfulCount: results.filter((result) => result.status === "success")
       .length,
-    failedCount: results.filter((result) => result.status === "failed").length,
+    failedCount: results.filter(
+      (result) => result.status === "failed" || result.status === "skipped",
+    ).length,
+    skippedCount: results.filter((result) => result.status === "skipped")
+      .length,
+    coalescedCount: results.filter((result) => result.status === "coalesced")
+      .length,
     teamsCount: results.reduce((count, result) => count + result.teamsCount, 0),
     gamesCount: results.reduce((count, result) => count + result.gamesCount, 0),
     changesDetected: results.reduce(
