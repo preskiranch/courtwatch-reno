@@ -13,7 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  smoke:
+  courtwatch-core:
+    name: Court Watch core
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -21,4 +22,21 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: node scripts/smoke-production.mjs
+      - name: Verify web, API, database, and event catalog
+        run: node scripts/smoke-production.mjs
+        env:
+          SMOKE_SCOPE: core
+
+  exposure-source:
+    name: Exposure source connectivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Verify Exposure relay can reach the official source
+        run: node scripts/smoke-production.mjs
+        env:
+          SMOKE_SCOPE: provider

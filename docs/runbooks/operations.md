@@ -182,7 +182,9 @@ Configure alerts for:
 - `deadLetter > 0`.
 - A growing retry queue across three dispatch intervals.
 - PostgreSQL storage, CPU, or connection use above 80% for a sustained interval.
-- Production smoke workflow failure.
+- Court Watch core smoke failure. The separate Exposure source-connectivity job
+  identifies an upstream provider outage and does not imply that the web, API,
+  database, or persisted event catalog is unavailable.
 
 ## Recovery Completion Checklist
 
