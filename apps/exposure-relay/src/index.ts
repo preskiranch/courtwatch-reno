@@ -11,6 +11,13 @@ import {
   readWebBodyWithLimit,
 } from "./body-limits.js";
 import { RequestControllerRegistry } from "./request-registry.js";
+import {
+  ResilientUpstreamRouter,
+  type CircuitSnapshot,
+  type UpstreamAttempt,
+  type UpstreamRoute,
+  UpstreamRoutesError,
+} from "./upstream-router.js";
 
 const relayHeader = "x-courtwatch-relay-key";
 const defaultDelegateOrigin = process.env.K_SERVICE
@@ -36,6 +43,18 @@ const upstreamTimeoutMs = positiveInteger(
   process.env.RELAY_UPSTREAM_TIMEOUT_MS,
   30_000,
 );
+const delegateAttemptTimeoutMs = positiveInteger(
+  process.env.RELAY_DELEGATE_TIMEOUT_MS,
+  5_000,
+);
+const circuitFailureThreshold = positiveInteger(
+  process.env.RELAY_CIRCUIT_FAILURE_THRESHOLD,
+  2,
+);
+const circuitCooldownMs = positiveInteger(
+  process.env.RELAY_CIRCUIT_COOLDOWN_MS,
+  60_000,
+);
 const maxRequestBodyBytes = positiveInteger(
   process.env.RELAY_MAX_BODY_BYTES,
   2 * 1024 * 1024,
@@ -50,22 +69,38 @@ if (process.env.NODE_ENV === "production" && sharedSecret.length < 32) {
 }
 
 type UpstreamProbe = {
+  attempts: UpstreamAttempt[];
   checkedAt: string | null;
+  circuit: CircuitSnapshot;
   latencyMs: number | null;
   ok: boolean;
+  route: UpstreamRoute | null;
   status: number | null;
 };
 
+const upstreamRouter = new ResilientUpstreamRouter({
+  circuitCooldownMs,
+  circuitFailureThreshold,
+  delegateAttemptTimeoutMs,
+  delegateOrigin,
+  totalTimeoutMs: upstreamTimeoutMs,
+  upstreamOrigin,
+});
+
 let upstreamProbe: UpstreamProbe = {
+  attempts: [],
   checkedAt: null,
+  circuit: upstreamRouter.snapshot(),
   latencyMs: null,
   ok: false,
+  route: null,
   status: null,
 };
 
 const legacyAuthCache = new Map<string, number>();
 const activeRequests = new RequestControllerRegistry();
 let shuttingDown = false;
+let probeInFlight = false;
 
 const server = createServer(async (request, response) => {
   const startedAt = Date.now();
@@ -98,12 +133,7 @@ const server = createServer(async (request, response) => {
 
   const trackedRequest = activeRequests.create();
   const { controller } = trackedRequest;
-  let timedOut = false;
   let clientAborted = false;
-  const timer = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, upstreamTimeoutMs);
   const abortUpstream = () => {
     clientAborted = true;
     controller.abort();
@@ -115,41 +145,41 @@ const server = createServer(async (request, response) => {
       request.method === "POST"
         ? await readRequestBody(request, maxRequestBodyBytes)
         : undefined;
-    const targetOrigin = delegateOrigin ?? upstreamOrigin;
-    const targetUrl = new URL(
-      `${requestUrl.pathname}${requestUrl.search}`,
-      targetOrigin,
-    );
-    const upstreamResponse = await fetch(targetUrl, {
+    const routed = await upstreamRouter.fetch({
       body,
-      headers: relayRequestHeaders(request, Boolean(delegateOrigin)),
+      delegateCredential: relayCredential(request),
+      headers: relayRequestHeaders(request),
       method: request.method,
-      redirect: "follow",
-      signal: controller.signal,
+      parentSignal: controller.signal,
+      pathname: requestUrl.pathname,
+      search: requestUrl.search,
     });
+    const upstreamResponse = routed.response;
 
     const responseBody =
       request.method === "HEAD" || !upstreamResponse.body
         ? undefined
         : await readUpstreamBody(upstreamResponse, maxResponseBodyBytes);
 
-    updateProbe(
-      upstreamResponse.ok,
-      upstreamResponse.status,
-      Date.now() - startedAt,
-    );
     response.statusCode = upstreamResponse.status;
     copyResponseHeaders(upstreamResponse.headers, response);
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("X-CourtWatch-Relay", relayLocation);
+    response.setHeader("X-CourtWatch-Upstream-Route", routed.route);
 
     response.end(responseBody);
 
-    logRequest(request, requestUrl, upstreamResponse.status, startedAt);
+    logRequest(
+      request,
+      requestUrl,
+      upstreamResponse.status,
+      startedAt,
+      routed.route,
+      routed.attempts,
+    );
   } catch (error) {
-    updateProbe(false, null, Date.now() - startedAt);
     if (!clientAborted && !response.headersSent) {
-      const failure = relayFailure(error, timedOut);
+      const failure = relayFailure(error);
       writeJson(response, failure.status, { error: failure.message });
     } else {
       response.destroy();
@@ -158,15 +188,18 @@ const server = createServer(async (request, response) => {
       JSON.stringify({
         durationMs: Date.now() - startedAt,
         error: error instanceof Error ? error.message : "Unknown error",
+        errorCause: nestedErrorMessage(error),
         method: request.method,
         path: requestUrl.pathname,
         payloadDirection:
           error instanceof PayloadLimitError ? error.direction : undefined,
-        timedOut,
+        attempts:
+          error instanceof UpstreamRoutesError ? error.attempts : undefined,
+        timedOut:
+          error instanceof UpstreamRoutesError ? error.timedOut : undefined,
       }),
     );
   } finally {
-    clearTimeout(timer);
     request.off("aborted", abortUpstream);
     trackedRequest.release();
   }
@@ -177,6 +210,9 @@ server.listen(port, () => {
     JSON.stringify({
       message: "Exposure relay listening",
       delegateOrigin,
+      delegateAttemptTimeoutMs,
+      circuitCooldownMs,
+      circuitFailureThreshold,
       legacyAuthOrigin,
       port,
       relayLocation,
@@ -227,30 +263,37 @@ function shutdown(signal: "SIGTERM" | "SIGINT") {
 }
 
 async function probeUpstream() {
-  if (shuttingDown) return;
+  if (shuttingDown || probeInFlight) return;
+  probeInFlight = true;
   const startedAt = Date.now();
   const trackedRequest = activeRequests.create();
   const { controller } = trackedRequest;
-  const timer = setTimeout(() => controller.abort(), upstreamTimeoutMs);
   try {
-    const response = await fetch(
-      new URL("/robots.txt", delegateOrigin ?? upstreamOrigin),
-      {
-        headers: {
-          "User-Agent": "CourtWatch-AAU-Health/1.0",
-          ...(delegateOrigin && sharedSecret
-            ? { "X-CourtWatch-Relay-Key": sharedSecret }
-            : {}),
-        },
-        signal: controller.signal,
-      },
-    );
-    updateProbe(response.ok, response.status, Date.now() - startedAt);
-    await response.body?.cancel();
-  } catch {
-    updateProbe(false, null, Date.now() - startedAt);
+    const routed = await upstreamRouter.fetch({
+      delegateCredential: sharedSecret,
+      headers: { "User-Agent": "CourtWatch-AAU-Health/1.0" },
+      method: "GET",
+      parentSignal: controller.signal,
+      pathname: "/robots.txt",
+    });
+    updateProbe({
+      attempts: routed.attempts,
+      latencyMs: Date.now() - startedAt,
+      ok: routed.response.ok,
+      route: routed.route,
+      status: routed.response.status,
+    });
+    await routed.response.body?.cancel();
+  } catch (error) {
+    updateProbe({
+      attempts: error instanceof UpstreamRoutesError ? error.attempts : [],
+      latencyMs: Date.now() - startedAt,
+      ok: false,
+      route: null,
+      status: null,
+    });
   } finally {
-    clearTimeout(timer);
+    probeInFlight = false;
     trackedRequest.release();
   }
 }
@@ -313,10 +356,7 @@ function secretsMatch(provided: string, expected: string): boolean {
   );
 }
 
-function relayRequestHeaders(
-  request: IncomingMessage,
-  includeRelayCredential: boolean,
-): Headers {
+function relayRequestHeaders(request: IncomingMessage): Headers {
   const headers = new Headers();
   const allowedHeaders = [
     "accept",
@@ -334,13 +374,12 @@ function relayRequestHeaders(
     if (typeof value === "string") headers.set(name, value);
     else if (Array.isArray(value)) headers.set(name, value.join(", "));
   }
-  if (includeRelayCredential) {
-    const relayCredential = request.headers[relayHeader];
-    if (typeof relayCredential === "string") {
-      headers.set("X-CourtWatch-Relay-Key", relayCredential);
-    }
-  }
   return headers;
+}
+
+function relayCredential(request: IncomingMessage): string | undefined {
+  const credential = request.headers[relayHeader];
+  return typeof credential === "string" ? credential : undefined;
 }
 
 function copyResponseHeaders(headers: Headers, response: ServerResponse) {
@@ -386,26 +425,22 @@ async function readUpstreamBody(
   return readWebBodyWithLimit(upstreamResponse.body, maxBytes);
 }
 
-function relayFailure(
-  error: unknown,
-  timedOut: boolean,
-): { message: string; status: number } {
+function relayFailure(error: unknown): { message: string; status: number } {
   if (error instanceof PayloadLimitError) {
     return error.direction === "request"
       ? { message: "Request body is too large", status: 413 }
       : { message: "Upstream response exceeded the relay limit", status: 502 };
   }
-  return timedOut
+  return error instanceof UpstreamRoutesError && error.timedOut
     ? { message: "Upstream request timed out", status: 504 }
     : { message: "Upstream request failed", status: 502 };
 }
 
-function updateProbe(ok: boolean, status: number | null, latencyMs: number) {
+function updateProbe(result: Omit<UpstreamProbe, "checkedAt" | "circuit">) {
   upstreamProbe = {
+    ...result,
     checkedAt: new Date().toISOString(),
-    latencyMs,
-    ok,
-    status,
+    circuit: upstreamRouter.snapshot(),
   };
 }
 
@@ -414,15 +449,29 @@ function logRequest(
   url: URL,
   status: number,
   startedAt: number,
+  route: UpstreamRoute,
+  attempts: UpstreamAttempt[],
 ) {
   console.log(
     JSON.stringify({
       durationMs: Date.now() - startedAt,
       method: request.method,
       path: url.pathname,
+      route,
       status,
+      upstreamAttempts: attempts,
     }),
   );
+}
+
+function nestedErrorMessage(error: unknown): string | undefined {
+  if (!(error instanceof Error) || !(error.cause instanceof Error)) {
+    return undefined;
+  }
+  const nestedCause = error.cause.cause;
+  return nestedCause instanceof Error
+    ? `${error.cause.message}: ${nestedCause.message}`
+    : error.cause.message;
 }
 
 function writeJson(response: ServerResponse, status: number, value: unknown) {

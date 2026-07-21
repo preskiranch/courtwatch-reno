@@ -29,6 +29,12 @@ services:
         generateValue: true
       - key: RELAY_UPSTREAM_TIMEOUT_MS
         value: "30000"
+      - key: RELAY_DELEGATE_TIMEOUT_MS
+        value: "5000"
+      - key: RELAY_CIRCUIT_FAILURE_THRESHOLD
+        value: "2"
+      - key: RELAY_CIRCUIT_COOLDOWN_MS
+        value: "60000"
       - key: RELAY_MAX_BODY_BYTES
         value: "2097152"
       - key: RELAY_MAX_RESPONSE_BYTES
