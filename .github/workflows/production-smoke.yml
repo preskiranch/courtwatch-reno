@@ -28,9 +28,12 @@ jobs:
           SMOKE_SCOPE: core
 
   exposure-source:
-    name: Exposure source connectivity
+    name: Exposure source connectivity (advisory)
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Provider reachability must remain visible without reporting the healthy
+    # Court Watch stack itself as failed.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
