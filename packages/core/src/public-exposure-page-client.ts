@@ -59,6 +59,27 @@ export class PublicExposurePageClient {
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
   private readonly timeoutMs: number;
+  private readonly searchRequests = new Map<
+    string,
+    Promise<PublicExposureSearchResult>
+  >();
+  private readonly scheduleConfigRequests = new Map<
+    string,
+    Promise<PublicExposureScheduleConfig>
+  >();
+  private readonly eventGameRequests = new Map<
+    string,
+    Promise<PublicExposureGameGroup[]>
+  >();
+  private readonly teamGameRequests = new Map<
+    string,
+    Promise<PublicExposureGameGroup[]>
+  >();
+  private readonly standingsRequests = new Map<
+    string,
+    Promise<PublicExposureStandingPool[]>
+  >();
+  private readonly textRequests = new Map<string, Promise<string>>();
 
   constructor(options: PublicExposurePageClientOptions = {}) {
     this.baseUrl =
@@ -140,18 +161,7 @@ export class PublicExposurePageClient {
 
     try {
       const url = `${this.baseUrl}/${eventId}/${eventSlug}/teams`;
-      const response = await this.fetchWithTimeout(url, {
-        headers: {
-          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(
-          `Public teams page request failed with ${response.status}`,
-        );
-      }
-
-      const html = await response.text();
+      const html = await this.fetchText(url);
       const $ = cheerio.load(html);
       let currentDivisionName = "Unknown Division";
 
@@ -228,13 +238,16 @@ export class PublicExposurePageClient {
     eventId: number,
     eventSlug = "2026-reno-memorial-day-tournament",
   ): Promise<PublicExposureScheduleConfig> {
-    const html = await this.fetchText(
-      `${this.baseUrl}/${eventId}/${eventSlug}/schedule`,
-    );
-    return {
-      divisions: parseJsonArrayAssignment(html, "divisions"),
-      brackets: parseJsonArrayAssignment(html, "brackets"),
-    };
+    const key = `${eventId}:${eventSlug}`;
+    return memoizeRequest(this.scheduleConfigRequests, key, async () => {
+      const html = await this.fetchText(
+        `${this.baseUrl}/${eventId}/${eventSlug}/schedule`,
+      );
+      return {
+        divisions: parseJsonArrayAssignment(html, "divisions"),
+        brackets: parseJsonArrayAssignment(html, "brackets"),
+      };
+    });
   }
 
   async fetchGames(
@@ -414,17 +427,20 @@ export class PublicExposurePageClient {
     eventId: number,
     eventSlug: string,
   ): Promise<PublicExposureSearchResult> {
-    const url = `${this.baseUrl}/${eventId}/${eventSlug}/search?eventid=${eventId}&eventname=${eventSlug}`;
-    const response = await this.fetchWithTimeout(url, {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-      },
+    const key = `${eventId}:${eventSlug}`;
+    return memoizeRequest(this.searchRequests, key, async () => {
+      const url = `${this.baseUrl}/${eventId}/${eventSlug}/search?eventid=${eventId}&eventname=${eventSlug}`;
+      const response = await this.fetchWithTimeout(url, {
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
+        },
+      });
+      if (!response.ok)
+        throw new Error(`Public search request failed with ${response.status}`);
+      return (await response.json()) as PublicExposureSearchResult;
     });
-    if (!response.ok)
-      throw new Error(`Public search request failed with ${response.status}`);
-    return (await response.json()) as PublicExposureSearchResult;
   }
 
   private async fetchEventGames(
@@ -432,25 +448,28 @@ export class PublicExposurePageClient {
     eventSlug: string,
     divisionId: number,
   ) {
-    const url = `${this.baseUrl}/${eventId}/${eventSlug}/eventgames?divisionId=${divisionId}`;
-    const response = await this.fetchWithTimeout(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-      },
-      body: new URLSearchParams({
-        divisionId: String(divisionId),
-        sortBy: "0",
-      }).toString(),
+    const key = `${eventId}:${eventSlug}:${divisionId}`;
+    return memoizeRequest(this.eventGameRequests, key, async () => {
+      const url = `${this.baseUrl}/${eventId}/${eventSlug}/eventgames?divisionId=${divisionId}`;
+      const response = await this.fetchWithTimeout(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
+        },
+        body: new URLSearchParams({
+          divisionId: String(divisionId),
+          sortBy: "0",
+        }).toString(),
+      });
+      if (!response.ok)
+        throw new Error(
+          `Public eventgames request failed with ${response.status} for division ${divisionId}`,
+        );
+      return (await response.json()) as PublicExposureGameGroup[];
     });
-    if (!response.ok)
-      throw new Error(
-        `Public eventgames request failed with ${response.status} for division ${divisionId}`,
-      );
-    return (await response.json()) as PublicExposureGameGroup[];
   }
 
   private async fetchScheduleTeams(
@@ -618,22 +637,25 @@ export class PublicExposurePageClient {
   }
 
   private async fetchTeamGamesForTeam(eventId: number, teamId: string) {
-    const url = `${this.baseUrl}/${eventId}/e/teamgames?divisionteamid=${encodeURIComponent(teamId)}`;
-    const response = await this.fetchWithTimeout(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-      },
-      body: "",
+    const key = `${eventId}:${teamId}`;
+    return memoizeRequest(this.teamGameRequests, key, async () => {
+      const url = `${this.baseUrl}/${eventId}/e/teamgames?divisionteamid=${encodeURIComponent(teamId)}`;
+      const response = await this.fetchWithTimeout(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
+        },
+        body: "",
+      });
+      if (!response.ok)
+        throw new Error(
+          `Public teamgames request failed with ${response.status} for team ${teamId}`,
+        );
+      return (await response.json()) as PublicExposureGameGroup[];
     });
-    if (!response.ok)
-      throw new Error(
-        `Public teamgames request failed with ${response.status} for team ${teamId}`,
-      );
-    return (await response.json()) as PublicExposureGameGroup[];
   }
 
   private async fetchDivisionStandings(
@@ -641,34 +663,39 @@ export class PublicExposurePageClient {
     eventSlug: string,
     divisionId: string,
   ) {
-    const url = `${this.baseUrl}/${eventId}/${eventSlug}/standings?eventid=${eventId}&divisionId=${divisionId}`;
-    const response = await this.fetchWithTimeout(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-      },
-      body: new URLSearchParams({ divisionId }).toString(),
+    const key = `${eventId}:${eventSlug}:${divisionId}`;
+    return memoizeRequest(this.standingsRequests, key, async () => {
+      const url = `${this.baseUrl}/${eventId}/${eventSlug}/standings?eventid=${eventId}&divisionId=${divisionId}`;
+      const response = await this.fetchWithTimeout(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
+        },
+        body: new URLSearchParams({ divisionId }).toString(),
+      });
+      if (!response.ok)
+        throw new Error(
+          `Public standings request failed with ${response.status} for division ${divisionId}`,
+        );
+      return (await response.json()) as PublicExposureStandingPool[];
     });
-    if (!response.ok)
-      throw new Error(
-        `Public standings request failed with ${response.status} for division ${divisionId}`,
-      );
-    return (await response.json()) as PublicExposureStandingPool[];
   }
 
   private async fetchText(url: string) {
-    const response = await this.fetchWithTimeout(url, {
-      headers: {
-        Accept: "text/html",
-        "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
-      },
+    return memoizeRequest(this.textRequests, url, async () => {
+      const response = await this.fetchWithTimeout(url, {
+        headers: {
+          Accept: "text/html",
+          "User-Agent": EXPOSURE_PUBLIC_USER_AGENT,
+        },
+      });
+      if (!response.ok)
+        throw new Error(`Public page request failed with ${response.status}`);
+      return response.text();
     });
-    if (!response.ok)
-      throw new Error(`Public page request failed with ${response.status}`);
-    return response.text();
   }
 
   private async fetchWithTimeout(
@@ -687,6 +714,22 @@ export class PublicExposurePageClient {
       clearTimeout(timer);
     }
   }
+}
+
+function memoizeRequest<T>(
+  requests: Map<string, Promise<T>>,
+  key: string,
+  load: () => Promise<T>,
+): Promise<T> {
+  const existing = requests.get(key);
+  if (existing) return existing;
+
+  const pending = load().catch((error: unknown) => {
+    if (requests.get(key) === pending) requests.delete(key);
+    throw error;
+  });
+  requests.set(key, pending);
+  return pending;
 }
 
 function warnResultRequestSkipped(
@@ -950,9 +993,10 @@ function divisionTeamIdFromLink(value: unknown): string | null {
   const link = stringOrNull(value);
   if (!link) return null;
   try {
-    return new URL(link, "https://basketball.exposureevents.com").searchParams.get(
-      "divisionteamid",
-    );
+    return new URL(
+      link,
+      "https://basketball.exposureevents.com",
+    ).searchParams.get("divisionteamid");
   } catch {
     return null;
   }

@@ -2429,6 +2429,7 @@ export class PrismaStore implements CourtWatchStore {
     let teamsCount = 0;
     let gamesCount = 0;
     let changesDetected = 0;
+    const publicPageClient = new PublicExposurePageClient();
 
     const event = await upsertEvent(this.prisma, tournament);
     const run = await this.prisma.syncRun.create({
@@ -2445,7 +2446,8 @@ export class PrismaStore implements CourtWatchStore {
 
     try {
       const sourceTeams = dedupeSourceTeams(
-        preloadedTeams ?? (await fetchSourceTeams(tournament)),
+        preloadedTeams ??
+          (await fetchSourceTeams(tournament, publicPageClient)),
       );
       const mockDataEnabled = process.env.ENABLE_MOCK_DATA === "true";
       const includeMockArsenal = process.env.ENABLE_MOCK_ARSENAL === "true";
@@ -2561,6 +2563,7 @@ export class PrismaStore implements CourtWatchStore {
         tournament,
         options,
         sourceTeamIds,
+        publicPageClient,
       );
       const currentExposureGameIds = new Set<string>();
       for (const sourceGame of sourceGames) {
@@ -2629,6 +2632,7 @@ export class PrismaStore implements CourtWatchStore {
         event.id,
         teamMap,
         divisionIdMap,
+        publicPageClient,
       );
       const divisionResults = [
         ...derivedDivisionResults,
@@ -3853,6 +3857,7 @@ function clientHash(clientId: string): string {
 
 async function fetchSourceTeams(
   tournament: TournamentSource,
+  publicClient = new PublicExposurePageClient(),
 ): Promise<{ divisions: Division[]; teams: Team[] }> {
   if (tournament.externalProvider !== "exposure_events")
     return { divisions: [], teams: [] };
@@ -3862,7 +3867,7 @@ async function fetchSourceTeams(
         tournament.exposureEventId,
       );
       if (teams.length === 0) {
-        return new PublicExposurePageClient().fetchTeams(
+        return publicClient.fetchTeams(
           tournament.exposureEventId,
           tournament.slug,
           tournament.timezone,
@@ -3903,7 +3908,7 @@ async function fetchSourceTeams(
       });
       return { divisions: Array.from(divisions.values()), teams: mappedTeams };
     } catch {
-      return new PublicExposurePageClient().fetchTeams(
+      return publicClient.fetchTeams(
         tournament.exposureEventId,
         tournament.slug,
         tournament.timezone,
@@ -3911,7 +3916,7 @@ async function fetchSourceTeams(
     }
   }
 
-  return new PublicExposurePageClient().fetchTeams(
+  return publicClient.fetchTeams(
     tournament.exposureEventId,
     tournament.slug,
     tournament.timezone,
@@ -3923,6 +3928,7 @@ async function fetchSourceGames(
   tournament: TournamentSource,
   options: { forceFetchAllGames?: boolean } = {},
   sourceTeamIds: string[] = [],
+  publicClient = new PublicExposurePageClient(),
 ): Promise<Array<Record<string, unknown> | Game>> {
   if (tournament.externalProvider !== "exposure_events") return [];
   try {
@@ -3936,7 +3942,6 @@ async function fetchSourceGames(
     // Fall through to the public schedule endpoint; old data stays visible if that fails.
   }
 
-  const publicClient = new PublicExposurePageClient();
   const fetchAllPublicGames =
     options.forceFetchAllGames || shouldFetchAllPublicGames(tournament);
   if (!fetchAllPublicGames && selectedDivisionIds.length === 0) return [];
@@ -3954,6 +3959,7 @@ async function fetchSourceDivisionResults(
   eventId: string,
   teamMap: Map<string, Team>,
   divisionIdMap: Map<string, string>,
+  publicClient = new PublicExposurePageClient(),
 ): Promise<{ fetched: boolean; results: DivisionResult[] }> {
   if (
     tournament.externalProvider !== "exposure_events" ||
@@ -3962,7 +3968,7 @@ async function fetchSourceDivisionResults(
     return { fetched: false, results: [] };
 
   try {
-    const results = await new PublicExposurePageClient().fetchDivisionResults(
+    const results = await publicClient.fetchDivisionResults(
       tournament.exposureEventId,
       { eventSlug: tournament.slug },
     );
@@ -5108,17 +5114,13 @@ function mapExposureGame(
   const id = String(raw.Id ?? "");
   if (!id) return null;
   const division = raw.Division as
-    | { Id?: number | string; Name?: string }
-    | undefined;
+    { Id?: number | string; Name?: string } | undefined;
   const venueCourt = raw.VenueCourt as
-    | { Court?: { Name?: string }; Venue?: { Name?: string } }
-    | undefined;
+    { Court?: { Name?: string }; Venue?: { Name?: string } } | undefined;
   const home = raw.HomeTeam as
-    | { TeamId?: number | string; Name?: string; Score?: number }
-    | undefined;
+    { TeamId?: number | string; Name?: string; Score?: number } | undefined;
   const away = raw.AwayTeam as
-    | { TeamId?: number | string; Name?: string; Score?: number }
-    | undefined;
+    { TeamId?: number | string; Name?: string; Score?: number } | undefined;
   const homeTeam = home?.TeamId ? teamMap.get(String(home.TeamId)) : null;
   const awayTeam = away?.TeamId ? teamMap.get(String(away.TeamId)) : null;
   const date = String(raw.Date ?? tournament.startDate);

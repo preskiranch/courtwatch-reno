@@ -46,6 +46,103 @@ describe("PublicExposurePageClient", () => {
     });
   });
 
+  it("reuses official schedule and game responses throughout one tournament sync", async () => {
+    const calls = new Map<string, number>();
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      const path = new URL(url).pathname;
+      calls.set(path, (calls.get(path) ?? 0) + 1);
+      if (url.includes("/search"))
+        return jsonResponse({ Teams: [], Players: [] });
+      if (url.endsWith("/teams")) return htmlResponse("<main></main>");
+      if (url.includes("/schedule")) {
+        return htmlResponse(`
+          <script>
+            app.viewModel.schedule.init({
+              divisions: [{"Id":9001,"Name":"10U Boys"}],
+              standingsUrl: "/standings",
+              brackets: [],
+              searchUrl: "/search"
+            });
+          </script>
+        `);
+      }
+      if (url.includes("/eventgames?divisionId=9001")) {
+        return jsonResponse([
+          {
+            Name: "Saturday, July 25, 2026",
+            Games: [
+              {
+                Id: 44001,
+                DivisionId: 9001,
+                DivisionName: "10U Boys",
+                HomeDivisionTeamId: 7001,
+                AwayDivisionTeamId: 7002,
+                HomeTeamName: "North Stars 10U",
+                AwayTeamName: "South Stars 10U",
+                VenueName: "Main Gym",
+                CourtName: "Court 1",
+                DateFormatted: "7/25/2026",
+                TimeFormatted: "10:00 AM PDT",
+                HomeTeamScoreDisplay: "",
+                AwayTeamScoreDisplay: "",
+                Started: false,
+              },
+            ],
+          },
+        ]);
+      }
+      if (url.includes("/standings")) return jsonResponse([]);
+      throw new Error(`Unexpected URL ${url}`);
+    }) as unknown as typeof fetch;
+    const client = new PublicExposurePageClient({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    });
+
+    const teams = await client.fetchTeams(
+      270100,
+      "request-reuse-event",
+      "America/Los_Angeles",
+    );
+    const games = await client.fetchGames(270100, {
+      eventSlug: "request-reuse-event",
+      timezone: "America/Los_Angeles",
+    });
+
+    expect(teams.teams.map((team) => team.name)).toEqual([
+      "North Stars 10U",
+      "South Stars 10U",
+    ]);
+    expect(games).toHaveLength(1);
+    expect(calls.get("/270100/request-reuse-event/schedule")).toBe(1);
+    expect(calls.get("/270100/request-reuse-event/eventgames")).toBe(1);
+  });
+
+  it("evicts failed memoized requests so a later sync attempt can recover", async () => {
+    let attempts = 0;
+    const fetchImpl = vi.fn(async () => {
+      attempts += 1;
+      if (attempts === 1) throw new TypeError("temporary source failure");
+      return htmlResponse(`
+        <script>
+          app.viewModel.schedule.init({
+            divisions: [], brackets: [], searchUrl: "/search"
+          });
+        </script>
+      `);
+    }) as unknown as typeof fetch;
+    const client = new PublicExposurePageClient({ fetchImpl });
+
+    await expect(
+      client.fetchScheduleConfig(270101, "retry-event"),
+    ).rejects.toThrow("temporary source failure");
+    await expect(
+      client.fetchScheduleConfig(270101, "retry-event"),
+    ).resolves.toEqual({ divisions: [], brackets: [] });
+    expect(attempts).toBe(2);
+  });
+
   it("falls back to the official teams page when public search is unavailable", async () => {
     const seenUserAgents: string[] = [];
     const fetchImpl = vi.fn(
@@ -95,13 +192,13 @@ describe("PublicExposurePageClient", () => {
       "2nd/3rd Grade (8U/9U) Boys Division",
       "5th Grade (11U) Boys Division",
     ]);
-    expect(result.teams.map((team) => [team.exposureTeamId, team.name])).toEqual(
-      [
-        ["5430400", "EB Elite 9U"],
-        ["5430399", "TM 9U"],
-        ["5430420", "Bay Area Blue Devils 11U"],
-      ],
-    );
+    expect(
+      result.teams.map((team) => [team.exposureTeamId, team.name]),
+    ).toEqual([
+      ["5430400", "EB Elite 9U"],
+      ["5430399", "TM 9U"],
+      ["5430420", "Bay Area Blue Devils 11U"],
+    ]);
   });
 
   it("falls back to the official teams page when public search is empty", async () => {
@@ -139,12 +236,12 @@ describe("PublicExposurePageClient", () => {
     );
 
     expect(result.divisions.map((division) => division.name)).toEqual(["9U"]);
-    expect(result.teams.map((team) => [team.exposureTeamId, team.name])).toEqual(
-      [
-        ["5432350", "Sac Yellow Jackets"],
-        ["5432348", "Team Rampage"],
-      ],
-    );
+    expect(
+      result.teams.map((team) => [team.exposureTeamId, team.name]),
+    ).toEqual([
+      ["5432350", "Sac Yellow Jackets"],
+      ["5432348", "Team Rampage"],
+    ]);
   });
 
   it("recovers published teams from official schedules and standings when the teams page is empty", async () => {
@@ -241,12 +338,7 @@ describe("PublicExposurePageClient", () => {
         "division-270001-1001",
         "public_schedule_roster",
       ],
-      [
-        "502",
-        "All-Net",
-        "division-270001-1001",
-        "public_schedule_roster",
-      ],
+      ["502", "All-Net", "division-270001-1001", "public_schedule_roster"],
       [
         "503",
         "PMA Knights 13U",
