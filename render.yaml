@@ -78,7 +78,7 @@ services:
     buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
     preDeployCommand: npm run db:migrate
     startCommand: npm run start --workspace @courtwatch/api
-    healthCheckPath: /api/health/ready
+    healthCheckPath: /api/health/live
     autoDeployTrigger: checksPass
     maxShutdownDelaySeconds: 30
     envVars:
