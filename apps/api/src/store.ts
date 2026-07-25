@@ -87,6 +87,7 @@ import type { TournamentSource } from "./config.js";
 import { findStaleGameIds } from "./game-reconciliation.js";
 import { acquireSyncLease } from "./sync-lease.js";
 import { isUpstreamSourceUnavailableError } from "./upstream-source-error.js";
+import { ExpiringCoalescingCache } from "./expiring-coalescing-cache.js";
 
 const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
@@ -134,6 +135,10 @@ const PRESTART_GAME_HYDRATION_WINDOW_DAYS = Math.max(
 const EVENTS_CACHE_TTL_MS = Math.max(
   5_000,
   Number(process.env.EVENTS_CACHE_TTL_MS ?? 30_000),
+);
+const CLIENT_SNAPSHOT_CACHE_TTL_MS = Math.max(
+  250,
+  Number(process.env.CLIENT_SNAPSHOT_CACHE_TTL_MS ?? 2_000),
 );
 const TEAM_LIST_HYDRATION_STALE_MS = Math.max(
   60_000,
@@ -955,6 +960,11 @@ export class MockStore implements CourtWatchStore {
 }
 
 export class PrismaStore implements CourtWatchStore {
+  private readonly clientSnapshotCache = new ExpiringCoalescingCache<
+    string,
+    CourtWatchSnapshot
+  >(CLIENT_SNAPSHOT_CACHE_TTL_MS);
+
   constructor(private readonly prisma: PrismaClient) {}
 
   async events(clientId?: string | null): Promise<TournamentEvent[]> {
@@ -2002,7 +2012,10 @@ export class PrismaStore implements CourtWatchStore {
 
   async followTeam(teamId: string, clientId?: string | null) {
     const program = await this.ensureSelectedProgram(clientId);
-    const team = await this.prisma.team.findUnique({ where: { id: teamId } });
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId },
+      include: { event: { select: { exposureEventId: true } } },
+    });
     if (!team) throw new Error("Team not found");
     const match = await this.prisma.programTeamMatch.upsert({
       where: {
@@ -2016,15 +2029,23 @@ export class PrismaStore implements CourtWatchStore {
         matchConfidence: 1,
       },
     });
+    this.invalidateClientSnapshotsForEvent(team.event.exposureEventId);
     return prismaMatchToCore(match);
   }
 
   async unfollowTeam(teamId: string, clientId?: string | null) {
     const program = await this.ensureSelectedProgram(clientId);
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId },
+      include: { event: { select: { exposureEventId: true } } },
+    });
     await this.prisma.programTeamMatch.updateMany({
       where: { programWatchlistId: program.id, teamId },
       data: { active: false },
     });
+    if (team) {
+      this.invalidateClientSnapshotsForEvent(team.event.exposureEventId);
+    }
   }
 
   async addAlias(programId: string, aliasValue: string) {
@@ -2702,6 +2723,7 @@ export class PrismaStore implements CourtWatchStore {
           changesDetected,
         },
       });
+      this.invalidateClientSnapshotsForEvent(tournament.exposureEventId);
 
       return {
         status: "success",
@@ -2756,41 +2778,52 @@ export class PrismaStore implements CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
   ): Promise<CourtWatchSnapshot> {
-    await this.hydrateActiveGamesIfStale(exposureEventId);
-    const program = await this.ensureSelectedProgram(clientId);
-    const snapshot = scopeSnapshot(
-      await this.snapshot(exposureEventId),
-      program.id,
-    );
-    if (!clientId) return snapshot;
+    const requestedTournament = tournamentForExposureEventId(exposureEventId);
+    const ownerKey = clientId ? favoriteWatchOwnerHash(clientId) : "public";
+    const cacheKey = `${requestedTournament.exposureEventId}:${ownerKey}`;
+    return this.clientSnapshotCache.get(cacheKey, async () => {
+      await this.hydrateActiveGamesIfStale(exposureEventId);
+      const program = await this.ensureSelectedProgram(clientId);
+      const snapshot = scopeSnapshot(
+        await this.snapshot(exposureEventId),
+        program.id,
+      );
+      if (!clientId) return snapshot;
 
-    const favoriteChanges = await this.prisma.gameChangeEvent.findMany({
-      where: {
-        favoriteTeamWatch: {
-          ownerHash: favoriteWatchOwnerHash(clientId),
-          active: true,
+      const favoriteChanges = await this.prisma.gameChangeEvent.findMany({
+        where: {
+          favoriteTeamWatch: {
+            ownerHash: favoriteWatchOwnerHash(clientId),
+            active: true,
+          },
+          affectedTeam: { eventId: snapshot.event.id },
         },
-        affectedTeam: { eventId: snapshot.event.id },
-      },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      take: 100,
-    });
-    if (favoriteChanges.length === 0) return snapshot;
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: 100,
+      });
+      if (favoriteChanges.length === 0) return snapshot;
 
-    const changesById = new Map(
-      snapshot.changeEvents.map((change) => [change.id, change]),
+      const changesById = new Map(
+        snapshot.changeEvents.map((change) => [change.id, change]),
+      );
+      for (const change of favoriteChanges) {
+        changesById.set(change.id, toCoreChange(change));
+      }
+      return {
+        ...snapshot,
+        changeEvents: Array.from(changesById.values()).sort(
+          (left, right) =>
+            new Date(right.createdAt).getTime() -
+            new Date(left.createdAt).getTime(),
+        ),
+      };
+    });
+  }
+
+  private invalidateClientSnapshotsForEvent(exposureEventId: number): void {
+    this.clientSnapshotCache.deleteWhere((key) =>
+      key.startsWith(`${exposureEventId}:`),
     );
-    for (const change of favoriteChanges) {
-      changesById.set(change.id, toCoreChange(change));
-    }
-    return {
-      ...snapshot,
-      changeEvents: Array.from(changesById.values()).sort(
-        (left, right) =>
-          new Date(right.createdAt).getTime() -
-          new Date(left.createdAt).getTime(),
-      ),
-    };
   }
 
   private async teamsSnapshotForEvent(
@@ -3102,27 +3135,38 @@ export class PrismaStore implements CourtWatchStore {
     const selectedProgramWhere = {
       userId_normalizedProgramName: { userId: user.id, normalizedProgramName },
     };
-    let program;
-    try {
-      program = await this.prisma.programWatchlist.upsert({
-        where: selectedProgramWhere,
-        update: {
+    let program = await this.prisma.programWatchlist.findUnique({
+      where: selectedProgramWhere,
+    });
+    if (
+      program &&
+      (!program.active ||
+        program.programName !== SELECTED_TEAMS_PROGRAM_NAME)
+    ) {
+      program = await this.prisma.programWatchlist.update({
+        where: { id: program.id },
+        data: {
           programName: SELECTED_TEAMS_PROGRAM_NAME,
           active: true,
         },
-        create: {
-          userId: user.id,
-          programName: SELECTED_TEAMS_PROGRAM_NAME,
-          normalizedProgramName,
-          active: true,
-        },
       });
-    } catch (error) {
-      if (!isUniqueConstraintError(error)) throw error;
-      program = await this.prisma.programWatchlist.findUnique({
-        where: selectedProgramWhere,
-      });
-      if (!program) throw error;
+    } else if (!program) {
+      try {
+        program = await this.prisma.programWatchlist.create({
+          data: {
+            userId: user.id,
+            programName: SELECTED_TEAMS_PROGRAM_NAME,
+            normalizedProgramName,
+            active: true,
+          },
+        });
+      } catch (error) {
+        if (!isUniqueConstraintError(error)) throw error;
+        program = await this.prisma.programWatchlist.findUnique({
+          where: selectedProgramWhere,
+        });
+        if (!program) throw error;
+      }
     }
 
     return {
@@ -3568,11 +3612,11 @@ function favoriteWatchSourceMetadata(watch: {
 }
 
 async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
+  const existing = await prisma.user.findUnique({ where: { clientId } });
+  if (existing) return existing;
   try {
-    return await prisma.user.upsert({
-      where: { clientId },
-      update: {},
-      create: {
+    return await prisma.user.create({
+      data: {
         clientId,
         displayName: "Court Watch Device",
         timezone: RENO_TIMEZONE,
