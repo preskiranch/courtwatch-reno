@@ -24,7 +24,11 @@
     "ios:icons": "tsx scripts/generate-ios-icons.ts",
     "outreach:generate": "node scripts/outreach/generate-outreach-candidates.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
+    "security:audit": "npm audit --audit-level=high",
     "format": "prettier --write ."
+  },
+  "dependencies": {
+    "next": "16.2.11"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
@@ -40,5 +44,9 @@
   },
   "engines": {
     "node": "22.x"
+  },
+  "overrides": {
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
   }
 }
