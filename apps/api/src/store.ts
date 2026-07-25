@@ -15,6 +15,7 @@ import {
   buildDivisionResultGroups,
   buildTeamScoringLeaders,
   detectGameChanges,
+  reconcileGameSnapshot,
   deriveTournamentStatus,
   deriveTournamentStatusAfterSuccessfulSync,
   deriveDivisionResultsFromGames,
@@ -2567,9 +2568,20 @@ export class PrismaStore implements CourtWatchStore {
         sourceTeamIds,
         publicPageClient,
       );
+      const storedGames = await this.prisma.game.findMany({
+        where: { eventId: event.id },
+      });
+      const storedGamesByExposureId = new Map(
+        storedGames
+          .filter((game) => Boolean(game.exposureGameId))
+          .map((game) => [
+            game.exposureGameId as string,
+            prismaGameToCore(game),
+          ]),
+      );
       const currentExposureGameIds = new Set<string>();
       for (const sourceGame of sourceGames) {
-        const mapped = isCoreGame(sourceGame)
+        const incomingGame = isCoreGame(sourceGame)
           ? mapStoredSourceGame(sourceGame, event.id, teamMap, divisionIdMap)
           : mapExposureGame(
               sourceGame,
@@ -2578,22 +2590,19 @@ export class PrismaStore implements CourtWatchStore {
               tournament,
               divisionIdMap,
             );
-        if (!mapped) continue;
-        currentExposureGameIds.add(mapped.exposureGameId ?? mapped.id);
-        const existing = mapped.exposureGameId
-          ? await this.prisma.game.findUnique({
-              where: {
-                eventId_exposureGameId: {
-                  eventId: event.id,
-                  exposureGameId: mapped.exposureGameId,
-                },
-              },
-            })
-          : null;
-        const previousGame = existing ? prismaGameToCore(existing) : null;
+        if (!incomingGame) continue;
+        const exposureGameId = incomingGame.exposureGameId ?? incomingGame.id;
+        currentExposureGameIds.add(exposureGameId);
+        const previousGame =
+          storedGamesByExposureId.get(exposureGameId) ?? null;
+        const mapped = reconcileGameSnapshot(previousGame, incomingGame);
         const changes = detectGameChanges(previousGame, mapped);
         changesDetected += changes.length;
         const savedGame = await upsertGame(this.prisma, mapped);
+        storedGamesByExposureId.set(
+          exposureGameId,
+          prismaGameToCore(savedGame),
+        );
         for (const change of changes) {
           await this.prisma.gameChangeEvent.upsert({
             where: { dedupeKey: change.dedupeKey },

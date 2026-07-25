@@ -3,6 +3,7 @@ export * from "./normalization.js";
 export * from "./team-identity.js";
 export * from "./matcher.js";
 export * from "./change-detection.js";
+export * from "./game-reconciliation.js";
 export * from "./notification.js";
 export * from "./polling.js";
 export * from "./dashboard.js";
