@@ -10,6 +10,7 @@ import {
   readAsyncBodyWithLimit,
   readWebBodyWithLimit,
 } from "./body-limits.js";
+import { createAlternateDnsFetch } from "./alternate-dns-fetch.js";
 import { RequestControllerRegistry } from "./request-registry.js";
 import {
   ResilientUpstreamRouter,
@@ -30,6 +31,9 @@ const upstreamOrigin = normalizedOrigin(
 const delegateOrigin = optionalNormalizedOrigin(
   process.env.RELAY_DELEGATE_ORIGIN ?? defaultDelegateOrigin,
 );
+const alternateDnsHostname =
+  process.env.RELAY_ALTERNATE_DNS_HOSTNAME?.trim() ||
+  "exposureevents.com";
 const legacyAuthOrigin = optionalNormalizedOrigin(
   process.env.RELAY_LEGACY_AUTH_ORIGIN,
 );
@@ -46,6 +50,10 @@ const upstreamTimeoutMs = positiveInteger(
 const delegateAttemptTimeoutMs = positiveInteger(
   process.env.RELAY_DELEGATE_TIMEOUT_MS,
   5_000,
+);
+const alternateAttemptTimeoutMs = positiveInteger(
+  process.env.RELAY_ALTERNATE_DNS_TIMEOUT_MS,
+  6_000,
 );
 const circuitFailureThreshold = positiveInteger(
   process.env.RELAY_CIRCUIT_FAILURE_THRESHOLD,
@@ -79,6 +87,8 @@ type UpstreamProbe = {
 };
 
 const upstreamRouter = new ResilientUpstreamRouter({
+  alternateAttemptTimeoutMs,
+  alternateFetchImpl: createAlternateDnsFetch(alternateDnsHostname),
   circuitCooldownMs,
   circuitFailureThreshold,
   delegateAttemptTimeoutMs,
@@ -209,6 +219,8 @@ server.listen(port, () => {
   console.log(
     JSON.stringify({
       message: "Exposure relay listening",
+      alternateAttemptTimeoutMs,
+      alternateDnsHostname,
       delegateOrigin,
       delegateAttemptTimeoutMs,
       circuitCooldownMs,

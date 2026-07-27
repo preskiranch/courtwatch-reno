@@ -1,4 +1,4 @@
-export type UpstreamRoute = "delegate" | "direct";
+export type UpstreamRoute = "alternate_dns" | "delegate" | "direct";
 
 export type UpstreamAttempt = {
   durationMs: number;
@@ -24,6 +24,8 @@ export type RoutedResponse = {
 export type FetchLike = (url: URL, init: RequestInit) => Promise<Response>;
 
 type RouterOptions = {
+  alternateAttemptTimeoutMs?: number;
+  alternateFetchImpl?: FetchLike;
   circuitCooldownMs?: number;
   circuitFailureThreshold?: number;
   delegateAttemptTimeoutMs?: number;
@@ -123,6 +125,8 @@ class DelegateCircuitBreaker {
 }
 
 export class ResilientUpstreamRouter {
+  private readonly alternateAttemptTimeoutMs: number;
+  private readonly alternateFetchImpl?: FetchLike;
   private readonly breaker: DelegateCircuitBreaker;
   private readonly delegateAttemptTimeoutMs: number;
   private readonly delegateOrigin?: string;
@@ -132,6 +136,10 @@ export class ResilientUpstreamRouter {
   private readonly upstreamOrigin: string;
 
   constructor(options: RouterOptions) {
+    this.alternateFetchImpl = options.alternateFetchImpl;
+    this.alternateAttemptTimeoutMs =
+      options.alternateAttemptTimeoutMs ??
+      Math.min(6_000, options.totalTimeoutMs);
     this.delegateOrigin = options.delegateOrigin;
     this.upstreamOrigin = options.upstreamOrigin;
     this.totalTimeoutMs = options.totalTimeoutMs;
@@ -149,6 +157,32 @@ export class ResilientUpstreamRouter {
   async fetch(request: RouteRequest): Promise<RoutedResponse> {
     const startedAt = this.now();
     const attempts: UpstreamAttempt[] = [];
+
+    if (this.alternateFetchImpl) {
+      try {
+        const response = await this.attempt(
+          "alternate_dns",
+          this.upstreamOrigin,
+          request,
+          Math.min(
+            this.alternateAttemptTimeoutMs,
+            this.remainingTime(startedAt),
+          ),
+          this.alternateFetchImpl,
+        );
+        attempts.push(response.attempt);
+        if (!isTransientStatus(response.response.status)) {
+          return this.result(response.response, "alternate_dns", attempts);
+        }
+        await response.response.body?.cancel();
+      } catch (error) {
+        const failure = asAttemptFailure(error, "alternate_dns");
+        attempts.push(failure.attempt);
+        if (request.parentSignal?.aborted) {
+          throw new UpstreamRoutesError(attempts, { cause: failure });
+        }
+      }
+    }
 
     if (this.delegateOrigin && this.breaker.tryAcquire(this.now())) {
       try {
@@ -205,6 +239,7 @@ export class ResilientUpstreamRouter {
     origin: string,
     request: RouteRequest,
     timeoutMs: number,
+    fetchImpl: FetchLike = this.fetchImpl,
   ): Promise<{ attempt: UpstreamAttempt; response: Response }> {
     if (timeoutMs <= 0) {
       throw new AttemptFailure("Upstream request deadline exceeded", {
@@ -223,7 +258,7 @@ export class ResilientUpstreamRouter {
       } else {
         headers.delete("X-CourtWatch-Relay-Key");
       }
-      const response = await this.fetchImpl(
+      const response = await fetchImpl(
         containedTargetUrl(origin, request.pathname, request.search),
         {
           body: request.body,

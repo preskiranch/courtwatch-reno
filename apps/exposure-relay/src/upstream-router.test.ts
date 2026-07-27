@@ -14,6 +14,55 @@ const request = {
 };
 
 describe("ResilientUpstreamRouter", () => {
+  it("prefers the alternate official DNS route when it is healthy", async () => {
+    const directFetch = vi.fn<FetchLike>();
+    const alternateFetch = vi.fn<FetchLike>(
+      async () => new Response("ok", { status: 200 }),
+    );
+    const router = createRouter(directFetch, {
+      alternateFetchImpl: alternateFetch,
+    });
+
+    const result = await router.fetch(request);
+
+    expect(result.route).toBe("alternate_dns");
+    expect(result.attempts).toEqual([
+      expect.objectContaining({
+        outcome: "response",
+        route: "alternate_dns",
+        status: 200,
+      }),
+    ]);
+    expect(alternateFetch).toHaveBeenCalledTimes(1);
+    expect(directFetch).not.toHaveBeenCalled();
+    expect(
+      new Headers(alternateFetch.mock.calls[0]?.[1]?.headers).has(
+        "X-CourtWatch-Relay-Key",
+      ),
+    ).toBe(false);
+  });
+
+  it("falls back to the delegate when the alternate DNS route fails", async () => {
+    const fetchImpl = vi.fn<FetchLike>(
+      async () => new Response("ok", { status: 200 }),
+    );
+    const alternateFetch = vi.fn<FetchLike>(async () => {
+      throw new TypeError("alternate route unavailable");
+    });
+    const router = createRouter(fetchImpl, {
+      alternateFetchImpl: alternateFetch,
+    });
+
+    const result = await router.fetch(request);
+
+    expect(result.route).toBe("delegate");
+    expect(result.attempts.map((attempt) => attempt.route)).toEqual([
+      "alternate_dns",
+      "delegate",
+    ]);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
   it("uses the healthy delegate without calling the direct route", async () => {
     const fetchImpl = vi.fn<FetchLike>(
       async () => new Response("ok", { status: 200 }),
