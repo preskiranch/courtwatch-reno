@@ -88,6 +88,7 @@ import { findStaleGameIds } from "./game-reconciliation.js";
 import { acquireSyncLease } from "./sync-lease.js";
 import { isUpstreamSourceUnavailableError } from "./upstream-source-error.js";
 import { ExpiringCoalescingCache } from "./expiring-coalescing-cache.js";
+import { apiReadThroughSourceEnabled } from "./read-through-policy.js";
 
 const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
@@ -148,6 +149,7 @@ const TEAM_LIST_HYDRATION_WINDOW_DAYS = Math.max(
   1,
   Number(process.env.TEAM_LIST_HYDRATION_WINDOW_DAYS ?? 14),
 );
+const API_READ_THROUGH_SOURCE = apiReadThroughSourceEnabled();
 
 export interface SyncNowOptions {
   teamListOnly?: boolean;
@@ -1527,8 +1529,10 @@ export class PrismaStore implements CourtWatchStore {
     limit?: number,
   ) {
     if (allEvents) return this.teamsAcrossEvents(search, clientId, limit);
-    await this.hydratePublishedTeamsIfMissing(exposureEventId);
-    await this.hydrateActiveGamesIfStale(exposureEventId);
+    if (API_READ_THROUGH_SOURCE) {
+      await this.hydratePublishedTeamsIfMissing(exposureEventId);
+      await this.hydrateActiveGamesIfStale(exposureEventId);
+    }
     const snapshot = await this.teamsSnapshotForEvent(
       clientId,
       exposureEventId,
@@ -2782,7 +2786,9 @@ export class PrismaStore implements CourtWatchStore {
     const ownerKey = clientId ? favoriteWatchOwnerHash(clientId) : "public";
     const cacheKey = `${requestedTournament.exposureEventId}:${ownerKey}`;
     return this.clientSnapshotCache.get(cacheKey, async () => {
-      await this.hydrateActiveGamesIfStale(exposureEventId);
+      if (API_READ_THROUGH_SOURCE) {
+        await this.hydrateActiveGamesIfStale(exposureEventId);
+      }
       const program = await this.ensureSelectedProgram(clientId);
       const snapshot = scopeSnapshot(
         await this.snapshot(exposureEventId),
