@@ -11,6 +11,7 @@ import {
   readWebBodyWithLimit,
 } from "./body-limits.js";
 import { createAlternateDnsFetch } from "./alternate-dns-fetch.js";
+import { createOfficialApexFetch } from "./official-apex-fetch.js";
 import { RequestControllerRegistry } from "./request-registry.js";
 import {
   ResilientUpstreamRouter,
@@ -34,6 +35,12 @@ const delegateOrigin = optionalNormalizedOrigin(
 const alternateDnsHostname =
   process.env.RELAY_ALTERNATE_DNS_HOSTNAME?.trim() ||
   "exposureevents.com";
+const officialApexOrigin = normalizedOrigin(
+  process.env.RELAY_OFFICIAL_APEX_ORIGIN ?? "https://exposureevents.com",
+);
+const officialTargetHostname =
+  process.env.RELAY_OFFICIAL_TARGET_HOSTNAME?.trim() ||
+  new URL(upstreamOrigin).hostname;
 const legacyAuthOrigin = optionalNormalizedOrigin(
   process.env.RELAY_LEGACY_AUTH_ORIGIN,
 );
@@ -54,6 +61,10 @@ const delegateAttemptTimeoutMs = positiveInteger(
 const alternateAttemptTimeoutMs = positiveInteger(
   process.env.RELAY_ALTERNATE_DNS_TIMEOUT_MS,
   6_000,
+);
+const officialApexAttemptTimeoutMs = positiveInteger(
+  process.env.RELAY_OFFICIAL_APEX_TIMEOUT_MS,
+  8_000,
 );
 const circuitFailureThreshold = positiveInteger(
   process.env.RELAY_CIRCUIT_FAILURE_THRESHOLD,
@@ -93,6 +104,11 @@ const upstreamRouter = new ResilientUpstreamRouter({
   circuitFailureThreshold,
   delegateAttemptTimeoutMs,
   delegateOrigin,
+  officialApexAttemptTimeoutMs,
+  officialApexFetchImpl: createOfficialApexFetch(
+    officialApexOrigin,
+    officialTargetHostname,
+  ),
   totalTimeoutMs: upstreamTimeoutMs,
   upstreamOrigin,
 });
@@ -221,6 +237,9 @@ server.listen(port, () => {
       message: "Exposure relay listening",
       alternateAttemptTimeoutMs,
       alternateDnsHostname,
+      officialApexAttemptTimeoutMs,
+      officialApexOrigin,
+      officialTargetHostname,
       delegateOrigin,
       delegateAttemptTimeoutMs,
       circuitCooldownMs,

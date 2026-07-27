@@ -1,4 +1,8 @@
-export type UpstreamRoute = "alternate_dns" | "delegate" | "direct";
+export type UpstreamRoute =
+  | "official_apex"
+  | "alternate_dns"
+  | "delegate"
+  | "direct";
 
 export type UpstreamAttempt = {
   durationMs: number;
@@ -32,6 +36,8 @@ type RouterOptions = {
   delegateOrigin?: string;
   fetchImpl?: FetchLike;
   now?: () => number;
+  officialApexAttemptTimeoutMs?: number;
+  officialApexFetchImpl?: FetchLike;
   totalTimeoutMs: number;
   upstreamOrigin: string;
 };
@@ -132,6 +138,8 @@ export class ResilientUpstreamRouter {
   private readonly delegateOrigin?: string;
   private readonly fetchImpl: FetchLike;
   private readonly now: () => number;
+  private readonly officialApexAttemptTimeoutMs: number;
+  private readonly officialApexFetchImpl?: FetchLike;
   private readonly totalTimeoutMs: number;
   private readonly upstreamOrigin: string;
 
@@ -148,6 +156,10 @@ export class ResilientUpstreamRouter {
       Math.min(5_000, options.totalTimeoutMs);
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.now = options.now ?? Date.now;
+    this.officialApexFetchImpl = options.officialApexFetchImpl;
+    this.officialApexAttemptTimeoutMs =
+      options.officialApexAttemptTimeoutMs ??
+      Math.min(8_000, options.totalTimeoutMs);
     this.breaker = new DelegateCircuitBreaker(
       options.circuitFailureThreshold ?? 2,
       options.circuitCooldownMs ?? 60_000,
@@ -157,6 +169,32 @@ export class ResilientUpstreamRouter {
   async fetch(request: RouteRequest): Promise<RoutedResponse> {
     const startedAt = this.now();
     const attempts: UpstreamAttempt[] = [];
+
+    if (this.officialApexFetchImpl) {
+      try {
+        const response = await this.attempt(
+          "official_apex",
+          this.upstreamOrigin,
+          request,
+          Math.min(
+            this.officialApexAttemptTimeoutMs,
+            this.remainingTime(startedAt),
+          ),
+          this.officialApexFetchImpl,
+        );
+        attempts.push(response.attempt);
+        if (!isTransientStatus(response.response.status)) {
+          return this.result(response.response, "official_apex", attempts);
+        }
+        await response.response.body?.cancel();
+      } catch (error) {
+        const failure = asAttemptFailure(error, "official_apex");
+        attempts.push(failure.attempt);
+        if (request.parentSignal?.aborted) {
+          throw new UpstreamRoutesError(attempts, { cause: failure });
+        }
+      }
+    }
 
     if (this.alternateFetchImpl) {
       try {

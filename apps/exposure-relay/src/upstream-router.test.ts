@@ -14,6 +14,51 @@ const request = {
 };
 
 describe("ResilientUpstreamRouter", () => {
+  it("prefers the official apex virtual-host route when it is healthy", async () => {
+    const directFetch = vi.fn<FetchLike>();
+    const officialApexFetch = vi.fn<FetchLike>(
+      async () => new Response("ok", { status: 200 }),
+    );
+    const router = createRouter(directFetch, {
+      officialApexFetchImpl: officialApexFetch,
+    });
+
+    const result = await router.fetch(request);
+
+    expect(result.route).toBe("official_apex");
+    expect(result.attempts).toEqual([
+      expect.objectContaining({
+        outcome: "response",
+        route: "official_apex",
+        status: 200,
+      }),
+    ]);
+    expect(officialApexFetch).toHaveBeenCalledTimes(1);
+    expect(directFetch).not.toHaveBeenCalled();
+  });
+
+  it("falls back from the official apex route to alternate DNS", async () => {
+    const directFetch = vi.fn<FetchLike>();
+    const officialApexFetch = vi.fn<FetchLike>(async () => {
+      throw new TypeError("official apex unavailable");
+    });
+    const alternateFetch = vi.fn<FetchLike>(
+      async () => new Response("ok", { status: 200 }),
+    );
+    const router = createRouter(directFetch, {
+      alternateFetchImpl: alternateFetch,
+      officialApexFetchImpl: officialApexFetch,
+    });
+
+    const result = await router.fetch(request);
+
+    expect(result.route).toBe("alternate_dns");
+    expect(result.attempts.map((attempt) => attempt.route)).toEqual([
+      "official_apex",
+      "alternate_dns",
+    ]);
+  });
+
   it("prefers the alternate official DNS route when it is healthy", async () => {
     const directFetch = vi.fn<FetchLike>();
     const alternateFetch = vi.fn<FetchLike>(

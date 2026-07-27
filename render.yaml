@@ -27,6 +27,12 @@ services:
         value: exposureevents.com
       - key: RELAY_ALTERNATE_DNS_TIMEOUT_MS
         value: "6000"
+      - key: RELAY_OFFICIAL_APEX_ORIGIN
+        value: https://exposureevents.com
+      - key: RELAY_OFFICIAL_TARGET_HOSTNAME
+        value: basketball.exposureevents.com
+      - key: RELAY_OFFICIAL_APEX_TIMEOUT_MS
+        value: "8000"
       - key: RELAY_DELEGATE_ORIGIN
         value: https://courtwatch-exposure-relay-east-3oehk2tqgq-ue.a.run.app
       - key: RELAY_SHARED_SECRET
