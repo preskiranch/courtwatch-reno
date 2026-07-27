@@ -28,7 +28,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "next": "16.2.11"
+    "next": "16.2.12"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
