@@ -29,6 +29,8 @@ services:
         value: "6000"
       - key: RELAY_OFFICIAL_APEX_ORIGIN
         value: https://exposureevents.com
+      - key: RELAY_OFFICIAL_APEX_CONNECT_ORIGIN
+        value: https://135.237.189.223
       - key: RELAY_OFFICIAL_TARGET_HOSTNAME
         value: basketball.exposureevents.com
       - key: RELAY_OFFICIAL_APEX_TIMEOUT_MS

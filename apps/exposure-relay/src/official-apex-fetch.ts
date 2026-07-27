@@ -7,12 +7,21 @@ type RequestClient = Pick<Client, "request">;
 export function createOfficialApexFetch(
   apexOrigin: string,
   targetHostname: string,
-  client: RequestClient = new Client(validatedApexOrigin(apexOrigin)),
+  client?: RequestClient,
+  connectOrigin = apexOrigin,
 ): FetchLike {
+  const apexUrl = new URL(validatedApexOrigin(apexOrigin));
   const hostname = validatedHostname(targetHostname);
+  const requestClient =
+    client ??
+    new Client(validatedApexOrigin(connectOrigin), {
+      connect: {
+        servername: apexUrl.hostname,
+      },
+    });
 
   return async (url, init) => {
-    const response = await client.request(
+    const response = await requestClient.request(
       officialApexRequestOptions(url, init, hostname),
     );
     const headers = new Headers();

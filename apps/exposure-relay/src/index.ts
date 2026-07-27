@@ -38,6 +38,9 @@ const alternateDnsHostname =
 const officialApexOrigin = normalizedOrigin(
   process.env.RELAY_OFFICIAL_APEX_ORIGIN ?? "https://exposureevents.com",
 );
+const officialApexConnectOrigin = normalizedOrigin(
+  process.env.RELAY_OFFICIAL_APEX_CONNECT_ORIGIN ?? officialApexOrigin,
+);
 const officialTargetHostname =
   process.env.RELAY_OFFICIAL_TARGET_HOSTNAME?.trim() ||
   new URL(upstreamOrigin).hostname;
@@ -108,6 +111,8 @@ const upstreamRouter = new ResilientUpstreamRouter({
   officialApexFetchImpl: createOfficialApexFetch(
     officialApexOrigin,
     officialTargetHostname,
+    undefined,
+    officialApexConnectOrigin,
   ),
   totalTimeoutMs: upstreamTimeoutMs,
   upstreamOrigin,
@@ -238,6 +243,7 @@ server.listen(port, () => {
       alternateAttemptTimeoutMs,
       alternateDnsHostname,
       officialApexAttemptTimeoutMs,
+      officialApexConnectOrigin,
       officialApexOrigin,
       officialTargetHostname,
       delegateOrigin,
