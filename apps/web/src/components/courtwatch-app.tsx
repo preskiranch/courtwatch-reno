@@ -108,12 +108,14 @@ import {
 } from "../lib/followed-team-storage";
 import { requestPushSubscription } from "../lib/push";
 import {
+  ACTIVE_TAB_STORAGE_KEY,
   DASHBOARD_FOLLOW_MIGRATION_KEY,
   LEGACY_DIVISION_COMPARE_STORAGE_KEY,
   SELECTED_EVENT_STORAGE_KEY,
   dashboardFollowMigrationStorageKey,
   divisionCompareStorageKey,
 } from "../lib/storage-keys";
+import { initialPublicAppTab, publicAppTab } from "../lib/tab-state";
 
 type Tab = "dashboard" | "schedule" | "teams" | "alerts" | "settings";
 type PointsLeaderMode = "overall" | "compare";
@@ -157,18 +159,6 @@ const DEFER_HEAVY_DASHBOARD_DATA_MS = 1_500;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 const BOTTOM_TABS_VIEWPORT_SYNC_EVENT = "courtwatch:bottom-tabs-viewport-sync";
 
-function tabFromDeepLink(value: string | null): Tab | null {
-  if (
-    value === "dashboard" ||
-    value === "schedule" ||
-    value === "teams" ||
-    value === "alerts"
-  ) {
-    return value;
-  }
-  return null;
-}
-
 function positiveEventIdFromSearch(params: URLSearchParams): number | null {
   const eventId = Number(params.get("eventId"));
   return Number.isFinite(eventId) && eventId > 0 ? eventId : null;
@@ -196,6 +186,7 @@ function invalidateLiveDataQueries(queryClient: QueryClient) {
 
 export function CourtWatchApp() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeTabRestored, setActiveTabRestored] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [presenceClientId, setPresenceClientId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
@@ -387,7 +378,7 @@ export function CourtWatchApp() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const linkedEventId = positiveEventIdFromSearch(params);
-    const linkedTab = tabFromDeepLink(params.get("tab"));
+    const linkedTab = publicAppTab(params.get("tab"));
     const linkedGameId = params.get("gameId")?.trim() ?? "";
     if (linkedEventId) {
       setSelectedEventId(linkedEventId);
@@ -396,9 +387,13 @@ export function CourtWatchApp() {
         String(linkedEventId),
       );
     }
-    if (linkedTab) {
-      setActiveTab(linkedTab);
-    }
+    setActiveTab(
+      initialPublicAppTab(
+        linkedTab,
+        window.sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY),
+      ),
+    );
+    setActiveTabRestored(true);
     if (linkedGameId) {
       setNotificationTargetGameId(linkedGameId);
     }
@@ -409,6 +404,11 @@ export function CourtWatchApp() {
     );
     if (Number.isFinite(saved) && saved > 0) setSelectedEventId(saved);
   }, []);
+
+  useEffect(() => {
+    if (!activeTabRestored || activeTab === "settings") return;
+    window.sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
+  }, [activeTab, activeTabRestored]);
 
   useEffect(() => {
     if (!eventsQuery.data?.length) return;

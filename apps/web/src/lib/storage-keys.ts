@@ -1,5 +1,6 @@
 export const COURTWATCH_CLIENT_ID_KEY = "courtwatch:presence-client-id";
 export const SELECTED_EVENT_STORAGE_KEY = "courtwatch-reno:selected-event-id";
+export const ACTIVE_TAB_STORAGE_KEY = "courtwatch:active-tab";
 export const DASHBOARD_FOLLOW_MIGRATION_KEY =
   "courtwatch:dashboard-follow-migration";
 export const LEGACY_DIVISION_COMPARE_STORAGE_KEY =
