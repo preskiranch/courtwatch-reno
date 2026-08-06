@@ -17,7 +17,6 @@ import type {
 } from "@courtwatch/core";
 import {
   accountAuthToken,
-  isDisposableApiCacheKey,
   loadAccountSession,
   type AccountSession,
   type AccountUser,
@@ -32,25 +31,9 @@ const API_BASE_URL =
   "http://localhost:4000";
 const API_GET_TIMEOUT_MS = positiveNumberFromEnv(
   process.env.NEXT_PUBLIC_API_GET_TIMEOUT_MS,
-  15_000,
+  25_000,
 );
-
-export class ApiResponseError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ApiResponseError";
-  }
-}
-
-export function isAuthenticationApiError(error: unknown): boolean {
-  return (
-    error instanceof ApiResponseError &&
-    (error.status === 401 || error.status === 403)
-  );
-}
+const API_GET_RETRY_DELAYS_MS = [1_500, 4_000];
 
 type CacheKey =
   | "dashboard"
@@ -85,8 +68,6 @@ export type PresenceResponse = {
   pages: Record<string, number>;
   clientId: string | null;
   updatedAt: string;
-  source: "database" | "memory";
-  degraded: boolean;
 };
 
 export type AccountStatsResponse = {
@@ -121,7 +102,7 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
     ? cacheLookupKeys(cacheKey, path, cacheClientId)
     : [];
   try {
-    const response = await fetchWithTimeout(
+    const response = await fetchWithRetry(
       `${API_BASE_URL}${networkPath(path, cacheKey)}`,
       {
         headers: {
@@ -133,8 +114,9 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
         cache: "no-store",
       },
       API_GET_TIMEOUT_MS,
+      API_GET_RETRY_DELAYS_MS,
     );
-    if (!response.ok) throw await apiResponseError(response);
+    if (!response.ok) throw new Error(`Request failed with ${response.status}`);
     const data = (await response.json()) as T;
     const previousCache =
       cacheKey && storageKey && typeof window !== "undefined"
@@ -203,21 +185,17 @@ export async function apiPost<T>(
   body: unknown,
   headers: Record<string, string> = {},
 ): Promise<T> {
-  const response = await fetchWithTimeout(
-    `${API_BASE_URL}${path}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...clientIdentityHeaders(),
-        ...headers,
-      },
-      body: JSON.stringify(body),
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...clientIdentityHeaders(),
+      ...headers,
     },
-    API_GET_TIMEOUT_MS,
-  );
-  if (!response.ok) throw await apiResponseError(response);
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(await response.text());
   return (await response.json()) as T;
 }
 
@@ -231,7 +209,7 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
     },
     body: JSON.stringify(body),
   });
-  if (!response.ok) throw await apiResponseError(response);
+  if (!response.ok) throw new Error(await response.text());
   return (await response.json()) as T;
 }
 
@@ -240,7 +218,7 @@ export async function apiDelete(path: string): Promise<void> {
     method: "DELETE",
     headers: { Accept: "application/json", ...clientIdentityHeaders() },
   });
-  if (!response.ok) throw await apiResponseError(response);
+  if (!response.ok) throw new Error(await response.text());
 }
 
 export const CourtWatchApi = {
@@ -412,7 +390,8 @@ export function pruneStaleApiCaches() {
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
     const key = window.localStorage.key(index);
     if (!key) continue;
-    if (!isDisposableApiCacheKey(key)) continue;
+    if (!key.startsWith("courtwatch-aau:v")) continue;
+    if (key.includes(":followed-teams:")) continue;
     window.localStorage.removeItem(key);
   }
 
@@ -445,15 +424,36 @@ async function fetchWithTimeout(
   }
 }
 
-async function apiResponseError(response: Response): Promise<ApiResponseError> {
-  let message = `Request failed with ${response.status}`;
-  try {
-    const body = await response.text();
-    if (body.trim()) message = body;
-  } catch {
-    // Preserve the status-based fallback when a proxy response has no body.
+async function fetchWithRetry(
+  input: string,
+  init: RequestInit,
+  timeoutMs: number,
+  retryDelaysMs: number[],
+): Promise<Response> {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt <= retryDelaysMs.length; attempt += 1) {
+    try {
+      const response = await fetchWithTimeout(input, init, timeoutMs);
+      if (
+        response.ok ||
+        response.status < 500 ||
+        attempt === retryDelaysMs.length
+      ) {
+        return response;
+      }
+      lastError = new Error(`Request failed with ${response.status}`);
+    } catch (error) {
+      lastError = error;
+      if (attempt === retryDelaysMs.length) throw error;
+    }
+    await wait(retryDelaysMs[attempt] ?? 0);
   }
-  return new ApiResponseError(response.status, message);
+  throw lastError instanceof Error ? lastError : new Error("Request failed");
+}
+
+function wait(delayMs: number): Promise<void> {
+  if (delayMs <= 0) return Promise.resolve();
+  return new Promise((resolve) => globalThis.setTimeout(resolve, delayMs));
 }
 
 function positiveNumberFromEnv(
@@ -579,13 +579,34 @@ function compareTournamentEvents(
   left: TournamentEvent,
   right: TournamentEvent,
 ): number {
+  const today = localDateKey();
   return (
+    tournamentSortRank(left, today) - tournamentSortRank(right, today) ||
     left.startDate.localeCompare(right.startDate) ||
     left.name.localeCompare(right.name, "en-US", {
       numeric: true,
       sensitivity: "base",
     })
   );
+}
+
+function tournamentSortRank(event: TournamentEvent, today: string): number {
+  const status = effectiveTournamentStatus(event, today);
+  if (status === "active") return 0;
+  if (status === "upcoming") return 1;
+  if (status === "completed") return 2;
+  return 3;
+}
+
+function effectiveTournamentStatus(
+  event: TournamentEvent,
+  today: string,
+): TournamentEvent["status"] {
+  if (event.status === "cancelled" || event.status === "unavailable")
+    return event.status;
+  if (event.endDate < today) return "completed";
+  if (event.startDate <= today && event.endDate >= today) return "active";
+  return "upcoming";
 }
 
 function localDateKey(date = new Date()): string {

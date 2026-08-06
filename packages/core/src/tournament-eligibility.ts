@@ -39,19 +39,6 @@ export function deriveTournamentStatus(
   return "upcoming";
 }
 
-export function deriveTournamentStatusAfterSuccessfulSync(
-  event: Pick<TournamentEvent, "startDate" | "endDate" | "status">,
-  todayKey = tournamentTodayKey(),
-): TournamentEventStatus {
-  return deriveTournamentStatus(
-    {
-      ...event,
-      status: event.status === "unavailable" ? "upcoming" : event.status,
-    },
-    todayKey,
-  );
-}
-
 export function isTournamentDropdownEligible(
   event: TournamentEvent,
   options: TournamentDropdownEligibilityOptions = {},
@@ -84,6 +71,7 @@ export function eligibleTournamentEvents(
   events: TournamentEvent[],
   options: TournamentDropdownEligibilityOptions = {},
 ): TournamentEvent[] {
+  const todayKey = options.todayKey ?? tournamentTodayKey(options.now);
   const seen = new Set<string>();
   const deduped: TournamentEvent[] = [];
   for (const event of events) {
@@ -93,16 +81,11 @@ export function eligibleTournamentEvents(
     if (isTournamentDropdownEligible(event, options))
       deduped.push({
         ...event,
-        status: deriveTournamentStatus(
-          event,
-          options.todayKey ?? tournamentTodayKey(options.now),
-        ),
+        status: deriveTournamentStatus(event, todayKey),
       });
   }
-  return deduped.sort(
-    (left, right) =>
-      left.startDate.localeCompare(right.startDate) ||
-      left.name.localeCompare(right.name),
+  return deduped.sort((left, right) =>
+    compareTournamentDropdownEvents(left, right, todayKey),
   );
 }
 
@@ -156,4 +139,24 @@ function normalizeKey(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function compareTournamentDropdownEvents(
+  left: TournamentEvent,
+  right: TournamentEvent,
+  todayKey: string,
+): number {
+  return (
+    tournamentStatusSortRank(deriveTournamentStatus(left, todayKey)) -
+      tournamentStatusSortRank(deriveTournamentStatus(right, todayKey)) ||
+    left.startDate.localeCompare(right.startDate) ||
+    left.name.localeCompare(right.name)
+  );
+}
+
+function tournamentStatusSortRank(status: TournamentEventStatus): number {
+  if (status === "active") return 0;
+  if (status === "upcoming") return 1;
+  if (status === "completed") return 2;
+  return 3;
 }

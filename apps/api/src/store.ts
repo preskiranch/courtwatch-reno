@@ -15,9 +15,7 @@ import {
   buildDivisionResultGroups,
   buildTeamScoringLeaders,
   detectGameChanges,
-  reconcileGameSnapshot,
   deriveTournamentStatus,
-  deriveTournamentStatusAfterSuccessfulSync,
   deriveDivisionResultsFromGames,
   eligibleTournamentEvents,
   extractDivisionMeta,
@@ -26,9 +24,6 @@ import {
   isCourtWatchSupportedTournamentRegion,
   normalizeName,
   normalizeProgramName,
-  teamMatchesWatchIdentity,
-  teamWatchIdentity,
-  teamWatchSearchBase,
   sanitizeBasketballScore,
   watchedAlertsForSnapshot,
   seedAliases,
@@ -85,10 +80,6 @@ import {
 } from "./config.js";
 import type { TournamentSource } from "./config.js";
 import { findStaleGameIds } from "./game-reconciliation.js";
-import { acquireSyncLease } from "./sync-lease.js";
-import { isUpstreamSourceUnavailableError } from "./upstream-source-error.js";
-import { ExpiringCoalescingCache } from "./expiring-coalescing-cache.js";
-import { apiReadThroughSourceEnabled } from "./read-through-policy.js";
 
 const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
@@ -112,12 +103,11 @@ type FavoriteTeamWatchWithRegistrations = Prisma.FavoriteTeamWatchGetPayload<{
 const activeGameHydrationPromises = new Map<number, Promise<void>>();
 const snapshotLoadPromises = new Map<number, Promise<CourtWatchSnapshot>>();
 type TournamentSyncResult = {
-  status: "success" | "skipped" | "coalesced";
+  status: "success" | "skipped";
   source: string;
   teamsCount: number;
   gamesCount: number;
   changesDetected: number;
-  reason?: "source_unavailable";
 };
 const tournamentSyncPromises = new Map<string, Promise<TournamentSyncResult>>();
 const tournamentSyncTails = new Map<number, Promise<void>>();
@@ -137,10 +127,6 @@ const EVENTS_CACHE_TTL_MS = Math.max(
   5_000,
   Number(process.env.EVENTS_CACHE_TTL_MS ?? 30_000),
 );
-const CLIENT_SNAPSHOT_CACHE_TTL_MS = Math.max(
-  250,
-  Number(process.env.CLIENT_SNAPSHOT_CACHE_TTL_MS ?? 2_000),
-);
 const TEAM_LIST_HYDRATION_STALE_MS = Math.max(
   60_000,
   Number(process.env.TEAM_LIST_HYDRATION_STALE_MS ?? 15 * 60_000),
@@ -149,7 +135,6 @@ const TEAM_LIST_HYDRATION_WINDOW_DAYS = Math.max(
   1,
   Number(process.env.TEAM_LIST_HYDRATION_WINDOW_DAYS ?? 14),
 );
-const API_READ_THROUGH_SOURCE = apiReadThroughSourceEnabled();
 
 export interface SyncNowOptions {
   teamListOnly?: boolean;
@@ -553,51 +538,40 @@ export class MockStore implements CourtWatchStore {
   async teamCatalog(search: string, limit = 25): Promise<TeamCatalogEntry[]> {
     const normalizedSearch = normalizeName(search);
     if (normalizedSearch.length < 2) return [];
-    const searchBase = teamWatchSearchBase(search);
-    const groups = new Map<
-      string,
-      Array<{ team: Team; displayName: string }>
-    >();
+    const groups = new Map<string, Team[]>();
     for (const team of this.data.teams) {
-      if (!team.normalizedName.includes(searchBase)) continue;
-      const identity = teamWatchIdentity(team);
-      if (
-        !identity.normalizedName.includes(normalizedSearch) &&
-        !team.normalizedName.includes(normalizedSearch)
-      ) {
-        continue;
-      }
-      const existing = groups.get(identity.normalizedName) ?? [];
-      existing.push({ team, displayName: identity.displayName });
-      groups.set(identity.normalizedName, existing);
+      if (!team.normalizedName.includes(normalizedSearch)) continue;
+      const existing = groups.get(team.normalizedName) ?? [];
+      existing.push(team);
+      groups.set(team.normalizedName, existing);
     }
     return Array.from(groups.entries())
-      .map(([normalizedName, registrations]) => {
-        const latest = [...registrations].sort((left, right) => {
+      .map(([normalizedName, teams]) => {
+        const latest = [...teams].sort((left, right) => {
           const leftEvent = this.data.events.find(
-            (event) => event.id === left.team.eventId,
+            (event) => event.id === left.eventId,
           );
           const rightEvent = this.data.events.find(
-            (event) => event.id === right.team.eventId,
+            (event) => event.id === right.eventId,
           );
           return (rightEvent?.startDate ?? "").localeCompare(
             leftEvent?.startDate ?? "",
           );
         })[0]!;
         const event = this.data.events.find(
-          (item) => item.id === latest.team.eventId,
+          (item) => item.id === latest.eventId,
         )!;
         return {
           normalizedName,
-          displayName: latest.displayName,
-          registrationCount: registrations.length,
-          latestTeamId: latest.team.id,
+          displayName: latest.name,
+          registrationCount: teams.length,
+          latestTeamId: latest.id,
           latestExposureEventId: event.exposureEventId,
           latestEventName: event.name,
           latestEventStartDate: event.startDate,
           latestDivisionName:
             this.data.divisions.find(
-              (division) => division.id === latest.team.divisionId,
+              (division) => division.id === latest.divisionId,
             )?.name ?? null,
         };
       })
@@ -623,20 +597,9 @@ export class MockStore implements CourtWatchStore {
     clientId?: string | null,
   ): Promise<FavoriteTeamWatch> {
     const ownerHash = favoriteWatchOwnerHash(clientId);
+    const displayName = input.displayName.trim();
+    const normalizedName = normalizeName(displayName);
     const sourceTeamId = input.sourceTeamId?.trim() || null;
-    const sourceTeam = sourceTeamId
-      ? this.data.teams.find((team) => team.id === sourceTeamId)
-      : null;
-    if (sourceTeamId && !sourceTeam) throw new Error("Team not found");
-    const identity = teamWatchIdentity(
-      sourceTeam ?? {
-        name: input.displayName,
-        divisionName: input.divisionName,
-        gradeLevel: input.gradeLevel,
-      },
-    );
-    const displayName = identity.displayName;
-    const normalizedName = identity.normalizedName;
     const existing = this.favoriteWatches.find(
       (watch) =>
         watch.ownerHash === ownerHash &&
@@ -646,14 +609,12 @@ export class MockStore implements CourtWatchStore {
       existing.active = true;
       existing.displayName = displayName;
       existing.source = sourceTeamId ? "registered" : "custom";
-      existing.sourceTeamName =
-        sourceTeam?.name ?? input.sourceTeamName ?? null;
+      existing.sourceTeamName = input.sourceTeamName ?? null;
       existing.eventName = input.eventName ?? null;
-      existing.divisionName =
-        sourceTeam?.divisionName ?? input.divisionName ?? null;
-      existing.gender = sourceTeam?.gender ?? input.gender ?? null;
-      existing.gradeLevel = sourceTeam?.gradeLevel ?? input.gradeLevel ?? null;
-      existing.level = sourceTeam?.level ?? input.level ?? null;
+      existing.divisionName = input.divisionName ?? null;
+      existing.gender = input.gender ?? null;
+      existing.gradeLevel = input.gradeLevel ?? null;
+      existing.level = input.level ?? null;
       existing.autoFollow = input.autoFollow ?? existing.autoFollow;
       existing.updatedAt = new Date().toISOString();
       const { ownerHash: _ownerHash, ...watch } = existing;
@@ -667,12 +628,12 @@ export class MockStore implements CourtWatchStore {
       normalizedName,
       source: sourceTeamId ? "registered" : "custom",
       sourceTeamId,
-      sourceTeamName: sourceTeam?.name ?? input.sourceTeamName ?? null,
+      sourceTeamName: input.sourceTeamName ?? null,
       eventName: input.eventName ?? null,
-      divisionName: sourceTeam?.divisionName ?? input.divisionName ?? null,
-      gender: sourceTeam?.gender ?? input.gender ?? null,
-      gradeLevel: sourceTeam?.gradeLevel ?? input.gradeLevel ?? null,
-      level: sourceTeam?.level ?? input.level ?? null,
+      divisionName: input.divisionName ?? null,
+      gender: input.gender ?? null,
+      gradeLevel: input.gradeLevel ?? null,
+      level: input.level ?? null,
       autoFollow: input.autoFollow ?? false,
       lastMatchedAt: null,
       registrationMatches: [],
@@ -962,11 +923,6 @@ export class MockStore implements CourtWatchStore {
 }
 
 export class PrismaStore implements CourtWatchStore {
-  private readonly clientSnapshotCache = new ExpiringCoalescingCache<
-    string,
-    CourtWatchSnapshot
-  >(CLIENT_SNAPSHOT_CACHE_TTL_MS);
-
   constructor(private readonly prisma: PrismaClient) {}
 
   async events(clientId?: string | null): Promise<TournamentEvent[]> {
@@ -1049,7 +1005,7 @@ export class PrismaStore implements CourtWatchStore {
       }
     }
 
-    const events: TournamentEvent[] =
+    const events: TournamentEvent[] = sortTournamentEvents(
       dropdownEventsWithUpcomingExposureFallback(
         Array.from(merged.values()),
       ).map((event): TournamentEvent => {
@@ -1061,7 +1017,8 @@ export class PrismaStore implements CourtWatchStore {
             ? "tracked"
             : "upcoming",
         };
-      });
+      }),
+    );
     if (!clientId) writePublicEventsCache(events);
     return events;
   }
@@ -1529,10 +1486,8 @@ export class PrismaStore implements CourtWatchStore {
     limit?: number,
   ) {
     if (allEvents) return this.teamsAcrossEvents(search, clientId, limit);
-    if (API_READ_THROUGH_SOURCE) {
-      await this.hydratePublishedTeamsIfMissing(exposureEventId);
-      await this.hydrateActiveGamesIfStale(exposureEventId);
-    }
+    await this.hydratePublishedTeamsIfMissing(exposureEventId);
+    await this.hydrateActiveGamesIfStale(exposureEventId);
     const snapshot = await this.teamsSnapshotForEvent(
       clientId,
       exposureEventId,
@@ -1632,42 +1587,26 @@ export class PrismaStore implements CourtWatchStore {
   async teamCatalog(search: string, limit = 25): Promise<TeamCatalogEntry[]> {
     const normalizedSearch = normalizeName(search);
     if (normalizedSearch.length < 2) return [];
-    const searchBase = teamWatchSearchBase(search);
 
     const teams = await this.prisma.team.findMany({
       where: {
-        normalizedName: { contains: searchBase },
+        normalizedName: { contains: normalizedSearch },
         event: courtWatchEventScopeWhere(),
       },
       include: { division: true, event: true },
       orderBy: [{ name: "asc" }, { id: "asc" }],
       take: 500,
     });
-    const grouped = new Map<
-      string,
-      Array<{ team: (typeof teams)[number]; displayName: string }>
-    >();
+    const grouped = new Map<string, typeof teams>();
     for (const team of teams) {
-      const identity = teamWatchIdentity({
-        name: team.name,
-        divisionName: team.division?.name,
-        gradeLevel: team.division?.gradeLevel,
-      });
-      if (
-        !identity.normalizedName.includes(normalizedSearch) &&
-        !team.normalizedName.includes(normalizedSearch)
-      ) {
-        continue;
-      }
-      const matches = grouped.get(identity.normalizedName) ?? [];
-      matches.push({ team, displayName: identity.displayName });
-      grouped.set(identity.normalizedName, matches);
+      const matches = grouped.get(team.normalizedName) ?? [];
+      matches.push(team);
+      grouped.set(team.normalizedName, matches);
     }
 
     const todayKey = tournamentTodayKey();
     return Array.from(grouped.entries())
-      .map(([normalizedName, identityRegistrations]) => {
-        const registrations = identityRegistrations.map(({ team }) => team);
+      .map(([normalizedName, registrations]) => {
         const currentOrFuture = registrations
           .filter(
             (registration) =>
@@ -1687,12 +1626,9 @@ export class PrismaStore implements CourtWatchStore {
                 left.event.startDate.getTime() ||
               teamSortCollator.compare(left.name, right.name),
           )[0]!;
-        const latestIdentity = identityRegistrations.find(
-          ({ team }) => team.id === latest.id,
-        )!;
         return {
           normalizedName,
-          displayName: latestIdentity.displayName,
+          displayName: latest.name,
           registrationCount: new Set(
             registrations.map((registration) => registration.eventId),
           ).size,
@@ -1763,13 +1699,8 @@ export class PrismaStore implements CourtWatchStore {
       : null;
     if (sourceTeamId && !sourceTeam) throw new Error("Team not found");
 
-    const identity = teamWatchIdentity({
-      name: sourceTeam?.name ?? input.displayName,
-      divisionName: sourceTeam?.division?.name ?? input.divisionName,
-      gradeLevel: sourceTeam?.division?.gradeLevel ?? input.gradeLevel,
-    });
-    const displayName = identity.displayName;
-    const normalizedName = identity.normalizedName;
+    const displayName = (sourceTeam?.name ?? input.displayName).trim();
+    const normalizedName = normalizeName(displayName);
     if (!normalizedName) throw new Error("Team name is required");
     const createData = {
       userId: user?.id ?? null,
@@ -2016,10 +1947,7 @@ export class PrismaStore implements CourtWatchStore {
 
   async followTeam(teamId: string, clientId?: string | null) {
     const program = await this.ensureSelectedProgram(clientId);
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId },
-      include: { event: { select: { exposureEventId: true } } },
-    });
+    const team = await this.prisma.team.findUnique({ where: { id: teamId } });
     if (!team) throw new Error("Team not found");
     const match = await this.prisma.programTeamMatch.upsert({
       where: {
@@ -2033,23 +1961,15 @@ export class PrismaStore implements CourtWatchStore {
         matchConfidence: 1,
       },
     });
-    this.invalidateClientSnapshotsForEvent(team.event.exposureEventId);
     return prismaMatchToCore(match);
   }
 
   async unfollowTeam(teamId: string, clientId?: string | null) {
     const program = await this.ensureSelectedProgram(clientId);
-    const team = await this.prisma.team.findUnique({
-      where: { id: teamId },
-      include: { event: { select: { exposureEventId: true } } },
-    });
     await this.prisma.programTeamMatch.updateMany({
       where: { programWatchlistId: program.id, teamId },
       data: { active: false },
     });
-    if (team) {
-      this.invalidateClientSnapshotsForEvent(team.event.exposureEventId);
-    }
   }
 
   async addAlias(programId: string, aliasValue: string) {
@@ -2360,11 +2280,7 @@ export class PrismaStore implements CourtWatchStore {
     const previous =
       tournamentSyncTails.get(tournament.exposureEventId) ?? Promise.resolve();
     const promise = previous.then(() =>
-      this.performCoordinatedTournamentSync(
-        tournament,
-        preloadedTeams,
-        options,
-      ),
+      this.performTournamentSync(tournament, preloadedTeams, options),
     );
     const tail = promise.then(
       () => undefined,
@@ -2384,62 +2300,6 @@ export class PrismaStore implements CourtWatchStore {
     return promise;
   }
 
-  private async performCoordinatedTournamentSync(
-    tournament: TournamentSource,
-    preloadedTeams?: PublicTournamentCandidate["teams"],
-    options: {
-      forceFetchAllGames?: boolean;
-      teamListOnly?: boolean;
-    } = {},
-  ): Promise<TournamentSyncResult> {
-    const lease = await acquireSyncLease(
-      this.prisma,
-      `event:${tournament.exposureEventId}`,
-      {
-        onHeartbeatError: (error) => {
-          console.warn("Tournament sync lease heartbeat failed", {
-            exposureEventId: tournament.exposureEventId,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        },
-      },
-    );
-    if (!lease) {
-      const event = await this.prisma.event.findUnique({
-        where: { exposureEventId: tournament.exposureEventId },
-        select: { id: true },
-      });
-      const [teamsCount, gamesCount] = event
-        ? await Promise.all([
-            this.prisma.team.count({ where: { eventId: event.id } }),
-            this.prisma.game.count({ where: { eventId: event.id } }),
-          ])
-        : [0, 0];
-      return {
-        status: "coalesced",
-        source: syncSourceForTournament(tournament),
-        teamsCount,
-        gamesCount,
-        changesDetected: 0,
-      };
-    }
-
-    try {
-      return await this.performTournamentSync(
-        tournament,
-        preloadedTeams,
-        options,
-      );
-    } finally {
-      await lease.release().catch((error: unknown) => {
-        console.warn("Tournament sync lease release failed", {
-          exposureEventId: tournament.exposureEventId,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      });
-    }
-  }
-
   private async performTournamentSync(
     tournament: TournamentSource,
     preloadedTeams?: PublicTournamentCandidate["teams"],
@@ -2457,7 +2317,6 @@ export class PrismaStore implements CourtWatchStore {
     let teamsCount = 0;
     let gamesCount = 0;
     let changesDetected = 0;
-    const publicPageClient = new PublicExposurePageClient();
 
     const event = await upsertEvent(this.prisma, tournament);
     const run = await this.prisma.syncRun.create({
@@ -2474,8 +2333,7 @@ export class PrismaStore implements CourtWatchStore {
 
     try {
       const sourceTeams = dedupeSourceTeams(
-        preloadedTeams ??
-          (await fetchSourceTeams(tournament, publicPageClient)),
+        preloadedTeams ?? (await fetchSourceTeams(tournament)),
       );
       const mockDataEnabled = process.env.ENABLE_MOCK_DATA === "true";
       const includeMockArsenal = process.env.ENABLE_MOCK_ARSENAL === "true";
@@ -2541,7 +2399,7 @@ export class PrismaStore implements CourtWatchStore {
                 publishedTeamListFetched || event.hasPublicTeamList,
               lastCheckedAt: syncedAt,
               lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
-              status: deriveTournamentStatusAfterSuccessfulSync({
+              status: deriveTournamentStatus({
                 startDate: tournament.startDate,
                 endDate: tournament.endDate,
                 status: tournament.status,
@@ -2591,22 +2449,10 @@ export class PrismaStore implements CourtWatchStore {
         tournament,
         options,
         sourceTeamIds,
-        publicPageClient,
-      );
-      const storedGames = await this.prisma.game.findMany({
-        where: { eventId: event.id },
-      });
-      const storedGamesByExposureId = new Map(
-        storedGames
-          .filter((game) => Boolean(game.exposureGameId))
-          .map((game) => [
-            game.exposureGameId as string,
-            prismaGameToCore(game),
-          ]),
       );
       const currentExposureGameIds = new Set<string>();
       for (const sourceGame of sourceGames) {
-        const incomingGame = isCoreGame(sourceGame)
+        const mapped = isCoreGame(sourceGame)
           ? mapStoredSourceGame(sourceGame, event.id, teamMap, divisionIdMap)
           : mapExposureGame(
               sourceGame,
@@ -2615,19 +2461,22 @@ export class PrismaStore implements CourtWatchStore {
               tournament,
               divisionIdMap,
             );
-        if (!incomingGame) continue;
-        const exposureGameId = incomingGame.exposureGameId ?? incomingGame.id;
-        currentExposureGameIds.add(exposureGameId);
-        const previousGame =
-          storedGamesByExposureId.get(exposureGameId) ?? null;
-        const mapped = reconcileGameSnapshot(previousGame, incomingGame);
+        if (!mapped) continue;
+        currentExposureGameIds.add(mapped.exposureGameId ?? mapped.id);
+        const existing = mapped.exposureGameId
+          ? await this.prisma.game.findUnique({
+              where: {
+                eventId_exposureGameId: {
+                  eventId: event.id,
+                  exposureGameId: mapped.exposureGameId,
+                },
+              },
+            })
+          : null;
+        const previousGame = existing ? prismaGameToCore(existing) : null;
         const changes = detectGameChanges(previousGame, mapped);
         changesDetected += changes.length;
         const savedGame = await upsertGame(this.prisma, mapped);
-        storedGamesByExposureId.set(
-          exposureGameId,
-          prismaGameToCore(savedGame),
-        );
         for (const change of changes) {
           await this.prisma.gameChangeEvent.upsert({
             where: { dedupeKey: change.dedupeKey },
@@ -2668,7 +2517,6 @@ export class PrismaStore implements CourtWatchStore {
         event.id,
         teamMap,
         divisionIdMap,
-        publicPageClient,
       );
       const divisionResults = [
         ...derivedDivisionResults,
@@ -2710,7 +2558,7 @@ export class PrismaStore implements CourtWatchStore {
           )
             ? syncedAt
             : undefined,
-          status: deriveTournamentStatusAfterSuccessfulSync({
+          status: deriveTournamentStatus({
             startDate: tournament.startDate,
             endDate: tournament.endDate,
             status: tournament.status,
@@ -2727,7 +2575,6 @@ export class PrismaStore implements CourtWatchStore {
           changesDetected,
         },
       });
-      this.invalidateClientSnapshotsForEvent(tournament.exposureEventId);
 
       return {
         status: "success",
@@ -2739,13 +2586,7 @@ export class PrismaStore implements CourtWatchStore {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown sync error";
-      const sourceUnavailable = isUpstreamSourceUnavailableError(error);
-      if (sourceUnavailable) {
-        [teamsCount, gamesCount] = await Promise.all([
-          this.prisma.team.count({ where: { eventId: event.id } }),
-          this.prisma.game.count({ where: { eventId: event.id } }),
-        ]);
-      }
+      const sourceUnavailable = isPublicSourceUnavailableError(errorMessage);
       await this.prisma.syncRun.update({
         where: { id: run.id },
         data: {
@@ -2771,7 +2612,6 @@ export class PrismaStore implements CourtWatchStore {
           teamsCount,
           gamesCount,
           changesDetected,
-          reason: "source_unavailable",
         };
       }
       throw error;
@@ -2782,54 +2622,41 @@ export class PrismaStore implements CourtWatchStore {
     clientId?: string | null,
     exposureEventId?: number | null,
   ): Promise<CourtWatchSnapshot> {
-    const requestedTournament = tournamentForExposureEventId(exposureEventId);
-    const ownerKey = clientId ? favoriteWatchOwnerHash(clientId) : "public";
-    const cacheKey = `${requestedTournament.exposureEventId}:${ownerKey}`;
-    return this.clientSnapshotCache.get(cacheKey, async () => {
-      if (API_READ_THROUGH_SOURCE) {
-        await this.hydrateActiveGamesIfStale(exposureEventId);
-      }
-      const program = await this.ensureSelectedProgram(clientId);
-      const snapshot = scopeSnapshot(
-        await this.snapshot(exposureEventId),
-        program.id,
-      );
-      if (!clientId) return snapshot;
-
-      const favoriteChanges = await this.prisma.gameChangeEvent.findMany({
-        where: {
-          favoriteTeamWatch: {
-            ownerHash: favoriteWatchOwnerHash(clientId),
-            active: true,
-          },
-          affectedTeam: { eventId: snapshot.event.id },
-        },
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        take: 100,
-      });
-      if (favoriteChanges.length === 0) return snapshot;
-
-      const changesById = new Map(
-        snapshot.changeEvents.map((change) => [change.id, change]),
-      );
-      for (const change of favoriteChanges) {
-        changesById.set(change.id, toCoreChange(change));
-      }
-      return {
-        ...snapshot,
-        changeEvents: Array.from(changesById.values()).sort(
-          (left, right) =>
-            new Date(right.createdAt).getTime() -
-            new Date(left.createdAt).getTime(),
-        ),
-      };
-    });
-  }
-
-  private invalidateClientSnapshotsForEvent(exposureEventId: number): void {
-    this.clientSnapshotCache.deleteWhere((key) =>
-      key.startsWith(`${exposureEventId}:`),
+    await this.hydrateActiveGamesIfStale(exposureEventId);
+    const program = await this.ensureSelectedProgram(clientId);
+    const snapshot = scopeSnapshot(
+      await this.snapshot(exposureEventId),
+      program.id,
     );
+    if (!clientId) return snapshot;
+
+    const favoriteChanges = await this.prisma.gameChangeEvent.findMany({
+      where: {
+        favoriteTeamWatch: {
+          ownerHash: favoriteWatchOwnerHash(clientId),
+          active: true,
+        },
+        affectedTeam: { eventId: snapshot.event.id },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 100,
+    });
+    if (favoriteChanges.length === 0) return snapshot;
+
+    const changesById = new Map(
+      snapshot.changeEvents.map((change) => [change.id, change]),
+    );
+    for (const change of favoriteChanges) {
+      changesById.set(change.id, toCoreChange(change));
+    }
+    return {
+      ...snapshot,
+      changeEvents: Array.from(changesById.values()).sort(
+        (left, right) =>
+          new Date(right.createdAt).getTime() -
+          new Date(left.createdAt).getTime(),
+      ),
+    };
   }
 
   private async teamsSnapshotForEvent(
@@ -3141,38 +2968,27 @@ export class PrismaStore implements CourtWatchStore {
     const selectedProgramWhere = {
       userId_normalizedProgramName: { userId: user.id, normalizedProgramName },
     };
-    let program = await this.prisma.programWatchlist.findUnique({
-      where: selectedProgramWhere,
-    });
-    if (
-      program &&
-      (!program.active ||
-        program.programName !== SELECTED_TEAMS_PROGRAM_NAME)
-    ) {
-      program = await this.prisma.programWatchlist.update({
-        where: { id: program.id },
-        data: {
+    let program;
+    try {
+      program = await this.prisma.programWatchlist.upsert({
+        where: selectedProgramWhere,
+        update: {
           programName: SELECTED_TEAMS_PROGRAM_NAME,
           active: true,
         },
+        create: {
+          userId: user.id,
+          programName: SELECTED_TEAMS_PROGRAM_NAME,
+          normalizedProgramName,
+          active: true,
+        },
       });
-    } else if (!program) {
-      try {
-        program = await this.prisma.programWatchlist.create({
-          data: {
-            userId: user.id,
-            programName: SELECTED_TEAMS_PROGRAM_NAME,
-            normalizedProgramName,
-            active: true,
-          },
-        });
-      } catch (error) {
-        if (!isUniqueConstraintError(error)) throw error;
-        program = await this.prisma.programWatchlist.findUnique({
-          where: selectedProgramWhere,
-        });
-        if (!program) throw error;
-      }
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) throw error;
+      program = await this.prisma.programWatchlist.findUnique({
+        where: selectedProgramWhere,
+      });
+      if (!program) throw error;
     }
 
     return {
@@ -3267,11 +3083,27 @@ function emptySnapshotForTournament(
 }
 
 function sortTournamentEvents(events: TournamentEvent[]): TournamentEvent[] {
+  const todayKey = tournamentTodayKey();
   return [...events].sort(
     (left, right) =>
+      tournamentDropdownSortRank(left, todayKey) -
+        tournamentDropdownSortRank(right, todayKey) ||
       left.startDate.localeCompare(right.startDate) ||
       left.name.localeCompare(right.name),
   );
+}
+
+function tournamentDropdownSortRank(
+  event: TournamentEvent,
+  todayKey: string,
+): number {
+  const status = deriveTournamentStatus(event, todayKey);
+  if (event.dropdownGroup === "tracked" && status !== "completed") return 0;
+  if (status === "active") return 1;
+  if (status === "upcoming") return 2;
+  if (event.dropdownGroup === "tracked") return 3;
+  if (status === "completed") return 4;
+  return 5;
 }
 
 function dropdownEventsFromSnapshot(
@@ -3494,6 +3326,16 @@ function syncFailureStatus(
   });
 }
 
+function isPublicSourceUnavailableError(errorMessage: string) {
+  return (
+    errorMessage.includes("request failed with 410") ||
+    errorMessage.includes("Public teams page request failed with 403") ||
+    errorMessage.includes("Public eventgames request failed with 403") ||
+    errorMessage.includes("Public page request failed with 403") ||
+    errorMessage.includes("Public search request failed with 403")
+  );
+}
+
 function slugFromOfficialUrl(officialUrl: string): string | null {
   try {
     const parts = new URL(officialUrl).pathname.split("/").filter(Boolean);
@@ -3618,11 +3460,11 @@ function favoriteWatchSourceMetadata(watch: {
 }
 
 async function ensureUserForClient(prisma: PrismaClient, clientId: string) {
-  const existing = await prisma.user.findUnique({ where: { clientId } });
-  if (existing) return existing;
   try {
-    return await prisma.user.create({
-      data: {
+    return await prisma.user.upsert({
+      where: { clientId },
+      update: {},
+      create: {
         clientId,
         displayName: "Court Watch Device",
         timezone: RENO_TIMEZONE,
@@ -3666,22 +3508,13 @@ async function reconcileFavoriteWatchAgainstExistingTeams(
 ): Promise<void> {
   const watch = await prisma.favoriteTeamWatch.findUnique({
     where: { id: watchId },
-    select: {
-      id: true,
-      displayName: true,
-      normalizedName: true,
-      sourceTeamName: true,
-      active: true,
-    },
+    select: { id: true, normalizedName: true, active: true },
   });
   if (!watch?.active) return;
 
-  const searchBase = teamWatchSearchBase(
-    watch.sourceTeamName ?? watch.displayName,
-  );
-  const teamRows = await prisma.team.findMany({
+  const eventRows = await prisma.team.findMany({
     where: {
-      normalizedName: { contains: searchBase },
+      normalizedName: watch.normalizedName,
       event: {
         ...courtWatchEventScopeWhere(),
         endDate: {
@@ -3689,27 +3522,10 @@ async function reconcileFavoriteWatchAgainstExistingTeams(
         },
       },
     },
-    select: {
-      eventId: true,
-      name: true,
-      normalizedName: true,
-      division: { select: { name: true, gradeLevel: true } },
-    },
-    take: 5_000,
+    select: { eventId: true },
+    distinct: ["eventId"],
   });
-  const eventIds = new Set(
-    teamRows
-      .filter((team) =>
-        teamMatchesWatchIdentity(watch.normalizedName, {
-          name: team.name,
-          normalizedName: team.normalizedName,
-          divisionName: team.division?.name,
-          gradeLevel: team.division?.gradeLevel,
-        }),
-      )
-      .map((team) => team.eventId),
-  );
-  for (const eventId of eventIds) {
+  for (const { eventId } of eventRows) {
     await reconcileFavoriteTeamRegistrations(prisma, eventId, [watch.id]);
   }
 }
@@ -3731,16 +3547,7 @@ async function reconcileFavoriteTeamRegistrations(
   if (!event || event.teams.length === 0) return 0;
 
   const normalizedNames = Array.from(
-    new Set(
-      event.teams.flatMap((team) => [
-        team.normalizedName,
-        teamWatchIdentity({
-          name: team.name,
-          divisionName: team.division?.name,
-          gradeLevel: team.division?.gradeLevel,
-        }).normalizedName,
-      ]),
-    ),
+    new Set(event.teams.map((team) => team.normalizedName)),
   );
   const watches = await prisma.favoriteTeamWatch.findMany({
     where: {
@@ -3753,14 +3560,7 @@ async function reconcileFavoriteTeamRegistrations(
 
   const matchingTeamIds = event.teams
     .filter((team) =>
-      watches.some((watch) =>
-        teamMatchesWatchIdentity(watch.normalizedName, {
-          name: team.name,
-          normalizedName: team.normalizedName,
-          divisionName: team.division?.name,
-          gradeLevel: team.division?.gradeLevel,
-        }),
-      ),
+      watches.some((watch) => watch.normalizedName === team.normalizedName),
     )
     .map((team) => team.id);
   const existingMatches = await prisma.favoriteTeamRegistrationMatch.findMany({
@@ -3788,13 +3588,8 @@ async function reconcileFavoriteTeamRegistrations(
   });
 
   for (const watch of watches) {
-    const teams = event.teams.filter((team) =>
-      teamMatchesWatchIdentity(watch.normalizedName, {
-        name: team.name,
-        normalizedName: team.normalizedName,
-        divisionName: team.division?.name,
-        gradeLevel: team.division?.gradeLevel,
-      }),
+    const teams = event.teams.filter(
+      (team) => team.normalizedName === watch.normalizedName,
     );
     const newTeams = teams.filter(
       (team) => !existingKeys.has(`${watch.id}:${team.id}`),
@@ -3840,7 +3635,7 @@ async function reconcileFavoriteTeamRegistrations(
           eventType: "watched_team_registered",
           previousValue: Prisma.JsonNull,
           newValue: {
-            teamName: watch.displayName,
+            teamName: primaryTeam.name,
             teamIds: teams.map((team) => team.id),
             divisionName: primaryTeam.division?.name ?? null,
             divisionNames: Array.from(
@@ -3915,7 +3710,6 @@ function clientHash(clientId: string): string {
 
 async function fetchSourceTeams(
   tournament: TournamentSource,
-  publicClient = new PublicExposurePageClient(),
 ): Promise<{ divisions: Division[]; teams: Team[] }> {
   if (tournament.externalProvider !== "exposure_events")
     return { divisions: [], teams: [] };
@@ -3925,7 +3719,7 @@ async function fetchSourceTeams(
         tournament.exposureEventId,
       );
       if (teams.length === 0) {
-        return publicClient.fetchTeams(
+        return new PublicExposurePageClient().fetchTeams(
           tournament.exposureEventId,
           tournament.slug,
           tournament.timezone,
@@ -3966,7 +3760,7 @@ async function fetchSourceTeams(
       });
       return { divisions: Array.from(divisions.values()), teams: mappedTeams };
     } catch {
-      return publicClient.fetchTeams(
+      return new PublicExposurePageClient().fetchTeams(
         tournament.exposureEventId,
         tournament.slug,
         tournament.timezone,
@@ -3974,7 +3768,7 @@ async function fetchSourceTeams(
     }
   }
 
-  return publicClient.fetchTeams(
+  return new PublicExposurePageClient().fetchTeams(
     tournament.exposureEventId,
     tournament.slug,
     tournament.timezone,
@@ -3986,7 +3780,6 @@ async function fetchSourceGames(
   tournament: TournamentSource,
   options: { forceFetchAllGames?: boolean } = {},
   sourceTeamIds: string[] = [],
-  publicClient = new PublicExposurePageClient(),
 ): Promise<Array<Record<string, unknown> | Game>> {
   if (tournament.externalProvider !== "exposure_events") return [];
   try {
@@ -4000,6 +3793,7 @@ async function fetchSourceGames(
     // Fall through to the public schedule endpoint; old data stays visible if that fails.
   }
 
+  const publicClient = new PublicExposurePageClient();
   const fetchAllPublicGames =
     options.forceFetchAllGames || shouldFetchAllPublicGames(tournament);
   if (!fetchAllPublicGames && selectedDivisionIds.length === 0) return [];
@@ -4017,7 +3811,6 @@ async function fetchSourceDivisionResults(
   eventId: string,
   teamMap: Map<string, Team>,
   divisionIdMap: Map<string, string>,
-  publicClient = new PublicExposurePageClient(),
 ): Promise<{ fetched: boolean; results: DivisionResult[] }> {
   if (
     tournament.externalProvider !== "exposure_events" ||
@@ -4026,7 +3819,7 @@ async function fetchSourceDivisionResults(
     return { fetched: false, results: [] };
 
   try {
-    const results = await publicClient.fetchDivisionResults(
+    const results = await new PublicExposurePageClient().fetchDivisionResults(
       tournament.exposureEventId,
       { eventSlug: tournament.slug },
     );
@@ -5172,13 +4965,17 @@ function mapExposureGame(
   const id = String(raw.Id ?? "");
   if (!id) return null;
   const division = raw.Division as
-    { Id?: number | string; Name?: string } | undefined;
+    | { Id?: number | string; Name?: string }
+    | undefined;
   const venueCourt = raw.VenueCourt as
-    { Court?: { Name?: string }; Venue?: { Name?: string } } | undefined;
+    | { Court?: { Name?: string }; Venue?: { Name?: string } }
+    | undefined;
   const home = raw.HomeTeam as
-    { TeamId?: number | string; Name?: string; Score?: number } | undefined;
+    | { TeamId?: number | string; Name?: string; Score?: number }
+    | undefined;
   const away = raw.AwayTeam as
-    { TeamId?: number | string; Name?: string; Score?: number } | undefined;
+    | { TeamId?: number | string; Name?: string; Score?: number }
+    | undefined;
   const homeTeam = home?.TeamId ? teamMap.get(String(home.TeamId)) : null;
   const awayTeam = away?.TeamId ? teamMap.get(String(away.TeamId)) : null;
   const date = String(raw.Date ?? tournament.startDate);
