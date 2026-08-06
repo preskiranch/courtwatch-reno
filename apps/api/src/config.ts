@@ -23,6 +23,8 @@ const ConfigSchema = z.object({
   TOURNAMENT_DISCOVERY_INTERVAL_HOURS: z.coerce.number().default(6),
   TOURNAMENT_DISCOVERY_WINDOW_DAYS: z.coerce.number().default(183),
   TOURNAMENT_DROPDOWN_CACHE_HOURS: z.coerce.number().default(720),
+  SYNC_RUN_STALE_AFTER_MS: z.coerce.number().default(15 * 60_000),
+  NOTIFICATION_DISPATCH_INTERVAL_MS: z.coerce.number().default(15_000),
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   PUSH_CONTACT_EMAIL: z.string().default("mailto:admin@example.com"),
