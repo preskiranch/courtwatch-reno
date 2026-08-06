@@ -92,6 +92,16 @@ export type AuthResponse = AccountSession & {
   totalRegisteredUsers: number;
 };
 
+export class ApiResponseError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message || `Request failed with ${status}`);
+    this.name = "ApiResponseError";
+  }
+}
+
 export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
   const clientId = stableClientId();
   const cacheClientId = cacheScopeClientId(clientId);
@@ -116,7 +126,9 @@ export async function apiGet<T>(path: string, cacheKey?: CacheKey): Promise<T> {
       API_GET_TIMEOUT_MS,
       API_GET_RETRY_DELAYS_MS,
     );
-    if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+    if (!response.ok) {
+      throw new ApiResponseError(response.status, await response.text());
+    }
     const data = (await response.json()) as T;
     const previousCache =
       cacheKey && storageKey && typeof window !== "undefined"
@@ -195,7 +207,9 @@ export async function apiPost<T>(
     },
     body: JSON.stringify(body),
   });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    throw new ApiResponseError(response.status, await response.text());
+  }
   return (await response.json()) as T;
 }
 
@@ -209,7 +223,9 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
     },
     body: JSON.stringify(body),
   });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    throw new ApiResponseError(response.status, await response.text());
+  }
   return (await response.json()) as T;
 }
 
@@ -218,7 +234,9 @@ export async function apiDelete(path: string): Promise<void> {
     method: "DELETE",
     headers: { Accept: "application/json", ...clientIdentityHeaders() },
   });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    throw new ApiResponseError(response.status, await response.text());
+  }
 }
 
 export const CourtWatchApi = {
@@ -441,7 +459,7 @@ async function fetchWithRetry(
       ) {
         return response;
       }
-      lastError = new Error(`Request failed with ${response.status}`);
+      lastError = new ApiResponseError(response.status, await response.text());
     } catch (error) {
       lastError = error;
       if (attempt === retryDelaysMs.length) throw error;
