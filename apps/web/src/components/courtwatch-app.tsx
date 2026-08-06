@@ -147,7 +147,7 @@ const NEVADA_REGION = "state:NV";
 
 type TournamentRegionFilter = string;
 const PASSIVE_DATA_REFETCH_MS = 12 * 60_000;
-const DEFER_HEAVY_DASHBOARD_DATA_MS = 1_500;
+const DEFER_HEAVY_DASHBOARD_DATA_MS = 10_000;
 const DEFAULT_TRACKED_EXPOSURE_EVENT_ID = 255539;
 const BOTTOM_TABS_VIEWPORT_SYNC_EVENT = "courtwatch:bottom-tabs-viewport-sync";
 
@@ -1657,7 +1657,7 @@ function DashboardScreen({
     queryFn: () => CourtWatchApi.allGames(eventId),
     enabled: loadHeavyDashboardData && Boolean(eventId),
     staleTime: 60_000,
-    refetchInterval: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });
@@ -1833,6 +1833,10 @@ function DashboardScreen({
         event={dashboard.event}
         eventId={eventId}
         followedTeams={finalResultFollowedTeams}
+        records={teamRecords}
+        recordGames={recordGames}
+        recordTeams={teamsForFollowState}
+        recordsLoading={recordsLoading}
       />
 
       <section className="court-card p-4">
@@ -2357,11 +2361,19 @@ function FinalResultsSection({
   event,
   eventId,
   followedTeams,
+  records,
+  recordGames,
+  recordTeams,
+  recordsLoading,
 }: {
   clientId: string;
   event: TournamentEvent;
   eventId: number | null;
   followedTeams: Team[];
+  records: Map<string, TeamRecord>;
+  recordGames: Game[];
+  recordTeams: Team[];
+  recordsLoading: boolean;
 }) {
   const [scope, setScope] = useState<"watched" | "all">("watched");
   useEffect(() => {
@@ -2369,12 +2381,6 @@ function FinalResultsSection({
       setScope("all");
     }
   }, [followedTeams.length]);
-  const {
-    records,
-    loading: recordsLoading,
-    games: recordGames,
-    teams: recordTeams,
-  } = useTeamRecords(eventId);
   const resultsQuery = useQuery({
     queryKey: ["results", "all", eventId],
     queryFn: () => CourtWatchApi.results("all", eventId),
@@ -5015,7 +5021,7 @@ function useTeamRecords(eventId: number | null): {
     queryFn: () => CourtWatchApi.allGames(eventId),
     enabled: Boolean(eventId),
     staleTime: 60_000,
-    refetchInterval: 60_000,
+    refetchInterval: PASSIVE_DATA_REFETCH_MS,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: "always",
   });

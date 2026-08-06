@@ -31,7 +31,7 @@ const API_BASE_URL =
   "http://localhost:4000";
 const API_GET_TIMEOUT_MS = positiveNumberFromEnv(
   process.env.NEXT_PUBLIC_API_GET_TIMEOUT_MS,
-  25_000,
+  45_000,
 );
 const API_GET_RETRY_DELAYS_MS = [1_500, 4_000];
 
