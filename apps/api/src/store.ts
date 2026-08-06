@@ -1,10 +1,12 @@
 import { Prisma, type PrismaClient } from "@courtwatch/db";
 import {
+  BracketTeamTournamentProvider,
   DashboardService,
   ExposureClient,
   LEGACY_AUTO_PROGRAM_IDS,
   LIVE_GAME_WINDOW_MINUTES,
   PublicExposurePageClient,
+  PublicHtmlTournamentProvider,
   RENO_TIMEZONE,
   ScheduleService,
   CourtFinderService,
@@ -2176,7 +2178,9 @@ export class PrismaStore implements CourtWatchStore {
     );
     const events = await this.prisma.event.findMany({
       where: courtWatchScopedEventWhere({
-        externalProvider: "exposure_events",
+        externalProvider: {
+          in: ["exposure_events", "bracket_team", "public_html"],
+        },
         startDate: { lte: new Date(`${windowEndKey}T00:00:00.000Z`) },
         endDate: { gte: new Date(`${todayKey}T00:00:00.000Z`) },
         status: { notIn: ["cancelled", "unavailable"] },
@@ -3253,11 +3257,7 @@ function shouldRecheckPublicTeamList(
   },
   _storedTeams: number,
 ) {
-  const exposureUrl =
-    event.sourceUrl?.includes("basketball.exposureevents.com") ||
-    event.officialUrl.includes("basketball.exposureevents.com");
-  if (event.externalProvider !== "exposure_events" && !exposureUrl)
-    return false;
+  if (!isPublicTeamListProviderEvent(event)) return false;
   const status = deriveTournamentStatus({
     startDate: event.startDate.toISOString().slice(0, 10),
     endDate: event.endDate.toISOString().slice(0, 10),
@@ -3275,6 +3275,25 @@ function shouldRecheckPublicTeamList(
   return (
     !event.lastCheckedAt ||
     Date.now() - event.lastCheckedAt.getTime() >= TEAM_LIST_HYDRATION_STALE_MS
+  );
+}
+
+function isPublicTeamListProviderEvent(event: {
+  externalProvider: string;
+  sourceUrl?: string | null;
+  officialUrl: string;
+}) {
+  if (
+    ["exposure_events", "bracket_team", "public_html"].includes(
+      event.externalProvider,
+    )
+  )
+    return true;
+  return Boolean(
+    event.sourceUrl?.includes("basketball.exposureevents.com") ||
+    event.officialUrl.includes("basketball.exposureevents.com") ||
+    event.sourceUrl?.includes("bracketteam.com") ||
+    event.officialUrl.includes("bracketteam.com"),
   );
 }
 
@@ -3711,6 +3730,18 @@ function clientHash(clientId: string): string {
 async function fetchSourceTeams(
   tournament: TournamentSource,
 ): Promise<{ divisions: Division[]; teams: Team[] }> {
+  if (tournament.externalProvider === "bracket_team") {
+    return new BracketTeamTournamentProvider().fetchRegisteredTeams({
+      ...tournament,
+      dropdownGroup: "upcoming",
+    });
+  }
+  if (tournament.externalProvider === "public_html") {
+    return new PublicHtmlTournamentProvider().fetchRegisteredTeams({
+      ...tournament,
+      dropdownGroup: "upcoming",
+    });
+  }
   if (tournament.externalProvider !== "exposure_events")
     return { divisions: [], teams: [] };
   if (isExposureConfigured()) {

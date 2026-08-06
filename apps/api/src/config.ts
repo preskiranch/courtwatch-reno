@@ -33,16 +33,6 @@ const ConfigSchema = z.object({
     .string()
     .default("Court Watch AAU <no-reply@courtwatchaau.com>"),
   PASSWORD_RESET_EXPOSE_TOKEN: z.coerce.boolean().default(false),
-  NOTIFICATION_DISPATCH_INTERVAL_MS: z.coerce
-    .number()
-    .int()
-    .min(1_000)
-    .default(5_000),
-  SYNC_RUN_STALE_AFTER_MS: z.coerce
-    .number()
-    .int()
-    .min(60_000)
-    .default(15 * 60_000),
 });
 
 export const config = ConfigSchema.parse(process.env);
@@ -877,7 +867,12 @@ const TournamentSourceSchema = z
 
 const MajorTournamentSourceSchema = z.object({
   name: z.string().trim().min(1),
-  provider: z.enum(["exposure_events", "public_html", "aau_event_finder"]),
+  provider: z.enum([
+    "exposure_events",
+    "public_html",
+    "aau_event_finder",
+    "bracket_team",
+  ]),
   enabled: z.coerce.boolean().default(true),
   url: z.string().trim().url().optional(),
   eventUrls: z.array(z.string().trim().url()).optional(),
@@ -887,6 +882,7 @@ const MajorTournamentSourceSchema = z.object({
   teamSelectors: z.array(z.string().trim()).optional(),
   maxEvents: z.coerce.number().optional(),
   maxTeamListPages: z.coerce.number().optional(),
+  publicApiKey: z.string().trim().optional(),
   metadataOnly: z.coerce.boolean().optional(),
   directoryEventType: z.string().optional(),
   ignoreDiscoveryWindowEnd: z.coerce.boolean().optional(),

@@ -20,7 +20,8 @@ import { isCourtWatchSupportedTournamentRegion } from "./tournament-region-scope
 export type TournamentProviderName =
   | "exposure_events"
   | "public_html"
-  | "aau_event_finder";
+  | "aau_event_finder"
+  | "bracket_team";
 
 export interface MajorTournamentSource {
   name: string;
@@ -34,6 +35,7 @@ export interface MajorTournamentSource {
   teamSelectors?: string[];
   maxEvents?: number;
   maxTeamListPages?: number;
+  publicApiKey?: string;
   metadataOnly?: boolean;
   directoryEventType?: string;
   ignoreDiscoveryWindowEnd?: boolean;
@@ -77,7 +79,7 @@ export interface TournamentProvider {
     window: TournamentDiscoveryWindow,
   ): Promise<DiscoveredTournamentEvent[]>;
   fetchRegisteredTeams(
-    event: DiscoveredTournamentEvent,
+    event: TournamentEvent,
   ): Promise<PublicExposureTeamResult>;
 }
 
@@ -295,6 +297,24 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     region: "Northern California",
   },
   {
+    name: "Bay Area Flight",
+    provider: "bracket_team",
+    enabled: true,
+    url: "https://basketballnationusa.com/bay-area-flight/event-schedule/",
+    eventLinkPatterns: ["bracketteam\\.com/event/\\d+"],
+    maxEvents: 80,
+    organizerName: "Bay Area Flight",
+    sanctioningTags: [
+      "Bay Area Flight",
+      "Basketball Nation",
+      "Bracket Team",
+      "Northern California",
+      "NorCal",
+    ],
+    timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+    region: "Northern California",
+  },
+  {
     name: "Top Notch Tournamentz / Nothing BUT Net",
     provider: "exposure_events",
     enabled: true,
@@ -342,6 +362,7 @@ export class TournamentDiscoveryService {
   constructor(
     providers: TournamentProvider[] = [
       new ExposureEventsTournamentProvider(),
+      new BracketTeamTournamentProvider(),
       new PublicHtmlTournamentProvider(),
       new AauEventFinderTournamentProvider(),
     ],
@@ -538,7 +559,7 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
   }
 
   async fetchRegisteredTeams(
-    event: DiscoveredTournamentEvent,
+    event: TournamentEvent,
   ): Promise<PublicExposureTeamResult> {
     return this.publicClient.fetchTeams(
       event.exposureEventId,
@@ -703,6 +724,207 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
   }
 }
 
+interface BracketTeamPublicPayload {
+  success?: boolean;
+  message?: string;
+  content?: unknown;
+}
+
+export class BracketTeamTournamentProvider implements TournamentProvider {
+  readonly providerName = "bracket_team" as const;
+  readonly supportsPublicTeamLists = true;
+  private readonly baseUrl: string;
+  private readonly fetchImpl: typeof fetch;
+  private readonly publicApiKeyOverride?: string;
+  private publicApiKeyPromise: Promise<string> | null = null;
+
+  constructor(
+    options: {
+      baseUrl?: string;
+      fetchImpl?: typeof fetch;
+      publicApiKey?: string;
+    } = {},
+  ) {
+    this.baseUrl = normalizePublicUrl(
+      options.baseUrl ??
+        process.env.BRACKET_TEAM_PUBLIC_BASE_URL ??
+        "https://bracketteam.com",
+    );
+    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.publicApiKeyOverride = options.publicApiKey;
+  }
+
+  async discoverEvents(
+    source: MajorTournamentSource,
+    window: TournamentDiscoveryWindow,
+  ): Promise<DiscoveredTournamentEvent[]> {
+    const eventUrls = new Set<string>();
+    for (const eventUrl of source.eventUrls ?? []) {
+      const normalized = normalizeBracketTeamEventUrl(eventUrl, this.baseUrl);
+      if (normalized) eventUrls.add(normalized);
+    }
+
+    if (source.url && (source.eventLinkPatterns?.length ?? 0) > 0) {
+      const sourceUrl = normalizePublicUrl(source.url);
+      const html = await this.fetchText(sourceUrl);
+      for (const eventUrl of parsePublicHtmlEventLinks(
+        html,
+        sourceUrl,
+        source.eventLinkPatterns ?? [],
+      )) {
+        const normalized = normalizeBracketTeamEventUrl(eventUrl, this.baseUrl);
+        if (normalized) eventUrls.add(normalized);
+      }
+    }
+
+    const events: DiscoveredTournamentEvent[] = [];
+    const maxEvents = Math.max(1, source.maxEvents ?? 50);
+    for (const eventUrl of Array.from(eventUrls).slice(0, maxEvents)) {
+      try {
+        const details = await this.fetchEventDetails(eventUrl, source);
+        if (
+          details.startDate > window.endDate ||
+          details.endDate < window.startDate
+        )
+          continue;
+        events.push(details);
+      } catch {
+        // A stale public event link should not block the rest of the source.
+      }
+      await sleep(
+        Number(process.env.TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS ?? 125),
+      );
+    }
+
+    return dedupeDiscoveredEvents(events);
+  }
+
+  async fetchRegisteredTeams(
+    event: TournamentEvent,
+  ): Promise<PublicExposureTeamResult> {
+    const tournament = await this.fetchPublicTournament(
+      event.externalId,
+      event.sourceUrl,
+    );
+    if (!bracketTeamHasPublicTeamList(tournament))
+      throw new Error("Bracket Team public team list is not available.");
+    return bracketTeamTeamsToCore(tournament, event);
+  }
+
+  private async fetchEventDetails(
+    eventUrl: string,
+    source: MajorTournamentSource,
+  ): Promise<DiscoveredTournamentEvent> {
+    const normalizedEventUrl = normalizeBracketTeamEventUrl(
+      eventUrl,
+      this.baseUrl,
+    );
+    if (!normalizedEventUrl)
+      throw new Error(`Unsupported Bracket Team event URL: ${eventUrl}`);
+    const parsed = parseBracketTeamEventUrl(normalizedEventUrl);
+    if (!parsed)
+      throw new Error(`Unsupported Bracket Team event URL: ${eventUrl}`);
+    const tournament = await this.fetchPublicTournament(
+      String(parsed.eventId),
+      normalizedEventUrl,
+      source,
+    );
+    return bracketTeamTournamentToEvent(
+      tournament,
+      normalizedEventUrl,
+      source,
+      this.providerName,
+    );
+  }
+
+  private async fetchPublicTournament(
+    eventId: string,
+    sourceUrl: string,
+    source?: MajorTournamentSource,
+  ): Promise<Record<string, unknown>> {
+    const numericEventId = Number(eventId);
+    if (!Number.isInteger(numericEventId) || numericEventId <= 0)
+      throw new Error(`Unsupported Bracket Team event id: ${eventId}`);
+
+    const apiKey = await this.resolvePublicApiKey(sourceUrl, source);
+    const requestUrl = new URL("/api/get-public-tournament", this.baseUrl);
+    requestUrl.searchParams.set("tournament_id", String(numericEventId));
+    await assertRobotsAllowed(requestUrl.toString(), this.fetchImpl);
+    const response = await this.fetchImpl(requestUrl, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": publicUserAgent(),
+        "X-Authorization": apiKey,
+      },
+    });
+    if (!response.ok)
+      throw new Error(
+        `Bracket Team public tournament request failed with ${response.status}`,
+      );
+    const payload = (await response.json()) as BracketTeamPublicPayload;
+    const tournament = bracketTeamTournamentRecord(payload);
+    if (!tournament)
+      throw new Error(
+        payload.message || "Bracket Team public tournament data was empty.",
+      );
+    return tournament;
+  }
+
+  private async resolvePublicApiKey(
+    sourceUrl: string,
+    source?: MajorTournamentSource,
+  ): Promise<string> {
+    const configured =
+      source?.publicApiKey ??
+      this.publicApiKeyOverride ??
+      process.env.BRACKET_TEAM_PUBLIC_API_KEY;
+    if (configured?.trim()) return configured.trim();
+    if (!this.publicApiKeyPromise)
+      this.publicApiKeyPromise =
+        this.fetchPublicApiKeyFromPublicBundle(sourceUrl);
+    return this.publicApiKeyPromise;
+  }
+
+  private async fetchPublicApiKeyFromPublicBundle(
+    sourceUrl: string,
+  ): Promise<string> {
+    const html = await this.fetchText(sourceUrl);
+    const scriptUrl = bracketTeamMainScriptUrl(html, sourceUrl, this.baseUrl);
+    if (!scriptUrl)
+      throw new Error(
+        "Could not resolve Bracket Team public app bundle from the public event page.",
+      );
+    const script = await this.fetchText(
+      scriptUrl,
+      "application/javascript,*/*",
+    );
+    const apiKey = parseBracketTeamPublicApiKey(script);
+    if (!apiKey)
+      throw new Error(
+        "Could not resolve Bracket Team public API key from the public app bundle.",
+      );
+    return apiKey;
+  }
+
+  private async fetchText(
+    url: string,
+    accept = "text/html,application/xhtml+xml",
+  ): Promise<string> {
+    await assertRobotsAllowed(url, this.fetchImpl);
+    const response = await this.fetchImpl(url, {
+      headers: {
+        Accept: accept,
+        "User-Agent": publicUserAgent(),
+      },
+    });
+    if (!response.ok)
+      throw new Error(
+        `Bracket Team public page request failed with ${response.status}`,
+      );
+    return response.text();
+  }
+}
+
 function shouldHydrateMetadataOnlyTeams(
   event: DiscoveredTournamentEvent,
   startDate: string,
@@ -784,7 +1006,7 @@ export class PublicHtmlTournamentProvider implements TournamentProvider {
   }
 
   async fetchRegisteredTeams(
-    event: DiscoveredTournamentEvent,
+    event: TournamentEvent,
   ): Promise<PublicExposureTeamResult> {
     const source = this.sourceByEventUrl.get(event.sourceUrl);
     const eventHtml = await this.fetchText(event.sourceUrl);
@@ -1026,7 +1248,7 @@ export class AauEventFinderTournamentProvider implements TournamentProvider {
   }
 
   async fetchRegisteredTeams(
-    event: DiscoveredTournamentEvent,
+    event: TournamentEvent,
   ): Promise<PublicExposureTeamResult> {
     return this.publicClient.fetchTeams(
       event.exposureEventId,
@@ -1147,6 +1369,320 @@ function directoryItemToTournamentEvent(
     }),
     dropdownGroup: "upcoming",
   };
+}
+
+function bracketTeamTournamentRecord(
+  payload: BracketTeamPublicPayload,
+): Record<string, unknown> | null {
+  if (payload.success === false) return null;
+  const content = recordValue(payload.content);
+  return recordValue(content?.tournament);
+}
+
+function bracketTeamTournamentToEvent(
+  tournament: Record<string, unknown>,
+  sourceUrl: string,
+  source: MajorTournamentSource,
+  providerName: TournamentProviderName,
+): DiscoveredTournamentEvent {
+  const eventId = numberValue(tournament.id);
+  if (!eventId) throw new Error("Bracket Team tournament id was missing.");
+  const externalId = String(eventId);
+  const syntheticEventId = publicSyntheticEventId(providerName, externalId);
+  const startDate = dateKeyFromUnknown(tournament.start_date);
+  if (!startDate)
+    throw new Error("Bracket Team tournament start date was missing.");
+  const endDate = dateKeyFromUnknown(tournament.end_date) ?? startDate;
+  const name =
+    stringValue(tournament.event_name) ?? `Bracket Team Event ${eventId}`;
+  const eventInfo = stringValue(tournament.event_info) ?? "";
+  const venue = bracketTeamFirstVenue(tournament);
+  const city = stringValue(venue?.city);
+  const rawState = stringValue(venue?.state);
+  const state = rawState ? (normalizeStateCode(rawState) ?? rawState) : null;
+  const venueName = stringValue(venue?.name);
+  const location =
+    [city, state].filter(Boolean).join(", ") ||
+    stringValue(tournament.location) ||
+    "Location TBD";
+  const officialUrl = bracketTeamOfficialUrl(tournament, sourceUrl);
+  const divisionNames = bracketTeamDivisions(tournament)
+    .map(bracketTeamDivisionName)
+    .filter((value): value is string => Boolean(value));
+  const textForTags = `${name} ${eventInfo} ${divisionNames.join(" ")}`;
+  const organizer =
+    bracketTeamOrganizerName(tournament) ?? source.organizerName ?? source.name;
+  const status = textForTags.match(/\bcancell?ed\b/i)
+    ? "cancelled"
+    : deriveTournamentStatus({
+        startDate,
+        endDate,
+        status: "upcoming",
+      });
+
+  return {
+    id: `event-${syntheticEventId}`,
+    exposureEventId: syntheticEventId,
+    externalProvider: providerName,
+    externalId,
+    slug: parseBracketTeamEventUrl(sourceUrl)?.slug ?? slugify(name),
+    sourceUrl,
+    name,
+    organizer,
+    sport: "basketball",
+    sanctioningTags: dedupeStrings([
+      ...(source.sanctioningTags ?? []),
+      ...parseSanctioningTags(textForTags),
+      "Bracket Team",
+    ]),
+    gender: parseGender(textForTags),
+    ageOrGradeDivisions: dedupeStrings([
+      ...parseAgeOrGradeDivisions(textForTags),
+      ...divisionNames,
+    ]).slice(0, 80),
+    venueName,
+    city,
+    state,
+    region: tournamentRegionFromLocation(city, state, location, source),
+    startDate,
+    endDate,
+    location,
+    officialUrl,
+    timezone: source.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE,
+    registeredTeamCount: bracketTeamRegisteredTeamCount(tournament),
+    hasPublicTeamList: bracketTeamHasPublicTeamList(tournament),
+    lastCheckedAt: null,
+    lastSyncedAt: null,
+    lastTeamChangeAt: null,
+    status,
+    dropdownGroup: "upcoming",
+  };
+}
+
+function bracketTeamTeamsToCore(
+  tournament: Record<string, unknown>,
+  event: TournamentEvent,
+): PublicExposureTeamResult {
+  const divisions = new Map<
+    string,
+    PublicExposureTeamResult["divisions"][number]
+  >();
+  const teams = new Map<string, PublicExposureTeamResult["teams"][number]>();
+
+  for (const division of bracketTeamDivisions(tournament)) {
+    const divisionName = bracketTeamDivisionName(division);
+    if (!divisionName) continue;
+    const divisionExternalId =
+      firstStringValue(division.id, division.division_id) ??
+      stableKey(`${event.externalId}|${divisionName}`);
+    const divisionId = `bracket-division-${event.exposureEventId}-${slugify(
+      divisionExternalId,
+    )}`;
+    const meta = extractDivisionMetaSafe(divisionName);
+    divisions.set(divisionId, {
+      id: divisionId,
+      eventId: event.id,
+      exposureDivisionId: divisionExternalId,
+      name: divisionName,
+      gender: meta.gender,
+      gradeLevel: meta.gradeLevel,
+      level: meta.level,
+      rawJson: { source: "bracket_team", sourceUrl: event.sourceUrl },
+    });
+
+    for (const team of bracketTeamTeamsForDivision(division)) {
+      const teamName = cleanBracketTeamName(
+        firstStringValue(team.name, team.team_name, team.display_name),
+      );
+      if (!teamName) continue;
+      const teamExternalId =
+        firstStringValue(team.id, team.team_id, team.value) ??
+        stableKey(`${event.externalId}|${divisionName}|${teamName}`);
+      const teamId = `bracket-team-${event.exposureEventId}-${slugify(
+        teamExternalId,
+      )}`;
+      const city = stringValue(team.city);
+      const rawState = stringValue(team.state);
+      const state = rawState
+        ? (normalizeStateCode(rawState) ?? rawState)
+        : null;
+      const clubName = stringValue(team.club_name);
+      teams.set(teamId, {
+        id: teamId,
+        eventId: event.id,
+        divisionId,
+        exposureTeamId: teamExternalId,
+        name: teamName,
+        normalizedName: normalizeName(teamName),
+        clubName,
+        normalizedClubName: clubName ? normalizeName(clubName) : null,
+        coachName: null,
+        city,
+        state,
+        sourceUrl: event.sourceUrl,
+        divisionName,
+        gender: meta.gender,
+        gradeLevel: meta.gradeLevel,
+        level: meta.level,
+        rawJson: {
+          source: "bracket_team",
+          sourceUrl: event.sourceUrl,
+          externalId: teamExternalId,
+          divisionName,
+        },
+        lastSeenAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  return {
+    divisions: Array.from(divisions.values()),
+    teams: Array.from(teams.values()),
+  };
+}
+
+function bracketTeamDivisions(
+  tournament: Record<string, unknown>,
+): Record<string, unknown>[] {
+  return arrayValue(
+    tournament.whos_coming_data ?? tournament.who_is_coming_data,
+  ).filter(isRecord);
+}
+
+function bracketTeamTeamsForDivision(
+  division: Record<string, unknown>,
+): Record<string, unknown>[] {
+  return arrayValue(
+    division.teams ?? division.registered_teams ?? division.team_list,
+  ).filter(isRecord);
+}
+
+function bracketTeamDivisionName(
+  division: Record<string, unknown>,
+): string | null {
+  return (
+    stringValue(division.division_name) ??
+    stringValue(division.name) ??
+    stringValue(division.title)
+  );
+}
+
+function bracketTeamHasPublicTeamList(
+  tournament: Record<string, unknown>,
+): boolean {
+  return (
+    Array.isArray(tournament.whos_coming_data) ||
+    Array.isArray(tournament.who_is_coming_data)
+  );
+}
+
+function bracketTeamRegisteredTeamCount(
+  tournament: Record<string, unknown>,
+): number {
+  return bracketTeamDivisions(tournament).reduce(
+    (count, division) => count + bracketTeamTeamsForDivision(division).length,
+    0,
+  );
+}
+
+function bracketTeamFirstVenue(
+  tournament: Record<string, unknown>,
+): Record<string, unknown> | null {
+  return arrayValue(tournament.venues).find(isRecord) ?? null;
+}
+
+function bracketTeamOrganizerName(
+  tournament: Record<string, unknown>,
+): string | null {
+  const administrator = arrayValue(tournament.administrators).find(isRecord);
+  const user = recordValue(tournament.user);
+  return (
+    stringValue(administrator?.organization_name) ??
+    stringValue(administrator?.name) ??
+    stringValue(user?.app_name)
+  );
+}
+
+function bracketTeamOfficialUrl(
+  tournament: Record<string, unknown>,
+  fallbackUrl: string,
+): string {
+  const publicUrl = recordValue(tournament.public_url);
+  const absolute = stringValue(publicUrl?.absolute);
+  if (absolute) return normalizePublicUrl(absolute, fallbackUrl);
+  const relative = stringValue(publicUrl?.relative);
+  if (relative) return normalizePublicUrl(relative, fallbackUrl);
+  return fallbackUrl;
+}
+
+function normalizeBracketTeamEventUrl(
+  value: string,
+  baseUrl: string,
+): string | null {
+  try {
+    const url = new URL(value, baseUrl);
+    const parsed = parseBracketTeamEventUrl(url.toString());
+    if (!parsed) return null;
+    return new URL(
+      `/event/${parsed.eventId}/${parsed.slug}`,
+      url.origin,
+    ).toString();
+  } catch {
+    return null;
+  }
+}
+
+function parseBracketTeamEventUrl(
+  value: string,
+): { eventId: number; slug: string } | null {
+  try {
+    const url = new URL(value);
+    if (!/bracketteam\.com$/i.test(url.hostname)) return null;
+    const parts = url.pathname.split("/").filter(Boolean);
+    if (parts[0] !== "event" || parts.length < 3) return null;
+    const eventId = Number(parts[1]);
+    if (!Number.isInteger(eventId) || eventId <= 0) return null;
+    return { eventId, slug: parts[2] ?? String(eventId) };
+  } catch {
+    return null;
+  }
+}
+
+function bracketTeamMainScriptUrl(
+  html: string,
+  sourceUrl: string,
+  baseUrl: string,
+): string | null {
+  const $ = cheerio.load(html);
+  const baseHref = $("base[href]").first().attr("href");
+  const documentBase = baseHref
+    ? normalizePublicUrl(baseHref, sourceUrl)
+    : new URL("/", baseUrl).toString();
+  for (const script of $("script[src]").toArray()) {
+    const src = $(script).attr("src");
+    if (!src || !/\bmain\.[^/?#]+\.js\b/i.test(src)) continue;
+    return normalizePublicUrl(src, documentBase);
+  }
+  return null;
+}
+
+function parseBracketTeamPublicApiKey(script: string): string | null {
+  return (
+    script.match(
+      /o=i\?"([^"]{32,})":"([^"]{32,})",a=i\?"GTM-[^"]+":"GTM-[^"]+",s=\{[^}]*apiKey:o/,
+    )?.[1] ??
+    script.match(/apiKey:\s*"([^"]{32,})"/)?.[1] ??
+    null
+  );
+}
+
+function cleanBracketTeamName(value: string | null): string | null {
+  if (!value) return null;
+  return cleanTeamName(
+    cleanText(value)
+      .replace(/^\d+\s*[\).:-]\s*/, "")
+      .replace(/^\.\s*/, ""),
+  );
 }
 
 function cookieHeaderFromResponse(response: Response): string {
@@ -1843,6 +2379,24 @@ function dateKeyToExposureDate(dateKeyValue: string): string {
 
 function stringValue(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function firstStringValue(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value))
+      return String(value);
+    const string = stringValue(value);
+    if (string) return string;
+  }
+  return null;
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return isRecord(value) ? value : null;
+}
+
+function arrayValue(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
 }
 
 function hasMoreExposureDirectoryPages(

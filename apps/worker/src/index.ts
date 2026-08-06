@@ -1,6 +1,5 @@
 import {
   DEFAULT_MAJOR_TOURNAMENT_SOURCES,
-  TournamentDiscoveryService,
   calculatePollDelayMs,
   isAnyActiveTournamentWindow,
   isCourtWatchSupportedTournamentRegion,
@@ -9,17 +8,7 @@ import type { TournamentEvent } from "@courtwatch/core";
 import { prisma } from "@courtwatch/db";
 import pino from "pino";
 import { z } from "zod";
-import {
-  refreshStaleMsForEvent,
-  jitterDelayMs,
-  nextWorkerFailureCount,
-  retryDelayMs,
-  selectFairSyncBatch,
-  selectSyncMode,
-  shouldRecoverUnavailableEvent,
-  type SyncMode,
-} from "./sync-policy.js";
-import { createShutdownCoordinator, requestSignal } from "./shutdown.js";
+import { selectSyncMode, type SyncMode } from "./sync-policy.js";
 
 const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
@@ -33,26 +22,21 @@ const EnvSchema = z.object({
   WORKER_PASSIVE_POLL_MS: z.coerce.number().default(10 * 60_000),
   WORKER_MAX_BACKOFF_MS: z.coerce.number().default(15 * 60_000),
   WORKER_ACTIVE_GAME_STALE_MS: z.coerce.number().default(30_000),
-  WORKER_POST_EVENT_STALE_MS: z.coerce.number().default(5 * 60_000),
   WORKER_TEAM_LIST_RECHECK_STALE_MS: z.coerce.number().default(15 * 60_000),
   WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS: z.coerce.number().default(14),
   WORKER_EVENT_SYNC_TIMEOUT_MS: z.coerce.number().default(90_000),
   WORKER_API_TIMEOUT_MS: z.coerce.number().default(300_000),
   WORKER_SLOW_EVENT_SYNC_MS: z.coerce.number().default(20_000),
-  WORKER_EVENT_SYNC_ATTEMPTS: z.coerce.number().int().min(1).max(6).default(3),
-  WORKER_RETRY_BASE_MS: z.coerce.number().int().min(100).default(750),
-  WORKER_RETRY_MAX_MS: z.coerce.number().int().min(500).default(10_000),
-  WORKER_POLL_JITTER_RATIO: z.coerce.number().min(0).max(0.5).default(0.08),
 });
 
 const env = EnvSchema.parse(process.env);
 const logger = pino({ name: "courtwatch-reno-sync-worker" });
 let failureCount = 0;
+let shuttingDown = false;
 let lastDiscoveryAt = 0;
 let discoveryTask: Promise<void> | null = null;
-const shutdown = createShutdownCoordinator();
 
-type SyncTarget = Pick<TournamentEvent, "exposureEventId" | "name"> & {
+type SyncTarget = TournamentEvent & {
   syncMode: SyncMode;
 };
 
@@ -89,14 +73,15 @@ function courtWatchEventScopeWhere() {
   };
 }
 
-process.on("SIGTERM", () => requestShutdown("SIGTERM"));
-process.on("SIGINT", () => requestShutdown("SIGINT"));
+process.on("SIGTERM", () => {
+  shuttingDown = true;
+  logger.info("received SIGTERM, stopping after current sync");
+});
 
-function requestShutdown(signal: "SIGTERM" | "SIGINT") {
-  if (shutdown.requested) return;
-  logger.info({ signal }, "shutdown requested; stopping worker");
-  shutdown.request(signal);
-}
+process.on("SIGINT", () => {
+  shuttingDown = true;
+  logger.info("received SIGINT, stopping after current sync");
+});
 
 process.on("unhandledRejection", (reason) => {
   logger.fatal(
@@ -115,7 +100,7 @@ process.on("uncaughtException", (error) => {
 });
 
 function exitAfterFatal() {
-  shutdown.request("fatal process error");
+  shuttingDown = true;
   setImmediate(() => process.exit(1));
 }
 
@@ -152,15 +137,6 @@ async function syncOnce() {
       ? "success"
       : "partial",
     targetsCount: targets.length,
-    successfulCount: results.filter((result) => result.status === "success")
-      .length,
-    failedCount: results.filter(
-      (result) => result.status === "failed" || result.status === "skipped",
-    ).length,
-    skippedCount: results.filter((result) => result.status === "skipped")
-      .length,
-    coalescedCount: results.filter((result) => result.status === "coalesced")
-      .length,
     teamsCount: results.reduce((count, result) => count + result.teamsCount, 0),
     gamesCount: results.reduce((count, result) => count + result.gamesCount, 0),
     changesDetected: results.reduce(
@@ -182,210 +158,78 @@ async function syncTargets(): Promise<SyncTarget[]> {
   const events = (await response.json()) as TournamentEvent[];
   const activeGamePriorityIds = await activeGamePriorityExposureIds();
   const preferredIds = preferredExposureEventIds();
-  const today = dateKeyInPacific(new Date());
-  const batchSize = Math.max(1, env.WORKER_SYNC_BATCH_SIZE);
-  const recoveryTargets = await unavailableConfiguredRecoveryTargets(
-    preferredIds,
-    Math.min(2, batchSize),
-  );
-  const recoveryIds = new Set(
-    recoveryTargets.map((event) => event.exposureEventId),
-  );
-  const candidates = events
+  const today = new Date().toISOString().slice(0, 10);
+  return events
     .filter((event) => event.status !== "cancelled")
-    .filter((event) => !recoveryIds.has(event.exposureEventId))
     .filter((event) =>
       shouldSyncEvent(event, activeGamePriorityIds, preferredIds),
     )
-    .sort((left, right) =>
-      compareSyncCandidates(
-        left,
-        right,
-        activeGamePriorityIds,
-        preferredIds,
-        today,
-      ),
-    );
-  const rosterDiscoveryQueue = candidates.filter(needsMissingRosterDiscovery);
-  const standardQueue = candidates.filter(
-    (event) => !needsMissingRosterDiscovery(event),
-  );
+    .sort((left, right) => {
+      const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
+        ? 0
+        : 1;
+      const rightNeedsGames = activeGamePriorityIds.has(right.exposureEventId)
+        ? 0
+        : 1;
+      if (leftNeedsGames !== rightNeedsGames)
+        return leftNeedsGames - rightNeedsGames;
 
-  const regularCapacity = batchSize - recoveryTargets.length;
-  const regularTargets =
-    regularCapacity > 0
-      ? selectFairSyncBatch(
-          standardQueue,
-          rosterDiscoveryQueue,
-          regularCapacity,
-        ).map((event) => ({
-          ...event,
-          syncMode: syncModeForEvent(event, activeGamePriorityIds),
-        }))
-      : [];
+      const leftNeedsTeamRefresh = needsPublicTeamListRecheck(left) ? 0 : 1;
+      const rightNeedsTeamRefresh = needsPublicTeamListRecheck(right) ? 0 : 1;
+      if (leftNeedsTeamRefresh !== rightNeedsTeamRefresh)
+        return leftNeedsTeamRefresh - rightNeedsTeamRefresh;
 
-  return [...recoveryTargets, ...regularTargets];
-}
+      const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
+      const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
+      if (leftNeedsTeams !== rightNeedsTeams)
+        return leftNeedsTeams - rightNeedsTeams;
 
-function compareSyncCandidates(
-  left: TournamentEvent,
-  right: TournamentEvent,
-  activeGamePriorityIds: ReadonlySet<number>,
-  preferredIds: ReadonlySet<number>,
-  todayKey: string,
-) {
-  const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
-    ? 0
-    : 1;
-  const rightNeedsGames = activeGamePriorityIds.has(right.exposureEventId)
-    ? 0
-    : 1;
-  if (leftNeedsGames !== rightNeedsGames)
-    return leftNeedsGames - rightNeedsGames;
+      const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
+      const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
+      if (leftPreferred !== rightPreferred)
+        return leftPreferred - rightPreferred;
 
-  const leftNeedsTeams = needsPublishedTeamHydration(left) ? 0 : 1;
-  const rightNeedsTeams = needsPublishedTeamHydration(right) ? 0 : 1;
-  if (leftNeedsTeams !== rightNeedsTeams)
-    return leftNeedsTeams - rightNeedsTeams;
+      const leftStatus = syncStatusPriority(left.status);
+      const rightStatus = syncStatusPriority(right.status);
+      if (leftStatus !== rightStatus) return leftStatus - rightStatus;
 
-  const leftPreferred = preferredIds.has(left.exposureEventId) ? 0 : 1;
-  const rightPreferred = preferredIds.has(right.exposureEventId) ? 0 : 1;
-  if (leftPreferred !== rightPreferred) return leftPreferred - rightPreferred;
+      const leftFreshness = left.lastCheckedAt ?? left.lastSyncedAt ?? "";
+      const rightFreshness = right.lastCheckedAt ?? right.lastSyncedAt ?? "";
+      if (leftFreshness !== rightFreshness)
+        return leftFreshness.localeCompare(rightFreshness);
 
-  const leftStatus = syncStatusPriority(left.status);
-  const rightStatus = syncStatusPriority(right.status);
-  if (leftStatus !== rightStatus) return leftStatus - rightStatus;
+      const leftSoon = Math.abs(left.startDate.localeCompare(today));
+      const rightSoon = Math.abs(right.startDate.localeCompare(today));
+      if (leftSoon !== rightSoon) return leftSoon - rightSoon;
 
-  const leftSoon = dateDistanceMs(left.startDate, todayKey);
-  const rightSoon = dateDistanceMs(right.startDate, todayKey);
-  if (leftSoon !== rightSoon) return leftSoon - rightSoon;
-
-  const leftFreshness = left.lastCheckedAt ?? left.lastSyncedAt ?? "";
-  const rightFreshness = right.lastCheckedAt ?? right.lastSyncedAt ?? "";
-  if (leftFreshness !== rightFreshness)
-    return leftFreshness.localeCompare(rightFreshness);
-
-  return left.name.localeCompare(right.name);
-}
-
-function dateDistanceMs(dateKey: string, todayKey: string) {
-  const timestamp = Date.parse(`${dateKey}T00:00:00.000Z`);
-  const todayTimestamp = Date.parse(`${todayKey}T00:00:00.000Z`);
-  return Number.isNaN(timestamp)
-    ? Number.MAX_SAFE_INTEGER
-    : Math.abs(timestamp - todayTimestamp);
-}
-
-async function unavailableConfiguredRecoveryTargets(
-  preferredIds: ReadonlySet<number>,
-  limit: number,
-): Promise<SyncTarget[]> {
-  if (preferredIds.size === 0 || limit <= 0) return [];
-
-  const todayKey = dateKeyInPacific(new Date());
-  const nowMs = Date.now();
-  const candidates = await prisma.event.findMany({
-    where: {
-      AND: [
-        courtWatchEventScopeWhere(),
-        {
-          exposureEventId: { in: [...preferredIds] },
-          status: "unavailable",
-          startDate: {
-            lte: new Date(
-              `${addDaysKey(todayKey, env.WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS)}T00:00:00.000Z`,
-            ),
-          },
-          endDate: {
-            gte: new Date(`${addDaysKey(todayKey, -1)}T00:00:00.000Z`),
-          },
-        },
-      ],
-    },
-    select: {
-      exposureEventId: true,
-      name: true,
-      city: true,
-      state: true,
-      location: true,
-      region: true,
-      status: true,
-      startDate: true,
-      endDate: true,
-      lastCheckedAt: true,
-    },
-    orderBy: [{ startDate: "asc" }, { name: "asc" }],
-  });
-
-  return candidates
-    .filter((event) =>
-      shouldRecoverUnavailableEvent({
-        status: event.status,
-        configured: preferredIds.has(event.exposureEventId),
-        supportedRegion: isCourtWatchSupportedTournamentRegion(event),
-        startDate: event.startDate.toISOString().slice(0, 10),
-        endDate: event.endDate.toISOString().slice(0, 10),
-        todayKey,
-        recoveryWindowDays: env.WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS,
-        lastCheckedAt: event.lastCheckedAt?.toISOString() ?? null,
-        staleMs: env.WORKER_TEAM_LIST_RECHECK_STALE_MS,
-        nowMs,
-      }),
-    )
-    .slice(0, limit)
+      return left.name.localeCompare(right.name);
+    })
+    .slice(0, Math.max(1, env.WORKER_SYNC_BATCH_SIZE))
     .map((event) => ({
-      exposureEventId: event.exposureEventId,
-      name: event.name,
-      syncMode: "full" as const,
+      ...event,
+      syncMode: syncModeForEvent(event, activeGamePriorityIds),
     }));
 }
 
 async function syncSingleEvent(event: SyncTarget) {
   const startedAt = Date.now();
-  for (
-    let attempt = 1;
-    attempt <= env.WORKER_EVENT_SYNC_ATTEMPTS;
-    attempt += 1
-  ) {
-    let response: Response;
-    try {
-      response = await fetchWithTimeout(
-        new URL("/api/admin/sync-now", env.API_BASE_URL),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
-          },
-          body: JSON.stringify({
-            source: "worker",
-            exposureEventId: event.exposureEventId,
-            teamListOnly: event.syncMode === "teams",
-          }),
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const response = await fetchWithTimeout(
+      new URL("/api/admin/sync-now", env.API_BASE_URL),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
         },
-        env.WORKER_EVENT_SYNC_TIMEOUT_MS,
-      );
-    } catch (error) {
-      if (shutdown.requested) throw error;
-      if (attempt >= env.WORKER_EVENT_SYNC_ATTEMPTS) throw error;
-      const delayMs = retryDelayMs(
-        attempt,
-        env.WORKER_RETRY_BASE_MS,
-        env.WORKER_RETRY_MAX_MS,
-      );
-      logger.warn(
-        {
-          attempt,
-          delayMs,
+        body: JSON.stringify({
+          source: "worker",
           exposureEventId: event.exposureEventId,
-          error: errorMessage(error),
-        },
-        "event sync transport failed; retrying",
-      );
-      await sleep(delayMs);
-      if (shutdown.requested) throw error;
-      continue;
-    }
+          teamListOnly: event.syncMode === "teams",
+        }),
+      },
+      env.WORKER_EVENT_SYNC_TIMEOUT_MS,
+    );
 
     if (response.ok) {
       const result = (await response.json()) as {
@@ -414,35 +258,19 @@ async function syncSingleEvent(event: SyncTarget) {
 
     const responseText = await response.text();
     if (
-      attempt < env.WORKER_EVENT_SYNC_ATTEMPTS &&
-      [408, 425, 429, 500, 502, 503, 504].includes(response.status)
+      attempt === 1 &&
+      [408, 429, 500, 502, 503, 504].includes(response.status)
     ) {
-      const delayMs = Math.max(
-        Math.min(
-          env.WORKER_RETRY_MAX_MS,
-          retryAfterMs(response.headers.get("retry-after")),
-        ),
-        retryDelayMs(
-          attempt,
-          env.WORKER_RETRY_BASE_MS,
-          env.WORKER_RETRY_MAX_MS,
-        ),
-      );
       logger.warn(
         {
-          attempt,
-          delayMs,
           exposureEventId: event.exposureEventId,
           name: event.name,
           status: response.status,
           responseText,
         },
-        "event sync request failed; retrying",
+        "event sync request failed; retrying once",
       );
-      await sleep(delayMs);
-      if (shutdown.requested) {
-        throw new Error("worker shutdown requested during sync retry");
-      }
+      await sleep(1_500);
       continue;
     }
     throw new Error(`sync-now failed with ${response.status}: ${responseText}`);
@@ -483,7 +311,7 @@ function needsPublicTeamListRecheck(event: TournamentEvent) {
   if (!isCourtWatchSupportedTournamentRegion(event)) return false;
   if (event.status === "cancelled" || event.status === "unavailable")
     return false;
-  if (!isExposureTournament(event)) return false;
+  if (!isPublicTeamListTournament(event)) return false;
 
   const todayKey = dateKeyInPacific(new Date());
   if (
@@ -499,13 +327,6 @@ function needsPublicTeamListRecheck(event: TournamentEvent) {
   return (
     Number.isNaN(lastCheckedAt) ||
     Date.now() - lastCheckedAt >= env.WORKER_TEAM_LIST_RECHECK_STALE_MS
-  );
-}
-
-function needsMissingRosterDiscovery(event: TournamentEvent) {
-  return (
-    needsPublicTeamListRecheck(event) &&
-    (!event.hasPublicTeamList || event.registeredTeamCount <= 0)
   );
 }
 
@@ -535,16 +356,10 @@ function needsActiveEventRefresh(event: TournamentEvent) {
     return false;
   if (!isExposureTournament(event)) return false;
   if (!event.hasPublicTeamList && event.registeredTeamCount <= 0) return false;
-  const staleMs = refreshStaleMsForEvent(
-    event,
-    dateKeyInPacific(new Date()),
-    env.WORKER_ACTIVE_GAME_STALE_MS,
-    env.WORKER_POST_EVENT_STALE_MS,
-  );
-  if (staleMs === null) return false;
+  if (!eventIsInGameHydrationWindowFromKeys(event)) return false;
   return isStaleEventTimestamp(
     event.lastSyncedAt ?? event.lastCheckedAt,
-    staleMs,
+    env.WORKER_ACTIVE_GAME_STALE_MS,
   );
 }
 
@@ -562,6 +377,32 @@ function isExposureTournament(event: TournamentEvent) {
     event.externalProvider === "exposure_events" ||
     event.sourceUrl?.includes("basketball.exposureevents.com") ||
     event.officialUrl.includes("basketball.exposureevents.com")
+  );
+}
+
+function isBracketTeamTournament(event: TournamentEvent) {
+  return (
+    event.externalProvider === "bracket_team" ||
+    event.sourceUrl?.includes("bracketteam.com") ||
+    event.officialUrl.includes("bracketteam.com")
+  );
+}
+
+function isPublicTeamListTournament(event: TournamentEvent) {
+  return (
+    isExposureTournament(event) ||
+    isBracketTeamTournament(event) ||
+    event.externalProvider === "public_html"
+  );
+}
+
+function eventIsInGameHydrationWindowFromKeys(event: {
+  startDate: string;
+  endDate: string;
+}) {
+  const todayKey = dateKeyInPacific(new Date());
+  return (
+    todayKey >= event.startDate && todayKey <= addDaysKey(event.endDate, 3)
   );
 }
 
@@ -593,13 +434,24 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
   });
   const activeEvents = events.filter(
     (event) =>
-      isCourtWatchSupportedTournamentRegion(event) && eventIsActiveToday(event),
+      isCourtWatchSupportedTournamentRegion(event) &&
+      eventIsInGameHydrationWindow(event),
   );
   if (activeEvents.length === 0) return new Set();
+
+  const gameCounts = await prisma.game.groupBy({
+    by: ["eventId"],
+    where: { eventId: { in: activeEvents.map((event) => event.id) } },
+    _count: { _all: true },
+  });
+  const countsByEventId = new Map(
+    gameCounts.map((item) => [item.eventId, item._count._all]),
+  );
   const now = Date.now();
   return new Set(
     activeEvents
       .filter((event) => {
+        const gameCount = countsByEventId.get(event.id) ?? 0;
         const lastDataAt = event.lastSyncedAt ?? event.lastCheckedAt;
         return (
           !lastDataAt ||
@@ -610,10 +462,13 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
   );
 }
 
-function eventIsActiveToday(event: { startDate: Date; endDate: Date }) {
+function eventIsInGameHydrationWindow(event: {
+  startDate: Date;
+  endDate: Date;
+}) {
   const todayKey = dateKeyInPacific(new Date());
   const startKey = event.startDate.toISOString().slice(0, 10);
-  const endKey = event.endDate.toISOString().slice(0, 10);
+  const endKey = addDaysKey(event.endDate.toISOString().slice(0, 10), 3);
   return todayKey >= startKey && todayKey <= endKey;
 }
 
@@ -671,102 +526,48 @@ function startTournamentDiscoveryIfDue() {
 }
 
 async function runTournamentDiscovery() {
-  const result = await new TournamentDiscoveryService().discover(
-    DEFAULT_MAJOR_TOURNAMENT_SOURCES,
-    { windowDays: env.TOURNAMENT_DISCOVERY_WINDOW_DAYS },
+  const response = await fetchWithTimeout(
+    new URL("/api/admin/discover-tournaments", env.API_BASE_URL),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(env.ADMIN_SECRET ? { "x-admin-secret": env.ADMIN_SECRET } : {}),
+      },
+    },
+    env.WORKER_API_TIMEOUT_MS,
   );
-  let upsertedCount = 0;
-  for (const candidate of result.candidates) {
-    await upsertDiscoveredEvent(candidate.event);
-    upsertedCount += 1;
+  if (!response.ok) {
+    throw new Error(
+      `discover-tournaments failed with ${response.status}: ${await response.text()}`,
+    );
   }
+  const result = (await response.json()) as {
+    status: string;
+    discoveredCount: number;
+    syncedCount: number;
+    failures: Array<{ provider: string; source: string; message: string }>;
+  };
   for (const failure of result.failures) {
     logger.warn(failure, "tournament discovery source skipped");
   }
 
   logger.info(
     {
-      discoveredCount: result.candidates.length,
-      upsertedCount,
+      status: result.status,
+      discoveredCount: result.discoveredCount,
+      syncedCount: result.syncedCount,
       failureCount: result.failures.length,
     },
     "tournament discovery completed",
   );
 }
 
-async function upsertDiscoveredEvent(event: TournamentEvent) {
-  await prisma.event.upsert({
-    where: { exposureEventId: event.exposureEventId },
-    update: {
-      externalProvider: event.externalProvider,
-      externalId: event.externalId,
-      sourceUrl: event.sourceUrl,
-      name: event.name,
-      organizer: event.organizer,
-      sport: event.sport,
-      sanctioningTags: event.sanctioningTags,
-      gender: event.gender,
-      ageOrGradeDivisions: event.ageOrGradeDivisions,
-      venueName: event.venueName,
-      city: event.city,
-      state: event.state,
-      region: event.region,
-      startDate: new Date(`${event.startDate}T00:00:00.000Z`),
-      endDate: new Date(`${event.endDate}T00:00:00.000Z`),
-      location: event.location,
-      officialUrl: event.officialUrl,
-      registeredTeamCount:
-        event.registeredTeamCount > 0 ? event.registeredTeamCount : undefined,
-      hasPublicTeamList: event.hasPublicTeamList || undefined,
-      lastCheckedAt: event.lastCheckedAt
-        ? new Date(event.lastCheckedAt)
-        : undefined,
-      lastTeamChangeAt: event.lastTeamChangeAt
-        ? new Date(event.lastTeamChangeAt)
-        : undefined,
-      status: event.status,
-    },
-    create: {
-      id: event.id,
-      exposureEventId: event.exposureEventId,
-      externalProvider: event.externalProvider,
-      externalId: event.externalId,
-      sourceUrl: event.sourceUrl,
-      name: event.name,
-      organizer: event.organizer,
-      sport: event.sport,
-      sanctioningTags: event.sanctioningTags,
-      gender: event.gender,
-      ageOrGradeDivisions: event.ageOrGradeDivisions,
-      venueName: event.venueName,
-      city: event.city,
-      state: event.state,
-      region: event.region,
-      startDate: new Date(`${event.startDate}T00:00:00.000Z`),
-      endDate: new Date(`${event.endDate}T00:00:00.000Z`),
-      location: event.location,
-      officialUrl: event.officialUrl,
-      registeredTeamCount: event.registeredTeamCount,
-      hasPublicTeamList: event.hasPublicTeamList,
-      lastCheckedAt: event.lastCheckedAt ? new Date(event.lastCheckedAt) : null,
-      lastSyncedAt: event.lastSyncedAt ? new Date(event.lastSyncedAt) : null,
-      lastTeamChangeAt: event.lastTeamChangeAt
-        ? new Date(event.lastTeamChangeAt)
-        : null,
-      status: event.status,
-    },
-  });
-}
-
 async function loop() {
-  while (!shutdown.requested) {
+  while (!shuttingDown) {
     try {
       const result = await syncOnce();
-      failureCount = nextWorkerFailureCount(failureCount, {
-        targetCount: result.targetsCount,
-        successfulCount: result.successfulCount,
-        failedCount: result.failedCount,
-      });
+      failureCount = 0;
       logger.info(result, "sync completed");
     } catch (error) {
       failureCount += 1;
@@ -776,20 +577,15 @@ async function loop() {
       );
     }
 
-    if (shutdown.requested) break;
-
     const activeOverride = await activeTournamentOverride();
-    if (shutdown.requested) break;
     const calculatedDelay = calculatePollDelayMs({
       failureCount,
       activeOverride,
     });
-    const delay = Math.min(
-      failureCount > 0 ? env.WORKER_MAX_BACKOFF_MS : Number.MAX_SAFE_INTEGER,
-      jitterDelayMs(
-        workerPollDelay(calculatedDelay, failureCount, activeOverride),
-        env.WORKER_POLL_JITTER_RATIO,
-      ),
+    const delay = workerPollDelay(
+      calculatedDelay,
+      failureCount,
+      activeOverride,
     );
     logger.info(
       { delayMs: delay, failureCount, activeOverride },
@@ -835,15 +631,7 @@ async function activeTournamentOverride(): Promise<boolean | undefined> {
 }
 
 function sleep(ms: number) {
-  return shutdown.wait(ms);
-}
-
-function retryAfterMs(value: string | null): number {
-  if (!value) return 0;
-  const seconds = Number(value);
-  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1_000;
-  const timestamp = Date.parse(value);
-  return Number.isNaN(timestamp) ? 0 : Math.max(0, timestamp - Date.now());
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function mapWithConcurrency<T, R>(
@@ -877,40 +665,21 @@ async function fetchWithTimeout(
   init: RequestInit = {},
   timeoutMs = env.WORKER_API_TIMEOUT_MS,
 ) {
-  const request = requestSignal({
-    shutdownSignal: shutdown.signal,
-    requestSignal: init.signal,
-    timeoutMs,
-  });
+  if (init.signal || timeoutMs <= 0) return fetch(input, init);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(input, { ...init, signal: request.signal });
+    return await fetch(input, { ...init, signal: controller.signal });
   } finally {
-    request.cleanup();
+    clearTimeout(timer);
   }
 }
 
 logger.info({ apiBaseUrl: env.API_BASE_URL }, "starting worker");
-void runWorker();
-
-async function runWorker() {
-  try {
-    await loop();
-    if (discoveryTask) await discoveryTask;
-    logger.info("worker stopped cleanly");
-  } catch (error) {
-    if (shutdown.requested) {
-      logger.info(
-        { reason: shutdown.signal.reason },
-        "worker stopped during in-flight operation",
-      );
-      return;
-    }
-    logger.fatal(
-      { error: errorMessage(error), stack: errorStack(error) },
-      "worker loop crashed",
-    );
-    process.exitCode = 1;
-  } finally {
-    await prisma.$disconnect();
-  }
-}
+void loop().catch((error) => {
+  logger.fatal(
+    { error: errorMessage(error), stack: errorStack(error) },
+    "worker loop crashed",
+  );
+  process.exit(1);
+});

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   AauEventFinderTournamentProvider,
+  BracketTeamTournamentProvider,
   DEFAULT_MAJOR_TOURNAMENT_SOURCES,
   ExposureEventsTournamentProvider,
   PublicHtmlTournamentProvider,
@@ -97,10 +98,24 @@ describe("TournamentDiscoveryService", () => {
           ]),
         }),
         expect.objectContaining({
+          name: "Bay Area Flight",
+          provider: "bracket_team",
+          url: "https://basketballnationusa.com/bay-area-flight/event-schedule/",
+          eventLinkPatterns: expect.arrayContaining([
+            "bracketteam\\.com/event/\\d+",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "Bay Area Flight",
+            "Basketball Nation",
+            "Bracket Team",
+            "Northern California",
+          ]),
+        }),
+        expect.objectContaining({
           name: "Top Notch Tournamentz / Nothing BUT Net",
           provider: "exposure_events",
-          enabled: true,
           url: "https://basketball.exposureevents.com/organizations/28459/top-notch-tournamentz",
+          maxEvents: 40,
           organizerName: "Top Notch Tournamentz",
           sanctioningTags: expect.arrayContaining([
             "Top Notch Tournamentz",
@@ -560,6 +575,143 @@ describe("TournamentDiscoveryService", () => {
       registeredTeamCount: 0,
       hasPublicTeamList: true,
     });
+  });
+
+  it("discovers Bay Area Flight Bracket Team public tournaments and registered teams", async () => {
+    const publicKey = "public-test-key-123456789012345678901234567890";
+    const tournamentPayload = {
+      success: true,
+      message: "Event found",
+      content: {
+        tournament: {
+          id: 7532,
+          event_name: "Bay Area Flight Summer Session #6",
+          event_info: "Youth basketball tournament for boys teams.",
+          start_date: "2026-08-08",
+          end_date: "2026-08-09",
+          public_url: {
+            absolute:
+              "https://bracketteam.com/event/7532/Bay_Area_Flight_Summer_Session_6",
+          },
+          administrators: [{ organization_name: "Bay Area Flight" }],
+          venues: [
+            {
+              name: "Tice Valley Community Gym",
+              city: "Walnut Creek",
+              state: "CA",
+            },
+          ],
+          whos_coming_data: [
+            {
+              id: 59483,
+              division_name: "JV Boys",
+              teams: [
+                { id: 345648, name: "1. All Net", status: "unpaid" },
+                { id: 345649, name: "2. . REIGN CITY", status: "unpaid" },
+              ],
+            },
+            {
+              id: 59484,
+              division_name: "9U Boys",
+              teams: [],
+            },
+          ],
+        },
+      },
+    };
+    let apiCalls = 0;
+    const fetchImpl = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/robots.txt")) {
+          return new Response("User-agent: *\nAllow: /\n", {
+            status: 200,
+            headers: { "Content-Type": "text/plain" },
+          });
+        }
+        if (url.endsWith("/bay-area-flight/event-schedule/")) {
+          return htmlResponse(`
+            <a href="https://bracketteam.com/event/7532/Bay_Area_Flight_Summer_Session_6/registration">
+              Bay Area Flight Summer Session #6
+            </a>
+          `);
+        }
+        if (url.endsWith("/event/7532/Bay_Area_Flight_Summer_Session_6")) {
+          return htmlResponse(`
+            <html>
+              <head><base href="/" /></head>
+              <body><script src="main.public.js"></script></body>
+            </html>
+          `);
+        }
+        if (url.endsWith("/main.public.js")) {
+          return new Response(
+            `var r=n("h8Hy"),i=r.a!=r.b,o=i?"${publicKey}":"test-public-key-123456789012345678901234567890",a=i?"GTM-M327MDGJ":"GTM-WTC4M3RJ",s={apiKey:o};`,
+            {
+              status: 200,
+              headers: { "Content-Type": "application/javascript" },
+            },
+          );
+        }
+        if (url.endsWith("/api/get-public-tournament?tournament_id=7532")) {
+          apiCalls += 1;
+          expect(init?.headers).toMatchObject({
+            "X-Authorization": publicKey,
+          });
+          return jsonResponse(tournamentPayload);
+        }
+        throw new Error(`Unhandled URL ${url}`);
+      },
+    ) as unknown as typeof fetch;
+
+    const provider = new BracketTeamTournamentProvider({
+      baseUrl: "https://bracketteam.com",
+      fetchImpl,
+    });
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "Bay Area Flight",
+          provider: "bracket_team",
+          enabled: true,
+          url: "https://basketballnationusa.com/bay-area-flight/event-schedule/",
+          eventLinkPatterns: ["bracketteam\\.com/event/\\d+"],
+          organizerName: "Bay Area Flight",
+          sanctioningTags: [
+            "Bay Area Flight",
+            "Basketball Nation",
+            "Bracket Team",
+            "Northern California",
+          ],
+          timezone: "America/Los_Angeles",
+          region: "Northern California",
+        },
+      ],
+      { now: new Date("2026-08-06T12:00:00.000Z") },
+    );
+
+    expect(result.failures).toEqual([]);
+    expect(apiCalls).toBe(2);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.event).toMatchObject({
+      externalProvider: "bracket_team",
+      externalId: "7532",
+      name: "Bay Area Flight Summer Session #6",
+      organizer: "Bay Area Flight",
+      venueName: "Tice Valley Community Gym",
+      city: "Walnut Creek",
+      state: "CA",
+      registeredTeamCount: 2,
+      hasPublicTeamList: true,
+      status: "upcoming",
+    });
+    expect(result.candidates[0]?.teams.teams.map((team) => team.name)).toEqual([
+      "All Net",
+      "REIGN CITY",
+    ]);
+    expect(result.candidates[0]?.teams.teams[0]?.rawJson).not.toHaveProperty(
+      "status",
+    );
   });
 
   it("paginates Exposure organizer directories and derives regions from event locations", async () => {
