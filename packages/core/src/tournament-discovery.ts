@@ -1931,7 +1931,7 @@ function addPublicHtmlTeam({
   divisions,
   teams,
 }: {
-  event: DiscoveredTournamentEvent;
+  event: TournamentEvent;
   sourceUrl: string;
   teamName: string;
   divisionName: string;
@@ -1978,7 +1978,7 @@ function addPublicHtmlTeam({
 
 function parseTeamTables(
   $: cheerio.CheerioAPI,
-  event: DiscoveredTournamentEvent,
+  event: TournamentEvent,
   sourceUrl: string,
   divisions: Map<string, PublicExposureTeamResult["divisions"][number]>,
   teams: Map<string, PublicExposureTeamResult["teams"][number]>,
@@ -2016,7 +2016,7 @@ function parseTeamTables(
 
 function parseTeamTextSections(
   $: cheerio.CheerioAPI,
-  event: DiscoveredTournamentEvent,
+  event: TournamentEvent,
   sourceUrl: string,
   divisions: Map<string, PublicExposureTeamResult["divisions"][number]>,
   teams: Map<string, PublicExposureTeamResult["teams"][number]>,
