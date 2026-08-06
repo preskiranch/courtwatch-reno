@@ -1877,7 +1877,7 @@ function looksLikeTeamListPage(
 
 function parsePublicHtmlTeams(
   html: string,
-  event: DiscoveredTournamentEvent,
+  event: TournamentEvent,
   sourceUrl: string,
   source?: MajorTournamentSource,
 ): PublicExposureTeamResult {
