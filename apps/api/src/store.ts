@@ -68,6 +68,7 @@ import type {
   TeamCatalogEntry,
   TeamScoringLeader,
   TeamRecordSummary,
+  MajorTournamentSource,
   PublicTournamentCandidate,
   TournamentEvent,
 } from "@courtwatch/core";
@@ -87,6 +88,21 @@ const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
   sensitivity: "base",
 });
+
+function discoverySourcePriority(source: MajorTournamentSource) {
+  if (source.provider === "bracket_team") return 0;
+  if (source.provider === "public_html") return 1;
+  return 2;
+}
+
+function prioritizedDiscoverySources(sources: MajorTournamentSource[]) {
+  return [...sources].sort((left, right) => {
+    const priorityDelta =
+      discoverySourcePriority(left) - discoverySourcePriority(right);
+    if (priorityDelta !== 0) return priorityDelta;
+    return left.name.localeCompare(right.name);
+  });
+}
 
 const favoriteTeamWatchInclude = {
   registrationMatches: {
@@ -2035,39 +2051,48 @@ export class PrismaStore implements CourtWatchStore {
   async discoverTournaments() {
     invalidateEventsCache();
     await this.markCompletedEvents();
-    const result = await new TournamentDiscoveryService().discover(
-      majorTournamentSources(),
-      { windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS },
-    );
+    const discoveryService = new TournamentDiscoveryService();
     const syncResults = [];
-    for (const candidate of result.candidates) {
-      if (isMetadataOnlyTournamentCandidate(candidate)) {
-        await upsertEvent(this.prisma, candidate.event);
-        syncResults.push({
-          status: "success",
-          source: "directory",
-          teamsCount: 0,
-          gamesCount: 0,
-          changesDetected: 0,
-        });
-      } else {
-        syncResults.push(
-          await this.syncTournament(candidate.event, candidate.teams, {
-            teamListOnly: true,
-          }),
-        );
+    const failures = [];
+    let discoveredCount = 0;
+    for (const source of prioritizedDiscoverySources(majorTournamentSources())) {
+      const result = await discoveryService.discover([source], {
+        windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
+      });
+      discoveredCount += result.candidates.length;
+      failures.push(...result.failures);
+      for (const candidate of result.candidates) {
+        if (isMetadataOnlyTournamentCandidate(candidate)) {
+          await upsertEvent(this.prisma, candidate.event);
+          syncResults.push({
+            status: "success",
+            source: "directory",
+            teamsCount: 0,
+            gamesCount: 0,
+            changesDetected: 0,
+          });
+        } else {
+          syncResults.push(
+            await this.syncTournament(candidate.event, candidate.teams, {
+              teamListOnly: true,
+            }),
+          );
+        }
       }
-    }
-    for (const failure of result.failures) {
-      console.warn("Tournament discovery source skipped", failure);
+      for (const failure of result.failures) {
+        console.warn("Tournament discovery source skipped", failure);
+      }
+      if (result.candidates.length > 0) {
+        invalidateEventsCache();
+      }
     }
     const response = {
       status: syncResults.every((item) => item.status === "success")
         ? "success"
         : "failed",
-      discoveredCount: result.candidates.length,
+      discoveredCount,
       syncedCount: syncResults.length,
-      failures: result.failures,
+      failures,
     };
     invalidateEventsCache();
     return response;
