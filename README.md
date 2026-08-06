@@ -411,6 +411,10 @@ Generated files are written to `outreach/generated/`, which is ignored by git. F
 
 The Blueprint uses `npm ci --include=dev` in build commands so TypeScript, Prisma CLI, and other build-time tools are available even though the deployed services run with `NODE_ENV=production`.
 
+The Render services are pinned to Node `22.22.0` with `NODE_VERSION` in the Blueprint, plus root `.node-version`, `.nvmrc`, and `package.json` engines. Keep those values aligned so Render builds, local development, and agent-driven deploy checks use the same runtime instead of drifting to Render's current default Node release.
+
+Render's MCP/agent tooling is optional operations support. It helps an authenticated coding agent inspect Render services, logs, metrics, databases, and deploy history or trigger redeploys, but it does not replace the Blueprint or change the app's runtime behavior.
+
 Render service URLs should be wired like:
 
 - `WEB_BASE_URL=https://courtwatch-reno-web.onrender.com`

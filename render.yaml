@@ -19,6 +19,8 @@ services:
     autoDeployTrigger: checksPass
     maxShutdownDelaySeconds: 30
     envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
       - key: NODE_ENV
         value: production
       - key: UPSTREAM_ORIGIN
@@ -65,6 +67,8 @@ services:
     autoDeployTrigger: checksPass
     maxShutdownDelaySeconds: 30
     envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
       - key: NODE_ENV
         value: production
       - key: WEB_BASE_URL
@@ -94,6 +98,8 @@ services:
     autoDeployTrigger: checksPass
     maxShutdownDelaySeconds: 30
     envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
@@ -196,6 +202,8 @@ services:
     autoDeployTrigger: checksPass
     maxShutdownDelaySeconds: 120
     envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
