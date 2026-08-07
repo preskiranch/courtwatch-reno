@@ -3,6 +3,7 @@ import {
   BracketTeamTournamentProvider,
   DashboardService,
   ExposureClient,
+  FastbreakCompeteTournamentProvider,
   LEGACY_AUTO_PROGRAM_IDS,
   LIVE_GAME_WINDOW_MINUTES,
   PublicExposurePageClient,
@@ -2204,7 +2205,12 @@ export class PrismaStore implements CourtWatchStore {
     const events = await this.prisma.event.findMany({
       where: courtWatchScopedEventWhere({
         externalProvider: {
-          in: ["exposure_events", "bracket_team", "public_html"],
+          in: [
+            "exposure_events",
+            "bracket_team",
+            "public_html",
+            "fastbreak_compete",
+          ],
         },
         startDate: { lte: new Date(`${windowEndKey}T00:00:00.000Z`) },
         endDate: { gte: new Date(`${todayKey}T00:00:00.000Z`) },
@@ -3763,6 +3769,12 @@ async function fetchSourceTeams(
   }
   if (tournament.externalProvider === "public_html") {
     return new PublicHtmlTournamentProvider().fetchRegisteredTeams({
+      ...tournament,
+      dropdownGroup: "upcoming",
+    });
+  }
+  if (tournament.externalProvider === "fastbreak_compete") {
+    return new FastbreakCompeteTournamentProvider().fetchRegisteredTeams({
       ...tournament,
       dropdownGroup: "upcoming",
     });

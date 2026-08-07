@@ -4,6 +4,7 @@ import {
   BracketTeamTournamentProvider,
   DEFAULT_MAJOR_TOURNAMENT_SOURCES,
   ExposureEventsTournamentProvider,
+  FastbreakCompeteTournamentProvider,
   PublicHtmlTournamentProvider,
   TournamentDiscoveryService,
   type TournamentProvider,
@@ -109,6 +110,37 @@ describe("TournamentDiscoveryService", () => {
             "Basketball Nation",
             "Bracket Team",
             "Northern California",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "North Bay Basketball / Power Sports Academy",
+          provider: "fastbreak_compete",
+          url: "https://northbay.fastbreakcompete.ai/sitemap.xml",
+          venueNamePatterns: expect.arrayContaining([
+            "Power Sports Academy",
+            "360 Ferry Street",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "North Bay Basketball",
+            "Fastbreak Compete",
+            "Power Sports Academy",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "Hoop Community / Power Sports Academy",
+          provider: "bracket_team",
+          url: "https://bracketteam.com/sitemap.xml",
+          venueNamePatterns: expect.arrayContaining([
+            "Power Sports Academy",
+            "360 Ferry Street",
+          ]),
+          venueCity: "Martinez",
+          venueState: "CA",
+          sanctioningTags: expect.arrayContaining([
+            "Hoop Community",
+            "Basketball Circuit",
+            "Bracket Team",
+            "Power Sports Academy",
           ]),
         }),
         expect.objectContaining({
@@ -711,6 +743,315 @@ describe("TournamentDiscoveryService", () => {
     ]);
     expect(result.candidates[0]?.teams.teams[0]?.rawJson).not.toHaveProperty(
       "status",
+    );
+  });
+
+  it("filters Bracket Team sitemap discovery to Power Sports venue tournaments", async () => {
+    const publicKey = "public-test-key-123456789012345678901234567890";
+    const powerSportsTournament = {
+      success: true,
+      message: "Event found",
+      content: {
+        tournament: {
+          id: 7288,
+          event_name:
+            "Basketball Circuit x Hoop Community USA: SUMMER CHAMPIONSHIP",
+          event_info: "Youth basketball tournament.",
+          start_date: "2026-08-15",
+          end_date: "2026-08-15",
+          published: false,
+          is_live: false,
+          public_url: {
+            absolute:
+              "https://bracketteam.com/event/7288/Basketball_Circuit_x_Hoop_Community_USA_SUMMER_CHAMPIONSHIP",
+          },
+          administrators: [{ organization_name: "Hoop Community USA" }],
+          user: { app_name: "Hoop Community" },
+          venues: [
+            {
+              name: "Power Sports Academy",
+              abbr: "PSA",
+              street_address: "360 Ferry Street",
+              city: "Martinez",
+              state: "California",
+              postal: 94553,
+            },
+          ],
+          whos_coming_data: [],
+        },
+      },
+    };
+    const unrelatedTournament = {
+      success: true,
+      message: "Event found",
+      content: {
+        tournament: {
+          id: 9999,
+          event_name: "Unrelated Bracket Team Event",
+          event_info: "Youth basketball tournament.",
+          start_date: "2026-08-16",
+          end_date: "2026-08-16",
+          public_url: {
+            absolute:
+              "https://bracketteam.com/event/9999/Unrelated_Bracket_Team_Event",
+          },
+          administrators: [{ organization_name: "Other Organizer" }],
+          venues: [
+            {
+              name: "Other Gym",
+              city: "Oakland",
+              state: "CA",
+            },
+          ],
+          whos_coming_data: [
+            {
+              id: 1,
+              division_name: "12U Boys",
+              teams: [{ id: 1, name: "Other Team" }],
+            },
+          ],
+        },
+      },
+    };
+    const fetchImpl = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/robots.txt")) {
+          return new Response("User-agent: *\nAllow: /\n", {
+            status: 200,
+            headers: { "Content-Type": "text/plain" },
+          });
+        }
+        if (url.endsWith("/sitemap.xml")) {
+          return htmlResponse(`
+            <urlset>
+              <url>
+                <loc>https://bracketteam.com/event/7288/Basketball_Circuit_x_Hoop_Community_USA_SUMMER_CHAMPIONSHIP</loc>
+              </url>
+              <url>
+                <loc>https://bracketteam.com/event/9999/Unrelated_Bracket_Team_Event</loc>
+              </url>
+            </urlset>
+          `);
+        }
+        if (
+          url.endsWith(
+            "/event/7288/Basketball_Circuit_x_Hoop_Community_USA_SUMMER_CHAMPIONSHIP",
+          )
+        ) {
+          return htmlResponse(`
+            <html>
+              <head><base href="/" /></head>
+              <body><script src="main.public.js"></script></body>
+            </html>
+          `);
+        }
+        if (url.endsWith("/main.public.js")) {
+          return new Response(
+            `var r=n("h8Hy"),i=r.a!=r.b,o=i?"${publicKey}":"test-public-key-123456789012345678901234567890",a=i?"GTM-M327MDGJ":"GTM-WTC4M3RJ",s={apiKey:o};`,
+            {
+              status: 200,
+              headers: { "Content-Type": "application/javascript" },
+            },
+          );
+        }
+        if (url.endsWith("/api/get-public-tournament?tournament_id=7288")) {
+          expect(init?.headers).toMatchObject({
+            "X-Authorization": publicKey,
+          });
+          return jsonResponse(powerSportsTournament);
+        }
+        if (url.endsWith("/api/get-public-tournament?tournament_id=9999"))
+          return jsonResponse(unrelatedTournament);
+        throw new Error(`Unhandled URL ${url}`);
+      },
+    ) as unknown as typeof fetch;
+
+    const provider = new BracketTeamTournamentProvider({
+      baseUrl: "https://bracketteam.com",
+      fetchImpl,
+    });
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "Hoop Community / Power Sports Academy",
+          provider: "bracket_team",
+          enabled: true,
+          url: "https://bracketteam.com/sitemap.xml",
+          eventLinkPatterns: ["bracketteam\\.com/event/\\d+"],
+          maxEvents: 20,
+          venueNamePatterns: ["Power Sports Academy", "360 Ferry Street"],
+          venueCity: "Martinez",
+          venueState: "CA",
+          organizerName: "Hoop Community USA",
+          sanctioningTags: [
+            "Hoop Community",
+            "Basketball Circuit",
+            "Bracket Team",
+            "Power Sports Academy",
+          ],
+          timezone: "America/Los_Angeles",
+          region: "Northern California",
+        },
+      ],
+      { now: new Date("2026-08-07T12:00:00.000Z") },
+    );
+
+    expect(result.failures).toEqual([]);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.event).toMatchObject({
+      externalProvider: "bracket_team",
+      externalId: "7288",
+      name: "Basketball Circuit x Hoop Community USA: SUMMER CHAMPIONSHIP",
+      organizer: "Hoop Community USA",
+      venueName: "Power Sports Academy",
+      city: "Martinez",
+      state: "CA",
+      registeredTeamCount: 0,
+      hasPublicTeamList: true,
+      status: "upcoming",
+    });
+    expect(result.candidates[0]?.teams.teams).toEqual([]);
+  });
+
+  it("discovers Fastbreak Compete Power Sports public tournaments and registered teams", async () => {
+    const eventHtml = `
+      <html>
+        <head>
+          <meta property="og:title" content="Spring Surge" />
+          <meta property="og:description" content="Location: Martinez (CA), Date: May 02, 2026 - May 03, 2026, Girls" />
+        </head>
+        <body>
+          <script>
+            var eventInfo = {
+              "id": 10739,
+              "name": "Spring Surge",
+              "startDate": "2026-05-02T00:00:00.000000Z",
+              "endDate": "2026-05-03T00:00:00.000000Z",
+              "sport": 2,
+              "gender": 2,
+              "published": true,
+              "organizationName": "North Bay Basketball",
+              "groupedGradesLabel": "2nd-12th",
+              "description": "<p>Presented by Cal Stars Ionescu Elite, Cal Stars North Bay, Covert Hoops, and Basketball Circuit</p>",
+              "venues": [
+                {
+                  "id": 2131,
+                  "name": "Power Sports Academy",
+                  "city": "Martinez",
+                  "streetAddress": "360 Ferry Street",
+                  "postalCode": "94553",
+                  "state": { "abbreviation": "CA", "name": "California" }
+                }
+              ]
+            };
+            var divisions = [
+              {
+                "id": 48696,
+                "name": "12u SILVER",
+                "teams_count": 2,
+                "pools": [
+                  {
+                    "id": 73133,
+                    "name": "A",
+                    "teams": [
+                      {
+                        "id": 242457,
+                        "team": 84040,
+                        "gender": 2,
+                        "name": "Benicia Blue Devils 6th",
+                        "pool_name": "A",
+                        "schedule_name": "Benicia Blue Devils 6th 6th/12U"
+                      },
+                      {
+                        "id": 242458,
+                        "team": 84041,
+                        "gender": 2,
+                        "name": "Cal Stars NB 6th Navy (Borello)",
+                        "pool_name": "A",
+                        "schedule_name": "Cal Stars NB 6th Navy (Borello) 6th/12U"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+          </script>
+        </body>
+      </html>
+    `;
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.endsWith("/robots.txt")) {
+        return new Response("User-agent: *\nDisallow: /backend/\nAllow: /\n", {
+          status: 200,
+          headers: { "Content-Type": "text/plain" },
+        });
+      }
+      if (url.endsWith("/sitemap.xml")) {
+        return htmlResponse(`
+          <urlset>
+            <url>
+              <loc>https://northbay.fastbreakcompete.ai/event/10739-spring-surge</loc>
+            </url>
+          </urlset>
+        `);
+      }
+      if (url.endsWith("/event/10739-spring-surge")) {
+        return htmlResponse(eventHtml);
+      }
+      throw new Error(`Unhandled URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const provider = new FastbreakCompeteTournamentProvider({ fetchImpl });
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "North Bay Basketball / Power Sports Academy",
+          provider: "fastbreak_compete",
+          enabled: true,
+          url: "https://northbay.fastbreakcompete.ai/sitemap.xml",
+          eventLinkPatterns: [
+            "fastbreakcompete\\.ai/event/\\d+",
+            "/event/\\d+",
+          ],
+          maxEvents: 20,
+          venueNamePatterns: ["Power Sports Academy", "360 Ferry Street"],
+          organizerName: "North Bay Basketball",
+          sanctioningTags: [
+            "North Bay Basketball",
+            "Fastbreak Compete",
+            "Power Sports Academy",
+            "Northern California",
+          ],
+          timezone: "America/Los_Angeles",
+          region: "Northern California",
+        },
+      ],
+      { now: new Date("2026-04-25T12:00:00.000Z") },
+    );
+
+    expect(result.failures).toEqual([]);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.event).toMatchObject({
+      externalProvider: "fastbreak_compete",
+      externalId: "10739",
+      name: "Spring Surge",
+      organizer: "North Bay Basketball",
+      venueName: "Power Sports Academy",
+      city: "Martinez",
+      state: "CA",
+      region: "Northern California",
+      registeredTeamCount: 2,
+      hasPublicTeamList: true,
+      status: "upcoming",
+    });
+    expect(result.candidates[0]?.teams.teams.map((team) => team.name)).toEqual([
+      "Benicia Blue Devils 6th",
+      "Cal Stars NB 6th Navy (Borello)",
+    ]);
+    expect(result.candidates[0]?.teams.teams[0]?.rawJson).not.toHaveProperty(
+      "phone",
     );
   });
 

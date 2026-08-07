@@ -21,7 +21,8 @@ export type TournamentProviderName =
   | "exposure_events"
   | "public_html"
   | "aau_event_finder"
-  | "bracket_team";
+  | "bracket_team"
+  | "fastbreak_compete";
 
 export interface MajorTournamentSource {
   name: string;
@@ -39,6 +40,9 @@ export interface MajorTournamentSource {
   metadataOnly?: boolean;
   directoryEventType?: string;
   ignoreDiscoveryWindowEnd?: boolean;
+  venueNamePatterns?: string[];
+  venueCity?: string;
+  venueState?: string;
   organizerName?: string;
   sanctioningTags?: string[];
   timezone?: string;
@@ -315,6 +319,49 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     region: "Northern California",
   },
   {
+    name: "North Bay Basketball / Power Sports Academy",
+    provider: "fastbreak_compete",
+    enabled: true,
+    url: "https://northbay.fastbreakcompete.ai/sitemap.xml",
+    eventLinkPatterns: ["fastbreakcompete\\.ai/event/\\d+", "/event/\\d+"],
+    maxEvents: 120,
+    venueNamePatterns: ["Power Sports Academy", "360 Ferry Street"],
+    organizerName: "North Bay Basketball",
+    sanctioningTags: [
+      "North Bay Basketball",
+      "Buzzer Beater Events",
+      "Fastbreak Compete",
+      "Power Sports Academy",
+      "Northern California",
+      "NorCal",
+    ],
+    timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+    region: "Northern California",
+  },
+  {
+    name: "Hoop Community / Power Sports Academy",
+    provider: "bracket_team",
+    enabled: true,
+    url: "https://bracketteam.com/sitemap.xml",
+    eventLinkPatterns: ["bracketteam\\.com/event/\\d+"],
+    maxEvents: 150,
+    venueNamePatterns: ["Power Sports Academy", "360 Ferry Street"],
+    venueCity: "Martinez",
+    venueState: "CA",
+    organizerName: "Hoop Community USA",
+    sanctioningTags: [
+      "Hoop Community",
+      "Hoop Community USA",
+      "Basketball Circuit",
+      "Bracket Team",
+      "Power Sports Academy",
+      "Northern California",
+      "NorCal",
+    ],
+    timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+    region: "Northern California",
+  },
+  {
     name: "Top Notch Tournamentz / Nothing BUT Net",
     provider: "exposure_events",
     enabled: true,
@@ -363,6 +410,7 @@ export class TournamentDiscoveryService {
     providers: TournamentProvider[] = [
       new ExposureEventsTournamentProvider(),
       new BracketTeamTournamentProvider(),
+      new FastbreakCompeteTournamentProvider(),
       new PublicHtmlTournamentProvider(),
       new AauEventFinderTournamentProvider(),
     ],
@@ -829,6 +877,8 @@ export class BracketTeamTournamentProvider implements TournamentProvider {
       normalizedEventUrl,
       source,
     );
+    if (!bracketTeamTournamentMatchesSource(tournament, source))
+      throw new Error("Bracket Team public event does not match source.");
     return bracketTeamTournamentToEvent(
       tournament,
       normalizedEventUrl,
@@ -923,6 +973,549 @@ export class BracketTeamTournamentProvider implements TournamentProvider {
       );
     return response.text();
   }
+}
+
+export class FastbreakCompeteTournamentProvider implements TournamentProvider {
+  readonly providerName = "fastbreak_compete" as const;
+  readonly supportsPublicTeamLists = true;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(options: { fetchImpl?: typeof fetch } = {}) {
+    this.fetchImpl = options.fetchImpl ?? fetch;
+  }
+
+  async discoverEvents(
+    source: MajorTournamentSource,
+    window: TournamentDiscoveryWindow,
+  ): Promise<DiscoveredTournamentEvent[]> {
+    const eventUrls = new Set<string>();
+    for (const eventUrl of source.eventUrls ?? []) {
+      const normalized = normalizeFastbreakEventUrl(eventUrl);
+      if (normalized) eventUrls.add(normalized);
+    }
+
+    if (source.url && (source.eventLinkPatterns?.length ?? 0) > 0) {
+      const sourceUrl = normalizePublicUrl(source.url);
+      const html = await this.fetchText(sourceUrl);
+      for (const eventUrl of parseFastbreakEventLinks(
+        html,
+        sourceUrl,
+        source.eventLinkPatterns ?? [],
+      ))
+        eventUrls.add(eventUrl);
+    }
+
+    const events: DiscoveredTournamentEvent[] = [];
+    const maxEvents = Math.max(1, source.maxEvents ?? 50);
+    for (const eventUrl of Array.from(eventUrls).slice(0, maxEvents)) {
+      try {
+        const details = await this.fetchEventDetails(eventUrl, source);
+        if (
+          details.startDate > window.endDate ||
+          details.endDate < window.startDate
+        )
+          continue;
+        events.push(details);
+      } catch {
+        // A stale or non-basketball public event link should not block a source.
+      }
+      await sleep(
+        Number(process.env.TOURNAMENT_DISCOVERY_REQUEST_DELAY_MS ?? 125),
+      );
+    }
+
+    return dedupeDiscoveredEvents(events);
+  }
+
+  async fetchRegisteredTeams(
+    event: TournamentEvent,
+  ): Promise<PublicExposureTeamResult> {
+    const html = await this.fetchText(event.sourceUrl);
+    const divisions = fastbreakDivisionsFromHtml(html);
+    if (!divisions)
+      throw new Error("Fastbreak Compete public team list is not available.");
+    return fastbreakTeamsToCore(divisions, event);
+  }
+
+  private async fetchEventDetails(
+    eventUrl: string,
+    source: MajorTournamentSource,
+  ): Promise<DiscoveredTournamentEvent> {
+    const normalizedEventUrl = normalizeFastbreakEventUrl(eventUrl);
+    if (!normalizedEventUrl)
+      throw new Error(`Unsupported Fastbreak event URL: ${eventUrl}`);
+    const parsed = parseFastbreakEventUrl(normalizedEventUrl);
+    if (!parsed)
+      throw new Error(`Unsupported Fastbreak event URL: ${eventUrl}`);
+
+    const html = await this.fetchText(normalizedEventUrl);
+    const eventInfo = fastbreakEventInfoFromHtml(html);
+    if (!eventInfo)
+      throw new Error("Fastbreak Compete public event info was empty.");
+    const sportId = numberValue(eventInfo.sport);
+    if (sportId && sportId !== 2)
+      throw new Error("Fastbreak Compete public event is not basketball.");
+
+    const bodyText = cleanText(cheerio.load(html)("body").text());
+    const textForSport = `${source.name} ${source.sanctioningTags?.join(" ") ?? ""} ${stringValue(eventInfo.name) ?? ""} ${stringValue(eventInfo.description) ?? ""} ${bodyText.slice(0, 1000)}`;
+    if (!sportId && !/\bbasketball\b/i.test(textForSport))
+      throw new Error("Fastbreak Compete public event is not basketball.");
+
+    if (!fastbreakEventMatchesSource(eventInfo, html, source))
+      throw new Error("Fastbreak Compete public event does not match source.");
+
+    return fastbreakEventToCore(
+      eventInfo,
+      fastbreakDivisionsFromHtml(html),
+      normalizedEventUrl,
+      html,
+      source,
+      this.providerName,
+    );
+  }
+
+  private async fetchText(url: string): Promise<string> {
+    await assertRobotsAllowed(url, this.fetchImpl);
+    const response = await this.fetchImpl(url, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml,application/xml",
+        "User-Agent": publicUserAgent(),
+      },
+    });
+    if (!response.ok)
+      throw new Error(
+        `Fastbreak Compete public page request failed with ${response.status}`,
+      );
+    return response.text();
+  }
+}
+
+function parseFastbreakEventLinks(
+  html: string,
+  sourceUrl: string,
+  patterns: string[],
+): string[] {
+  const regexes = patterns.map((pattern) => new RegExp(pattern, "i"));
+  const urls = new Set<string>();
+  const addCandidate = (value: string) => {
+    const candidate = cleanText(value);
+    if (!candidate) return;
+    const normalized = normalizeFastbreakEventUrl(candidate, sourceUrl);
+    if (!normalized) return;
+    if (
+      regexes.length === 0 ||
+      regexes.some(
+        (regex) =>
+          regex.test(candidate) ||
+          regex.test(normalized) ||
+          regex.test(new URL(normalized).pathname),
+      )
+    )
+      urls.add(normalized);
+  };
+
+  const $ = cheerio.load(html, { xmlMode: /<urlset[\s>]/i.test(html) });
+  $("a[href]").each((_, element) => addCandidate($(element).attr("href") ?? ""));
+  $("loc").each((_, element) => addCandidate($(element).text()));
+  for (const match of html.matchAll(/https?:\/\/[^\s<>"']+/gi))
+    addCandidate(match[0]);
+  return Array.from(urls);
+}
+
+function normalizeFastbreakEventUrl(
+  value: string,
+  baseUrl?: string,
+): string | null {
+  try {
+    const url = new URL(value, baseUrl);
+    const parsed = parseFastbreakEventUrl(url.toString());
+    if (!parsed) return null;
+    url.pathname = `/event/${parsed.pathSegment}`;
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function parseFastbreakEventUrl(
+  value: string,
+): { eventId: number; slug: string; pathSegment: string } | null {
+  try {
+    const url = new URL(value);
+    if (!/fastbreakcompete\.ai$/i.test(url.hostname)) return null;
+    const parts = url.pathname.split("/").filter(Boolean);
+    if (parts[0] !== "event" || !parts[1]) return null;
+    const match = parts[1].match(/^(\d+)(?:-(.+))?$/);
+    if (!match) return null;
+    const eventId = Number(match[1]);
+    if (!Number.isInteger(eventId) || eventId <= 0) return null;
+    return {
+      eventId,
+      slug: match[2] ?? String(eventId),
+      pathSegment: parts[1],
+    };
+  } catch {
+    return null;
+  }
+}
+
+function fastbreakEventInfoFromHtml(
+  html: string,
+): Record<string, unknown> | null {
+  return recordValue(assignedJsonFromHtml(html, "eventInfo"));
+}
+
+function fastbreakDivisionsFromHtml(
+  html: string,
+): Record<string, unknown>[] | null {
+  const value =
+    assignedJsonFromHtml(html, "divisions") ??
+    assignedJsonFromHtml(html, "eventDivisions");
+  return Array.isArray(value) ? value.filter(isRecord) : null;
+}
+
+function fastbreakAddressesFromHtml(html: string): Record<string, unknown>[] {
+  const value = assignedJsonFromHtml(html, "addresses");
+  return Array.isArray(value) ? value.filter(isRecord) : [];
+}
+
+function assignedJsonFromHtml(html: string, variableName: string): unknown {
+  const match = new RegExp(`\\bvar\\s+${variableName}\\s*=\\s*`).exec(html);
+  if (!match || match.index === undefined) return null;
+  let index = match.index + match[0].length;
+  while (/\s/.test(html[index] ?? "")) index += 1;
+  const opener = html[index];
+  const closer = opener === "{" ? "}" : opener === "[" ? "]" : "";
+  if (!closer) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let cursor = index; cursor < html.length; cursor += 1) {
+    const char = html[cursor];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === opener) depth += 1;
+    if (char === closer) {
+      depth -= 1;
+      if (depth === 0) return parseJson(html.slice(index, cursor + 1));
+    }
+  }
+  return null;
+}
+
+function fastbreakEventMatchesSource(
+  eventInfo: Record<string, unknown>,
+  html: string,
+  source: MajorTournamentSource,
+): boolean {
+  if (
+    !(source.venueNamePatterns?.length ?? 0) &&
+    !source.venueCity &&
+    !source.venueState
+  )
+    return true;
+  return Boolean(fastbreakMatchedVenue(eventInfo, html, source));
+}
+
+function fastbreakEventToCore(
+  eventInfo: Record<string, unknown>,
+  divisions: Record<string, unknown>[] | null,
+  sourceUrl: string,
+  html: string,
+  source: MajorTournamentSource,
+  providerName: TournamentProviderName,
+): DiscoveredTournamentEvent {
+  const parsed = parseFastbreakEventUrl(sourceUrl);
+  const eventId = numberValue(eventInfo.id) ?? parsed?.eventId;
+  if (!eventId) throw new Error("Fastbreak Compete event id was missing.");
+  const externalId = String(eventId);
+  const syntheticEventId = publicSyntheticEventId(providerName, externalId);
+  const startDate = dateKeyFromUnknown(eventInfo.startDate);
+  if (!startDate)
+    throw new Error("Fastbreak Compete event start date was missing.");
+  const endDate = dateKeyFromUnknown(eventInfo.endDate) ?? startDate;
+  const name = stringValue(eventInfo.name) ?? `Fastbreak Event ${eventId}`;
+  const descriptionText = cleanText(
+    cheerio.load(stringValue(eventInfo.description) ?? "").text(),
+  );
+  const matchedVenue = fastbreakMatchedVenue(eventInfo, html, source);
+  const firstVenue =
+    matchedVenue ?? fastbreakVenueRecords(eventInfo, html)[0];
+  const city = stringValue(firstVenue?.city) ?? stringValue(eventInfo.city);
+  const state =
+    fastbreakStateCode(firstVenue?.state) ??
+    fastbreakStateCode(eventInfo.state);
+  const venueName = stringValue(firstVenue?.name);
+  const location =
+    [city, state].filter(Boolean).join(", ") ||
+    stringValue(eventInfo.citiesString) ||
+    stringValue(eventInfo.full_address) ||
+    "Location TBD";
+  const divisionNames = (divisions ?? [])
+    .map((division) => stringValue(division.name))
+    .filter((value): value is string => Boolean(value));
+  const groupedGrades = stringValue(eventInfo.groupedGradesLabel);
+  const textForTags = `${name} ${descriptionText} ${divisionNames.join(" ")}`;
+  const published = eventInfo.published;
+  const status: TournamentEventStatus =
+    published === false
+      ? "unavailable"
+      : deriveTournamentStatus({
+          startDate,
+          endDate,
+          status: "upcoming",
+        });
+
+  return {
+    id: `event-${syntheticEventId}`,
+    exposureEventId: syntheticEventId,
+    externalProvider: providerName,
+    externalId,
+    slug: parsed?.slug ?? slugify(name),
+    sourceUrl,
+    name,
+    organizer:
+      stringValue(eventInfo.organizationName) ??
+      source.organizerName ??
+      source.name,
+    sport: "basketball",
+    sanctioningTags: dedupeStrings([
+      ...(source.sanctioningTags ?? []),
+      ...parseSanctioningTags(textForTags),
+      "Fastbreak Compete",
+    ]),
+    gender:
+      fastbreakGenderName(eventInfo.gender) ??
+      parseGender(`${textForTags} ${groupedGrades ?? ""}`),
+    ageOrGradeDivisions: dedupeStrings([
+      ...(groupedGrades ? [groupedGrades] : []),
+      ...parseAgeOrGradeDivisions(textForTags),
+      ...divisionNames,
+    ]).slice(0, 80),
+    venueName,
+    city,
+    state,
+    region: tournamentRegionFromLocation(city, state, location, source),
+    startDate,
+    endDate,
+    location,
+    officialUrl: sourceUrl,
+    timezone: source.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE,
+    registeredTeamCount: fastbreakRegisteredTeamCount(divisions ?? []),
+    hasPublicTeamList: divisions !== null,
+    lastCheckedAt: null,
+    lastSyncedAt: null,
+    lastTeamChangeAt: null,
+    status,
+    dropdownGroup: "upcoming",
+  };
+}
+
+function fastbreakTeamsToCore(
+  sourceDivisions: Record<string, unknown>[],
+  event: TournamentEvent,
+): PublicExposureTeamResult {
+  const divisions = new Map<
+    string,
+    PublicExposureTeamResult["divisions"][number]
+  >();
+  const teams = new Map<string, PublicExposureTeamResult["teams"][number]>();
+
+  for (const division of sourceDivisions) {
+    const divisionName = stringValue(division.name);
+    if (!divisionName) continue;
+    const divisionExternalId =
+      firstStringValue(division.id) ??
+      stableKey(`${event.externalId}|${divisionName}`);
+    const divisionId = `fastbreak-division-${event.exposureEventId}-${slugify(
+      divisionExternalId,
+    )}`;
+    const meta = extractDivisionMetaSafe(divisionName);
+    divisions.set(divisionId, {
+      id: divisionId,
+      eventId: event.id,
+      exposureDivisionId: divisionExternalId,
+      name: divisionName,
+      gender: meta.gender ?? event.gender,
+      gradeLevel: meta.gradeLevel,
+      level: meta.level,
+      rawJson: { source: "fastbreak_compete", sourceUrl: event.sourceUrl },
+    });
+
+    for (const team of fastbreakDivisionTeams(division)) {
+      const teamName = cleanTeamName(
+        stringValue(team.name) ??
+          stringValue(team.schedule_name) ??
+          stringValue(team.full_name) ??
+          "",
+      );
+      if (!teamName) continue;
+      const teamExternalId =
+        firstStringValue(team.id, team.team) ??
+        stableKey(`${event.externalId}|${divisionName}|${teamName}`);
+      const teamId = `fastbreak-team-${event.exposureEventId}-${slugify(
+        teamExternalId,
+      )}`;
+      teams.set(teamId, {
+        id: teamId,
+        eventId: event.id,
+        divisionId,
+        exposureTeamId: teamExternalId,
+        name: teamName,
+        normalizedName: normalizeName(teamName),
+        clubName: null,
+        normalizedClubName: null,
+        coachName: null,
+        city: null,
+        state: null,
+        sourceUrl: event.sourceUrl,
+        divisionName,
+        gender: meta.gender ?? fastbreakGenderName(team.gender) ?? event.gender,
+        gradeLevel: meta.gradeLevel,
+        level: meta.level,
+        rawJson: {
+          source: "fastbreak_compete",
+          sourceUrl: event.sourceUrl,
+          externalId: teamExternalId,
+          divisionName,
+          poolName: stringValue(team.pool_name),
+        },
+        lastSeenAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  return {
+    divisions: Array.from(divisions.values()),
+    teams: Array.from(teams.values()),
+  };
+}
+
+function fastbreakDivisionTeams(
+  division: Record<string, unknown>,
+): Record<string, unknown>[] {
+  const result: Record<string, unknown>[] = [];
+  for (const pool of arrayValue(division.pools).filter(isRecord)) {
+    for (const team of arrayValue(pool.teams).filter(isRecord)) result.push(team);
+  }
+  for (const team of arrayValue(division.teams).filter(isRecord))
+    result.push(team);
+  return result;
+}
+
+function fastbreakRegisteredTeamCount(
+  divisions: Record<string, unknown>[],
+): number {
+  return divisions.reduce((count, division) => {
+    const explicit = numberValue(division.teams_count);
+    if (explicit !== null) return count + explicit;
+    return count + fastbreakDivisionTeams(division).length;
+  }, 0);
+}
+
+function fastbreakMatchedVenue(
+  eventInfo: Record<string, unknown>,
+  html: string,
+  source: MajorTournamentSource,
+): Record<string, unknown> | null {
+  return (
+    fastbreakVenueRecords(eventInfo, html).find((venue) =>
+      fastbreakVenueMatchesSource(venue, source),
+    ) ?? null
+  );
+}
+
+function fastbreakVenueRecords(
+  eventInfo: Record<string, unknown>,
+  html: string,
+): Record<string, unknown>[] {
+  return [
+    ...arrayValue(eventInfo.venues).filter(isRecord),
+    ...arrayValue(eventInfo.all_venues).filter(isRecord),
+    ...fastbreakAddressesFromHtml(html),
+  ];
+}
+
+function fastbreakVenueMatchesSource(
+  venue: Record<string, unknown>,
+  source: MajorTournamentSource,
+): boolean {
+  const venueText = normalizeName(
+    [
+      stringValue(venue.name),
+      stringValue(venue.address),
+      stringValue(venue.streetAddress),
+      stringValue(venue.city),
+      fastbreakStateCode(venue.state),
+      stringValue(venue.postalCode),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+  if (
+    source.venueNamePatterns?.length &&
+    !source.venueNamePatterns.some((pattern) =>
+      venueText.includes(normalizeName(pattern)),
+    )
+  )
+    return false;
+
+  if (
+    source.venueCity &&
+    normalizeName(stringValue(venue.city) ?? "").includes(
+      normalizeName(source.venueCity),
+    ) === false
+  )
+    return false;
+
+  if (source.venueState) {
+    const venueState = fastbreakStateCode(venue.state) ?? stringValue(venue.state);
+    const sourceState =
+      normalizeStateCode(source.venueState) ?? source.venueState;
+    if (normalizeName(venueState ?? "") !== normalizeName(sourceState))
+      return false;
+  }
+
+  return true;
+}
+
+function fastbreakStateCode(value: unknown): string | null {
+  if (isRecord(value))
+    return (
+      normalizeStateCode(
+        [stringValue(value.abbreviation), stringValue(value.name)]
+          .filter(Boolean)
+          .join(" "),
+      ) ??
+      stringValue(value.abbreviation) ??
+      stringValue(value.name)
+    );
+  return typeof value === "string" ? (normalizeStateCode(value) ?? value) : null;
+}
+
+function fastbreakGenderName(value: unknown): string | null {
+  const id = numberValue(value);
+  if (id === 1) return "Boys";
+  if (id === 2) return "Girls";
+  if (typeof value === "string") return parseGender(value);
+  return null;
 }
 
 function shouldHydrateMetadataOnlyTeams(
@@ -1588,7 +2181,80 @@ function bracketTeamRegisteredTeamCount(
 function bracketTeamFirstVenue(
   tournament: Record<string, unknown>,
 ): Record<string, unknown> | null {
-  return arrayValue(tournament.venues).find(isRecord) ?? null;
+  return bracketTeamVenueRecords(tournament)[0] ?? null;
+}
+
+function bracketTeamTournamentMatchesSource(
+  tournament: Record<string, unknown>,
+  source: MajorTournamentSource,
+): boolean {
+  if (
+    !(source.venueNamePatterns?.length ?? 0) &&
+    !source.venueCity &&
+    !source.venueState
+  )
+    return true;
+  return bracketTeamVenueRecords(tournament).some((venue) =>
+    bracketTeamVenueMatchesSource(venue, source),
+  );
+}
+
+function bracketTeamVenueRecords(
+  tournament: Record<string, unknown>,
+): Record<string, unknown>[] {
+  return [
+    ...arrayValue(tournament.venues).filter(isRecord),
+    ...arrayValue(tournament.locations).filter(isRecord),
+    ...arrayValue(tournament.facilities).filter(isRecord),
+  ];
+}
+
+function bracketTeamVenueMatchesSource(
+  venue: Record<string, unknown>,
+  source: MajorTournamentSource,
+): boolean {
+  const venueText = normalizeName(
+    [
+      stringValue(venue.name),
+      stringValue(venue.abbr),
+      stringValue(venue.address),
+      stringValue(venue.street_address),
+      stringValue(venue.streetAddress),
+      stringValue(venue.city),
+      stringValue(venue.state),
+      stringValue(venue.postal),
+      stringValue(venue.postalCode),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+  if (
+    source.venueNamePatterns?.length &&
+    !source.venueNamePatterns.some((pattern) =>
+      venueText.includes(normalizeName(pattern)),
+    )
+  )
+    return false;
+
+  if (
+    source.venueCity &&
+    normalizeName(stringValue(venue.city) ?? "").includes(
+      normalizeName(source.venueCity),
+    ) === false
+  )
+    return false;
+
+  if (source.venueState) {
+    const venueState =
+      normalizeStateCode(stringValue(venue.state) ?? "") ??
+      stringValue(venue.state);
+    const sourceState =
+      normalizeStateCode(source.venueState) ?? source.venueState;
+    if (normalizeName(venueState ?? "") !== normalizeName(sourceState))
+      return false;
+  }
+
+  return true;
 }
 
 function bracketTeamOrganizerName(
