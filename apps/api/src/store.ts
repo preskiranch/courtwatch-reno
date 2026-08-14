@@ -1506,7 +1506,6 @@ export class PrismaStore implements CourtWatchStore {
   ) {
     if (allEvents) return this.teamsAcrossEvents(search, clientId, limit);
     await this.hydratePublishedTeamsIfMissing(exposureEventId);
-    await this.hydrateActiveGamesIfStale(exposureEventId);
     const snapshot = await this.teamsSnapshotForEvent(
       clientId,
       exposureEventId,
