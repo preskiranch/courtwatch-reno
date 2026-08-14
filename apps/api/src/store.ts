@@ -1522,7 +1522,6 @@ export class PrismaStore implements CourtWatchStore {
     limit?: number,
   ) {
     if (allEvents) return this.teamsAcrossEvents(search, clientId, limit);
-    await this.hydratePublishedTeamsIfMissing(exposureEventId);
     const snapshot = await this.teamsSnapshotForEvent(
       clientId,
       exposureEventId,
@@ -1545,21 +1544,9 @@ export class PrismaStore implements CourtWatchStore {
       orderBy: [{ name: "asc" }, { id: "asc" }],
       ...(typeof limit === "number" ? { take: limit } : {}),
     });
-    const teamIds = teams.map((team) => team.id);
-    const [programs, matches, games] = await Promise.all([
+    const [programs, matches] = await Promise.all([
       this.prisma.programWatchlist.findMany({ where: { active: true } }),
       this.prisma.programTeamMatch.findMany({ where: { active: true } }),
-      teamIds.length > 0
-        ? this.prisma.game.findMany({
-            where: {
-              OR: [
-                { homeTeamId: { in: teamIds } },
-                { awayTeamId: { in: teamIds } },
-              ],
-            },
-            orderBy: { startsAt: "asc" },
-          })
-        : Promise.resolve([]),
     ]);
     const followerCounts = teamFollowerCounts(
       programs,
@@ -1602,7 +1589,7 @@ export class PrismaStore implements CourtWatchStore {
     }));
     const recordSnapshot = {
       teams: coreTeams,
-      games: games.map(prismaGameToCore),
+      games: [],
       programs: programs.map((item) => ({
         id: item.id,
         userId: item.userId,
@@ -1612,7 +1599,7 @@ export class PrismaStore implements CourtWatchStore {
         createdAt: item.createdAt.toISOString(),
       })),
       matches: matches.map(prismaMatchToCore),
-    } as CourtWatchSnapshot;
+    };
     return filterTeamsForSearch(recordSnapshot, normalized).map((team) => ({
       ...team,
       isFollowed: followedTeamIds.has(team.id),
@@ -2751,15 +2738,11 @@ export class PrismaStore implements CourtWatchStore {
       configuredTournaments().find(
         (source) => source.exposureEventId === event.exposureEventId,
       ) ?? prismaEventToCore(event);
-    const [teams, games, programs, matches] = await Promise.all([
+    const [teams, programs, matches] = await Promise.all([
       this.prisma.team.findMany({
         where: { eventId: event.id },
         include: { division: true },
         orderBy: [{ name: "asc" }, { id: "asc" }],
-      }),
-      this.prisma.game.findMany({
-        where: { eventId: event.id },
-        orderBy: { startsAt: "asc" },
       }),
       this.prisma.programWatchlist.findMany({ where: { active: true } }),
       this.prisma.programTeamMatch.findMany({
@@ -2822,7 +2805,7 @@ export class PrismaStore implements CourtWatchStore {
       programs: programs.map(prismaProgramToCore),
       aliases: [],
       matches: matches.map(prismaMatchToCore),
-      games: games.map(prismaGameToCore),
+      games: [],
       changeEvents: [],
       syncRuns: [],
     };
@@ -5180,7 +5163,10 @@ function extractExposureTeamIds(raw: Record<string, unknown>): string[] {
 }
 
 function filterTeamsForSearch(
-  snapshot: CourtWatchSnapshot,
+  snapshot: Pick<
+    CourtWatchSnapshot,
+    "teams" | "games" | "programs" | "matches"
+  >,
   normalizedSearch: string,
 ): Team[] {
   const now = new Date();
