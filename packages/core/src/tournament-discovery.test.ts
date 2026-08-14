@@ -98,6 +98,16 @@ describe("TournamentDiscoveryService", () => {
             "https://basketball.exposureevents.com/266846/hot-august-hoops-aug-22-23rd",
             "https://basketball.exposureevents.com/266847/hot-august-hoops-aug-29-30th",
           ]),
+          eventMetadata: expect.arrayContaining([
+            expect.objectContaining({
+              url: "https://basketball.exposureevents.com/266845/hot-august-hoops-aug-15-16th",
+              name: "Hot August Hoops: Aug 15-16th",
+              startDate: "2026-08-15",
+              endDate: "2026-08-16",
+              city: "Rocklin",
+              state: "CA",
+            }),
+          ]),
           sanctioningTags: expect.arrayContaining([
             "Hardwood Palace",
             "Northern California",
@@ -621,6 +631,86 @@ describe("TournamentDiscoveryService", () => {
       exposureEventId: 910002,
       registeredTeamCount: 0,
       hasPublicTeamList: true,
+    });
+  });
+
+  it("uses explicit Exposure event metadata when the public event detail page cannot be parsed", async () => {
+    const fetchImpl = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (
+        url.endsWith(
+          "/266845/hot-august-hoops-aug-15-16th/search?eventid=266845&eventname=hot-august-hoops-aug-15-16th",
+        )
+      ) {
+        return jsonResponse({
+          Teams: [
+            {
+              Division: "Boys 8th Blue",
+              DivisionId: 1479321,
+              Slug: "splash-city",
+              Value: 5512551,
+              Name: "Splash City (Boys 8th Blue)",
+            },
+          ],
+        });
+      }
+      if (url.endsWith("/266845/hot-august-hoops-aug-15-16th")) {
+        return new Response("temporarily unavailable", {
+          status: 503,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      throw new Error(`Unhandled URL ${url}`);
+    }) as unknown as typeof fetch;
+
+    const provider = new ExposureEventsTournamentProvider({
+      baseUrl: "https://basketball.exposureevents.com",
+      fetchImpl,
+    });
+    const result = await new TournamentDiscoveryService([provider]).discover(
+      [
+        {
+          name: "Hardwood Palace",
+          provider: "exposure_events",
+          enabled: true,
+          eventMetadata: [
+            {
+              url: "https://basketball.exposureevents.com/266845/hot-august-hoops-aug-15-16th",
+              name: "Hot August Hoops: Aug 15-16th",
+              startDate: "2026-08-15",
+              endDate: "2026-08-16",
+              venueName: "Hardwood Palace",
+              city: "Rocklin",
+              state: "CA",
+              location: "Rocklin, CA",
+            },
+          ],
+          organizerName: "Hardwood Palace",
+          sanctioningTags: ["Hardwood Palace", "Northern California"],
+          timezone: "America/Los_Angeles",
+          region: "Northern California",
+        },
+      ],
+      { now: new Date("2026-08-14T12:00:00.000Z") },
+    );
+
+    expect(result.failures).toEqual([]);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]).toMatchObject({
+      event: {
+        exposureEventId: 266845,
+        name: "Hot August Hoops: Aug 15-16th",
+        organizer: "Hardwood Palace",
+        city: "Rocklin",
+        state: "CA",
+        startDate: "2026-08-15",
+        endDate: "2026-08-16",
+        registeredTeamCount: 1,
+        hasPublicTeamList: true,
+      },
+      teams: {
+        teams: [{ name: "Splash City", divisionName: "Boys 8th Blue" }],
+      },
     });
   });
 
