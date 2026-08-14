@@ -90,6 +90,21 @@ describe("TournamentDiscoveryService", () => {
           ]),
         }),
         expect.objectContaining({
+          name: "Hardwood Palace",
+          provider: "exposure_events",
+          url: "https://basketball.exposureevents.com/organizations/33561/hardwood-palace",
+          eventUrls: expect.arrayContaining([
+            "https://basketball.exposureevents.com/266845/hot-august-hoops-aug-15-16th",
+            "https://basketball.exposureevents.com/266846/hot-august-hoops-aug-22-23rd",
+            "https://basketball.exposureevents.com/266847/hot-august-hoops-aug-29-30th",
+          ]),
+          sanctioningTags: expect.arrayContaining([
+            "Hardwood Palace",
+            "Northern California",
+            "NorCal",
+          ]),
+        }),
+        expect.objectContaining({
           name: "Bay Area Stars Academy",
           provider: "exposure_events",
           url: "https://basketball.exposureevents.com/organizations/35401/bay-area-stars-academy",

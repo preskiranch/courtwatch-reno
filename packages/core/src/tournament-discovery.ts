@@ -285,6 +285,27 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
     region: "Northern California",
   },
   {
+    name: "Hardwood Palace",
+    provider: "exposure_events",
+    enabled: true,
+    url: "https://basketball.exposureevents.com/organizations/33561/hardwood-palace",
+    eventUrls: [
+      "https://basketball.exposureevents.com/266845/hot-august-hoops-aug-15-16th",
+      "https://basketball.exposureevents.com/266846/hot-august-hoops-aug-22-23rd",
+      "https://basketball.exposureevents.com/266847/hot-august-hoops-aug-29-30th",
+    ],
+    maxEvents: 40,
+    organizerName: "Hardwood Palace",
+    sanctioningTags: [
+      "Hardwood Palace",
+      "Northern California",
+      "NorCal",
+      "Exposure Events",
+    ],
+    timezone: DEFAULT_TOURNAMENT_TIMEZONE,
+    region: "Northern California",
+  },
+  {
     name: "Bay Area Stars Academy",
     provider: "exposure_events",
     enabled: true,
