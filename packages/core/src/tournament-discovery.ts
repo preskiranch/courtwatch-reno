@@ -30,6 +30,7 @@ export interface MajorTournamentSource {
   enabled: boolean;
   url?: string;
   eventUrls?: string[];
+  eventMetadata?: ExplicitTournamentEventMetadata[];
   eventLinkPatterns?: string[];
   teamListUrlTemplates?: string[];
   teamListLinkPatterns?: string[];
@@ -43,6 +44,21 @@ export interface MajorTournamentSource {
   venueNamePatterns?: string[];
   venueCity?: string;
   venueState?: string;
+  organizerName?: string;
+  sanctioningTags?: string[];
+  timezone?: string;
+  region?: string;
+}
+
+export interface ExplicitTournamentEventMetadata {
+  url: string;
+  name: string;
+  startDate: string;
+  endDate?: string;
+  city?: string;
+  state?: string;
+  location?: string;
+  venueName?: string | null;
   organizerName?: string;
   sanctioningTags?: string[];
   timezone?: string;
@@ -293,6 +309,38 @@ export const DEFAULT_MAJOR_TOURNAMENT_SOURCES: MajorTournamentSource[] = [
       "https://basketball.exposureevents.com/266845/hot-august-hoops-aug-15-16th",
       "https://basketball.exposureevents.com/266846/hot-august-hoops-aug-22-23rd",
       "https://basketball.exposureevents.com/266847/hot-august-hoops-aug-29-30th",
+    ],
+    eventMetadata: [
+      {
+        url: "https://basketball.exposureevents.com/266845/hot-august-hoops-aug-15-16th",
+        name: "Hot August Hoops: Aug 15-16th",
+        startDate: "2026-08-15",
+        endDate: "2026-08-16",
+        venueName: "Hardwood Palace",
+        city: "Rocklin",
+        state: "CA",
+        location: "Rocklin, CA",
+      },
+      {
+        url: "https://basketball.exposureevents.com/266846/hot-august-hoops-aug-22-23rd",
+        name: "Hot August Hoops: Aug 22-23rd",
+        startDate: "2026-08-22",
+        endDate: "2026-08-23",
+        venueName: "Hardwood Palace",
+        city: "Rocklin",
+        state: "CA",
+        location: "Rocklin, CA",
+      },
+      {
+        url: "https://basketball.exposureevents.com/266847/hot-august-hoops-aug-29-30th",
+        name: "Hot August Hoops: Aug 29-30th",
+        startDate: "2026-08-29",
+        endDate: "2026-08-30",
+        venueName: "Hardwood Palace",
+        city: "Rocklin",
+        state: "CA",
+        location: "Rocklin, CA",
+      },
     ],
     maxEvents: 40,
     organizerName: "Hardwood Palace",
@@ -584,23 +632,34 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
     window: TournamentDiscoveryWindow,
   ): Promise<DiscoveredTournamentEvent[]> {
     const eventUrls = new Set<string>();
+    const explicitMetadata = new Map<string, ExplicitTournamentEventMetadata>();
     for (const eventUrl of source.eventUrls ?? []) {
       const normalized = normalizeExposureEventUrl(eventUrl, this.baseUrl);
       if (normalized) eventUrls.add(normalized);
     }
+    for (const metadata of source.eventMetadata ?? []) {
+      const normalized = normalizeExposureEventUrl(metadata.url, this.baseUrl);
+      if (!normalized) continue;
+      eventUrls.add(normalized);
+      explicitMetadata.set(normalized, metadata);
+    }
 
     if (source.url) {
-      const sourceUrl = new URL(source.url, this.baseUrl).toString();
-      const html = await this.fetchText(sourceUrl);
-      for (const eventUrl of parseExposureEventLinks(html, this.baseUrl))
-        eventUrls.add(eventUrl);
-      for (const eventUrl of await this.fetchDirectoryEvents(
-        sourceUrl,
-        html,
-        window,
-        source,
-      ))
-        eventUrls.add(eventUrl);
+      try {
+        const sourceUrl = new URL(source.url, this.baseUrl).toString();
+        const html = await this.fetchText(sourceUrl);
+        for (const eventUrl of parseExposureEventLinks(html, this.baseUrl))
+          eventUrls.add(eventUrl);
+        for (const eventUrl of await this.fetchDirectoryEvents(
+          sourceUrl,
+          html,
+          window,
+          source,
+        ))
+          eventUrls.add(eventUrl);
+      } catch (error) {
+        if (eventUrls.size === 0) throw error;
+      }
     }
 
     const events: DiscoveredTournamentEvent[] = [];
@@ -611,8 +670,15 @@ export class ExposureEventsTournamentProvider implements TournamentProvider {
       try {
         details = await this.fetchEventDetails(eventUrl, source);
       } catch {
+        const fallback = explicitMetadata.get(eventUrl);
         // A stale explicit event link should not block the rest of an organizer.
-        continue;
+        if (!fallback) continue;
+        details = eventFromExplicitExposureMetadata(
+          eventUrl,
+          parsed,
+          fallback,
+          source,
+        );
       }
       if (
         details.startDate > window.endDate ||
@@ -2464,6 +2530,64 @@ function parseExposureEventUrl(
   } catch {
     return null;
   }
+}
+
+function eventFromExplicitExposureMetadata(
+  eventUrl: string,
+  parsed: { eventId: number; slug: string },
+  metadata: ExplicitTournamentEventMetadata,
+  source: MajorTournamentSource,
+): DiscoveredTournamentEvent {
+  const city = cleanText(metadata.city ?? "") || null;
+  const state = cleanText(metadata.state ?? "") || null;
+  const location =
+    cleanText(metadata.location ?? "") ||
+    [city, state].filter(Boolean).join(", ");
+  const startDate = metadata.startDate;
+  const endDate = metadata.endDate ?? startDate;
+  return {
+    id: `event-${parsed.eventId}`,
+    exposureEventId: parsed.eventId,
+    externalProvider: "exposure_events",
+    externalId: String(parsed.eventId),
+    slug: parsed.slug,
+    sourceUrl: eventUrl,
+    name: cleanText(metadata.name) || `Exposure Event ${parsed.eventId}`,
+    organizer: metadata.organizerName ?? source.organizerName ?? source.name,
+    sport: "basketball",
+    sanctioningTags: dedupeStrings([
+      ...(source.sanctioningTags ?? []),
+      ...(metadata.sanctioningTags ?? []),
+      "Exposure Events",
+    ]),
+    gender: null,
+    ageOrGradeDivisions: [],
+    venueName: metadata.venueName ?? null,
+    city,
+    state,
+    region:
+      metadata.region ??
+      tournamentRegionFromLocation(city, state, location, source) ??
+      source.region ??
+      null,
+    startDate,
+    endDate,
+    location,
+    officialUrl: eventUrl,
+    timezone:
+      metadata.timezone ?? source.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE,
+    registeredTeamCount: 0,
+    hasPublicTeamList: false,
+    lastCheckedAt: null,
+    lastSyncedAt: null,
+    lastTeamChangeAt: null,
+    status: deriveTournamentStatus({
+      startDate,
+      endDate,
+      status: "upcoming",
+    }),
+    dropdownGroup: "upcoming",
+  };
 }
 
 function parsePublicHtmlEventLinks(
