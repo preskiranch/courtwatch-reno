@@ -1202,7 +1202,9 @@ function parseFastbreakEventLinks(
   };
 
   const $ = cheerio.load(html, { xmlMode: /<urlset[\s>]/i.test(html) });
-  $("a[href]").each((_, element) => addCandidate($(element).attr("href") ?? ""));
+  $("a[href]").each((_, element) =>
+    addCandidate($(element).attr("href") ?? ""),
+  );
   $("loc").each((_, element) => addCandidate($(element).text()));
   for (const match of html.matchAll(/https?:\/\/[^\s<>"']+/gi))
     addCandidate(match[0]);
@@ -1343,8 +1345,7 @@ function fastbreakEventToCore(
     cheerio.load(stringValue(eventInfo.description) ?? "").text(),
   );
   const matchedVenue = fastbreakMatchedVenue(eventInfo, html, source);
-  const firstVenue =
-    matchedVenue ?? fastbreakVenueRecords(eventInfo, html)[0];
+  const firstVenue = matchedVenue ?? fastbreakVenueRecords(eventInfo, html)[0];
   const city = stringValue(firstVenue?.city) ?? stringValue(eventInfo.city);
   const state =
     fastbreakStateCode(firstVenue?.state) ??
@@ -1500,7 +1501,8 @@ function fastbreakDivisionTeams(
 ): Record<string, unknown>[] {
   const result: Record<string, unknown>[] = [];
   for (const pool of arrayValue(division.pools).filter(isRecord)) {
-    for (const team of arrayValue(pool.teams).filter(isRecord)) result.push(team);
+    for (const team of arrayValue(pool.teams).filter(isRecord))
+      result.push(team);
   }
   for (const team of arrayValue(division.teams).filter(isRecord))
     result.push(team);
@@ -1573,7 +1575,8 @@ function fastbreakVenueMatchesSource(
     return false;
 
   if (source.venueState) {
-    const venueState = fastbreakStateCode(venue.state) ?? stringValue(venue.state);
+    const venueState =
+      fastbreakStateCode(venue.state) ?? stringValue(venue.state);
     const sourceState =
       normalizeStateCode(source.venueState) ?? source.venueState;
     if (normalizeName(venueState ?? "") !== normalizeName(sourceState))
@@ -1594,7 +1597,9 @@ function fastbreakStateCode(value: unknown): string | null {
       stringValue(value.abbreviation) ??
       stringValue(value.name)
     );
-  return typeof value === "string" ? (normalizeStateCode(value) ?? value) : null;
+  return typeof value === "string"
+    ? (normalizeStateCode(value) ?? value)
+    : null;
 }
 
 function fastbreakGenderName(value: unknown): string | null {
@@ -2596,21 +2601,27 @@ function parsePublicHtmlEventLinks(
   patterns: string[],
 ): string[] {
   const regexes = patterns.map((pattern) => new RegExp(pattern, "i"));
-  const $ = cheerio.load(html);
+  const $ = cheerio.load(html, { xmlMode: /<urlset[\s>]/i.test(html) });
   const urls = new Set<string>();
-  $("a[href]").each((_, element) => {
-    const href = $(element).attr("href");
-    if (!href) return;
-    const absoluteUrl = normalizePublicUrl(href, sourceUrl);
-    const text = cleanText($(element).text());
+
+  const addCandidate = (value: string, label = "") => {
+    const candidate = cleanText(value);
+    if (!candidate) return;
+    const absoluteUrl = normalizePublicUrl(candidate, sourceUrl);
     if (
       regexes.some(
         (regex) =>
-          regex.test(href) || regex.test(absoluteUrl) || regex.test(text),
+          regex.test(candidate) || regex.test(absoluteUrl) || regex.test(label),
       )
     )
       urls.add(absoluteUrl);
+  };
+
+  $("a[href]").each((_, element) => {
+    addCandidate($(element).attr("href") ?? "", cleanText($(element).text()));
   });
+  $("loc").each((_, element) => addCandidate($(element).text()));
+
   return Array.from(urls);
 }
 

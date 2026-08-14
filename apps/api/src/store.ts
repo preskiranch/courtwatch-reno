@@ -36,6 +36,8 @@ import {
   seedPrograms,
   seedSnapshot,
   seedTeams,
+  teamWatchIdentity,
+  teamWatchSearchBase,
   RECENT_COMPLETED_TOURNAMENT_DAYS,
   tournamentTodayKey,
   tournamentWindowEndKey,
@@ -557,40 +559,55 @@ export class MockStore implements CourtWatchStore {
   async teamCatalog(search: string, limit = 25): Promise<TeamCatalogEntry[]> {
     const normalizedSearch = normalizeName(search);
     if (normalizedSearch.length < 2) return [];
-    const groups = new Map<string, Team[]>();
+    const searchBase = teamWatchSearchBase(search);
+    const groups = new Map<
+      string,
+      Array<{ team: Team; identity: ReturnType<typeof teamWatchIdentity> }>
+    >();
     for (const team of this.data.teams) {
-      if (!team.normalizedName.includes(normalizedSearch)) continue;
-      const existing = groups.get(team.normalizedName) ?? [];
-      existing.push(team);
-      groups.set(team.normalizedName, existing);
+      if (!team.normalizedName.includes(searchBase)) continue;
+      const division = this.data.divisions.find(
+        (item) => item.id === team.divisionId,
+      );
+      const identity = teamWatchIdentity({
+        name: team.name,
+        divisionName: team.divisionName ?? division?.name,
+        gradeLevel: team.gradeLevel ?? division?.gradeLevel,
+      });
+      if (!identity.normalizedName.includes(normalizedSearch)) continue;
+      const existing = groups.get(identity.normalizedName) ?? [];
+      existing.push({ team, identity });
+      groups.set(identity.normalizedName, existing);
     }
     return Array.from(groups.entries())
-      .map(([normalizedName, teams]) => {
-        const latest = [...teams].sort((left, right) => {
+      .map(([normalizedName, registrations]) => {
+        const latest = [...registrations].sort((left, right) => {
           const leftEvent = this.data.events.find(
-            (event) => event.id === left.eventId,
+            (event) => event.id === left.team.eventId,
           );
           const rightEvent = this.data.events.find(
-            (event) => event.id === right.eventId,
+            (event) => event.id === right.team.eventId,
           );
           return (rightEvent?.startDate ?? "").localeCompare(
             leftEvent?.startDate ?? "",
           );
         })[0]!;
         const event = this.data.events.find(
-          (item) => item.id === latest.eventId,
+          (item) => item.id === latest.team.eventId,
         )!;
         return {
           normalizedName,
-          displayName: latest.name,
-          registrationCount: teams.length,
-          latestTeamId: latest.id,
+          displayName: latest.identity.displayName,
+          registrationCount: new Set(
+            registrations.map((registration) => registration.team.eventId),
+          ).size,
+          latestTeamId: latest.team.id,
           latestExposureEventId: event.exposureEventId,
           latestEventName: event.name,
           latestEventStartDate: event.startDate,
           latestDivisionName:
             this.data.divisions.find(
-              (division) => division.id === latest.divisionId,
+              (division) => division.id === latest.team.divisionId,
             )?.name ?? null,
         };
       })
@@ -1605,21 +1622,34 @@ export class PrismaStore implements CourtWatchStore {
   async teamCatalog(search: string, limit = 25): Promise<TeamCatalogEntry[]> {
     const normalizedSearch = normalizeName(search);
     if (normalizedSearch.length < 2) return [];
+    const searchBase = teamWatchSearchBase(search);
 
     const teams = await this.prisma.team.findMany({
       where: {
-        normalizedName: { contains: normalizedSearch },
+        normalizedName: { contains: searchBase },
         event: courtWatchEventScopeWhere(),
       },
       include: { division: true, event: true },
       orderBy: [{ name: "asc" }, { id: "asc" }],
       take: 500,
     });
-    const grouped = new Map<string, typeof teams>();
+    const grouped = new Map<
+      string,
+      Array<{
+        team: (typeof teams)[number];
+        identity: ReturnType<typeof teamWatchIdentity>;
+      }>
+    >();
     for (const team of teams) {
-      const matches = grouped.get(team.normalizedName) ?? [];
-      matches.push(team);
-      grouped.set(team.normalizedName, matches);
+      const identity = teamWatchIdentity({
+        name: team.name,
+        divisionName: team.division?.name,
+        gradeLevel: team.division?.gradeLevel,
+      });
+      if (!identity.normalizedName.includes(normalizedSearch)) continue;
+      const matches = grouped.get(identity.normalizedName) ?? [];
+      matches.push({ team, identity });
+      grouped.set(identity.normalizedName, matches);
     }
 
     const todayKey = tournamentTodayKey();
@@ -1628,35 +1658,42 @@ export class PrismaStore implements CourtWatchStore {
         const currentOrFuture = registrations
           .filter(
             (registration) =>
-              registration.event.endDate.toISOString().slice(0, 10) >= todayKey,
+              registration.team.event.endDate.toISOString().slice(0, 10) >=
+              todayKey,
           )
           .sort(
             (left, right) =>
-              left.event.startDate.getTime() -
-                right.event.startDate.getTime() ||
-              teamSortCollator.compare(left.name, right.name),
+              left.team.event.startDate.getTime() -
+                right.team.event.startDate.getTime() ||
+              teamSortCollator.compare(
+                left.identity.displayName,
+                right.identity.displayName,
+              ),
           );
         const latest =
           currentOrFuture[0] ??
           [...registrations].sort(
             (left, right) =>
-              right.event.startDate.getTime() -
-                left.event.startDate.getTime() ||
-              teamSortCollator.compare(left.name, right.name),
+              right.team.event.startDate.getTime() -
+                left.team.event.startDate.getTime() ||
+              teamSortCollator.compare(
+                left.identity.displayName,
+                right.identity.displayName,
+              ),
           )[0]!;
         return {
           normalizedName,
-          displayName: latest.name,
+          displayName: latest.identity.displayName,
           registrationCount: new Set(
-            registrations.map((registration) => registration.eventId),
+            registrations.map((registration) => registration.team.eventId),
           ).size,
-          latestTeamId: latest.id,
-          latestExposureEventId: latest.event.exposureEventId,
-          latestEventName: latest.event.name,
-          latestEventStartDate: latest.event.startDate
+          latestTeamId: latest.team.id,
+          latestExposureEventId: latest.team.event.exposureEventId,
+          latestEventName: latest.team.event.name,
+          latestEventStartDate: latest.team.event.startDate
             .toISOString()
             .slice(0, 10),
-          latestDivisionName: latest.division?.name ?? null,
+          latestDivisionName: latest.team.division?.name ?? null,
         };
       })
       .sort((left, right) => {
@@ -2055,7 +2092,9 @@ export class PrismaStore implements CourtWatchStore {
     const syncResults = [];
     const failures = [];
     let discoveredCount = 0;
-    for (const source of prioritizedDiscoverySources(majorTournamentSources())) {
+    for (const source of prioritizedDiscoverySources(
+      majorTournamentSources(),
+    )) {
       const result = await discoveryService.discover([source], {
         windowDays: config.TOURNAMENT_DISCOVERY_WINDOW_DAYS,
       });
@@ -5032,17 +5071,13 @@ function mapExposureGame(
   const id = String(raw.Id ?? "");
   if (!id) return null;
   const division = raw.Division as
-    | { Id?: number | string; Name?: string }
-    | undefined;
+    { Id?: number | string; Name?: string } | undefined;
   const venueCourt = raw.VenueCourt as
-    | { Court?: { Name?: string }; Venue?: { Name?: string } }
-    | undefined;
+    { Court?: { Name?: string }; Venue?: { Name?: string } } | undefined;
   const home = raw.HomeTeam as
-    | { TeamId?: number | string; Name?: string; Score?: number }
-    | undefined;
+    { TeamId?: number | string; Name?: string; Score?: number } | undefined;
   const away = raw.AwayTeam as
-    | { TeamId?: number | string; Name?: string; Score?: number }
-    | undefined;
+    { TeamId?: number | string; Name?: string; Score?: number } | undefined;
   const homeTeam = home?.TeamId ? teamMap.get(String(home.TeamId)) : null;
   const awayTeam = away?.TeamId ? teamMap.get(String(away.TeamId)) : null;
   const date = String(raw.Date ?? tournament.startDate);
