@@ -22,19 +22,15 @@ import {
 } from "./upstream-router.js";
 
 const relayHeader = "x-courtwatch-relay-key";
-const defaultDelegateOrigin = process.env.K_SERVICE
-  ? undefined
-  : "https://courtwatch-exposure-relay-east-3oehk2tqgq-ue.a.run.app";
 const port = positiveInteger(process.env.PORT, 10_000);
 const upstreamOrigin = normalizedOrigin(
   process.env.UPSTREAM_ORIGIN ?? "https://basketball.exposureevents.com",
 );
 const delegateOrigin = optionalNormalizedOrigin(
-  process.env.RELAY_DELEGATE_ORIGIN ?? defaultDelegateOrigin,
+  process.env.RELAY_DELEGATE_ORIGIN,
 );
 const alternateDnsHostname =
-  process.env.RELAY_ALTERNATE_DNS_HOSTNAME?.trim() ||
-  "exposureevents.com";
+  process.env.RELAY_ALTERNATE_DNS_HOSTNAME?.trim() || "exposureevents.com";
 const officialApexOrigin = normalizedOrigin(
   process.env.RELAY_OFFICIAL_APEX_ORIGIN ?? "https://exposureevents.com",
 );

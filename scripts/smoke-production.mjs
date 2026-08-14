@@ -146,7 +146,7 @@ function smokeScope(value) {
   if (value === "all" || value === "core" || value === "provider") {
     return value;
   }
-  if (value === undefined || value === "") return "all";
+  if (value === undefined || value === "") return "core";
   throw new Error(`Unsupported SMOKE_SCOPE: ${value}`);
 }
 
