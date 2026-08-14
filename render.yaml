@@ -16,8 +16,7 @@ services:
     buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/exposure-relay
     startCommand: npm run start --workspace @courtwatch/exposure-relay
     healthCheckPath: /health
-    autoDeployTrigger: checksPass
-    maxShutdownDelaySeconds: 30
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
@@ -25,34 +24,12 @@ services:
         value: production
       - key: UPSTREAM_ORIGIN
         value: https://basketball.exposureevents.com
-      - key: RELAY_ALTERNATE_DNS_HOSTNAME
-        value: exposureevents.com
-      - key: RELAY_ALTERNATE_DNS_TIMEOUT_MS
-        value: "6000"
-      - key: RELAY_OFFICIAL_APEX_ORIGIN
-        value: https://exposureevents.com
-      - key: RELAY_OFFICIAL_APEX_CONNECT_ORIGIN
-        value: https://135.237.189.223
-      - key: RELAY_OFFICIAL_TARGET_HOSTNAME
-        value: basketball.exposureevents.com
-      - key: RELAY_OFFICIAL_APEX_TIMEOUT_MS
-        value: "8000"
-      - key: RELAY_DELEGATE_ORIGIN
-        value: https://courtwatch-exposure-relay-east-3oehk2tqgq-ue.a.run.app
       - key: RELAY_SHARED_SECRET
         generateValue: true
       - key: RELAY_UPSTREAM_TIMEOUT_MS
         value: "30000"
-      - key: RELAY_DELEGATE_TIMEOUT_MS
-        value: "5000"
-      - key: RELAY_CIRCUIT_FAILURE_THRESHOLD
-        value: "2"
-      - key: RELAY_CIRCUIT_COOLDOWN_MS
-        value: "60000"
       - key: RELAY_MAX_BODY_BYTES
         value: "2097152"
-      - key: RELAY_MAX_RESPONSE_BYTES
-        value: "16777216"
 
   - type: web
     name: courtwatch-reno-web
@@ -63,9 +40,7 @@ services:
     rootDir: .
     buildCommand: npm ci --include=dev && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/web
     startCommand: npm run start --workspace @courtwatch/web
-    healthCheckPath: /api/health
-    autoDeployTrigger: checksPass
-    maxShutdownDelaySeconds: 30
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
@@ -91,12 +66,10 @@ services:
     repo: https://github.com/preskiranch/courtwatch-reno
     branch: main
     rootDir: .
-    buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
-    preDeployCommand: npm run db:migrate
+    buildCommand: npm ci --include=dev && npm run db:generate && npm run db:migrate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
     startCommand: npm run start --workspace @courtwatch/api
-    healthCheckPath: /api/health/live
-    autoDeployTrigger: checksPass
-    maxShutdownDelaySeconds: 30
+    healthCheckPath: /api/health
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
@@ -131,26 +104,20 @@ services:
           name: courtwatch-exposure-relay
           type: web
           envVarKey: RELAY_SHARED_SECRET
-      - key: EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS
-        value: "10000"
       - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
-        value: "false"
+        value: "true"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
-        value: "350"
+        value: "125"
       - key: EXPOSURE_PUBLIC_GAMES_CONCURRENCY
-        value: "2"
+        value: "4"
       - key: EXPOSURE_PUBLIC_TIMEOUT_MS
         value: "12000"
       - key: EXPOSURE_API_TIMEOUT_MS
         value: "12000"
       - key: ACTIVE_GAME_HYDRATION_STALE_MS
         value: "90000"
-      - key: API_READ_THROUGH_SOURCE
-        value: "false"
       - key: TEAM_LIST_HYDRATION_STALE_MS
-        value: "300000"
-      - key: SYNC_RUN_STALE_AFTER_MS
-        value: "900000"
+        value: "60000"
       - key: RECENTLY_COMPLETED_HYDRATION_DAYS
         value: "3"
       - key: TOURNAMENT_DISCOVERY_ENABLED
@@ -175,8 +142,6 @@ services:
         sync: false
       - key: PUSH_CONTACT_EMAIL
         sync: false
-      - key: NOTIFICATION_DISPATCH_INTERVAL_MS
-        value: "5000"
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_SECRET
@@ -199,8 +164,7 @@ services:
     rootDir: .
     buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/worker
     startCommand: npm run start --workspace @courtwatch/worker
-    autoDeployTrigger: checksPass
-    maxShutdownDelaySeconds: 120
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
@@ -223,6 +187,13 @@ services:
         value: 2026-reno-memorial-day-tournament
       - key: DEFAULT_EXPOSURE_EVENT_ID
         value: "255539"
+      - key: EXPOSURE_RELAY_BASE_URL
+        value: https://courtwatch-exposure-relay.onrender.com
+      - key: EXPOSURE_RELAY_TOKEN
+        fromService:
+          name: courtwatch-exposure-relay
+          type: web
+          envVarKey: RELAY_SHARED_SECRET
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
         value: "1"
       - key: WORKER_API_TIMEOUT_MS
@@ -234,31 +205,17 @@ services:
       - key: WORKER_MAX_BACKOFF_MS
         value: "900000"
       - key: WORKER_SYNC_BATCH_SIZE
-        value: "8"
+        value: "24"
       - key: WORKER_SYNC_CONCURRENCY
-        value: "2"
+        value: "3"
       - key: WORKER_ACTIVE_GAME_STALE_MS
         value: "30000"
-      - key: WORKER_POST_EVENT_STALE_MS
-        value: "300000"
       - key: WORKER_TEAM_LIST_RECHECK_STALE_MS
-        value: "900000"
-      - key: WORKER_TEAM_LIST_RECHECK_WINDOW_DAYS
-        value: "14"
-      - key: WORKER_EVENT_SYNC_TIMEOUT_MS
-        value: "90000"
+        value: "60000"
       - key: WORKER_SLOW_EVENT_SYNC_MS
         value: "20000"
-      - key: WORKER_EVENT_SYNC_ATTEMPTS
-        value: "1"
-      - key: WORKER_RETRY_BASE_MS
-        value: "750"
-      - key: WORKER_RETRY_MAX_MS
-        value: "10000"
-      - key: WORKER_POLL_JITTER_RATIO
-        value: "0.08"
       - key: EXPOSURE_PUBLIC_GAMES_CONCURRENCY
-        value: "2"
+        value: "4"
       - key: ENABLE_MOCK_ARSENAL
         value: "false"
       - key: ENABLE_MOCK_DATA
