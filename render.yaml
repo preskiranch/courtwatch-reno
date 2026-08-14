@@ -68,7 +68,7 @@ services:
     rootDir: .
     buildCommand: npm ci --include=dev && npm run db:generate && npm run db:migrate && npm run build --workspace @courtwatch/core && npm run build --workspace @courtwatch/db && npm run build --workspace @courtwatch/api
     startCommand: npm run start --workspace @courtwatch/api
-    healthCheckPath: /api/health
+    healthCheckPath: /api/health/live
     autoDeploy: true
     envVars:
       - key: NODE_VERSION

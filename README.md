@@ -345,7 +345,9 @@ The PWA registers `/sw.js` and stores push subscriptions through `POST /api/push
 
 ## API Routes
 
+- `GET /api/health/live`
 - `GET /api/health`
+- `GET /api/health/ready`
 - `GET /api/sync-health`
 - `GET /api/events/current`
 - `GET /api/accounts/stats`
