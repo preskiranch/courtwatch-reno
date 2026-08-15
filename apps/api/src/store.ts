@@ -2999,24 +2999,25 @@ export class PrismaStore implements CourtWatchStore {
     if (
       storedGames > 0 &&
       lastDataAt &&
-      Date.now() - lastDataAt.getTime() < ACTIVE_GAME_HYDRATION_STALE_MS
-    ) {
-      const checkedAt = new Date();
-      if (
-        !event.lastSyncedAt ||
+      (!event.lastSyncedAt ||
         event.lastSyncedAt.getTime() < lastDataAt.getTime() ||
         !event.lastCheckedAt ||
-        event.lastCheckedAt.getTime() < lastDataAt.getTime()
-      ) {
-        await this.prisma.event.update({
-          where: { id: event.id },
-          data: {
-            lastCheckedAt: checkedAt,
-            lastSyncedAt: lastDataAt,
-          },
-        });
-        invalidateEventsCache();
-      }
+        event.lastCheckedAt.getTime() < lastDataAt.getTime())
+    ) {
+      await this.prisma.event.update({
+        where: { id: event.id },
+        data: {
+          lastCheckedAt: lastDataAt,
+          lastSyncedAt: lastDataAt,
+        },
+      });
+      invalidateEventsCache();
+    }
+    if (
+      storedGames > 0 &&
+      lastDataAt &&
+      Date.now() - lastDataAt.getTime() < ACTIVE_GAME_HYDRATION_STALE_MS
+    ) {
       return;
     }
 
