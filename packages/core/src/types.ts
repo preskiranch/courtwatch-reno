@@ -39,15 +39,9 @@ export type ChangeEventType =
 export type ResultPlacement = 1 | 2 | 3;
 export type ResultMedalLabel = "Gold" | "Silver" | "Bronze";
 export type ResultSource =
-  | "official_standings"
-  | "bracket_final"
-  | "manual_admin";
+  "official_standings" | "bracket_final" | "manual_admin";
 export type TournamentEventStatus =
-  | "upcoming"
-  | "active"
-  | "completed"
-  | "unavailable"
-  | "cancelled";
+  "upcoming" | "active" | "completed" | "unavailable" | "cancelled";
 
 export interface TournamentEvent {
   id: string;
@@ -72,6 +66,7 @@ export interface TournamentEvent {
   officialUrl: string;
   timezone: string;
   registeredTeamCount: number;
+  gamesCount?: number;
   hasPublicTeamList: boolean;
   lastCheckedAt: string | null;
   lastSyncedAt: string | null;

@@ -8,7 +8,11 @@ import type { TournamentEvent } from "@courtwatch/core";
 import { prisma } from "@courtwatch/db";
 import pino from "pino";
 import { z } from "zod";
-import { selectSyncMode, type SyncMode } from "./sync-policy.js";
+import {
+  selectSyncMode,
+  shouldQueueActiveGameHydration,
+  type SyncMode,
+} from "./sync-policy.js";
 
 const EnvSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
@@ -156,7 +160,10 @@ async function syncTargets(): Promise<SyncTarget[]> {
     );
   }
   const events = (await response.json()) as TournamentEvent[];
-  const activeGamePriorityIds = await activeGamePriorityExposureIds();
+  const [activeGamePriorityIds, followedActiveEventIds] = await Promise.all([
+    activeGamePriorityExposureIds(),
+    followedActiveExposureIds(),
+  ]);
   const preferredIds = preferredExposureEventIds();
   const today = new Date().toISOString().slice(0, 10);
   return events
@@ -165,6 +172,40 @@ async function syncTargets(): Promise<SyncTarget[]> {
       shouldSyncEvent(event, activeGamePriorityIds, preferredIds),
     )
     .sort((left, right) => {
+      const leftFollowedMissingGames = followedActiveEventIds.has(
+        left.exposureEventId,
+      )
+        ? activeMissingGamesPriority(left, activeGamePriorityIds)
+        : 1;
+      const rightFollowedMissingGames = followedActiveEventIds.has(
+        right.exposureEventId,
+      )
+        ? activeMissingGamesPriority(right, activeGamePriorityIds)
+        : 1;
+      if (leftFollowedMissingGames !== rightFollowedMissingGames) {
+        return leftFollowedMissingGames - rightFollowedMissingGames;
+      }
+
+      const leftMissingGames = activeMissingGamesPriority(
+        left,
+        activeGamePriorityIds,
+      );
+      const rightMissingGames = activeMissingGamesPriority(
+        right,
+        activeGamePriorityIds,
+      );
+      if (leftMissingGames !== rightMissingGames) {
+        return leftMissingGames - rightMissingGames;
+      }
+
+      const leftFollowed = followedActiveEventIds.has(left.exposureEventId)
+        ? 0
+        : 1;
+      const rightFollowed = followedActiveEventIds.has(right.exposureEventId)
+        ? 0
+        : 1;
+      if (leftFollowed !== rightFollowed) return leftFollowed - rightFollowed;
+
       const leftNeedsGames = activeGamePriorityIds.has(left.exposureEventId)
         ? 0
         : 1;
@@ -305,6 +346,18 @@ function needsPublishedTeamHydration(event: TournamentEvent) {
     event.registeredTeamCount > 0 &&
     !event.lastSyncedAt
   );
+}
+
+function activeMissingGamesPriority(
+  event: TournamentEvent,
+  activeGamePriorityIds: ReadonlySet<number>,
+) {
+  return activeGamePriorityIds.has(event.exposureEventId) &&
+    event.hasPublicTeamList &&
+    event.registeredTeamCount > 0 &&
+    (event.gamesCount ?? 0) === 0
+    ? 0
+    : 1;
 }
 
 function needsPublicTeamListRecheck(event: TournamentEvent) {
@@ -452,14 +505,81 @@ async function activeGamePriorityExposureIds(): Promise<Set<number>> {
     activeEvents
       .filter((event) => {
         const gameCount = countsByEventId.get(event.id) ?? 0;
-        const lastDataAt = event.lastSyncedAt ?? event.lastCheckedAt;
-        return (
-          !lastDataAt ||
-          now - lastDataAt.getTime() > env.WORKER_ACTIVE_GAME_STALE_MS
-        );
+        return shouldQueueActiveGameHydration({
+          gameCount,
+          lastSyncedAt: event.lastSyncedAt,
+          lastCheckedAt: event.lastCheckedAt,
+          nowMs: now,
+          staleMs: env.WORKER_ACTIVE_GAME_STALE_MS,
+        });
       })
       .map((event) => event.exposureEventId),
   );
+}
+
+async function followedActiveExposureIds(): Promise<Set<number>> {
+  const eventWhere = {
+    AND: [
+      courtWatchEventScopeWhere(),
+      {
+        externalProvider: "exposure_events",
+        hasPublicTeamList: true,
+        registeredTeamCount: { gt: 0 },
+        status: { notIn: ["cancelled", "unavailable"] },
+      },
+    ],
+  };
+  const [programMatches, favoriteMatches] = await Promise.all([
+    prisma.programTeamMatch.findMany({
+      where: {
+        active: true,
+        team: {
+          event: eventWhere,
+        },
+      },
+      select: {
+        team: {
+          select: {
+            event: {
+              select: {
+                exposureEventId: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.favoriteTeamRegistrationMatch.findMany({
+      where: {
+        favoriteTeamWatch: { active: true },
+        event: eventWhere,
+      },
+      select: {
+        event: {
+          select: {
+            exposureEventId: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const ids = new Set<number>();
+  for (const match of programMatches) {
+    if (eventIsInGameHydrationWindow(match.team.event)) {
+      ids.add(match.team.event.exposureEventId);
+    }
+  }
+  for (const match of favoriteMatches) {
+    if (eventIsInGameHydrationWindow(match.event)) {
+      ids.add(match.event.exposureEventId);
+    }
+  }
+  return ids;
 }
 
 function eventIsInGameHydrationWindow(event: {

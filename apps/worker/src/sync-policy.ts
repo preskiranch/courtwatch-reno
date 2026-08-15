@@ -30,6 +30,14 @@ export interface SyncCycleOutcome {
   failedCount: number;
 }
 
+export interface ActiveGameHydrationSignals {
+  gameCount: number;
+  lastSyncedAt: Date | null;
+  lastCheckedAt: Date | null;
+  nowMs: number;
+  staleMs: number;
+}
+
 export function selectSyncMode(signals: SyncSignals): SyncMode {
   if (
     signals.activeGamePriority ||
@@ -116,6 +124,17 @@ export function refreshStaleMsForEvent(
     return postEventStaleMs;
   }
   return null;
+}
+
+export function shouldQueueActiveGameHydration(
+  signals: ActiveGameHydrationSignals,
+): boolean {
+  const lastDataAt = signals.lastSyncedAt ?? signals.lastCheckedAt;
+  return (
+    signals.gameCount === 0 ||
+    !lastDataAt ||
+    signals.nowMs - lastDataAt.getTime() > signals.staleMs
+  );
 }
 
 export function shouldRecoverUnavailableEvent(

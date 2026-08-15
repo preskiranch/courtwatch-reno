@@ -995,8 +995,13 @@ export class PrismaStore implements CourtWatchStore {
       orderBy: [{ startDate: "asc" }, { name: "asc" }],
     });
     const dbEventIds = dbEvents.map((event) => event.id);
-    const [teamCounts, latestSuccesses] = await Promise.all([
+    const [teamCounts, gameCounts, latestSuccesses] = await Promise.all([
       this.prisma.team.groupBy({
+        by: ["eventId"],
+        where: { eventId: { in: dbEventIds } },
+        _count: { _all: true },
+      }),
+      this.prisma.game.groupBy({
         by: ["eventId"],
         where: { eventId: { in: dbEventIds } },
         _count: { _all: true },
@@ -1013,6 +1018,9 @@ export class PrismaStore implements CourtWatchStore {
     ]);
     const teamCountByEventId = new Map(
       teamCounts.map((count) => [count.eventId, count._count._all]),
+    );
+    const gameCountByEventId = new Map(
+      gameCounts.map((count) => [count.eventId, count._count._all]),
     );
     const latestSuccessByEventId = new Map(
       latestSuccesses.map((run) => [
@@ -1035,6 +1043,7 @@ export class PrismaStore implements CourtWatchStore {
         source,
         teamCountByEventId.get(event.id),
         latestSuccessByEventId.get(event.id) ?? null,
+        gameCountByEventId.get(event.id) ?? null,
       );
       if (isCourtWatchSupportedTournamentRegion(coreEvent)) {
         merged.set(event.exposureEventId, coreEvent);
@@ -1072,8 +1081,13 @@ export class PrismaStore implements CourtWatchStore {
       orderBy: [{ startDate: "asc" }, { name: "asc" }],
     });
     const dbEventIds = dbEvents.map((event) => event.id);
-    const [teamCounts, latestSuccesses] = await Promise.all([
+    const [teamCounts, gameCounts, latestSuccesses] = await Promise.all([
       this.prisma.team.groupBy({
+        by: ["eventId"],
+        where: { eventId: { in: dbEventIds } },
+        _count: { _all: true },
+      }),
+      this.prisma.game.groupBy({
         by: ["eventId"],
         where: { eventId: { in: dbEventIds } },
         _count: { _all: true },
@@ -1091,6 +1105,9 @@ export class PrismaStore implements CourtWatchStore {
     const teamCountByEventId = new Map(
       teamCounts.map((count) => [count.eventId, count._count._all]),
     );
+    const gameCountByEventId = new Map(
+      gameCounts.map((count) => [count.eventId, count._count._all]),
+    );
     const latestSuccessByEventId = new Map(
       latestSuccesses.map((run) => [
         run.eventId,
@@ -1106,6 +1123,7 @@ export class PrismaStore implements CourtWatchStore {
           source,
           teamCountByEventId.get(event.id),
           latestSuccessByEventId.get(event.id) ?? null,
+          gameCountByEventId.get(event.id) ?? null,
         );
         const supportedRegion = courtWatchSupportedTournamentRegion(coreEvent);
         return {
@@ -3254,6 +3272,7 @@ function prismaEventToCore(
   teamCount: number | null = null,
   latestSuccessfulSyncAt: string | null = event.lastSyncedAt?.toISOString() ??
     null,
+  gamesCount: number | null = null,
 ): TournamentEvent {
   const startDate = event.startDate.toISOString().slice(0, 10);
   const endDate = event.endDate.toISOString().slice(0, 10);
@@ -3288,6 +3307,7 @@ function prismaEventToCore(
     officialUrl: event.officialUrl,
     timezone: source?.timezone ?? RENO_TIMEZONE,
     registeredTeamCount: teamCount ?? event.registeredTeamCount,
+    gamesCount: gamesCount ?? undefined,
     hasPublicTeamList: event.hasPublicTeamList,
     lastCheckedAt: event.lastCheckedAt?.toISOString() ?? null,
     lastSyncedAt:
@@ -3400,11 +3420,14 @@ function syncFailureStatus(
 
 function isPublicSourceUnavailableError(errorMessage: string) {
   return (
-    errorMessage.includes("request failed with 410") ||
-    errorMessage.includes("Public teams page request failed with 403") ||
-    errorMessage.includes("Public eventgames request failed with 403") ||
-    errorMessage.includes("Public page request failed with 403") ||
-    errorMessage.includes("Public search request failed with 403")
+    /\brequest failed with (?:403|408|410|425|429|500|502|503|504)\b/i.test(
+      errorMessage,
+    ) ||
+    /\bfetch failed\b/i.test(errorMessage) ||
+    /\boperation was aborted\b/i.test(errorMessage) ||
+    /\brelay attempt timed out\b/i.test(errorMessage) ||
+    /\brequest timed out\b/i.test(errorMessage) ||
+    /\bupstream .*timed out\b/i.test(errorMessage)
   );
 }
 

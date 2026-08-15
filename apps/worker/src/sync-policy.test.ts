@@ -6,6 +6,7 @@ import {
   retryDelayMs,
   selectFairSyncBatch,
   selectSyncMode,
+  shouldQueueActiveGameHydration,
   shouldRecoverUnavailableEvent,
 } from "./sync-policy.js";
 
@@ -100,6 +101,46 @@ describe("refreshStaleMsForEvent", () => {
     expect(
       refreshStaleMsForEvent(event, "2026-07-16", 30_000, 300_000),
     ).toBeNull();
+  });
+});
+
+describe("shouldQueueActiveGameHydration", () => {
+  const nowMs = Date.parse("2026-08-15T16:00:00.000Z");
+
+  it("queues active events with zero stored games even after a fresh team sync", () => {
+    expect(
+      shouldQueueActiveGameHydration({
+        gameCount: 0,
+        lastSyncedAt: new Date(nowMs - 5_000),
+        lastCheckedAt: null,
+        nowMs,
+        staleMs: 90_000,
+      }),
+    ).toBe(true);
+  });
+
+  it("queues active events when the last data timestamp is stale", () => {
+    expect(
+      shouldQueueActiveGameHydration({
+        gameCount: 12,
+        lastSyncedAt: new Date(nowMs - 120_000),
+        lastCheckedAt: null,
+        nowMs,
+        staleMs: 90_000,
+      }),
+    ).toBe(true);
+  });
+
+  it("does not queue active events with games and fresh data", () => {
+    expect(
+      shouldQueueActiveGameHydration({
+        gameCount: 12,
+        lastSyncedAt: new Date(nowMs - 5_000),
+        lastCheckedAt: null,
+        nowMs,
+        staleMs: 90_000,
+      }),
+    ).toBe(false);
   });
 });
 
