@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "cachedAt": "2026-08-15T16:15:49.558Z",
+  "eventId": 264325,
+  "eventSlug": "bam-x-gsg-summer-finale",
+  "event": {
+    "endDate": "2026-08-30",
+    "name": "BAM x GSG - Summer Finale",
+    "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale",
+    "organizer": "GSG Hoops",
+    "startDate": "2026-08-29",
+    "timezone": "America/Los_Angeles"
+  },
+  "divisions": [
+    {
+      "id": "division-264325-1366514",
+      "eventId": "event-264325",
+      "exposureDivisionId": "1366514",
+      "name": "JV (16U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "16U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "divisionId": "1366514"
+      }
+    },
+    {
+      "id": "division-264325-1366503",
+      "eventId": "event-264325",
+      "exposureDivisionId": "1366503",
+      "name": "7th Grade (13U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "7TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "divisionId": "1366503"
+      }
+    },
+    {
+      "id": "division-264325-1366510",
+      "eventId": "event-264325",
+      "exposureDivisionId": "1366510",
+      "name": "9th Grade (15U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "9TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "divisionId": "1366510"
+      }
+    }
+  ],
+  "teams": [
+    {
+      "id": "public-team-264325-5507675",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1366514",
+      "exposureTeamId": "5507675",
+      "name": "Nevad Hoop Culture",
+      "normalizedName": "nevad hoop culture",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/nevad-hoop-culture?divisionteamid=5507675",
+      "divisionName": "JV (16U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "16U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "JV (16U) Boys Division",
+        "DivisionId": 1366514,
+        "Slug": "nevad-hoop-culture",
+        "Selected": false,
+        "Value": 5507675,
+        "Name": "Nevad Hoop Culture (JV (16U) Boys Division)"
+      },
+      "lastSeenAt": "2026-08-15T16:15:47.840Z"
+    },
+    {
+      "id": "public-team-264325-5507676",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1366503",
+      "exposureTeamId": "5507676",
+      "name": "Nevada Hoop Culture",
+      "normalizedName": "nevada hoop culture",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/nevada-hoop-culture?divisionteamid=5507676",
+      "divisionName": "7th Grade (13U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "7TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "7th Grade (13U) Boys Division",
+        "DivisionId": 1366503,
+        "Slug": "nevada-hoop-culture",
+        "Selected": false,
+        "Value": 5507676,
+        "Name": "Nevada Hoop Culture (7th Grade (13U) Boys Division)"
+      },
+      "lastSeenAt": "2026-08-15T16:15:47.840Z"
+    },
+    {
+      "id": "public-team-264325-5513178",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1366510",
+      "exposureTeamId": "5513178",
+      "name": "Wolves",
+      "normalizedName": "wolves",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/wolves?divisionteamid=5513178",
+      "divisionName": "9th Grade (15U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "9TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "9th Grade (15U) Boys Division",
+        "DivisionId": 1366510,
+        "Slug": "wolves",
+        "Selected": false,
+        "Value": 5513178,
+        "Name": "Wolves (9th Grade (15U) Boys Division)"
+      },
+      "lastSeenAt": "2026-08-15T16:15:47.840Z"
+    }
+  ],
+  "games": []
+}
