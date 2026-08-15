@@ -5,12 +5,15 @@ const originalRelayUrl = process.env.EXPOSURE_RELAY_BASE_URL;
 const originalRelayToken = process.env.EXPOSURE_RELAY_TOKEN;
 const originalRelayAttemptTimeout =
   process.env.EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS;
+const originalDisableDirectFallback =
+  process.env.EXPOSURE_DISABLE_DIRECT_FALLBACK;
 
 afterEach(() => {
   vi.restoreAllMocks();
   restoreEnv("EXPOSURE_RELAY_BASE_URL", originalRelayUrl);
   restoreEnv("EXPOSURE_RELAY_TOKEN", originalRelayToken);
   restoreEnv("EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS", originalRelayAttemptTimeout);
+  restoreEnv("EXPOSURE_DISABLE_DIRECT_FALLBACK", originalDisableDirectFallback);
 });
 
 describe("fetchWithExposureRelay", () => {
@@ -153,6 +156,40 @@ describe("fetchWithExposureRelay", () => {
     );
 
     expect(response.status).toBe(404);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
+  it("does not fall back to direct Exposure when direct fallback is disabled", async () => {
+    process.env.EXPOSURE_RELAY_BASE_URL = "https://relay.example.test";
+    process.env.EXPOSURE_RELAY_TOKEN = "relay-secret";
+    process.env.EXPOSURE_DISABLE_DIRECT_FALLBACK = "true";
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("gateway timeout", { status: 504 }));
+
+    const response = await fetchWithExposureRelay(
+      fetchImpl,
+      "https://basketball.exposureevents.com/265801/event/teams",
+    );
+
+    expect(response.status).toBe(504);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
+  it("throws relay errors when direct fallback is disabled", async () => {
+    process.env.EXPOSURE_RELAY_BASE_URL = "https://relay.example.test";
+    process.env.EXPOSURE_RELAY_TOKEN = "relay-secret";
+    process.env.EXPOSURE_DISABLE_DIRECT_FALLBACK = "true";
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError("relay unavailable"));
+
+    await expect(
+      fetchWithExposureRelay(
+        fetchImpl,
+        "https://basketball.exposureevents.com/252638/event/teams",
+      ),
+    ).rejects.toThrow("relay unavailable");
     expect(fetchImpl).toHaveBeenCalledOnce();
   });
 

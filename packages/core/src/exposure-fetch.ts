@@ -60,6 +60,7 @@ export async function fetchWithExposureRelay(
     );
   } catch (error) {
     if (originalRequest.signal.aborted) throw error;
+    if (directFallbackDisabled()) throw error;
     return fetchImpl(originalRequest);
   } finally {
     clearTimeout(relayTimeout);
@@ -71,7 +72,8 @@ export async function fetchWithExposureRelay(
   // the blocked direct connection from Render.
   if (
     relayResponse.headers.has(RELAY_RESPONSE_HEADER) ||
-    !isTransientRelayStatus(relayResponse.status)
+    !isTransientRelayStatus(relayResponse.status) ||
+    directFallbackDisabled()
   ) {
     return relayResponse;
   }
@@ -80,6 +82,10 @@ export async function fetchWithExposureRelay(
     throw originalRequest.signal.reason ?? new Error("Request aborted");
   }
   return fetchImpl(originalRequest);
+}
+
+function directFallbackDisabled(): boolean {
+  return process.env.EXPOSURE_DISABLE_DIRECT_FALLBACK === "true";
 }
 
 function relayAttemptTimeoutMs(): number {

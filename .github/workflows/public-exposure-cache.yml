@@ -1,0 +1,56 @@
+name: Public Exposure cache
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: public-exposure-cache
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace @courtwatch/core
+      - name: Refresh public cache branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PUBLIC_EXPOSURE_CACHE_WINDOW_DAYS: "30"
+          PUBLIC_EXPOSURE_CACHE_MAX_EVENTS: "30"
+          PUBLIC_EXPOSURE_CACHE_REQUEST_DELAY_MS: "1000"
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          cache_dir="$(mktemp -d)"
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin public-data >/dev/null 2>&1; then
+            git clone --branch public-data --single-branch "${remote_url}" "${cache_dir}"
+          else
+            git init "${cache_dir}"
+            git -C "${cache_dir}" checkout -b public-data
+            git -C "${cache_dir}" remote add origin "${remote_url}"
+          fi
+
+          node scripts/cache-exposure-public.mjs "${cache_dir}/exposure-cache/events"
+
+          git -C "${cache_dir}" add exposure-cache/events
+          if git -C "${cache_dir}" diff --cached --quiet; then
+            echo "Public Exposure cache is unchanged."
+            exit 0
+          fi
+          git -C "${cache_dir}" commit -m "Update public Exposure cache"
+          git -C "${cache_dir}" push origin public-data

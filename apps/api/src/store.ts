@@ -91,6 +91,10 @@ const teamSortCollator = new Intl.Collator("en-US", {
   numeric: true,
   sensitivity: "base",
 });
+const DEFAULT_PUBLIC_EXPOSURE_CACHE_BASE_URL =
+  "https://raw.githubusercontent.com/preskiranch/courtwatch-reno/public-data/exposure-cache/events";
+const DEFAULT_PUBLIC_EXPOSURE_CACHE_MAX_AGE_MS = 6 * 60 * 60_000;
+const DEFAULT_PUBLIC_EXPOSURE_CACHE_TIMEOUT_MS = 8_000;
 
 function discoverySourcePriority(source: MajorTournamentSource) {
   if (source.provider === "bracket_team") return 0;
@@ -3832,11 +3836,7 @@ async function fetchSourceTeams(
         tournament.exposureEventId,
       );
       if (teams.length === 0) {
-        return new PublicExposurePageClient().fetchTeams(
-          tournament.exposureEventId,
-          tournament.slug,
-          tournament.timezone,
-        );
+        return fetchPublicExposureTeamsWithCache(tournament);
       }
       const divisions = new Map<string, Division>();
       const mappedTeams = teams.map((team) => {
@@ -3873,19 +3873,168 @@ async function fetchSourceTeams(
       });
       return { divisions: Array.from(divisions.values()), teams: mappedTeams };
     } catch {
-      return new PublicExposurePageClient().fetchTeams(
-        tournament.exposureEventId,
-        tournament.slug,
-        tournament.timezone,
-      );
+      return fetchPublicExposureTeamsWithCache(tournament);
     }
   }
 
-  return new PublicExposurePageClient().fetchTeams(
-    tournament.exposureEventId,
-    tournament.slug,
-    tournament.timezone,
+  return fetchPublicExposureTeamsWithCache(tournament);
+}
+
+async function fetchPublicExposureTeamsWithCache(
+  tournament: TournamentSource,
+): Promise<{ divisions: Division[]; teams: Team[] }> {
+  try {
+    return await new PublicExposurePageClient().fetchTeams(
+      tournament.exposureEventId,
+      tournament.slug,
+      tournament.timezone,
+    );
+  } catch (error) {
+    const cached = await fetchPublicExposureCache(tournament);
+    if (cached?.teams.length) {
+      return { divisions: cached.divisions, teams: cached.teams };
+    }
+    throw error;
+  }
+}
+
+type PublicExposureCachePayload = {
+  cachedAt: string;
+  divisions: Division[];
+  eventId: number;
+  eventSlug: string;
+  games: Game[];
+  schemaVersion: 1;
+  teams: Team[];
+};
+
+async function fetchPublicExposureCache(
+  tournament: TournamentSource,
+): Promise<PublicExposureCachePayload | null> {
+  const baseUrl = publicExposureCacheBaseUrl();
+  if (!baseUrl) return null;
+
+  const url = new URL(
+    `${tournament.exposureEventId}.json`,
+    ensureTrailingSlash(baseUrl),
   );
+  url.searchParams.set("_", String(Date.now()));
+
+  try {
+    const response = await fetchWithTimeout(
+      url,
+      publicExposureCacheTimeoutMs(),
+    );
+    if (response.status === 404) return null;
+    if (!response.ok)
+      throw new Error(`cache request failed ${response.status}`);
+    const payload = (await response.json()) as unknown;
+    return validPublicExposureCachePayload(payload, tournament);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchWithTimeout(url: URL, timeoutMs: number) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function validPublicExposureCachePayload(
+  payload: unknown,
+  tournament: TournamentSource,
+): PublicExposureCachePayload | null {
+  if (!isRecord(payload)) return null;
+  if (payload.schemaVersion !== 1) return null;
+  if (payload.eventId !== tournament.exposureEventId) return null;
+  if (
+    typeof payload.eventSlug !== "string" ||
+    payload.eventSlug !== tournament.slug
+  )
+    return null;
+  if (typeof payload.cachedAt !== "string") return null;
+  const cachedAt = Date.parse(payload.cachedAt);
+  if (
+    Number.isNaN(cachedAt) ||
+    Date.now() - cachedAt > publicExposureCacheMaxAgeMs()
+  )
+    return null;
+
+  const divisions = Array.isArray(payload.divisions)
+    ? payload.divisions.filter(isCachedDivision)
+    : [];
+  const teams = Array.isArray(payload.teams)
+    ? payload.teams.filter(isCachedTeam)
+    : [];
+  const games = Array.isArray(payload.games)
+    ? payload.games.filter(isCoreGame)
+    : [];
+
+  return {
+    cachedAt: payload.cachedAt,
+    divisions,
+    eventId: payload.eventId,
+    eventSlug: payload.eventSlug,
+    games,
+    schemaVersion: 1,
+    teams,
+  };
+}
+
+function isCachedDivision(value: unknown): value is Division {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.name === "string"
+  );
+}
+
+function isCachedTeam(value: unknown): value is Team {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.name === "string" &&
+    typeof value.normalizedName === "string" &&
+    typeof value.sourceUrl === "string" &&
+    typeof value.lastSeenAt === "string"
+  );
+}
+
+function publicExposureCacheBaseUrl(): string | null {
+  const configured = process.env.PUBLIC_EXPOSURE_CACHE_BASE_URL?.trim();
+  if (configured === "off" || configured === "disabled") return null;
+  return configured || DEFAULT_PUBLIC_EXPOSURE_CACHE_BASE_URL;
+}
+
+function publicExposureCacheMaxAgeMs(): number {
+  return positiveIntegerEnv(
+    "PUBLIC_EXPOSURE_CACHE_MAX_AGE_MS",
+    DEFAULT_PUBLIC_EXPOSURE_CACHE_MAX_AGE_MS,
+  );
+}
+
+function publicExposureCacheTimeoutMs(): number {
+  return positiveIntegerEnv(
+    "PUBLIC_EXPOSURE_CACHE_TIMEOUT_MS",
+    DEFAULT_PUBLIC_EXPOSURE_CACHE_TIMEOUT_MS,
+  );
+}
+
+function positiveIntegerEnv(name: string, fallback: number): number {
+  const parsed = Number(process.env[name]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function ensureTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value : `${value}/`;
 }
 
 async function fetchSourceGames(
@@ -3910,12 +4059,18 @@ async function fetchSourceGames(
   const fetchAllPublicGames =
     options.forceFetchAllGames || shouldFetchAllPublicGames(tournament);
   if (!fetchAllPublicGames && selectedDivisionIds.length === 0) return [];
-  return publicClient.fetchGames(tournament.exposureEventId, {
-    divisionIds: fetchAllPublicGames ? [] : selectedDivisionIds,
-    eventSlug: tournament.slug,
-    teamIds: fetchAllPublicGames ? sourceTeamIds : [],
-    timezone: tournament.timezone,
-  });
+  try {
+    return await publicClient.fetchGames(tournament.exposureEventId, {
+      divisionIds: fetchAllPublicGames ? [] : selectedDivisionIds,
+      eventSlug: tournament.slug,
+      teamIds: fetchAllPublicGames ? sourceTeamIds : [],
+      timezone: tournament.timezone,
+    });
+  } catch (error) {
+    const cached = await fetchPublicExposureCache(tournament);
+    if (cached?.games.length) return cached.games;
+    throw error;
+  }
 }
 
 async function fetchSourceDivisionResults(

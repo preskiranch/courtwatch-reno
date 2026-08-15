@@ -108,6 +108,14 @@ services:
           envVarKey: RELAY_SHARED_SECRET
       - key: EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS
         value: "150"
+      - key: EXPOSURE_DISABLE_DIRECT_FALLBACK
+        value: "true"
+      - key: PUBLIC_EXPOSURE_CACHE_BASE_URL
+        value: https://raw.githubusercontent.com/preskiranch/courtwatch-reno/public-data/exposure-cache/events
+      - key: PUBLIC_EXPOSURE_CACHE_MAX_AGE_MS
+        value: "21600000"
+      - key: PUBLIC_EXPOSURE_CACHE_TIMEOUT_MS
+        value: "8000"
       - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
         value: "true"
       - key: EXPOSURE_PUBLIC_GAMES_CONCURRENCY
