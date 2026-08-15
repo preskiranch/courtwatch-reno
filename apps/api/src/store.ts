@@ -2458,6 +2458,7 @@ export class PrismaStore implements CourtWatchStore {
               hasPublicTeamList:
                 publishedTeamListFetched || event.hasPublicTeamList,
               lastCheckedAt: syncedAt,
+              lastSyncedAt: publishedTeamListFetched ? syncedAt : undefined,
               lastTeamChangeAt: teamListChanged ? syncedAt : undefined,
               status: deriveTournamentStatus({
                 startDate: tournament.startDate,

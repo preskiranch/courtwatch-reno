@@ -106,6 +106,8 @@ services:
           name: courtwatch-exposure-relay
           type: web
           envVarKey: RELAY_SHARED_SECRET
+      - key: EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS
+        value: "750"
       - key: EXPOSURE_PUBLIC_FETCH_ALL_GAMES
         value: "true"
       - key: EXPOSURE_PUBLIC_REQUEST_DELAY_MS
@@ -116,6 +118,8 @@ services:
         value: "12000"
       - key: EXPOSURE_API_TIMEOUT_MS
         value: "12000"
+      - key: SYNC_RUN_STALE_AFTER_MS
+        value: "300000"
       - key: ACTIVE_GAME_HYDRATION_STALE_MS
         value: "90000"
       - key: TEAM_LIST_HYDRATION_STALE_MS
@@ -196,6 +200,8 @@ services:
           name: courtwatch-exposure-relay
           type: web
           envVarKey: RELAY_SHARED_SECRET
+      - key: EXPOSURE_RELAY_ATTEMPT_TIMEOUT_MS
+        value: "750"
       - key: TOURNAMENT_DISCOVERY_INTERVAL_HOURS
         value: "1"
       - key: WORKER_API_TIMEOUT_MS
@@ -207,9 +213,11 @@ services:
       - key: WORKER_MAX_BACKOFF_MS
         value: "900000"
       - key: WORKER_SYNC_BATCH_SIZE
-        value: "24"
+        value: "8"
       - key: WORKER_SYNC_CONCURRENCY
-        value: "3"
+        value: "2"
+      - key: WORKER_EVENT_SYNC_TIMEOUT_MS
+        value: "180000"
       - key: WORKER_ACTIVE_GAME_STALE_MS
         value: "30000"
       - key: WORKER_TEAM_LIST_RECHECK_STALE_MS

@@ -11,7 +11,7 @@ const store = useDatabase ? new PrismaStore(prisma) : new MockStore();
 const app = createApp(store, useDatabase ? prisma : null);
 const notifications = app.locals.notificationService as NotificationService;
 
-if (useDatabase) {
+async function recoverStaleSyncRuns(reason: string) {
   try {
     const recoveredCount = await recoverInterruptedSyncRuns(
       prisma,
@@ -19,6 +19,7 @@ if (useDatabase) {
     );
     if (recoveredCount > 0) {
       console.warn("Recovered interrupted tournament sync runs", {
+        reason,
         recoveredCount,
       });
     }
@@ -26,6 +27,16 @@ if (useDatabase) {
     console.error("Interrupted sync recovery failed", error);
   }
 }
+
+if (useDatabase) await recoverStaleSyncRuns("startup");
+
+const syncRunRecoveryTimer = useDatabase
+  ? setInterval(
+      () => void recoverStaleSyncRuns("interval"),
+      Math.max(60_000, Math.min(config.SYNC_RUN_STALE_AFTER_MS, 5 * 60_000)),
+    )
+  : null;
+syncRunRecoveryTimer?.unref();
 
 const notificationDispatcher = new CoalescedTask(async () => {
   try {
@@ -60,6 +71,7 @@ async function shutdown(signal: string) {
   shuttingDown = true;
   console.log(`Received ${signal}; closing Court Watch AAU API`);
   clearInterval(notificationDispatchTimer);
+  if (syncRunRecoveryTimer) clearInterval(syncRunRecoveryTimer);
 
   const forcedExit = setTimeout(() => {
     console.error("API shutdown timed out");
