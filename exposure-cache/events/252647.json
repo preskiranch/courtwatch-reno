@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-08-15T22:32:07.714Z",
+  "cachedAt": "2026-08-15T22:59:01.731Z",
   "eventId": 252647,
   "eventSlug": "g365-summer-showdown",
   "event": {
@@ -247,7 +247,7 @@
         "Value": 5509955,
         "Name": "5Legacy (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509916",
@@ -274,7 +274,7 @@
         "Value": 5509916,
         "Name": "7 Days (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509933",
@@ -301,7 +301,7 @@
         "Value": 5509933,
         "Name": "7 Days (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509959",
@@ -328,7 +328,7 @@
         "Value": 5509959,
         "Name": "7 Days 14U (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509972",
@@ -355,7 +355,7 @@
         "Value": 5509972,
         "Name": "8 Stars (AK) (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509984",
@@ -382,7 +382,7 @@
         "Value": 5509984,
         "Name": "8 Stars (AK) (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509954",
@@ -409,7 +409,7 @@
         "Value": 5509954,
         "Name": "8 Stars (AK) (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509929",
@@ -436,7 +436,7 @@
         "Value": 5509929,
         "Name": "805 Soldiers (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509960",
@@ -463,7 +463,7 @@
         "Value": 5509960,
         "Name": "94FEETOFGAME 13U (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509919",
@@ -490,7 +490,7 @@
         "Value": 5509919,
         "Name": "Anaheim Select 13U Black (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509953",
@@ -517,7 +517,7 @@
         "Value": 5509953,
         "Name": "Anaheim Select 13U Jr. 3SSB (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509934",
@@ -544,7 +544,7 @@
         "Value": 5509934,
         "Name": "Anaheim Select 13U Orange (13U/7th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509985",
@@ -571,7 +571,7 @@
         "Value": 5509985,
         "Name": "Anaheim Select 17U (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509978",
@@ -598,7 +598,7 @@
         "Value": 5509978,
         "Name": "BBB (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5511329",
@@ -625,7 +625,7 @@
         "Value": 5511329,
         "Name": "Cali Bucks 10U Green (10U/4th Grade Gold)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509902",
@@ -652,7 +652,7 @@
         "Value": 5509902,
         "Name": "Cali Rebels (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509968",
@@ -679,7 +679,7 @@
         "Value": 5509968,
         "Name": "Cali Rebels (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509938",
@@ -706,7 +706,7 @@
         "Value": 5509938,
         "Name": "Campus Basketball (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509872",
@@ -733,7 +733,7 @@
         "Value": 5509872,
         "Name": "Campus Basketball (9U/3rd Grade)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509898",
@@ -760,7 +760,7 @@
         "Value": 5509898,
         "Name": "Chosen Elite (NorCal) (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509941",
@@ -787,7 +787,7 @@
         "Value": 5509941,
         "Name": "Chosen Elite (NorCal) (14U/8th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509879",
@@ -814,7 +814,7 @@
         "Value": 5509879,
         "Name": "Corona Nation 10U Black (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509880",
@@ -841,7 +841,7 @@
         "Value": 5509880,
         "Name": "Corona Nation 10U Blue (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509897",
@@ -868,7 +868,7 @@
         "Value": 5509897,
         "Name": "Corona Nation 12U Black (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509913",
@@ -895,7 +895,7 @@
         "Value": 5509913,
         "Name": "Corona Nation 12U Blue (12U/6th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509923",
@@ -922,7 +922,7 @@
         "Value": 5509923,
         "Name": "Corona Nation 13U Black (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509952",
@@ -949,7 +949,7 @@
         "Value": 5509952,
         "Name": "Corona Nation 13U Blue (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509944",
@@ -976,7 +976,7 @@
         "Value": 5509944,
         "Name": "Corona Nation 13U Jr 3SSB (14U/8th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509948",
@@ -1003,7 +1003,7 @@
         "Value": 5509948,
         "Name": "Corona Nation 14U Blue (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509958",
@@ -1030,7 +1030,7 @@
         "Value": 5509958,
         "Name": "Corona Nation 14U Jr 3SSB (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509870",
@@ -1057,7 +1057,7 @@
         "Value": 5509870,
         "Name": "Corona Nation 9U Black (9U/3rd Grade)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5510285",
@@ -1084,7 +1084,7 @@
         "Value": 5510285,
         "Name": "Creators (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509943",
@@ -1111,7 +1111,7 @@
         "Value": 5509943,
         "Name": "Creators (14U/8th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.915Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509957",
@@ -1138,7 +1138,7 @@
         "Value": 5509957,
         "Name": "Daygo Elite (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509876",
@@ -1165,7 +1165,7 @@
         "Value": 5509876,
         "Name": "GameSpeed Academy 10U Gold (10U/4th Grade Gold)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509903",
@@ -1192,7 +1192,7 @@
         "Value": 5509903,
         "Name": "GameSpeed Academy 12U Gold (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509945",
@@ -1219,7 +1219,7 @@
         "Value": 5509945,
         "Name": "GameSpeed Academy 13U Gold (14U/8th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509917",
@@ -1246,7 +1246,7 @@
         "Value": 5509917,
         "Name": "Gametime (WA) (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509875",
@@ -1273,7 +1273,7 @@
         "Value": 5509875,
         "Name": "GG Hawk Hoops 10U Jr 3SSB (10U/4th Grade Gold)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509896",
@@ -1300,7 +1300,7 @@
         "Value": 5509896,
         "Name": "GG Hawk Hoops 12U Black (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509915",
@@ -1327,7 +1327,7 @@
         "Value": 5509915,
         "Name": "GG Hawk Hoops 12U Orange (12U/6th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509969",
@@ -1354,7 +1354,7 @@
         "Value": 5509969,
         "Name": "GG Hawk Hoops 15U Orange (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509979",
@@ -1381,7 +1381,7 @@
         "Value": 5509979,
         "Name": "GG Hawk Hoops 17U Blue (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509949",
@@ -1408,7 +1408,7 @@
         "Value": 5509949,
         "Name": "Go Off Hoops (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509909",
@@ -1435,7 +1435,7 @@
         "Value": 5509909,
         "Name": "Go Off Hoops (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509892",
@@ -1462,7 +1462,7 @@
         "Value": 5509892,
         "Name": "Go Off Hoops (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509885",
@@ -1489,7 +1489,7 @@
         "Value": 5509885,
         "Name": "Go Off Hoops (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509905",
@@ -1516,7 +1516,7 @@
         "Value": 5509905,
         "Name": "HB Baller4Life 12U (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509937",
@@ -1543,7 +1543,7 @@
         "Value": 5509937,
         "Name": "HB Baller4Life 13U (13U/7th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509947",
@@ -1570,7 +1570,7 @@
         "Value": 5509947,
         "Name": "HB Baller4Life 14U (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509977",
@@ -1597,7 +1597,7 @@
         "Value": 5509977,
         "Name": "HB Baller4Life 16U (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509986",
@@ -1624,7 +1624,7 @@
         "Value": 5509986,
         "Name": "HB Baller4Life 17U (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509987",
@@ -1651,7 +1651,7 @@
         "Value": 5509987,
         "Name": "JSK (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509973",
@@ -1678,7 +1678,7 @@
         "Value": 5509973,
         "Name": "JSK (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509967",
@@ -1705,7 +1705,7 @@
         "Value": 5509967,
         "Name": "JSK (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509877",
@@ -1732,7 +1732,7 @@
         "Value": 5509877,
         "Name": "JSK (10U/4th Grade Gold)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509910",
@@ -1759,7 +1759,7 @@
         "Value": 5509910,
         "Name": "JSK Black (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509899",
@@ -1786,7 +1786,7 @@
         "Value": 5509899,
         "Name": "JSK Blue (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509886",
@@ -1813,7 +1813,7 @@
         "Value": 5509886,
         "Name": "JSK Blue (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509942",
@@ -1840,7 +1840,7 @@
         "Value": 5509942,
         "Name": "JSK Blue (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509956",
@@ -1867,7 +1867,7 @@
         "Value": 5509956,
         "Name": "KBC (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509976",
@@ -1894,7 +1894,7 @@
         "Value": 5509976,
         "Name": "KBC (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509983",
@@ -1921,7 +1921,7 @@
         "Value": 5509983,
         "Name": "KBC (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509939",
@@ -1948,7 +1948,7 @@
         "Value": 5509939,
         "Name": "LA Suns (13U/7th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509883",
@@ -1975,7 +1975,7 @@
         "Value": 5509883,
         "Name": "LA Suns (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509874",
@@ -2002,7 +2002,7 @@
         "Value": 5509874,
         "Name": "Ladera Premier 10U Jr 3SSB (10U/4th Grade Gold)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509878",
@@ -2029,7 +2029,7 @@
         "Value": 5509878,
         "Name": "Ladera Premier 10U White (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509895",
@@ -2056,7 +2056,7 @@
         "Value": 5509895,
         "Name": "Ladera Premier 12U Blue (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509894",
@@ -2083,7 +2083,7 @@
         "Value": 5509894,
         "Name": "Ladera Premier 12U Jr 3SSB (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509911",
@@ -2110,7 +2110,7 @@
         "Value": 5509911,
         "Name": "Ladera Premier 12U Orange (12U/6th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509921",
@@ -2137,7 +2137,7 @@
         "Value": 5509921,
         "Name": "Ladera Premier 13U Blue (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509946",
@@ -2164,7 +2164,7 @@
         "Value": 5509946,
         "Name": "Ladera Premier 14U Blue (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509868",
@@ -2191,7 +2191,7 @@
         "Value": 5509868,
         "Name": "Ladera Premier 9U Blue (9U/3rd Grade)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509881",
@@ -2218,7 +2218,7 @@
         "Value": 5509881,
         "Name": "Level Up Academy (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509925",
@@ -2245,7 +2245,7 @@
         "Value": 5509925,
         "Name": "Level Up Academy (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509871",
@@ -2272,7 +2272,7 @@
         "Value": 5509871,
         "Name": "Lock In Academy (9U/3rd Grade)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509900",
@@ -2299,7 +2299,7 @@
         "Value": 5509900,
         "Name": "Lock In Academy (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509926",
@@ -2326,7 +2326,7 @@
         "Value": 5509926,
         "Name": "Murrieta Valley Basketball Academy (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509914",
@@ -2353,7 +2353,7 @@
         "Value": 5509914,
         "Name": "Murrieta Valley Basketball Academy (12U/6th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509964",
@@ -2380,7 +2380,7 @@
         "Value": 5509964,
         "Name": "Murrieta Valley Basketball Academy (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509887",
@@ -2407,7 +2407,7 @@
         "Value": 5509887,
         "Name": "Newport Waves 11U Black (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509889",
@@ -2434,7 +2434,7 @@
         "Value": 5509889,
         "Name": "Newport Waves 11U Blue (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509904",
@@ -2461,7 +2461,7 @@
         "Value": 5509904,
         "Name": "Newport Waves 12U Blue (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509912",
@@ -2488,7 +2488,7 @@
         "Value": 5509912,
         "Name": "Newport Waves 12U Orange (12U/6th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509950",
@@ -2515,7 +2515,7 @@
         "Value": 5509950,
         "Name": "NorCal Prep (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509893",
@@ -2542,7 +2542,7 @@
         "Value": 5509893,
         "Name": "NorCal Prep (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509962",
@@ -2569,7 +2569,7 @@
         "Value": 5509962,
         "Name": "Northern Elite (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509975",
@@ -2596,7 +2596,7 @@
         "Value": 5509975,
         "Name": "Northern Elite (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509920",
@@ -2623,7 +2623,7 @@
         "Value": 5509920,
         "Name": "Northern Elite Black (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509930",
@@ -2650,7 +2650,7 @@
         "Value": 5509930,
         "Name": "Northern Elite White (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509924",
@@ -2677,7 +2677,7 @@
         "Value": 5509924,
         "Name": "OK Elite (OR) (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509888",
@@ -2704,7 +2704,7 @@
         "Value": 5509888,
         "Name": "OK Elite (OR) (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509940",
@@ -2731,7 +2731,7 @@
         "Value": 5509940,
         "Name": "OK Elite (OR) (14U/8th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509982",
@@ -2758,7 +2758,7 @@
         "Value": 5509982,
         "Name": "OUTWORK ALL (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509901",
@@ -2785,7 +2785,7 @@
         "Value": 5509901,
         "Name": "Pasadena Elite (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509927",
@@ -2812,7 +2812,7 @@
         "Value": 5509927,
         "Name": "Pasadena Elite (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509963",
@@ -2839,7 +2839,7 @@
         "Value": 5509963,
         "Name": "Players Play Black (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509970",
@@ -2866,7 +2866,7 @@
         "Value": 5509970,
         "Name": "Players Play White (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509961",
@@ -2893,7 +2893,7 @@
         "Value": 5509961,
         "Name": "Riptide (AK) (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509981",
@@ -2920,7 +2920,7 @@
         "Value": 5509981,
         "Name": "San Diego Fil Am (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509980",
@@ -2947,7 +2947,7 @@
         "Value": 5509980,
         "Name": "SCBA Spartans (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509971",
@@ -2974,7 +2974,7 @@
         "Value": 5509971,
         "Name": "SCBA Spartans (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509965",
@@ -3001,7 +3001,7 @@
         "Value": 5509965,
         "Name": "SCBA Spartans (15U Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.935Z"
     },
     {
       "id": "public-team-252647-5509906",
@@ -3028,7 +3028,7 @@
         "Value": 5509906,
         "Name": "SCBA Spartans (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5510524",
@@ -3055,7 +3055,7 @@
         "Value": 5510524,
         "Name": "SoCal Crossovers (15U Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509951",
@@ -3082,7 +3082,7 @@
         "Value": 5509951,
         "Name": "SoCal Crossovers (14U/8th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5510527",
@@ -3109,7 +3109,7 @@
         "Value": 5510527,
         "Name": "SoCal Crossovers (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509918",
@@ -3136,7 +3136,7 @@
         "Value": 5509918,
         "Name": "Swoosh (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509908",
@@ -3163,7 +3163,7 @@
         "Value": 5509908,
         "Name": "Team 22 (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509884",
@@ -3190,7 +3190,7 @@
         "Value": 5509884,
         "Name": "Team 22 (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509873",
@@ -3217,7 +3217,7 @@
         "Value": 5509873,
         "Name": "Team 22 (9U/3rd Grade)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509932",
@@ -3244,7 +3244,7 @@
         "Value": 5509932,
         "Name": "Team 22 (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509966",
@@ -3271,7 +3271,7 @@
         "Value": 5509966,
         "Name": "Team Empower (16U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509882",
@@ -3298,7 +3298,7 @@
         "Value": 5509882,
         "Name": "Titanium Hoops (10U/4th Grade Copper/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509907",
@@ -3325,7 +3325,7 @@
         "Value": 5509907,
         "Name": "Titanium Hoops (12U/6th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509931",
@@ -3352,7 +3352,7 @@
         "Value": 5509931,
         "Name": "Titanium Hoops (13U/7th Grade Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5510136",
@@ -3379,7 +3379,7 @@
         "Value": 5510136,
         "Name": "Together on 3 (12U/6th Grade Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5510135",
@@ -3406,7 +3406,7 @@
         "Value": 5510135,
         "Name": "Together on 3 (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5511318",
@@ -3433,7 +3433,7 @@
         "Value": 5511318,
         "Name": "Xalt Hoops (17U)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509890",
@@ -3460,7 +3460,7 @@
         "Value": 5509890,
         "Name": "Yorba Linda 11U Black (11U/5th Grade Silver/Bronze)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509922",
@@ -3487,7 +3487,7 @@
         "Value": 5509922,
         "Name": "Yorba Linda 13U Black (13U/7th Grade Gold/Silver)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509936",
@@ -3514,7 +3514,7 @@
         "Value": 5509936,
         "Name": "Yorba Linda 13U Blue (13U/7th Grade Copper)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     },
     {
       "id": "public-team-252647-5509869",
@@ -3541,7 +3541,7 @@
         "Value": 5509869,
         "Name": "Yorba Linda 9U Black (9U/3rd Grade)"
       },
-      "lastSeenAt": "2026-08-15T22:32:06.916Z"
+      "lastSeenAt": "2026-08-15T22:59:00.936Z"
     }
   ],
   "games": [
@@ -3567,7 +3567,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "7f8b3ee88135c7e532514a33c4c0f2c86f88e66d72f3e15c456cab366fb8c297",
       "rawJson": {
         "source": "public_eventgames",
@@ -3653,7 +3653,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "bb7fcea16d661741275c500be72c99a68c43d400f5e794938818743b83480bc1",
       "rawJson": {
         "source": "public_eventgames",
@@ -3739,7 +3739,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "e675caf7d97dbf3a083012b4bb804b5bda1459460c4072e1968a50a39eccaf16",
       "rawJson": {
         "source": "public_eventgames",
@@ -3825,7 +3825,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "ee8df9a42d080b31b5a89830fb525e8e09ff188d455a3837eb9a30d6e13fff0a",
       "rawJson": {
         "source": "public_eventgames",
@@ -3911,7 +3911,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "a8d51ecd7c339f9ed95f83e5cad2aed47fc676329ba548309e3e9e17d7d96f70",
       "rawJson": {
         "source": "public_eventgames",
@@ -3997,7 +3997,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "be612b106a1b405b91fb866fe65a5c48eab34826354696ebf953034cd4ca951f",
       "rawJson": {
         "source": "public_eventgames",
@@ -4083,7 +4083,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "066c68320371ac9413f1654c535ba44ee28aba6d1f15d4bd12c081b7cac653af",
       "rawJson": {
         "source": "public_eventgames",
@@ -4169,7 +4169,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "77c9ea4cab1687b044101cadecd7a08273091662016b6c982e8a9b28cac57e8d",
       "rawJson": {
         "source": "public_eventgames",
@@ -4255,7 +4255,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "643f55f2a66021f07350ef9346d93a748fffe97f7196f14573c3e2ffbcbed56d",
       "rawJson": {
         "source": "public_eventgames",
@@ -4341,7 +4341,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.124Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "62c6f3a9ca869eda2532bd72d3ed865a36dc5a7471fc77c534c8b830b47bb237",
       "rawJson": {
         "source": "public_eventgames",
@@ -4427,7 +4427,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.125Z",
+      "updatedAt": "2026-08-15T22:59:01.118Z",
       "sourceHash": "bef42ee926fcafdaefd9cbed212e50a5df2efbd08bda0c22200229468f018349",
       "rawJson": {
         "source": "public_eventgames",
@@ -4513,7 +4513,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.122Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "c67307b6e7d42c6135f07a336d7e5c229088563504566994e3972bdde55df657",
       "rawJson": {
         "source": "public_eventgames",
@@ -4599,7 +4599,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.122Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "16b8cfb02a306f518a40576fe8c2b4186d387114bdd3a52af01cff72d0b5306e",
       "rawJson": {
         "source": "public_eventgames",
@@ -4685,7 +4685,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "1ac4e2d61294ae2f74892676d6d15a7c9687545b4b9b424c081efd9a969f0145",
       "rawJson": {
         "source": "public_eventgames",
@@ -4771,7 +4771,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "aa3dfe7f168fdf9cc6bbff2bf6d16c8977b6e20c7711b381aa07d35e2a36a0aa",
       "rawJson": {
         "source": "public_eventgames",
@@ -4857,7 +4857,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "1c4ae14bce5c4925ca72188248e81e8780fd077c9f2535888993e387d2e04b6f",
       "rawJson": {
         "source": "public_eventgames",
@@ -4943,7 +4943,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "9f4dc0fd4410814d28ae069f9f057b406ec47ac5dae2007ebbc3faa56c3de353",
       "rawJson": {
         "source": "public_eventgames",
@@ -5029,7 +5029,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.116Z",
       "sourceHash": "8adcbf7682d72136e5a5731f1d894d2796322e6d09bbbaff4729bfd16c6aaa8e",
       "rawJson": {
         "source": "public_eventgames",
@@ -5115,7 +5115,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "c98f422874c44b5392f5a93970aa101b3dbfe068abc236ad8d0fbefb713f24fa",
       "rawJson": {
         "source": "public_eventgames",
@@ -5201,7 +5201,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "230ddae202078ce8fe2f28944808264286b88c7fbeaa341f09a332c7d226ea33",
       "rawJson": {
         "source": "public_eventgames",
@@ -5287,7 +5287,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "871aa650018cf3a6486e7059f5f8bac0875a12e04be1860681176f94f1797cfd",
       "rawJson": {
         "source": "public_eventgames",
@@ -5373,7 +5373,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.123Z",
+      "updatedAt": "2026-08-15T22:59:01.117Z",
       "sourceHash": "8894d23764fc9d6846c0be436b1c9e5eeebba6073aa66c5c7105cb95358d58e7",
       "rawJson": {
         "source": "public_eventgames",
@@ -5459,7 +5459,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.125Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "4dfe1323317624ffd79b764760ac3fa4783bddee2e51461d08e939c609d63515",
       "rawJson": {
         "source": "public_eventgames",
@@ -5545,7 +5545,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.125Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "7e70023090f7fd6060b45bc61c1a795a12e566e78cfa9edc56a61c7d32c8556e",
       "rawJson": {
         "source": "public_eventgames",
@@ -5631,7 +5631,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "8e5960eb1f87a3264334c1cb7671d10ca063db49dc32219dbd444d5d66b50412",
       "rawJson": {
         "source": "public_eventgames",
@@ -5717,7 +5717,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "7777691acdd134558517be58e7ebb60e5d16ed814e1efe66e73ec966c240bc62",
       "rawJson": {
         "source": "public_eventgames",
@@ -5803,7 +5803,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "8e7de10ef82eabed254bcdb1b8fb8a485d9170d407d5766b8f415a93b7ae1a43",
       "rawJson": {
         "source": "public_eventgames",
@@ -5889,7 +5889,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "865e3fc5afd92fc984dfa398dd5bde7962ca78cd0d86cd0226836af1a51674fe",
       "rawJson": {
         "source": "public_eventgames",
@@ -5975,7 +5975,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "5caa46461c8d57f3c3f9253ac18d4920bdb20783172e68d844fc62998c791509",
       "rawJson": {
         "source": "public_eventgames",
@@ -6061,7 +6061,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.121Z",
       "sourceHash": "0ef9cf3cfabd50059bceff4e6618f99e6406f7ad29e4a10d98b2f57a883c1a16",
       "rawJson": {
         "source": "public_eventgames",
@@ -6147,7 +6147,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "a93e6cc313534b8b76137031eb0fffa5c77333fd3ec5682c66e4a6bc1bc4ab28",
       "rawJson": {
         "source": "public_eventgames",
@@ -6233,7 +6233,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "9129a93164b725223745365a864ea4110b2108734c7290870a9bbfa4e923aa98",
       "rawJson": {
         "source": "public_eventgames",
@@ -6319,7 +6319,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.126Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "e8cf53cf2641641c32dc4162bb0a8378c8d0acaaf8ff70f7935acaa4b5026a72",
       "rawJson": {
         "source": "public_eventgames",
@@ -6405,7 +6405,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.127Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "273ad82d99f37fe1ef278a7918078f5aab2ba05513c54b7efebea4493f1d15aa",
       "rawJson": {
         "source": "public_eventgames",
@@ -6491,7 +6491,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.127Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "748f32e3c2f340dc8722ddba3dad94d248b393b7da243433d7fc3c5ff2a7ee23",
       "rawJson": {
         "source": "public_eventgames",
@@ -6577,7 +6577,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.127Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "98488f3ad66295a8c63fb310fc071395b11a13fba3f93a976745294fd16f1479",
       "rawJson": {
         "source": "public_eventgames",
@@ -6663,7 +6663,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.128Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "ea499580df6b82943314bcd1d910a6def33eded67c3b7da2af9b1e9a97938d52",
       "rawJson": {
         "source": "public_eventgames",
@@ -6749,7 +6749,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.128Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "070afd085ff1af58cf66e7cc6a3f1f11cde27f721daab2438351a402588dcd67",
       "rawJson": {
         "source": "public_eventgames",
@@ -6835,7 +6835,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.128Z",
+      "updatedAt": "2026-08-15T22:59:01.122Z",
       "sourceHash": "61b7a16d1d691b04d9b96ccb3974f732f344a378619d8a4782c2f9f4b433c9b3",
       "rawJson": {
         "source": "public_eventgames",
@@ -6921,7 +6921,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "3c7a56e8b143f878e8509e1fc831b8d88e19103caa0b56d9cffd502a05579f38",
       "rawJson": {
         "source": "public_eventgames",
@@ -7007,7 +7007,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "3d22f54f94783949439e99a00dc5182785876beb5f5429ee5c4a1a687ff7c5e2",
       "rawJson": {
         "source": "public_eventgames",
@@ -7093,7 +7093,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "ce709bd1e6c7945cbe6a203d05cc4a4d70dd4c0fd506a2dc1973a0621a7df4a3",
       "rawJson": {
         "source": "public_eventgames",
@@ -7179,7 +7179,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "98cd32eb7e33e0834d66599732b9271ca607107fc926184fd6ff797106db997e",
       "rawJson": {
         "source": "public_eventgames",
@@ -7265,7 +7265,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "cd01fa35874fa39f2635f0a0c24d334059be578356b99d0cac75d331e40f0fb7",
       "rawJson": {
         "source": "public_eventgames",
@@ -7351,7 +7351,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "d4f71a8d3bbc83118d311cb1ef1a01a8939faf3f191eced41520cb7083853cf9",
       "rawJson": {
         "source": "public_eventgames",
@@ -7437,7 +7437,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "d6f555037920c52764edbbc2c622592a2deb53405b57a8ecf1cc9cd0b27c92e1",
       "rawJson": {
         "source": "public_eventgames",
@@ -7523,7 +7523,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "e9bc37fdfd038a1ce07403e329238aa2a89296d105247d68a57ec5f3308d15df",
       "rawJson": {
         "source": "public_eventgames",
@@ -7609,7 +7609,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "248e1f42279484e8bc89a0973ca051f934f25ee834bcbdbb41b901caa928c9b5",
       "rawJson": {
         "source": "public_eventgames",
@@ -7695,7 +7695,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.129Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "031ce86bcfc8cbff8701cae10500fc54b6beb4299163c790d1825d53864af7d2",
       "rawJson": {
         "source": "public_eventgames",
@@ -7781,7 +7781,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.119Z",
       "sourceHash": "0c0750afcc8ed55990b339a23b120794c25aaec08f52a5c7c2257153ddd6d62f",
       "rawJson": {
         "source": "public_eventgames",
@@ -7867,7 +7867,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "f9f4e60c61ff09d6012a1cdd601bf307c1cba2b675f78b3590fb72a3b3d5a2ab",
       "rawJson": {
         "source": "public_eventgames",
@@ -7953,7 +7953,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "05da33d7a6eab4ebd4d48f4630b5e3c4562770be20b79cb11ba9bdebf8e38a12",
       "rawJson": {
         "source": "public_eventgames",
@@ -8039,7 +8039,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "5120f2ef2cf5f1259664d04c90e637229ca462155c853d230acd9900a171c4f8",
       "rawJson": {
         "source": "public_eventgames",
@@ -8125,7 +8125,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "c24c19a21ef6e0feaaaae8a53145e5cb0f69f9edd14c3cdbe998f86486a7dec7",
       "rawJson": {
         "source": "public_eventgames",
@@ -8211,7 +8211,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "1deee11a73f9380dfb0410b9b25d559126171ca1b77c6f16e412dbd6be25a268",
       "rawJson": {
         "source": "public_eventgames",
@@ -8297,7 +8297,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "9bbc35c118440cf74a1994d012933bf28fe673a10a05a352bd2be51da319e8bc",
       "rawJson": {
         "source": "public_eventgames",
@@ -8383,7 +8383,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.130Z",
+      "updatedAt": "2026-08-15T22:59:01.120Z",
       "sourceHash": "99482bbd328c84e90d503da783cb981694173d6d717dd892580d81434032662f",
       "rawJson": {
         "source": "public_eventgames",
@@ -8469,7 +8469,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.276Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "73e1375c566b46f84a44ffcc5a66933fb7b906bc843c3e61518d46a87160aab3",
       "rawJson": {
         "source": "public_eventgames",
@@ -8555,7 +8555,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.276Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "637992d48ec7cf64c617ff00f092f56917cdb23594f978bfca354611db1552e0",
       "rawJson": {
         "source": "public_eventgames",
@@ -8641,7 +8641,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "ff8ca701e5a2cfcbb0716c9b0d9743256146f8b21c6aec565832b6625773c21c",
       "rawJson": {
         "source": "public_eventgames",
@@ -8727,7 +8727,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "9ee013516a86374932e3b3a75d0a7b13068901819fda59928fb610699395eaed",
       "rawJson": {
         "source": "public_eventgames",
@@ -8813,7 +8813,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "4f5dab0c7a2da1faf82176be9383ba0ed296d5b4bdf09a9bdd1db7db1264bc59",
       "rawJson": {
         "source": "public_eventgames",
@@ -8899,7 +8899,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "2088b826eda3559c3a3165e35af0de620f38784c6acc139f85f9dded1a785c84",
       "rawJson": {
         "source": "public_eventgames",
@@ -8985,7 +8985,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "6bd3b4f6b075eb326b08282f07351ee2e5d080c94947367362a045df81ce9c03",
       "rawJson": {
         "source": "public_eventgames",
@@ -9071,7 +9071,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "abe12d96324b3fca3741da34f343b0ae993e80ad0458658a8ad9c2887fd724b0",
       "rawJson": {
         "source": "public_eventgames",
@@ -9157,7 +9157,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.278Z",
       "sourceHash": "c00729466cc52b77e129a60f552977ad17d23a209f000c80a5bd0281a9564899",
       "rawJson": {
         "source": "public_eventgames",
@@ -9243,7 +9243,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "45e0fe251cec7ab55fd98df1531be78eda2114d34b7081daf75ba2ded54147e0",
       "rawJson": {
         "source": "public_eventgames",
@@ -9329,7 +9329,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "bf5ec1c5fc03399a5400b9f9cfb84200a4ea08ddf50752b43a9fc3894afd07df",
       "rawJson": {
         "source": "public_eventgames",
@@ -9415,7 +9415,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "8bfceab4dab799767cd52bfd0bfb18646ae9129db9c4a9fdc52173d2787f261e",
       "rawJson": {
         "source": "public_eventgames",
@@ -9501,7 +9501,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "bab27c8493090f050819758efbb5970b2b2ed94663f5a5a11613d36f071e8dcb",
       "rawJson": {
         "source": "public_eventgames",
@@ -9587,7 +9587,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "582120f443526176fcf93f5bdfb378a89cfe5ebb266032c802762c1db355e00b",
       "rawJson": {
         "source": "public_eventgames",
@@ -9673,7 +9673,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "d492a2017c9c08e96feda47ddc36250e1abab5bf9a8ada45c2a860aace86cd0f",
       "rawJson": {
         "source": "public_eventgames",
@@ -9759,7 +9759,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "d81b38a0ed2bdce606f3a72308d101bd1dd7a19568d77e5aa6df2571b839577a",
       "rawJson": {
         "source": "public_eventgames",
@@ -9845,7 +9845,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.277Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "094c2054dd1965be5a85271de5ca4aae34d899426223f3e9c8d978130ba188a9",
       "rawJson": {
         "source": "public_eventgames",
@@ -9931,7 +9931,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.278Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "6f7bdedcde7e3c39a2e9ebc1d20371fa4bc8bc4dbda7e88666419eb239b046ae",
       "rawJson": {
         "source": "public_eventgames",
@@ -10017,7 +10017,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.278Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "8ab71a28786587fa756045961cff7eaa4b079141a9285762e4e603802c834e24",
       "rawJson": {
         "source": "public_eventgames",
@@ -10103,7 +10103,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.278Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "ec438f2dc9e30c0e33e81460bfab59e8db3ea88be52024f2d25f08c3698962c4",
       "rawJson": {
         "source": "public_eventgames",
@@ -10189,7 +10189,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.278Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "fbe1e9db2ca30cdb584bc51d354fdddad8788899be839eac8dc11dab1961a3b2",
       "rawJson": {
         "source": "public_eventgames",
@@ -10275,7 +10275,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.278Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "cffe17b5b0105ecb692da1648f5c17fd698f6b4e673a73ad3739e91b57dc6fb6",
       "rawJson": {
         "source": "public_eventgames",
@@ -10361,7 +10361,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.278Z",
+      "updatedAt": "2026-08-15T22:59:01.279Z",
       "sourceHash": "362358790b0b929a2d4a77ef876c2ebef0ecdfc04d8742860c719d6e2a6cf68c",
       "rawJson": {
         "source": "public_eventgames",
@@ -10447,7 +10447,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.276Z",
       "sourceHash": "6d78c6f6bfca88ccbebf060fbca99fedd9a8ab335e61111b2d2f22ff011632d0",
       "rawJson": {
         "source": "public_eventgames",
@@ -10533,7 +10533,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.276Z",
       "sourceHash": "2abd9236d9d9d8beeea38a2dca135619e90c13186009c39f716b51fb78f9e268",
       "rawJson": {
         "source": "public_eventgames",
@@ -10619,7 +10619,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.276Z",
       "sourceHash": "edfafbdae44c5c14d69a00030be1141502a10727ffc25712d2845eae09601b7f",
       "rawJson": {
         "source": "public_eventgames",
@@ -10705,7 +10705,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.276Z",
       "sourceHash": "6e9cbf1bb0fe71abe072b4a744d3b0ea2759830d5e9d1cbd699a196912514b69",
       "rawJson": {
         "source": "public_eventgames",
@@ -10791,7 +10791,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.276Z",
       "sourceHash": "58ed56552de39df2da8cf1d5285359eca520fca2dcb8686e0191b593a0ff2b1b",
       "rawJson": {
         "source": "public_eventgames",
@@ -10877,7 +10877,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "aeea1cd376b4b0986893871b6278b88e3a366f68322de9dc72e58ef3f5c2b499",
       "rawJson": {
         "source": "public_eventgames",
@@ -10963,7 +10963,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "87d3b58ef8ed6ca8af6563d9b411dbfef74bbba737451601e336074fadad023c",
       "rawJson": {
         "source": "public_eventgames",
@@ -11049,7 +11049,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "46428193e21386425ef00ac7d9c71a25a1fc2691f0a96b60f5472ad3ef87ec5f",
       "rawJson": {
         "source": "public_eventgames",
@@ -11135,7 +11135,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "e68f7b6996db1ddb53477c6ef6859b6dde16b5cb752434f9bcdea98245d21240",
       "rawJson": {
         "source": "public_eventgames",
@@ -11221,7 +11221,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "0e795694f8c61d91e9fa6dc75615bd04d822fa9a8385dc72cf325bcb4a7bb994",
       "rawJson": {
         "source": "public_eventgames",
@@ -11307,7 +11307,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "da12123b4c59ae9cbbc93e60ed88bd49db3f492ffe943fa621d2e167b6f76859",
       "rawJson": {
         "source": "public_eventgames",
@@ -11393,7 +11393,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.275Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "90e58e809a5c7315a385994f1b56a236a6d57afc88fd88dafa701b33d84baa0a",
       "rawJson": {
         "source": "public_eventgames",
@@ -11479,7 +11479,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.276Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "573f9d391df20cf4c47891d9ea4e0573a550a28553cf6a976f93b86b4aa50ac7",
       "rawJson": {
         "source": "public_eventgames",
@@ -11565,7 +11565,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.276Z",
+      "updatedAt": "2026-08-15T22:59:01.277Z",
       "sourceHash": "854a281d8c0f651d683077005c9aec2ccee5996546979102c8aed804414e3c0f",
       "rawJson": {
         "source": "public_eventgames",
@@ -11651,7 +11651,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "a56d33b841c3133bb49d79a609690c9e6caca46957f85e20e85ad0d21c73c90e",
       "rawJson": {
         "source": "public_eventgames",
@@ -11737,7 +11737,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "3059a56fd54e59b3b78a50c1b5f9627697aed87c133df744d535298548383839",
       "rawJson": {
         "source": "public_eventgames",
@@ -11823,7 +11823,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "b4638202b6ba42bbcd47a814a5466a9d1f442038018823297c238730f4dc0bb0",
       "rawJson": {
         "source": "public_eventgames",
@@ -11909,7 +11909,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "73e4bbc396717753e556cb54956e48abd91f0e7d2bee250c2bc2bc7ff76f8e9c",
       "rawJson": {
         "source": "public_eventgames",
@@ -11995,7 +11995,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "a7f0ffebc92d97573d75131f215efb9db5102d16e65a4409a91fa415c6c2bd3f",
       "rawJson": {
         "source": "public_eventgames",
@@ -12081,7 +12081,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "4b4ebcee1690cbecce5dccb41f91393c7db37099bb811f56d7d17ab8ccc1038a",
       "rawJson": {
         "source": "public_eventgames",
@@ -12167,7 +12167,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "625fbcc8eba105afa66dcd6602b1f21ae0454a605b71f4587339800d56b09383",
       "rawJson": {
         "source": "public_eventgames",
@@ -12253,7 +12253,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.280Z",
       "sourceHash": "e50aee4e8ff8e71c91e3d2fbd054111deec16ce69dbdafe6a24dd3dc9464057d",
       "rawJson": {
         "source": "public_eventgames",
@@ -12339,7 +12339,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.281Z",
       "sourceHash": "012610d45929bcedcc53e7c60b7b106e65b8a9acf543546bd9f0133ac0d03d0e",
       "rawJson": {
         "source": "public_eventgames",
@@ -12425,7 +12425,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.281Z",
       "sourceHash": "9dd82c344d7e313149b9b01a1fde4515c4001aaa8ef9f58546afd2ca222e360f",
       "rawJson": {
         "source": "public_eventgames",
@@ -12511,7 +12511,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.283Z",
+      "updatedAt": "2026-08-15T22:59:01.281Z",
       "sourceHash": "98b263a5408b762f2ea7c2394f2f9884140e33181a82c404d702953f75837016",
       "rawJson": {
         "source": "public_eventgames",
@@ -12597,7 +12597,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.281Z",
       "sourceHash": "25bc0ca475a1f64d5840178a5e5139605bcbf0cd95e7922b0beb82f7e7826e6e",
       "rawJson": {
         "source": "public_eventgames",
@@ -12683,7 +12683,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.281Z",
       "sourceHash": "f3bc900422c5ed9f30ec6c0768ec17612ef24114346766e0a7be714ab2233a9b",
       "rawJson": {
         "source": "public_eventgames",
@@ -12769,7 +12769,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.281Z",
       "sourceHash": "90585db4dbbdbbc42a43f5e2d1d4eaa933775ad0c67e6e160b560b15bada594e",
       "rawJson": {
         "source": "public_eventgames",
@@ -12855,7 +12855,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "82e6cef448a1e26b43c4cb0f3d43792b20c361a8b6873ee41724dab56b3beb92",
       "rawJson": {
         "source": "public_eventgames",
@@ -12941,7 +12941,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "28c3e5e714320ddfda293253dd71e532de8bc84fb9f3e3788fd3c8b2be2c7bf0",
       "rawJson": {
         "source": "public_eventgames",
@@ -13027,7 +13027,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "7968914effc43a49c3651337c94b3ae70ca77746d5133b21d746b1f8a855d634",
       "rawJson": {
         "source": "public_eventgames",
@@ -13113,7 +13113,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "79f67022a27a8dfb609dcc111579543b256863ca399784eeda1c29b99f250461",
       "rawJson": {
         "source": "public_eventgames",
@@ -13199,7 +13199,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "a551babb70ed3fc973d2d2ab53f3fedd1caf37e724c12ca3cb71151403b7d338",
       "rawJson": {
         "source": "public_eventgames",
@@ -13285,7 +13285,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "7a962086f8d8d835d606beb0091fa2f687f16181284ba4a4b2fa30c21920ca43",
       "rawJson": {
         "source": "public_eventgames",
@@ -13371,7 +13371,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "ea73a50d6ab3bd81b1063548e69383aeb31db484cb959c156a4d8dbcd9a82c2d",
       "rawJson": {
         "source": "public_eventgames",
@@ -13457,7 +13457,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "d41917633745b2d7b96e756e46229b560049c23710b343135de59fb285f9de45",
       "rawJson": {
         "source": "public_eventgames",
@@ -13543,7 +13543,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.284Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "c92291d8df08ac0cdd1a2d6baa942ef14ff6b1155c1c9875c50baf3b5d361f13",
       "rawJson": {
         "source": "public_eventgames",
@@ -13629,7 +13629,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.285Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "2ee2b43e4cf7df3d44a7db6b8f6e282e20ed23cda97479557b3ef4f7d1a7e6a2",
       "rawJson": {
         "source": "public_eventgames",
@@ -13715,7 +13715,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.285Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "9ae77f9397dd5e308d63c8dadb897e1adcdfbc139fb15bafe04babc08cd24882",
       "rawJson": {
         "source": "public_eventgames",
@@ -13801,7 +13801,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.285Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "9d74afe989254a8b611823aab52dbc7e8621613f52fdea599c60bfbac6fa5f22",
       "rawJson": {
         "source": "public_eventgames",
@@ -13887,7 +13887,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.285Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "f99b81e0e649f3a29200de04263e0c7a005d8d7cc227239e43054562045bc0bd",
       "rawJson": {
         "source": "public_eventgames",
@@ -13973,7 +13973,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.285Z",
+      "updatedAt": "2026-08-15T22:59:01.282Z",
       "sourceHash": "9e71c35b36c18dc771e71f3a70370fbb0a59acbcadf7bb28af033b3e8d69fced",
       "rawJson": {
         "source": "public_eventgames",
@@ -14059,7 +14059,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "5609cfc646e62ca5958d37f062b9fcb2baaa11ac6c97a8ee2446b34c3751255c",
       "rawJson": {
         "source": "public_eventgames",
@@ -14145,7 +14145,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "690812af674347313d5af6bb7c0bae8c7db55f71455bea82902bf84c1b239e7e",
       "rawJson": {
         "source": "public_eventgames",
@@ -14231,7 +14231,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "f9aa4b39ed8afe8425622538aa2cf5f8fcd0bed5eafd062f9656717c79138310",
       "rawJson": {
         "source": "public_eventgames",
@@ -14317,7 +14317,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "7b6ae318179b190171c4ab0479572232de81589e26d320fd807d0b9418430ab1",
       "rawJson": {
         "source": "public_eventgames",
@@ -14403,7 +14403,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "cce670462ea596fa8dcc0bc1043b2c9ab946886195c004e6207f58bcca224ccd",
       "rawJson": {
         "source": "public_eventgames",
@@ -14489,7 +14489,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "1abb854365ca4f155b01bf19b20fc794ad4c8ccb5130c1eaf8f880660ff93131",
       "rawJson": {
         "source": "public_eventgames",
@@ -14575,7 +14575,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.440Z",
       "sourceHash": "647ecc6a6fe6025c60dc560ac05749d0b102601e88fbebd3859f710ab9f64c64",
       "rawJson": {
         "source": "public_eventgames",
@@ -14661,7 +14661,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "d2450e198b049f6d42afe137518f841af4603d9f4a0e7bf466a4a3bb45d3b0d5",
       "rawJson": {
         "source": "public_eventgames",
@@ -14747,7 +14747,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "7b8cb9955092e7d8cc5893a50a9600be0ec3dc9c44a0f0641feccee74aeee361",
       "rawJson": {
         "source": "public_eventgames",
@@ -14833,7 +14833,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "791db08c2912074b51004f5e4958139ad212e366266edbad4230338fbfe512ad",
       "rawJson": {
         "source": "public_eventgames",
@@ -14919,7 +14919,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "d8c3226841564f75c02d2f5bd8d5b130dcd182d1d8291b6990de07d5a05a56f5",
       "rawJson": {
         "source": "public_eventgames",
@@ -15005,7 +15005,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "4ebf33d9b6e5339eee68e58cb11eda164f0d831e11d39b20f0a2af135fa17d51",
       "rawJson": {
         "source": "public_eventgames",
@@ -15091,7 +15091,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "54d564661888fe0535409735ed46d17a85f139090bc37561b5597f7a7d816ce3",
       "rawJson": {
         "source": "public_eventgames",
@@ -15177,7 +15177,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "9c258227acb65250c1cff6d13f52a820723759037f358d9ddbc0d2a1f26e8a83",
       "rawJson": {
         "source": "public_eventgames",
@@ -15263,7 +15263,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.427Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "586babbda1d1c5457a122046c740d78ce16acda80b0191fb3205ce3f33b95422",
       "rawJson": {
         "source": "public_eventgames",
@@ -15349,7 +15349,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "8dd133024491dc2ce6e7350055464f1042828bc5de180b3e2c3ea5cc8526dc45",
       "rawJson": {
         "source": "public_eventgames",
@@ -15435,7 +15435,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "efb718c3e9354fac2e1331946a4a819e06cd64dd791487328be668013d186a4a",
       "rawJson": {
         "source": "public_eventgames",
@@ -15521,7 +15521,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "8445ed76d88f9de44cf261d162a00b04ddde575a83d73c03bdfc11afd3cd209d",
       "rawJson": {
         "source": "public_eventgames",
@@ -15607,7 +15607,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "23190f3a8a739db5ddeff7f750a15b0148220009aa45de0fce25574f3f79df76",
       "rawJson": {
         "source": "public_eventgames",
@@ -15693,7 +15693,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "38512f7f6ffd2ac8ba6447d032509e2acedcfbb7a7a3e12beda718bf0bfed90a",
       "rawJson": {
         "source": "public_eventgames",
@@ -15779,7 +15779,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.441Z",
       "sourceHash": "a61c29ba4e96429c9ccf6e0be4788dd51a1aafc6d56b50c1ffe30255984e79a2",
       "rawJson": {
         "source": "public_eventgames",
@@ -15865,7 +15865,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.437Z",
       "sourceHash": "52f7fcf0cb40392a82c2023d774615299104b69c41561dda16f5ee165f69d89d",
       "rawJson": {
         "source": "public_eventgames",
@@ -15951,7 +15951,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.437Z",
       "sourceHash": "c37eac11b56319281ffb758eac09268507e2da259ba59dc4086cc49b5c7e1172",
       "rawJson": {
         "source": "public_eventgames",
@@ -16037,7 +16037,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.428Z",
+      "updatedAt": "2026-08-15T22:59:01.438Z",
       "sourceHash": "b63d36977173436a5f490ae6994b52f433f02a8e2a5824b2780e2298d6c421c6",
       "rawJson": {
         "source": "public_eventgames",
@@ -16123,7 +16123,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.429Z",
+      "updatedAt": "2026-08-15T22:59:01.438Z",
       "sourceHash": "400f0e94612e3a87c0e6d70adab3ab9c253362e13c0445f1e44828074bf49fcc",
       "rawJson": {
         "source": "public_eventgames",
@@ -16209,7 +16209,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.429Z",
+      "updatedAt": "2026-08-15T22:59:01.438Z",
       "sourceHash": "54fc37d5719bffd51b55477b955ed663dba07fec90e2ccbfb54ed13fbb03b2e1",
       "rawJson": {
         "source": "public_eventgames",
@@ -16295,7 +16295,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.429Z",
+      "updatedAt": "2026-08-15T22:59:01.438Z",
       "sourceHash": "6944948110a3b57ccfd27dc1270aa09aa31af45223fab03bc020b6045da4a79b",
       "rawJson": {
         "source": "public_eventgames",
@@ -16381,7 +16381,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.429Z",
+      "updatedAt": "2026-08-15T22:59:01.438Z",
       "sourceHash": "9ca930813979aa2c5f0aa8d7d95e50876b86cb86684940544faf535019b8783e",
       "rawJson": {
         "source": "public_eventgames",
@@ -16467,7 +16467,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.429Z",
+      "updatedAt": "2026-08-15T22:59:01.438Z",
       "sourceHash": "05440917da3ed0749925f6aa3c391c5992426158bf310d5289e3565cb4c1dcb6",
       "rawJson": {
         "source": "public_eventgames",
@@ -16553,7 +16553,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "adeacd87b2ffbb1d261f1d2ee4395e4725aaf788b16e021a1750b0373a156bde",
       "rawJson": {
         "source": "public_eventgames",
@@ -16639,7 +16639,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "a71b66db38cbb43c1622de91fcff9b0d29513872d800a263b909f29929a6f82c",
       "rawJson": {
         "source": "public_eventgames",
@@ -16725,7 +16725,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "80a4d0d5c60f164839267050430feff25e0c1acd13bfe9fdb37a453c47eab195",
       "rawJson": {
         "source": "public_eventgames",
@@ -16811,7 +16811,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "b6e08ff49e38e97b49c016dcb8c550fc2384f8a544027af47a5b27c6486818ec",
       "rawJson": {
         "source": "public_eventgames",
@@ -16897,7 +16897,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "2e042bf84fd3d97e70d64e5c9ccf9a664cb257490fd81ce18b80204840f1f7df",
       "rawJson": {
         "source": "public_eventgames",
@@ -16983,7 +16983,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "0283771981e807dfc1cc561f0fbf765986e2d0874d8c01c7ded03208b19cfd85",
       "rawJson": {
         "source": "public_eventgames",
@@ -17069,7 +17069,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "939bcd0fc9f729148ef1047b6a84d2a73d6dc2c42be5975def139a95c692025f",
       "rawJson": {
         "source": "public_eventgames",
@@ -17155,7 +17155,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "0922ad4734da0a82c67223a153a0713e563f86fd03fe41a64318aa04dbc3f7b3",
       "rawJson": {
         "source": "public_eventgames",
@@ -17241,7 +17241,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "60c2b759fed2f2c2dcd93093e52302bc92acc633227848fb1b658c6b0a4bab0b",
       "rawJson": {
         "source": "public_eventgames",
@@ -17327,7 +17327,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "78fc6333df807569324b77d0322968bb71651033fa67e64a7e715bd80f958e0d",
       "rawJson": {
         "source": "public_eventgames",
@@ -17413,7 +17413,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.432Z",
+      "updatedAt": "2026-08-15T22:59:01.439Z",
       "sourceHash": "5a31efd9712b80dbfe48e049eaa8ff72852618322d7e343276c80b9145af5920",
       "rawJson": {
         "source": "public_eventgames",
@@ -17499,7 +17499,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.437Z",
+      "updatedAt": "2026-08-15T22:59:01.442Z",
       "sourceHash": "433c34d756d39aba6fd155f4a56fd349cecb8bba634fa2424b0cc9a0b03f2799",
       "rawJson": {
         "source": "public_eventgames",
@@ -17585,7 +17585,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.437Z",
+      "updatedAt": "2026-08-15T22:59:01.442Z",
       "sourceHash": "fd9a54d5f2686a83057fa79152a438e190f0f8277117c111caec96676bb4c1be",
       "rawJson": {
         "source": "public_eventgames",
@@ -17671,7 +17671,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.442Z",
       "sourceHash": "a0d525aeab2977d3ca068df3246d4f07548f268290efe1ed1c98e1d6a90a55bd",
       "rawJson": {
         "source": "public_eventgames",
@@ -17757,7 +17757,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.442Z",
       "sourceHash": "2674824d9d768def8a2ecd09c0cd99c17c2fbee475d8e2a2720bf4e6259a426a",
       "rawJson": {
         "source": "public_eventgames",
@@ -17843,7 +17843,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.442Z",
       "sourceHash": "62aa6b6e7a3918db756012320f0e026c3fb3a62670026b88472b92c24abaa487",
       "rawJson": {
         "source": "public_eventgames",
@@ -17929,7 +17929,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "9598d6f026b6aeca17591e07b58296249ba057733c03f81a4d93defcab1fb8f2",
       "rawJson": {
         "source": "public_eventgames",
@@ -18015,7 +18015,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "89e35560a43b2a66e90b2339a85cf9cca19d5ec14dbc2d35b9bfb20256cfbc0b",
       "rawJson": {
         "source": "public_eventgames",
@@ -18101,7 +18101,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "bcd71e13a997ad35f40cfe368afdde5d2e3d5b1024fd3b4beeb072d6daf10c0a",
       "rawJson": {
         "source": "public_eventgames",
@@ -18187,7 +18187,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "cc453b670add1007769f292b780b4a17f3e1226ac223d1de05800627cc744226",
       "rawJson": {
         "source": "public_eventgames",
@@ -18273,7 +18273,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "5bd8cfcac25aef57ef779419aad3a841138e0a750d8cb51c40ced03a828bd082",
       "rawJson": {
         "source": "public_eventgames",
@@ -18359,7 +18359,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "40f74974944f11126a1e30c08e492ee09870da7402c4a1fc0eef2fc605dd9ab9",
       "rawJson": {
         "source": "public_eventgames",
@@ -18445,7 +18445,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "8142aeb51dd42a6a2280bff2ac21f752b6aae3863e28d6c51623ed6cb5f4d594",
       "rawJson": {
         "source": "public_eventgames",
@@ -18531,7 +18531,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "06d932d4d54212d007947176883bfb9ae37fc28ed919f530dd4c1bb728e36151",
       "rawJson": {
         "source": "public_eventgames",
@@ -18617,7 +18617,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "a65d4b20777c21f543ddf17b5b69e4f12cba7e16794dd2adffef017a6848bba1",
       "rawJson": {
         "source": "public_eventgames",
@@ -18703,7 +18703,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "8ba0f8d2771bf697872c86ffd3a6c112783215c4105d9fe55facc11a4aa4b786",
       "rawJson": {
         "source": "public_eventgames",
@@ -18789,7 +18789,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "37b8e10987836969942c56fa31f465ef1b778dd363f371faf4190bead2cf0577",
       "rawJson": {
         "source": "public_eventgames",
@@ -18875,7 +18875,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "52812eb37748eec01e52ae97a382d9b5a5b7fb997e2914f196445fb437533c3c",
       "rawJson": {
         "source": "public_eventgames",
@@ -18961,7 +18961,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "6d9de40884a56106f4288366ed1052ff37acd1e2c9c0e6b741e9716f14878a38",
       "rawJson": {
         "source": "public_eventgames",
@@ -19047,7 +19047,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.438Z",
+      "updatedAt": "2026-08-15T22:59:01.443Z",
       "sourceHash": "ef5305557211a2c7c20766c9407aaa0c83c0275d8af2b58ab6548203bf7746cf",
       "rawJson": {
         "source": "public_eventgames",
@@ -19133,7 +19133,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.578Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "fecc98310f1053734d62b72973ac01c52705d7b6d5d9447f223dfb942245dc4f",
       "rawJson": {
         "source": "public_eventgames",
@@ -19219,7 +19219,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.578Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "be92261b9411dbe7c0d05e8896928d712fe91f99af6f6129bb6f0f4f9c6b5d1b",
       "rawJson": {
         "source": "public_eventgames",
@@ -19305,7 +19305,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.578Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "38f6a64ff2763640b43130662719b04b31aec54df31f31e6360aa574d46a53a4",
       "rawJson": {
         "source": "public_eventgames",
@@ -19391,7 +19391,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.578Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "f20e924abcd864726a352d13ee9ee4864692e8ac660a977d3b4b4acaa4350b6b",
       "rawJson": {
         "source": "public_eventgames",
@@ -19477,7 +19477,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "d63ce08b96a82d3c4dbd107755ae4e11545a3c71a2d87c48a04efeaa344145f1",
       "rawJson": {
         "source": "public_eventgames",
@@ -19563,7 +19563,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "4094074b2fae94537a46509682a65be05241b719032d16a8b12296313b611f8e",
       "rawJson": {
         "source": "public_eventgames",
@@ -19649,7 +19649,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "43d760f803c2c18589b92b7e5edf3ec5e11bb13678aabf7d693cfdafa557cc27",
       "rawJson": {
         "source": "public_eventgames",
@@ -19735,7 +19735,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.598Z",
       "sourceHash": "57bcae2a3c526544d9a31a701fc8bfa9e2d0d92212f697eee17c4cd03f8eb6b0",
       "rawJson": {
         "source": "public_eventgames",
@@ -19821,7 +19821,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.599Z",
       "sourceHash": "1b815f196ef60b49a6c93796153e36eea8059a11136449b7d299ce5a46500b96",
       "rawJson": {
         "source": "public_eventgames",
@@ -19907,7 +19907,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.599Z",
       "sourceHash": "d9f40a7ed1f18936979b13d75dc8bab13690fbab82e8cce19eb26072f0b634d2",
       "rawJson": {
         "source": "public_eventgames",
@@ -19993,7 +19993,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.599Z",
       "sourceHash": "87a0e0d700bc86d784cbf9c0db5a882ef27c9893c618f0e1d38b2cfa14373fd2",
       "rawJson": {
         "source": "public_eventgames",
@@ -20079,7 +20079,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.599Z",
       "sourceHash": "4b9d60d0f4eb86b62060244b1d86eab0cfa889784385e1eda081d788814cf89b",
       "rawJson": {
         "source": "public_eventgames",
@@ -20165,7 +20165,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.599Z",
       "sourceHash": "5aac2d6a18b808446f86ba4dd16c4a646ef98e7d7df2954ecc824618eb600228",
       "rawJson": {
         "source": "public_eventgames",
@@ -20251,7 +20251,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.579Z",
+      "updatedAt": "2026-08-15T22:59:01.599Z",
       "sourceHash": "5d04477fe17123c4ca1c7627a7c0ad2b45aa9083e44daff21b5cb1833239dcef",
       "rawJson": {
         "source": "public_eventgames",
@@ -20337,7 +20337,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "08cb70bebe636195fc1ae33b61aa34c149c693d7c27228514026300fa0c7081b",
       "rawJson": {
         "source": "public_eventgames",
@@ -20423,7 +20423,7 @@
       "status": "playing_now",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "971c93891498b7094de5631a979cf0517e3cf4e66dfe0e2558001855d0db24d5",
       "rawJson": {
         "source": "public_eventgames",
@@ -20509,7 +20509,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "25f94d76cb5786637602b1853fdbe7fa63e06949c4288d58d9abac73caf38ee0",
       "rawJson": {
         "source": "public_eventgames",
@@ -20595,7 +20595,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "c7f76656addc9467792b48cec5fba2447d6a39bece3df091373a53ed2dfc5f7a",
       "rawJson": {
         "source": "public_eventgames",
@@ -20681,7 +20681,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "20f2a0c5d13d0908eccdbb343e5b0325bcf13a274eb7e63a2278fca61a4333d6",
       "rawJson": {
         "source": "public_eventgames",
@@ -20767,7 +20767,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "5eaad0d5d40079fde2f7a05ceefe74f0205a425ec3a9d865718baef1f087d5e3",
       "rawJson": {
         "source": "public_eventgames",
@@ -20853,7 +20853,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.580Z",
+      "updatedAt": "2026-08-15T22:59:01.600Z",
       "sourceHash": "5e376380b665ac3b86026bd15aafa2c8e99485b4e5945877991bc15108bdd70f",
       "rawJson": {
         "source": "public_eventgames",
@@ -20939,7 +20939,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "0e49ba77b8e8fc2cf03b404037900a1303cd7fca146984e49fcb467b02142e25",
       "rawJson": {
         "source": "public_eventgames",
@@ -21025,7 +21025,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "8c08cccb25370d4bae29ba24e5418e795762681a351ac089e78a96b487a7513a",
       "rawJson": {
         "source": "public_eventgames",
@@ -21111,7 +21111,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "13f926707d9723a55990f8d323d4814d9bdc9b17036f9a27b61789b00d0945b4",
       "rawJson": {
         "source": "public_eventgames",
@@ -21197,7 +21197,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "7cbd31327c065f54fa539e3232181e85f98ba3aa865ba5ec440d8552274a0a77",
       "rawJson": {
         "source": "public_eventgames",
@@ -21283,7 +21283,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "764d22bf7544cf8bcb00a688f243645b0d5f8d3d1bb27dddccfc145e23f55e64",
       "rawJson": {
         "source": "public_eventgames",
@@ -21369,7 +21369,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "612ba64a488a9ee6254e68cfee25aeb3cd09663e90f5ddbf7215fa60d992e9bd",
       "rawJson": {
         "source": "public_eventgames",
@@ -21455,7 +21455,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.601Z",
       "sourceHash": "b40b3ed19169a40d67024cd55dba87230443fbc0abeaa3ca1d129c1ff2c1fc13",
       "rawJson": {
         "source": "public_eventgames",
@@ -21541,7 +21541,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.602Z",
       "sourceHash": "c29583a2a3229347ff8cf5241306b28e091a1cecb8c1aa0f3c306c99956281e4",
       "rawJson": {
         "source": "public_eventgames",
@@ -21627,7 +21627,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.602Z",
       "sourceHash": "017d52f1e37320ab5aa2d89766c1efe0abc3d5e85771a315bccec2d6c933b8a0",
       "rawJson": {
         "source": "public_eventgames",
@@ -21713,7 +21713,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.581Z",
+      "updatedAt": "2026-08-15T22:59:01.602Z",
       "sourceHash": "52277194041b34f389002584a2e3dc368c22594a2a02fbf67e18f50a88caa756",
       "rawJson": {
         "source": "public_eventgames",
@@ -21799,7 +21799,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.582Z",
+      "updatedAt": "2026-08-15T22:59:01.602Z",
       "sourceHash": "5ad41a8c4aea696a6d0123de06ff1508337074d399d9add02125f310a839a60a",
       "rawJson": {
         "source": "public_eventgames",
@@ -21885,7 +21885,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.582Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "2f55ad944c413e7b7ed340e56975a4866f5cfc90f09173a9bbd07466fd8a0903",
       "rawJson": {
         "source": "public_eventgames",
@@ -21971,7 +21971,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.583Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "9ff4cd836504b13aa5d7ce70410ab776c92efc7bcae9b4e4c670d777a4d8a3d9",
       "rawJson": {
         "source": "public_eventgames",
@@ -22057,7 +22057,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.583Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "059133542c3d0535aab0bfe347bc3a39a4d17fd5854bc4bf57d5eb58a66ab114",
       "rawJson": {
         "source": "public_eventgames",
@@ -22143,7 +22143,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "f8a2b77f621fddc96b9a0220c3ef0c37ad75d27a2c4cd0d83d29f72989ea9d38",
       "rawJson": {
         "source": "public_eventgames",
@@ -22229,7 +22229,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "40cb89e4fc7f501dafec8bfbd592f45f7db83530933cfd11117e9bc3c17044eb",
       "rawJson": {
         "source": "public_eventgames",
@@ -22315,7 +22315,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "0752753d8238afbc518212fe4b50173da9bc6efeeced98c57b122b77730b27cc",
       "rawJson": {
         "source": "public_eventgames",
@@ -22401,7 +22401,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "7b1607b3e9a7be81fb4b04589f4c0b1d5a61f06f85de9a86279fa940e5a637a0",
       "rawJson": {
         "source": "public_eventgames",
@@ -22487,7 +22487,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "5e126819d3cfa8c78d323b6e8b2b427b3039d589be4c813f3eda1201d7a6fbeb",
       "rawJson": {
         "source": "public_eventgames",
@@ -22573,7 +22573,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "62708404c1500d0aec112ecdb0eb9d408d8eb879ea2d4d59e26c1d8b76162e17",
       "rawJson": {
         "source": "public_eventgames",
@@ -22659,7 +22659,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.606Z",
       "sourceHash": "b3bef99fe9c9b52e3c854893e821bdd83ced9ccdbc46e727439aeb06430c7a37",
       "rawJson": {
         "source": "public_eventgames",
@@ -22745,7 +22745,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "0e67bd1580c59ffbf7861487d158de6490d38e46294f26fb3c1443debaba439a",
       "rawJson": {
         "source": "public_eventgames",
@@ -22831,7 +22831,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "de039c7230bdc57d4aa947d9815c98af085d65b01c034163299ffc384ff48e6c",
       "rawJson": {
         "source": "public_eventgames",
@@ -22917,7 +22917,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "840d4263cb0a66ef9f6d659c5f9743f13aa18c35c247e7620edb72abb2812d23",
       "rawJson": {
         "source": "public_eventgames",
@@ -23003,7 +23003,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "3cfca2d6dc2462e2cce9370d74b7e7df1bbbea133c57872dd020a9729391e0a4",
       "rawJson": {
         "source": "public_eventgames",
@@ -23089,7 +23089,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "49938e81c11fcfaeae8a149f4d283614b639dd84d344cd9f13c7327e96a6fa08",
       "rawJson": {
         "source": "public_eventgames",
@@ -23175,7 +23175,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "08c448504c68f63efdee58d735666e31fcc9f65d91b87f162b483f08b13a1e66",
       "rawJson": {
         "source": "public_eventgames",
@@ -23261,7 +23261,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "ed9c5749a9adc325d81ba3c0d126d8342ebeb936ea66c44c4d566622b824629b",
       "rawJson": {
         "source": "public_eventgames",
@@ -23347,7 +23347,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.584Z",
+      "updatedAt": "2026-08-15T22:59:01.607Z",
       "sourceHash": "2448217a8851aab066d0b4ab719e98091e5dc76667eebd6e096b569158733bd2",
       "rawJson": {
         "source": "public_eventgames",
@@ -23433,7 +23433,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.603Z",
       "sourceHash": "f4d65006e96061b696b78b74e54f43f4dcda2dfecef02bb6c19818b9cabd5fb3",
       "rawJson": {
         "source": "public_eventgames",
@@ -23519,7 +23519,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.603Z",
       "sourceHash": "7ab6c12bf74e4b776f32814d775515cdb7c720977841aa0116c2433e223543f5",
       "rawJson": {
         "source": "public_eventgames",
@@ -23605,7 +23605,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.603Z",
       "sourceHash": "6eccdaa76b21e9b5659ad32a67b7ce0f4934406ededcb7657499d30a6b971548",
       "rawJson": {
         "source": "public_eventgames",
@@ -23691,7 +23691,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.603Z",
       "sourceHash": "2d6202675f61ac6c0b0f14853e949639fa2d147b0647b4b9046fac385a0162bd",
       "rawJson": {
         "source": "public_eventgames",
@@ -23777,7 +23777,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.603Z",
       "sourceHash": "748b72496162048d779d23e49af612d93c5b589ad73405b140c3f3f40deef653",
       "rawJson": {
         "source": "public_eventgames",
@@ -23863,7 +23863,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "8d097091f5d738ae3fb42247dec9707cb1b309bb3d16e65ff7efc73d2f68ff14",
       "rawJson": {
         "source": "public_eventgames",
@@ -23949,7 +23949,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "f63028e4a99fb7e1f94cb3828deaa69a670701025e36ca377082aa763da1e335",
       "rawJson": {
         "source": "public_eventgames",
@@ -24035,7 +24035,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "25374dd4baa4f4b70c6afc9031929ab2fb4924996b255bfb015d8c98c04a5f8e",
       "rawJson": {
         "source": "public_eventgames",
@@ -24121,7 +24121,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "72405514b97e1edc2a6498e25cf67ee25f936e03b76a83bd6e73d91d10dd47ba",
       "rawJson": {
         "source": "public_eventgames",
@@ -24207,7 +24207,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "c441d7c8f9c7cbba101710b08992057141958098c187876196d2f18c865df3ed",
       "rawJson": {
         "source": "public_eventgames",
@@ -24293,7 +24293,7 @@
       "status": "final",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "9a844a812e8d9c8c27c4f2b1cfb0001e61901108750e4b50e386064edb5688ed",
       "rawJson": {
         "source": "public_eventgames",
@@ -24379,7 +24379,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "af8c43ba4afdf4208b6030e0548c6db8b4b07e00f1f3c1a3d0d85797967e1aed",
       "rawJson": {
         "source": "public_eventgames",
@@ -24465,7 +24465,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.588Z",
+      "updatedAt": "2026-08-15T22:59:01.604Z",
       "sourceHash": "ca7784ef2ed950bb463d7cc07c223e30723931d5a635d4f7be8a0e94a1638370",
       "rawJson": {
         "source": "public_eventgames",
@@ -24551,7 +24551,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "1e8c817c3dc2b13f1751e9cc816daf3bcc8fc8957c59a588645113a4baa32b0a",
       "rawJson": {
         "source": "public_eventgames",
@@ -24637,7 +24637,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "a819d0f0c4c28e8516d7677487a58377465c9e5bd0b3b39f4a7643da66ff7223",
       "rawJson": {
         "source": "public_eventgames",
@@ -24723,7 +24723,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "82f89588e2e95177e36c78331f07a1b51f540709f34b163dfbf327794a6fecfe",
       "rawJson": {
         "source": "public_eventgames",
@@ -24809,7 +24809,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "28f3e411f3bcfa62dd56517352839c342d3eaf76885b19ccec101e37b60ddb84",
       "rawJson": {
         "source": "public_eventgames",
@@ -24895,7 +24895,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "228ae34a58a965e81a38707174818ff54f6c928b0063c45c71b92b2a4bcd437a",
       "rawJson": {
         "source": "public_eventgames",
@@ -24981,7 +24981,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "ff214118e05dfab5fa8cb1dd61e92d7a2e04c287dc3bfa1423bd9acb74a8feb9",
       "rawJson": {
         "source": "public_eventgames",
@@ -25067,7 +25067,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "980cef2184312df75eb0daa5084f019451fa5258574f318d9173d9dbbe530023",
       "rawJson": {
         "source": "public_eventgames",
@@ -25153,7 +25153,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "693c009c9acca8e7a56d2f8ea8568d857dacd3dfe3c66277e533d9d8628ce72a",
       "rawJson": {
         "source": "public_eventgames",
@@ -25239,7 +25239,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "265fbc4e64b20f282e187a4aaac2c280e0b47317a7a9a3ed042cde96f9a86d09",
       "rawJson": {
         "source": "public_eventgames",
@@ -25325,7 +25325,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/252647/g365-summer-showdown/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-15T22:32:07.589Z",
+      "updatedAt": "2026-08-15T22:59:01.605Z",
       "sourceHash": "bcb87d0c7c4eefc0bc2160d717a785e180cb9787ee48e34676569a8efe23bee0",
       "rawJson": {
         "source": "public_eventgames",
