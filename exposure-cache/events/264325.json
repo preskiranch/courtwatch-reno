@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-08-21T03:36:40.986Z",
+  "cachedAt": "2026-08-21T04:24:03.529Z",
   "eventId": 264325,
   "eventSlug": "bam-x-gsg-summer-finale",
   "event": {
@@ -12,6 +12,19 @@
     "timezone": "America/Los_Angeles"
   },
   "divisions": [
+    {
+      "id": "division-264325-1366502",
+      "eventId": "event-264325",
+      "exposureDivisionId": "1366502",
+      "name": "6th Grade (12U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "6TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "divisionId": "1366502"
+      }
+    },
     {
       "id": "division-264325-1366514",
       "eventId": "event-264325",
@@ -54,6 +67,33 @@
   ],
   "teams": [
     {
+      "id": "public-team-264325-5520665",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1366502",
+      "exposureTeamId": "5520665",
+      "name": "Bay Area Rise",
+      "normalizedName": "bay area rise",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/bay-area-rise?divisionteamid=5520665",
+      "divisionName": "6th Grade (12U) Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "6TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "6th Grade (12U) Boys Division",
+        "DivisionId": 1366502,
+        "Slug": "bay-area-rise",
+        "Selected": false,
+        "Value": 5520665,
+        "Name": "Bay Area Rise (6th Grade (12U) Boys Division)"
+      },
+      "lastSeenAt": "2026-08-21T04:24:01.987Z"
+    },
+    {
       "id": "public-team-264325-5507675",
       "eventId": "event-264325",
       "divisionId": "division-264325-1366514",
@@ -78,7 +118,7 @@
         "Value": 5507675,
         "Name": "Nevad Hoop Culture (JV (16U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-21T03:36:40.047Z"
+      "lastSeenAt": "2026-08-21T04:24:01.987Z"
     },
     {
       "id": "public-team-264325-5507676",
@@ -105,7 +145,7 @@
         "Value": 5507676,
         "Name": "Nevada Hoop Culture (7th Grade (13U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-21T03:36:40.047Z"
+      "lastSeenAt": "2026-08-21T04:24:01.987Z"
     },
     {
       "id": "public-team-264325-5513178",
@@ -132,7 +172,7 @@
         "Value": 5513178,
         "Name": "Wolves (9th Grade (15U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-21T03:36:40.047Z"
+      "lastSeenAt": "2026-08-21T04:24:01.987Z"
     }
   ],
   "games": []
