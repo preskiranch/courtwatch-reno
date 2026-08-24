@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-08-24T17:31:27.083Z",
+  "cachedAt": "2026-08-24T18:04:37.049Z",
   "eventId": 264325,
   "eventSlug": "bam-x-gsg-summer-finale",
   "event": {
@@ -91,7 +91,7 @@
         "Value": 5520665,
         "Name": "Bay Area Rise (6th Grade (12U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-24T17:31:25.943Z"
+      "lastSeenAt": "2026-08-24T18:04:35.619Z"
     },
     {
       "id": "public-team-264325-5507675",
@@ -118,7 +118,7 @@
         "Value": 5507675,
         "Name": "Nevad Hoop Culture (JV (16U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-24T17:31:25.943Z"
+      "lastSeenAt": "2026-08-24T18:04:35.620Z"
     },
     {
       "id": "public-team-264325-5507676",
@@ -145,7 +145,7 @@
         "Value": 5507676,
         "Name": "Nevada Hoop Culture (7th Grade (13U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-24T17:31:25.943Z"
+      "lastSeenAt": "2026-08-24T18:04:35.620Z"
     },
     {
       "id": "public-team-264325-5513178",
@@ -172,7 +172,7 @@
         "Value": 5513178,
         "Name": "Wolves (9th Grade (15U) Boys Division)"
       },
-      "lastSeenAt": "2026-08-24T17:31:25.943Z"
+      "lastSeenAt": "2026-08-24T18:04:35.620Z"
     }
   ],
   "games": []
