@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-08-27T23:53:48.701Z",
+  "cachedAt": "2026-08-28T09:50:10.988Z",
   "eventId": 264325,
   "eventSlug": "bam-x-gsg-summer-finale",
   "event": {
@@ -273,7 +273,7 @@
         "Value": 5527734,
         "Name": "209 Heat 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.730Z"
+      "lastSeenAt": "2026-08-28T09:50:09.604Z"
     },
     {
       "id": "public-team-264325-5527673",
@@ -300,7 +300,7 @@
         "Value": 5527673,
         "Name": "209 Heat Black 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.730Z"
+      "lastSeenAt": "2026-08-28T09:50:09.604Z"
     },
     {
       "id": "public-team-264325-5527720",
@@ -327,7 +327,7 @@
         "Value": 5527720,
         "Name": "209 Heat Black 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.730Z"
+      "lastSeenAt": "2026-08-28T09:50:09.604Z"
     },
     {
       "id": "public-team-264325-5527664",
@@ -354,7 +354,7 @@
         "Value": 5527664,
         "Name": "209 Heat Red 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.730Z"
+      "lastSeenAt": "2026-08-28T09:50:09.604Z"
     },
     {
       "id": "public-team-264325-5527669",
@@ -381,7 +381,7 @@
         "Value": 5527669,
         "Name": "209 Heat Red 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.730Z"
+      "lastSeenAt": "2026-08-28T09:50:09.604Z"
     },
     {
       "id": "public-team-264325-5527711",
@@ -408,7 +408,7 @@
         "Value": 5527711,
         "Name": "209 Heat Red 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.730Z"
+      "lastSeenAt": "2026-08-28T09:50:09.604Z"
     },
     {
       "id": "public-team-264325-5527821",
@@ -435,7 +435,7 @@
         "Value": 5527821,
         "Name": "Align 14U (14U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527743",
@@ -462,7 +462,7 @@
         "Value": 5527743,
         "Name": "BAAS Dragons (15U/16U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527699",
@@ -489,7 +489,7 @@
         "Value": 5527699,
         "Name": "Bay Area Mambas Black 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527708",
@@ -516,7 +516,7 @@
         "Value": 5527708,
         "Name": "Bay Area Mambas Red 12U/13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527761",
@@ -543,7 +543,7 @@
         "Value": 5527761,
         "Name": "Bay Area Regulators (16U/17U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5520665",
@@ -570,7 +570,7 @@
         "Value": 5520665,
         "Name": "Bay Area Rise 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527687",
@@ -597,7 +597,7 @@
         "Value": 5527687,
         "Name": "Bay Area Surge 11U/12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527679",
@@ -624,7 +624,7 @@
         "Value": 5527679,
         "Name": "Bay Area Wildcats 9U/10U (9U/10U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527649",
@@ -651,34 +651,7 @@
         "Value": 5527649,
         "Name": "Big Shots 8U (8U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
-    },
-    {
-      "id": "public-team-264325-5527813",
-      "eventId": "event-264325",
-      "divisionId": "division-264325-1492691",
-      "exposureTeamId": "5527813",
-      "name": "Blaze",
-      "normalizedName": "blaze",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/blaze?divisionteamid=5527813",
-      "divisionName": "16U/17U Boys Division",
-      "gender": "Boys",
-      "gradeLevel": "16U",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "16U/17U Boys Division",
-        "DivisionId": 1492691,
-        "Slug": "blaze",
-        "Selected": false,
-        "Value": 5527813,
-        "Name": "Blaze (16U/17U Boys Division)"
-      },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527762",
@@ -705,7 +678,7 @@
         "Value": 5527762,
         "Name": "Brazen Athletics (16U/17U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527751",
@@ -732,7 +705,7 @@
         "Value": 5527751,
         "Name": "Central Valley Elite 15U/16U (JV Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527753",
@@ -759,7 +732,7 @@
         "Value": 5527753,
         "Name": "Central Valley Elite 17U (Varsity Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527700",
@@ -786,7 +759,7 @@
         "Value": 5527700,
         "Name": "Chuck Hayes 11U/12U (12U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527724",
@@ -813,7 +786,7 @@
         "Value": 5527724,
         "Name": "Chuck Hayes 13U/14U (14U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527744",
@@ -840,7 +813,7 @@
         "Value": 5527744,
         "Name": "Chuck Hayes 15U (15U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527703",
@@ -867,7 +840,7 @@
         "Value": 5527703,
         "Name": "Elevate (Cam) 12U/13U (13U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527733",
@@ -894,7 +867,7 @@
         "Value": 5527733,
         "Name": "Elevate (Cam) 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527747",
@@ -921,7 +894,7 @@
         "Value": 5527747,
         "Name": "Elevate (Cam) 15U (15U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527701",
@@ -948,7 +921,7 @@
         "Value": 5527701,
         "Name": "Elevate (Jay) 11U/12U (12U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527717",
@@ -975,7 +948,7 @@
         "Value": 5527717,
         "Name": "Elevate (Jay) 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527706",
@@ -1002,7 +975,7 @@
         "Value": 5527706,
         "Name": "Elevate (Jim) 13U (13U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527750",
@@ -1029,7 +1002,7 @@
         "Value": 5527750,
         "Name": "Elevate (Jim) 16U (JV Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527683",
@@ -1056,7 +1029,7 @@
         "Value": 5527683,
         "Name": "Elevate (Maegan) 10U/11U (10U/11U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527671",
@@ -1083,7 +1056,7 @@
         "Value": 5527671,
         "Name": "Elevate 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527647",
@@ -1110,7 +1083,7 @@
         "Value": 5527647,
         "Name": "Elevate 8U (8U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527653",
@@ -1137,7 +1110,7 @@
         "Value": 5527653,
         "Name": "Elevate 9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527757",
@@ -1164,7 +1137,7 @@
         "Value": 5527757,
         "Name": "FSA West (16U/17U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527721",
@@ -1191,7 +1164,34 @@
         "Value": 5527721,
         "Name": "FSA West 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
+    },
+    {
+      "id": "public-team-264325-5528866",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492689",
+      "exposureTeamId": "5528866",
+      "name": "FTS 15U",
+      "normalizedName": "fts 15u",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/fts-15u?divisionteamid=5528866",
+      "divisionName": "15U Girls Division ♀",
+      "gender": "Girls",
+      "gradeLevel": "15U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "15U Girls Division ♀",
+        "DivisionId": 1492689,
+        "Slug": "fts-15u",
+        "Selected": false,
+        "Value": 5528866,
+        "Name": "FTS 15U (15U Girls Division ♀)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527658",
@@ -1218,7 +1218,7 @@
         "Value": 5527658,
         "Name": "Golden Gate Wolves 9U/10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527754",
@@ -1245,7 +1245,7 @@
         "Value": 5527754,
         "Name": "Heart & Hustle 17U (Varsity Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527716",
@@ -1272,7 +1272,7 @@
         "Value": 5527716,
         "Name": "Hoop Elite 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527742",
@@ -1299,7 +1299,7 @@
         "Value": 5527742,
         "Name": "Hoop Elite Black 15U (15U/16U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527737",
@@ -1326,7 +1326,34 @@
         "Value": 5527737,
         "Name": "Hoop Elite Blue 15U (15U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
+    },
+    {
+      "id": "public-team-264325-5528863",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492677",
+      "exposureTeamId": "5528863",
+      "name": "iSkill 10U",
+      "normalizedName": "iskill 10u",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/iskill-10u?divisionteamid=5528863",
+      "divisionName": "10U Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "10U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "10U Boys Division",
+        "DivisionId": 1492677,
+        "Slug": "iskill-10u",
+        "Selected": false,
+        "Value": 5528863,
+        "Name": "iSkill 10U (10U Boys Division)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527678",
@@ -1353,7 +1380,7 @@
         "Value": 5527678,
         "Name": "iSkill 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527657",
@@ -1380,7 +1407,7 @@
         "Value": 5527657,
         "Name": "iSkill 9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527688",
@@ -1407,7 +1434,7 @@
         "Value": 5527688,
         "Name": "Javstep Black (John) 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527714",
@@ -1434,7 +1461,7 @@
         "Value": 5527714,
         "Name": "Javstep Black (John) 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527731",
@@ -1461,7 +1488,7 @@
         "Value": 5527731,
         "Name": "Javstep Black 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527663",
@@ -1488,7 +1515,7 @@
         "Value": 5527663,
         "Name": "Javstep Red 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527670",
@@ -1515,7 +1542,7 @@
         "Value": 5527670,
         "Name": "Javstep Red 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527718",
@@ -1542,7 +1569,7 @@
         "Value": 5527718,
         "Name": "Javstep Red 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527712",
@@ -1569,7 +1596,7 @@
         "Value": 5527712,
         "Name": "Just Breathe Elite 12U/13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527730",
@@ -1596,7 +1623,7 @@
         "Value": 5527730,
         "Name": "Just Breathe Elite 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527740",
@@ -1623,7 +1650,7 @@
         "Value": 5527740,
         "Name": "Just Breathe Elite 15U (15U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527689",
@@ -1650,7 +1677,7 @@
         "Value": 5527689,
         "Name": "Lakeshow (Adams) 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527648",
@@ -1677,7 +1704,7 @@
         "Value": 5527648,
         "Name": "Lakeshow (Fuca) 8U (8U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527674",
@@ -1704,7 +1731,7 @@
         "Value": 5527674,
         "Name": "Lakeshow (Johnson) 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527652",
@@ -1731,7 +1758,7 @@
         "Value": 5527652,
         "Name": "Lakeshow (Johnson) 9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527662",
@@ -1758,7 +1785,7 @@
         "Value": 5527662,
         "Name": "Lakeshow (Jones) 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527691",
@@ -1785,7 +1812,7 @@
         "Value": 5527691,
         "Name": "Lakeshow (Phillips) 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527707",
@@ -1812,7 +1839,7 @@
         "Value": 5527707,
         "Name": "M.I.E. 13U (13U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527760",
@@ -1839,7 +1866,7 @@
         "Value": 5527760,
         "Name": "Mercado Basketball (16U/17U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527713",
@@ -1866,7 +1893,7 @@
         "Value": 5527713,
         "Name": "Mercado Basketball 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527702",
@@ -1893,34 +1920,7 @@
         "Value": 5527702,
         "Name": "Mercado Basketball 13U (13U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
-    },
-    {
-      "id": "public-team-264325-5527729",
-      "eventId": "event-264325",
-      "divisionId": "division-264325-1492686",
-      "exposureTeamId": "5527729",
-      "name": "Mercado Basketball 14U",
-      "normalizedName": "mercado basketball 14u",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/mercado-basketball-14u?divisionteamid=5527729",
-      "divisionName": "14U Boys Division",
-      "gender": "Boys",
-      "gradeLevel": "14U",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "14U Boys Division",
-        "DivisionId": 1492686,
-        "Slug": "mercado-basketball-14u",
-        "Selected": false,
-        "Value": 5527729,
-        "Name": "Mercado Basketball 14U (14U Boys Division)"
-      },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527739",
@@ -1947,7 +1947,7 @@
         "Value": 5527739,
         "Name": "Mercado Basketball 15U (15U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
     },
     {
       "id": "public-team-264325-5527749",
@@ -1974,7 +1974,34 @@
         "Value": 5527749,
         "Name": "Mercado Basketball 16U (JV Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.605Z"
+    },
+    {
+      "id": "public-team-264325-5527696",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492677",
+      "exposureTeamId": "5527696",
+      "name": "Mercado Basketball Blue 10U",
+      "normalizedName": "mercado basketball blue 10u",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/mercado-basketball-blue-10u?divisionteamid=5527696",
+      "divisionName": "10U Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "10U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "10U Boys Division",
+        "DivisionId": 1492677,
+        "Slug": "mercado-basketball-blue-10u",
+        "Selected": false,
+        "Value": 5527696,
+        "Name": "Mercado Basketball Blue 10U (10U Boys Division)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527668",
@@ -2001,7 +2028,7 @@
         "Value": 5527668,
         "Name": "Mercado Basketball Blue 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527693",
@@ -2028,7 +2055,34 @@
         "Value": 5527693,
         "Name": "Mercado Basketball Blue 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
+    },
+    {
+      "id": "public-team-264325-5527729",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492677",
+      "exposureTeamId": "5527729",
+      "name": "Mercado Basketball Orange 10U",
+      "normalizedName": "mercado basketball orange 10u",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/mercado-basketball-orange-10u?divisionteamid=5527729",
+      "divisionName": "10U Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "10U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "10U Boys Division",
+        "DivisionId": 1492677,
+        "Slug": "mercado-basketball-orange-10u",
+        "Selected": false,
+        "Value": 5527729,
+        "Name": "Mercado Basketball Orange 10U (10U Boys Division)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527677",
@@ -2055,34 +2109,7 @@
         "Value": 5527677,
         "Name": "Mercado Basketball Orange 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
-    },
-    {
-      "id": "public-team-264325-5527696",
-      "eventId": "event-264325",
-      "divisionId": "division-264325-1492681",
-      "exposureTeamId": "5527696",
-      "name": "Mercado Basketball Orange 12U",
-      "normalizedName": "mercado basketball orange 12u",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/mercado-basketball-orange-12u?divisionteamid=5527696",
-      "divisionName": "12U Boys Division",
-      "gender": "Boys",
-      "gradeLevel": "12U",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "12U Boys Division",
-        "DivisionId": 1492681,
-        "Slug": "mercado-basketball-orange-12u",
-        "Selected": false,
-        "Value": 5527696,
-        "Name": "Mercado Basketball Orange 12U (12U Boys Division)"
-      },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527680",
@@ -2109,7 +2136,7 @@
         "Value": 5527680,
         "Name": "Modesto Flight 9U/10U (9U/10U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5507676",
@@ -2136,7 +2163,7 @@
         "Value": 5507676,
         "Name": "Nevada Hoop Culture 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5507675",
@@ -2163,7 +2190,7 @@
         "Value": 5507675,
         "Name": "Nevada Hoop Culture 15U (15U/16U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527710",
@@ -2190,7 +2217,7 @@
         "Value": 5527710,
         "Name": "NorCal Force 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527682",
@@ -2217,7 +2244,34 @@
         "Value": 5527682,
         "Name": "P Town (Nilo) 10U (10U/11U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
+    },
+    {
+      "id": "public-team-264325-5528862",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492684",
+      "exposureTeamId": "5528862",
+      "name": "P Town Next Ballers (Brady) 13U",
+      "normalizedName": "p town next ballers brady 13u",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/p-town-next-ballers-brady-13u?divisionteamid=5528862",
+      "divisionName": "13U Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "13U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "13U Boys Division",
+        "DivisionId": 1492684,
+        "Slug": "p-town-next-ballers-brady-13u",
+        "Selected": false,
+        "Value": 5528862,
+        "Name": "P Town Next Ballers (Brady) 13U (13U Boys Division)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527651",
@@ -2244,7 +2298,7 @@
         "Value": 5527651,
         "Name": "P Town Next Ballers (Brady) 8U/9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527659",
@@ -2271,7 +2325,7 @@
         "Value": 5527659,
         "Name": "P Town Next Ballers (Djay) 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527690",
@@ -2298,7 +2352,7 @@
         "Value": 5527690,
         "Name": "P Town Next Ballers (Djay) 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527759",
@@ -2325,7 +2379,7 @@
         "Value": 5527759,
         "Name": "P Town Next Ballers (Nilo) (16U/17U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527685",
@@ -2352,7 +2406,7 @@
         "Value": 5527685,
         "Name": "P Town Next Ballers (Nilo) 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527732",
@@ -2379,7 +2433,7 @@
         "Value": 5527732,
         "Name": "P Town Next Ballers (Nilo) 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527675",
@@ -2406,7 +2460,7 @@
         "Value": 5527675,
         "Name": "PBH 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527684",
@@ -2433,7 +2487,7 @@
         "Value": 5527684,
         "Name": "PBH Angels 10U/11U (10U/11U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527666",
@@ -2460,7 +2514,7 @@
         "Value": 5527666,
         "Name": "Reign City (Allan) 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527727",
@@ -2487,7 +2541,7 @@
         "Value": 5527727,
         "Name": "Reign City 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527654",
@@ -2514,7 +2568,7 @@
         "Value": 5527654,
         "Name": "RIP Kobe 8U/9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527661",
@@ -2541,7 +2595,7 @@
         "Value": 5527661,
         "Name": "Scholars 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527672",
@@ -2568,7 +2622,7 @@
         "Value": 5527672,
         "Name": "Scholars 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527715",
@@ -2595,7 +2649,7 @@
         "Value": 5527715,
         "Name": "Scholars 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527656",
@@ -2622,7 +2676,7 @@
         "Value": 5527656,
         "Name": "Scholars 9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527723",
@@ -2649,7 +2703,7 @@
         "Value": 5527723,
         "Name": "SF Champions 14U (14U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527725",
@@ -2676,7 +2730,7 @@
         "Value": 5527725,
         "Name": "SF Sparks 14U (14U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527748",
@@ -2703,7 +2757,7 @@
         "Value": 5527748,
         "Name": "SF Sparks 15U/16U (JV Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5528269",
@@ -2730,7 +2784,7 @@
         "Value": 5528269,
         "Name": "SJ Spartans 11U/12U (12U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527698",
@@ -2757,7 +2811,7 @@
         "Value": 5527698,
         "Name": "Slight Underdawgs 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527722",
@@ -2784,7 +2838,7 @@
         "Value": 5527722,
         "Name": "Slight Underdawgs Black 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527709",
@@ -2811,7 +2865,7 @@
         "Value": 5527709,
         "Name": "Slight Underdawgs White 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527646",
@@ -2838,7 +2892,7 @@
         "Value": 5527646,
         "Name": "STL 8U (8U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527655",
@@ -2865,7 +2919,7 @@
         "Value": 5527655,
         "Name": "STL 9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527665",
@@ -2892,7 +2946,7 @@
         "Value": 5527665,
         "Name": "STL Black 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527697",
@@ -2919,7 +2973,7 @@
         "Value": 5527697,
         "Name": "STL Black 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527686",
@@ -2946,7 +3000,7 @@
         "Value": 5527686,
         "Name": "STL Gray 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527660",
@@ -2973,7 +3027,7 @@
         "Value": 5527660,
         "Name": "STL Grey 10U (10U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527667",
@@ -3000,7 +3054,7 @@
         "Value": 5527667,
         "Name": "STL White 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527755",
@@ -3027,7 +3081,34 @@
         "Value": 5527755,
         "Name": "Synergy 17U (Varsity Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
+    },
+    {
+      "id": "public-team-264325-5527813",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492691",
+      "exposureTeamId": "5527813",
+      "name": "Team Blaze 17 Premier",
+      "normalizedName": "team blaze 17 premier",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/team-blaze-17-premier?divisionteamid=5527813",
+      "divisionName": "16U/17U Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "16U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "16U/17U Boys Division",
+        "DivisionId": 1492691,
+        "Slug": "team-blaze-17-premier",
+        "Selected": false,
+        "Value": 5527813,
+        "Name": "Team Blaze 17 Premier (16U/17U Boys Division)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5528815",
@@ -3054,19 +3135,19 @@
         "Value": 5528815,
         "Name": "Team Daily 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527705",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492685",
       "exposureTeamId": "5527705",
-      "name": "Team Inspire 13U",
-      "normalizedName": "team inspire 13u",
+      "name": "Team Inspire 13U/14U",
+      "normalizedName": "team inspire 13u 14u",
       "clubName": null,
       "normalizedClubName": null,
       "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/team-inspire-13u?divisionteamid=5527705",
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/team-inspire-13u-14u?divisionteamid=5527705",
       "divisionName": "14U Girls Division ♀",
       "gender": "Girls",
       "gradeLevel": "14U",
@@ -3076,12 +3157,12 @@
         "timezone": "America/Los_Angeles",
         "Division": "14U Girls Division ♀",
         "DivisionId": 1492685,
-        "Slug": "team-inspire-13u",
+        "Slug": "team-inspire-13u-14u",
         "Selected": false,
         "Value": 5527705,
-        "Name": "Team Inspire 13U (14U Girls Division ♀)"
+        "Name": "Team Inspire 13U/14U (14U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527746",
@@ -3108,7 +3189,7 @@
         "Value": 5527746,
         "Name": "Team Inspire 15U (15U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527756",
@@ -3135,7 +3216,7 @@
         "Value": 5527756,
         "Name": "Team Inspire 17U (Varsity Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527704",
@@ -3162,7 +3243,7 @@
         "Value": 5527704,
         "Name": "Team Kidd 12U/13U (13U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527726",
@@ -3189,7 +3270,7 @@
         "Value": 5527726,
         "Name": "Team Kidd 14U (14U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527681",
@@ -3216,7 +3297,7 @@
         "Value": 5527681,
         "Name": "Team Kidd 9U/10U (9U/10U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527745",
@@ -3243,7 +3324,34 @@
         "Value": 5527745,
         "Name": "Team Legree 15U (15U Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
+    },
+    {
+      "id": "public-team-264325-5528859",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492676",
+      "exposureTeamId": "5528859",
+      "name": "Team Locked In 8U/9U",
+      "normalizedName": "team locked in 8u 9u",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/teams/team-locked-in-8u-9u?divisionteamid=5528859",
+      "divisionName": "9U Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "9U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "9U Boys Division",
+        "DivisionId": 1492676,
+        "Slug": "team-locked-in-8u-9u",
+        "Selected": false,
+        "Value": 5528859,
+        "Name": "Team Locked In 8U/9U (9U Boys Division)"
+      },
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527676",
@@ -3270,7 +3378,7 @@
         "Value": 5527676,
         "Name": "Team Unlimited 11U (11U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527719",
@@ -3297,7 +3405,7 @@
         "Value": 5527719,
         "Name": "Team Unlimited 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527736",
@@ -3324,7 +3432,7 @@
         "Value": 5527736,
         "Name": "Team Unlimited 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527694",
@@ -3351,7 +3459,7 @@
         "Value": 5527694,
         "Name": "Team Unlimited East 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527695",
@@ -3378,7 +3486,7 @@
         "Value": 5527695,
         "Name": "Team Unlimited West 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527692",
@@ -3405,7 +3513,7 @@
         "Value": 5527692,
         "Name": "TM Warriors 12U (12U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527728",
@@ -3432,7 +3540,7 @@
         "Value": 5527728,
         "Name": "Top Performance 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527738",
@@ -3459,7 +3567,7 @@
         "Value": 5527738,
         "Name": "Top Performance 15U (15U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527752",
@@ -3486,7 +3594,7 @@
         "Value": 5527752,
         "Name": "Uptempo 17U (Varsity Girls Division ♀)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527735",
@@ -3513,7 +3621,7 @@
         "Value": 5527735,
         "Name": "Valley Bulls 14U (14U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527741",
@@ -3540,7 +3648,7 @@
         "Value": 5527741,
         "Name": "Valley Bulls 15U (15U/16U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527650",
@@ -3567,7 +3675,7 @@
         "Value": 5527650,
         "Name": "Vision (Kenny) 8U/9U (9U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5528723",
@@ -3594,7 +3702,7 @@
         "Value": 5528723,
         "Name": "We Got Next 13U (13U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5527763",
@@ -3621,7 +3729,7 @@
         "Value": 5527763,
         "Name": "West Coast Xtreme (16U/17U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     },
     {
       "id": "public-team-264325-5513178",
@@ -3648,7 +3756,7 @@
         "Value": 5513178,
         "Name": "Wolves 15U (15U/16U Boys Division)"
       },
-      "lastSeenAt": "2026-08-27T23:53:47.731Z"
+      "lastSeenAt": "2026-08-28T09:50:09.606Z"
     }
   ],
   "games": [
@@ -3664,7 +3772,7 @@
       "startsAt": "2026-08-29T20:00:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 1",
+      "courtName": "Court 2",
       "homeTeamId": "public-team-264325-5527647",
       "awayTeamId": "public-team-264325-5527646",
       "homeTeamNameSnapshot": "Elevate 8U",
@@ -3674,13 +3782,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.026Z",
-      "sourceHash": "6d9a1d5915ca89123912b7877bc9a072e868bd1609a9e21f6316e5fd2037fea6",
+      "updatedAt": "2026-08-28T09:50:10.159Z",
+      "sourceHash": "6a3e15292721d41119c06107e7ec24d9563e2a2a97d6fa5895e56a94bf6880e0",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556808,
         "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 1",
+        "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527646,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -3708,7 +3816,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 1",
+        "Venue": "Gale Ranch Middle School, Court 2",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "1:00 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -3724,7 +3832,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
         "Started": false,
         "VenueAbbr": "GRMS",
-        "LocationAbbr": "1",
+        "LocationAbbr": "2",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -3743,7 +3851,7 @@
       "startsAt": "2026-08-29T20:50:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 1",
+      "courtName": "Court 2",
       "homeTeamId": "public-team-264325-5527649",
       "awayTeamId": "public-team-264325-5527646",
       "homeTeamNameSnapshot": "Big Shots 8U",
@@ -3753,13 +3861,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.027Z",
-      "sourceHash": "4ea6c7b3351ea6206f04d1ac4b7cb8ba862e3f8c1674dfba8181c391277ff5fc",
+      "updatedAt": "2026-08-28T09:50:10.159Z",
+      "sourceHash": "02c9c4c7008e00afe5a6b42a8293c904c12bea99f8368baf291abc12bede2185",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556809,
         "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 1",
+        "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527646,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -3787,7 +3895,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 1",
+        "Venue": "Gale Ranch Middle School, Court 2",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "1:50 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -3803,7 +3911,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
         "Started": false,
         "VenueAbbr": "GRMS",
-        "LocationAbbr": "1",
+        "LocationAbbr": "2",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -3822,7 +3930,7 @@
       "startsAt": "2026-08-29T21:40:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 1",
+      "courtName": "Court 2",
       "homeTeamId": "public-team-264325-5527649",
       "awayTeamId": "public-team-264325-5527648",
       "homeTeamNameSnapshot": "Big Shots 8U",
@@ -3832,13 +3940,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.027Z",
-      "sourceHash": "212df9547a4965846a47b58c07bd7ef7b3eb7901879e819f0e5320b8f557f454",
+      "updatedAt": "2026-08-28T09:50:10.160Z",
+      "sourceHash": "b590abc0ea7ac0833fe1c23d2ff9bcc6a52b14ea6441d867a8d138582e18080f",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556810,
         "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 1",
+        "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527648,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -3866,7 +3974,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 1",
+        "Venue": "Gale Ranch Middle School, Court 2",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "2:40 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -3882,7 +3990,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
         "Started": false,
         "VenueAbbr": "GRMS",
-        "LocationAbbr": "1",
+        "LocationAbbr": "2",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -3911,7 +4019,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.027Z",
+      "updatedAt": "2026-08-28T09:50:10.160Z",
       "sourceHash": "5159769dc419fcd010028bf0a538d5653fc2c42b35a94eab2a656b31b8561a28",
       "rawJson": {
         "source": "public_eventgames",
@@ -3981,17 +4089,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 1",
-      "homeTeamId": null,
+      "homeTeamId": "public-team-264325-5528859",
       "awayTeamId": "public-team-264325-5527646",
-      "homeTeamNameSnapshot": "(C2)",
+      "homeTeamNameSnapshot": "Team Locked In 8U/9U",
       "awayTeamNameSnapshot": "STL 8U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.027Z",
-      "sourceHash": "b9f45293067e0f967c4ce0961375f542c5d7172daddd8b73a81273835559650e",
+      "updatedAt": "2026-08-28T09:50:10.160Z",
+      "sourceHash": "4469349fe42e58e076dfb0d2a283e2d942d3edd5bea6c69618a80cb54c20caf8",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557061,
@@ -4000,14 +4108,14 @@
         "AwayDivisionTeamId": 5527646,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": null,
+        "HomeDivisionTeamId": 5528859,
         "AwayTeamNameSlug": "stl-8u",
-        "HomeTeamNameSlug": "c2",
+        "HomeTeamNameSlug": "team-locked-in-8u-9u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool C",
-        "HomeTeamName": "(C2)",
+        "HomeTeamName": "Team Locked In 8U/9U",
         "AwayTeamName": "STL 8U",
         "WorkTeamName": "",
         "DivisionName": "9U Boys Division",
@@ -4069,7 +4177,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.192Z",
       "sourceHash": "9aefcdf707f5ed372be867fdccd3117e13720611394bbca57dc85bc10b20d0c4",
       "rawJson": {
         "source": "public_eventgames",
@@ -4148,7 +4256,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.192Z",
       "sourceHash": "63d6c8692975c3c78a81e5d9d13d21d1eaf9a8d279f5c0a88abf3121b247cd4f",
       "rawJson": {
         "source": "public_eventgames",
@@ -4227,7 +4335,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
       "sourceHash": "8e7f0cd9cff86e51f28f42eada8b0ccec332edb6c4283153a9ef65cd4e425e6d",
       "rawJson": {
         "source": "public_eventgames",
@@ -4306,7 +4414,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
       "sourceHash": "dfcc6075ac37fd0d2ba77f07302c01fef34d7234d4b3f096249524c6f0fb262c",
       "rawJson": {
         "source": "public_eventgames",
@@ -4385,7 +4493,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
       "sourceHash": "15ff15583df8d9687c62bacd505ab99480a7b8e2fc7b0f11f4df76510faef932",
       "rawJson": {
         "source": "public_eventgames",
@@ -4464,7 +4572,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
       "sourceHash": "dc1261ab0d3ff08f5a793458fc776345ae7ca33699c6871cfb688ca431a15105",
       "rawJson": {
         "source": "public_eventgames",
@@ -4543,7 +4651,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
       "sourceHash": "cefe776c933203ebf37150b845e31311fb4803bcb6c4ea7c92cfb59a018a4eb3",
       "rawJson": {
         "source": "public_eventgames",
@@ -4622,7 +4730,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
       "sourceHash": "c8865e613a2a9d44ec1e2eee417320553c4eb4abace9db03e2d403f5fca53fee",
       "rawJson": {
         "source": "public_eventgames",
@@ -4692,17 +4800,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 1",
-      "homeTeamId": null,
+      "homeTeamId": "public-team-264325-5528859",
       "awayTeamId": "public-team-264325-5527655",
-      "homeTeamNameSnapshot": "(C2)",
+      "homeTeamNameSnapshot": "Team Locked In 8U/9U",
       "awayTeamNameSnapshot": "STL 9U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
-      "sourceHash": "873678a01aad0827c9a4e25bb09e3260760248a999f298b94f6620bbee0de4c0",
+      "updatedAt": "2026-08-28T09:50:10.193Z",
+      "sourceHash": "d0c664ff9eba4dd21cd85d8680dc83da6e07612cb46c4bc60feb2afd4c236294",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557060,
@@ -4711,14 +4819,14 @@
         "AwayDivisionTeamId": 5527655,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": null,
+        "HomeDivisionTeamId": 5528859,
         "AwayTeamNameSlug": "stl-9u",
-        "HomeTeamNameSlug": "c2",
+        "HomeTeamNameSlug": "team-locked-in-8u-9u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A/C",
-        "HomeTeamName": "(C2)",
+        "HomeTeamName": "Team Locked In 8U/9U",
         "AwayTeamName": "STL 9U",
         "WorkTeamName": "",
         "DivisionName": "9U Boys Division",
@@ -4771,17 +4879,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 1",
-      "homeTeamId": null,
+      "homeTeamId": "public-team-264325-5528859",
       "awayTeamId": "public-team-264325-5527646",
-      "homeTeamNameSnapshot": "(C2)",
+      "homeTeamNameSnapshot": "Team Locked In 8U/9U",
       "awayTeamNameSnapshot": "STL 8U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.028Z",
-      "sourceHash": "b9f45293067e0f967c4ce0961375f542c5d7172daddd8b73a81273835559650e",
+      "updatedAt": "2026-08-28T09:50:10.194Z",
+      "sourceHash": "4469349fe42e58e076dfb0d2a283e2d942d3edd5bea6c69618a80cb54c20caf8",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557061,
@@ -4790,14 +4898,14 @@
         "AwayDivisionTeamId": 5527646,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": null,
+        "HomeDivisionTeamId": 5528859,
         "AwayTeamNameSlug": "stl-8u",
-        "HomeTeamNameSlug": "c2",
+        "HomeTeamNameSlug": "team-locked-in-8u-9u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool C",
-        "HomeTeamName": "(C2)",
+        "HomeTeamName": "Team Locked In 8U/9U",
         "AwayTeamName": "STL 8U",
         "WorkTeamName": "",
         "DivisionName": "9U Boys Division",
@@ -4859,7 +4967,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "8afda40d60d8ea634dc6100d748732d57270796a9488cb896f82fd6a816cce45",
       "rawJson": {
         "source": "public_eventgames",
@@ -4938,7 +5046,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "9a9575467c9803a95e9773bec3070f7a9e53c0f1899db67872484b79b37fdd16",
       "rawJson": {
         "source": "public_eventgames",
@@ -5017,7 +5125,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "67301e870413d24098ca34e688f0336a5f04444c7951a21f843391a86370a1a4",
       "rawJson": {
         "source": "public_eventgames",
@@ -5096,7 +5204,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "4f76b80de88769107cf6e5f99d34f0cb6728e59db25c7f29b0edb11f55a969d3",
       "rawJson": {
         "source": "public_eventgames",
@@ -5175,7 +5283,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "93df73ae0b3ceac0c40cc175f22db6869de462854e9d50ff79953b87f14afde9",
       "rawJson": {
         "source": "public_eventgames",
@@ -5254,7 +5362,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "93dfed1dc72eca56fd7d09ffe72de704ca01d70f74f0bfc669662d9da0a756e4",
       "rawJson": {
         "source": "public_eventgames",
@@ -5324,17 +5432,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Charlotte Wood Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527662",
+      "homeTeamId": "public-team-264325-5528863",
       "awayTeamId": "public-team-264325-5527665",
-      "homeTeamNameSnapshot": "Lakeshow (Jones) 10U",
+      "homeTeamNameSnapshot": "iSkill 10U",
       "awayTeamNameSnapshot": "STL Black 10U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
-      "sourceHash": "79135faee53dd64551a617d134af18a4b2208e68cdc6247729506adbd644d468",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
+      "sourceHash": "d68afdad9b553f56ec6fb3b3fe99dcd71b5574fc92ef1c6c9d105c0b54d0d603",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556861,
@@ -5343,14 +5451,14 @@
         "AwayDivisionTeamId": 5527665,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527662,
+        "HomeDivisionTeamId": 5528863,
         "AwayTeamNameSlug": "stl-black-10u",
-        "HomeTeamNameSlug": "lakeshow-jones-10u",
+        "HomeTeamNameSlug": "iskill-10u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Lakeshow (Jones) 10U",
+        "HomeTeamName": "iSkill 10U",
         "AwayTeamName": "STL Black 10U",
         "WorkTeamName": "",
         "DivisionName": "10U Boys Division",
@@ -5412,7 +5520,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
       "sourceHash": "5c946049cc9aacbb4f69a42a3d05dfc15a66db8d4f4ace0ef0d1953723c3d453",
       "rawJson": {
         "source": "public_eventgames",
@@ -5470,46 +5578,46 @@
       }
     },
     {
-      "id": "public-game-264325-42557058",
+      "id": "public-game-264325-42563215",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492677",
-      "exposureGameId": "42557058",
+      "exposureGameId": "42563215",
       "gameNumber": null,
-      "gameType": "Pool B/A",
-      "scheduledDate": "2026-08-30",
-      "scheduledTime": "11:00 AM",
-      "startsAt": "2026-08-30T18:00:00.000Z",
+      "gameType": "Pool A",
+      "scheduledDate": "2026-08-29",
+      "scheduledTime": "5:10 PM",
+      "startsAt": "2026-08-30T00:10:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527665",
-      "awayTeamId": null,
-      "homeTeamNameSnapshot": "STL Black 10U",
-      "awayTeamNameSnapshot": "(B1)",
+      "homeTeamId": "public-team-264325-5527662",
+      "awayTeamId": "public-team-264325-5527729",
+      "homeTeamNameSnapshot": "Lakeshow (Jones) 10U",
+      "awayTeamNameSnapshot": "Mercado Basketball Orange 10U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
-      "sourceHash": "737003d52f800d120a86a34006935f806d6cde3f752344ebaa9111e81ef6991c",
+      "updatedAt": "2026-08-28T09:50:10.307Z",
+      "sourceHash": "8213cb84426593fd309f789540cd9be68f321d200ea7f9ec1d6cb367d38d658d",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42557058,
+        "Id": 42563215,
         "VenueName": "Gale Ranch Middle School",
         "CourtName": "Court 2",
-        "AwayDivisionTeamId": null,
+        "AwayDivisionTeamId": 5527729,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527665,
-        "AwayTeamNameSlug": "b1",
-        "HomeTeamNameSlug": "stl-black-10u",
+        "HomeDivisionTeamId": 5527662,
+        "AwayTeamNameSlug": "mercado-basketball-orange-10u",
+        "HomeTeamNameSlug": "lakeshow-jones-10u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
-        "GameTypeName": "Pool B/A",
-        "HomeTeamName": "STL Black 10U",
-        "AwayTeamName": "(B1)",
+        "GameTypeName": "Pool A",
+        "HomeTeamName": "Lakeshow (Jones) 10U",
+        "AwayTeamName": "Mercado Basketball Orange 10U",
         "WorkTeamName": "",
         "DivisionName": "10U Boys Division",
         "DivisionId": 1492677,
@@ -5526,8 +5634,87 @@
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
         "Venue": "Gale Ranch Middle School, Court 2",
-        "DateFormatted": "8/30/2026",
-        "TimeFormatted": "11:00 AM PDT",
+        "DateFormatted": "8/29/2026",
+        "TimeFormatted": "5:10 PM PDT",
+        "HomeTeamScoreDisplay": "",
+        "AwayTeamScoreDisplay": "",
+        "pgal": "(A)",
+        "pghl": "(H)",
+        "bgal": "(A)",
+        "bghl": "(H)",
+        "HomeTeamOtherScores": [],
+        "AwayTeamOtherScores": [],
+        "ExternalId": null,
+        "DisplayId": null,
+        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
+        "Started": false,
+        "VenueAbbr": "GRMS",
+        "LocationAbbr": "2",
+        "WorkDivisionTeamId": null,
+        "BracketUrl": null,
+        "BracketName": null,
+        "DivisionBracketUrls": []
+      }
+    },
+    {
+      "id": "public-game-264325-42563216",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492677",
+      "exposureGameId": "42563216",
+      "gameNumber": null,
+      "gameType": "Pool A",
+      "scheduledDate": "2026-08-29",
+      "scheduledTime": "6:00 PM",
+      "startsAt": "2026-08-30T01:00:00.000Z",
+      "timezone": "America/Los_Angeles",
+      "venueName": "Gale Ranch Middle School",
+      "courtName": "Court 2",
+      "homeTeamId": "public-team-264325-5528863",
+      "awayTeamId": "public-team-264325-5527729",
+      "homeTeamNameSnapshot": "iSkill 10U",
+      "awayTeamNameSnapshot": "Mercado Basketball Orange 10U",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "upcoming",
+      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
+      "streamingUrl": null,
+      "updatedAt": "2026-08-28T09:50:10.308Z",
+      "sourceHash": "c02c93acd71d4b948eb6e7ac19c657dfb8a5800a88d078c9a24803e48778bda1",
+      "rawJson": {
+        "source": "public_eventgames",
+        "Id": 42563216,
+        "VenueName": "Gale Ranch Middle School",
+        "CourtName": "Court 2",
+        "AwayDivisionTeamId": 5527729,
+        "HomeNumber": null,
+        "AwayNumber": null,
+        "HomeDivisionTeamId": 5528863,
+        "AwayTeamNameSlug": "mercado-basketball-orange-10u",
+        "HomeTeamNameSlug": "iskill-10u",
+        "WorkTeamNameSlug": "",
+        "Number": null,
+        "GameType": 1,
+        "GameTypeName": "Pool A",
+        "HomeTeamName": "iSkill 10U",
+        "AwayTeamName": "Mercado Basketball Orange 10U",
+        "WorkTeamName": "",
+        "DivisionName": "10U Boys Division",
+        "DivisionId": 1492677,
+        "TimeZone": "Pacific Standard Time",
+        "SubDivisionType": null,
+        "Status": null,
+        "StatisticsType": null,
+        "Assets": [],
+        "HideScores": false,
+        "LiveGameLink": null,
+        "HomeDivisionId": null,
+        "AwayTeamExhibition": false,
+        "HomeTeamExhibition": false,
+        "AwayTeamIsWinner": false,
+        "HomeTeamIsWinner": false,
+        "Venue": "Gale Ranch Middle School, Court 2",
+        "DateFormatted": "8/29/2026",
+        "TimeFormatted": "6:00 PM PDT",
         "HomeTeamScoreDisplay": "",
         "AwayTeamScoreDisplay": "",
         "pgal": "(A)",
@@ -5556,39 +5743,118 @@
       "gameNumber": null,
       "gameType": "Pool B/A",
       "scheduledDate": "2026-08-30",
-      "scheduledTime": "11:50 AM",
-      "startsAt": "2026-08-30T18:50:00.000Z",
+      "scheduledTime": "8:30 AM",
+      "startsAt": "2026-08-30T15:30:00.000Z",
       "timezone": "America/Los_Angeles",
-      "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 2",
+      "venueName": "Diablo Vista Middle School",
+      "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5527660",
-      "awayTeamId": null,
+      "awayTeamId": "public-team-264325-5527696",
       "homeTeamNameSnapshot": "STL Grey 10U",
-      "awayTeamNameSnapshot": "(B1)",
+      "awayTeamNameSnapshot": "Mercado Basketball Blue 10U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.044Z",
-      "sourceHash": "4f47e4075dc6de8325f8f797e71192343acc7ab0affa8ca7e9eb51c818dd1b26",
+      "updatedAt": "2026-08-28T09:50:10.308Z",
+      "sourceHash": "840f0cf6202604bffecb9b3065ad86addd23aaa8e2b3de1d10db5037e14dfa0f",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557059,
-        "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 2",
-        "AwayDivisionTeamId": null,
+        "VenueName": "Diablo Vista Middle School",
+        "CourtName": "Court 1",
+        "AwayDivisionTeamId": 5527696,
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527660,
-        "AwayTeamNameSlug": "b1",
+        "AwayTeamNameSlug": "mercado-basketball-blue-10u",
         "HomeTeamNameSlug": "stl-grey-10u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B/A",
         "HomeTeamName": "STL Grey 10U",
-        "AwayTeamName": "(B1)",
+        "AwayTeamName": "Mercado Basketball Blue 10U",
+        "WorkTeamName": "",
+        "DivisionName": "10U Boys Division",
+        "DivisionId": 1492677,
+        "TimeZone": "Pacific Standard Time",
+        "SubDivisionType": null,
+        "Status": null,
+        "StatisticsType": null,
+        "Assets": [],
+        "HideScores": false,
+        "LiveGameLink": null,
+        "HomeDivisionId": null,
+        "AwayTeamExhibition": false,
+        "HomeTeamExhibition": false,
+        "AwayTeamIsWinner": false,
+        "HomeTeamIsWinner": false,
+        "Venue": "Diablo Vista Middle School, Court 1",
+        "DateFormatted": "8/30/2026",
+        "TimeFormatted": "8:30 AM PDT",
+        "HomeTeamScoreDisplay": "",
+        "AwayTeamScoreDisplay": "",
+        "pgal": "(A)",
+        "pghl": "(H)",
+        "bgal": "(A)",
+        "bghl": "(H)",
+        "HomeTeamOtherScores": [],
+        "AwayTeamOtherScores": [],
+        "ExternalId": null,
+        "DisplayId": null,
+        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7991683,-121.8964603",
+        "Started": false,
+        "VenueAbbr": "DVMS",
+        "LocationAbbr": "1",
+        "WorkDivisionTeamId": null,
+        "BracketUrl": null,
+        "BracketName": null,
+        "DivisionBracketUrls": []
+      }
+    },
+    {
+      "id": "public-game-264325-42557058",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492677",
+      "exposureGameId": "42557058",
+      "gameNumber": null,
+      "gameType": "Pool B/A",
+      "scheduledDate": "2026-08-30",
+      "scheduledTime": "11:00 AM",
+      "startsAt": "2026-08-30T18:00:00.000Z",
+      "timezone": "America/Los_Angeles",
+      "venueName": "Gale Ranch Middle School",
+      "courtName": "Court 2",
+      "homeTeamId": "public-team-264325-5527665",
+      "awayTeamId": "public-team-264325-5527696",
+      "homeTeamNameSnapshot": "STL Black 10U",
+      "awayTeamNameSnapshot": "Mercado Basketball Blue 10U",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "upcoming",
+      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
+      "streamingUrl": null,
+      "updatedAt": "2026-08-28T09:50:10.308Z",
+      "sourceHash": "3c0fc21a5380aafcc28aa88c44bfedc768de8430bafd468e1922cbff2c041518",
+      "rawJson": {
+        "source": "public_eventgames",
+        "Id": 42557058,
+        "VenueName": "Gale Ranch Middle School",
+        "CourtName": "Court 2",
+        "AwayDivisionTeamId": 5527696,
+        "HomeNumber": null,
+        "AwayNumber": null,
+        "HomeDivisionTeamId": 5527665,
+        "AwayTeamNameSlug": "mercado-basketball-blue-10u",
+        "HomeTeamNameSlug": "stl-black-10u",
+        "WorkTeamNameSlug": "",
+        "Number": null,
+        "GameType": 1,
+        "GameTypeName": "Pool B/A",
+        "HomeTeamName": "STL Black 10U",
+        "AwayTeamName": "Mercado Basketball Blue 10U",
         "WorkTeamName": "",
         "DivisionName": "10U Boys Division",
         "DivisionId": 1492677,
@@ -5606,7 +5872,7 @@
         "HomeTeamIsWinner": false,
         "Venue": "Gale Ranch Middle School, Court 2",
         "DateFormatted": "8/30/2026",
-        "TimeFormatted": "11:50 AM PDT",
+        "TimeFormatted": "11:00 AM PDT",
         "HomeTeamScoreDisplay": "",
         "AwayTeamScoreDisplay": "",
         "pgal": "(A)",
@@ -5649,7 +5915,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "b3b5143a2bba1ef8d5d6ab15a07888519d43c730a884eb692661e88536f0f613",
       "rawJson": {
         "source": "public_eventgames",
@@ -5728,7 +5994,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "860d1450c909cf6d057b6b22377a79dec513dec0a8a4dab1f350e0c7c69947af",
       "rawJson": {
         "source": "public_eventgames",
@@ -5807,7 +6073,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "7dc28753ee0bb89ba7f9f719d7e2929b15f62e25d1dbf09398642ee5ff55134a",
       "rawJson": {
         "source": "public_eventgames",
@@ -5886,7 +6152,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "2462dd7e66306c4e95142f0065b294bee7e3f7f15ba77802417d843dcb99bccc",
       "rawJson": {
         "source": "public_eventgames",
@@ -5965,7 +6231,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "71ae74fb4ace5ef0da9d02b39632f1d3bfe69e60071220acc304a7484688d1a4",
       "rawJson": {
         "source": "public_eventgames",
@@ -6035,17 +6301,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527673",
+      "homeTeamId": "public-team-264325-5527676",
       "awayTeamId": "public-team-264325-5527668",
-      "homeTeamNameSnapshot": "209 Heat Black 11U",
+      "homeTeamNameSnapshot": "Team Unlimited 11U",
       "awayTeamNameSnapshot": "Mercado Basketball Blue 11U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
-      "sourceHash": "ac7b503f6b56f2eabb8ec18fab1a86702998154c6a41fbbebb69db9835fb55e1",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
+      "sourceHash": "37391c51e67fa624ea5a8d92d4b2c30e1868226289f63938b85b5545d88ecdfe",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556782,
@@ -6054,14 +6320,14 @@
         "AwayDivisionTeamId": 5527668,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527673,
+        "HomeDivisionTeamId": 5527676,
         "AwayTeamNameSlug": "mercado-basketball-blue-11u",
-        "HomeTeamNameSlug": "209-heat-black-11u",
+        "HomeTeamNameSlug": "team-unlimited-11u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "209 Heat Black 11U",
+        "HomeTeamName": "Team Unlimited 11U",
         "AwayTeamName": "Mercado Basketball Blue 11U",
         "WorkTeamName": "",
         "DivisionName": "11U Boys Division",
@@ -6123,7 +6389,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "e5ab4a6ad04b49d47cdeebf65e61427cc644cb19f65768eaa176e48bef008fab",
       "rawJson": {
         "source": "public_eventgames",
@@ -6202,7 +6468,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "e3205aedd7690d7f14b60c290bdcc82eeadeb5f20e21a4c87e790be2f101a2a5",
       "rawJson": {
         "source": "public_eventgames",
@@ -6281,7 +6547,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "ee9b3e839573d58e7a276fb54f7bcd66cf1c22025825338cc55c9ceb36215ab0",
       "rawJson": {
         "source": "public_eventgames",
@@ -6339,85 +6605,6 @@
       }
     },
     {
-      "id": "public-game-264325-42556783",
-      "eventId": "event-264325",
-      "divisionId": "division-264325-1492678",
-      "exposureGameId": "42556783",
-      "gameNumber": null,
-      "gameType": "Pool B",
-      "scheduledDate": "2026-08-29",
-      "scheduledTime": "1:00 PM",
-      "startsAt": "2026-08-29T20:00:00.000Z",
-      "timezone": "America/Los_Angeles",
-      "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527673",
-      "awayTeamId": "public-team-264325-5527676",
-      "homeTeamNameSnapshot": "209 Heat Black 11U",
-      "awayTeamNameSnapshot": "Team Unlimited 11U",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "upcoming",
-      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
-      "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
-      "sourceHash": "7fafc5efa5f95e16bd2e8ff8c256b1cbd91138f324c5a8ba069dcaa4ce78d222",
-      "rawJson": {
-        "source": "public_eventgames",
-        "Id": 42556783,
-        "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 2",
-        "AwayDivisionTeamId": 5527676,
-        "HomeNumber": null,
-        "AwayNumber": null,
-        "HomeDivisionTeamId": 5527673,
-        "AwayTeamNameSlug": "team-unlimited-11u",
-        "HomeTeamNameSlug": "209-heat-black-11u",
-        "WorkTeamNameSlug": "",
-        "Number": null,
-        "GameType": 1,
-        "GameTypeName": "Pool B",
-        "HomeTeamName": "209 Heat Black 11U",
-        "AwayTeamName": "Team Unlimited 11U",
-        "WorkTeamName": "",
-        "DivisionName": "11U Boys Division",
-        "DivisionId": 1492678,
-        "TimeZone": "Pacific Standard Time",
-        "SubDivisionType": null,
-        "Status": null,
-        "StatisticsType": null,
-        "Assets": [],
-        "HideScores": false,
-        "LiveGameLink": null,
-        "HomeDivisionId": null,
-        "AwayTeamExhibition": false,
-        "HomeTeamExhibition": false,
-        "AwayTeamIsWinner": false,
-        "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 2",
-        "DateFormatted": "8/29/2026",
-        "TimeFormatted": "1:00 PM PDT",
-        "HomeTeamScoreDisplay": "",
-        "AwayTeamScoreDisplay": "",
-        "pgal": "(A)",
-        "pghl": "(H)",
-        "bgal": "(A)",
-        "bghl": "(H)",
-        "HomeTeamOtherScores": [],
-        "AwayTeamOtherScores": [],
-        "ExternalId": null,
-        "DisplayId": null,
-        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
-        "Started": false,
-        "VenueAbbr": "GRMS",
-        "LocationAbbr": "2",
-        "WorkDivisionTeamId": null,
-        "BracketUrl": null,
-        "BracketName": null,
-        "DivisionBracketUrls": []
-      }
-    },
-    {
       "id": "public-game-264325-42556778",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492678",
@@ -6439,7 +6626,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "1bb63d2bac6f9af6fa455f451da7797fcd473361be94caae5fe3ccfc7d2b4654",
       "rawJson": {
         "source": "public_eventgames",
@@ -6497,6 +6684,85 @@
       }
     },
     {
+      "id": "public-game-264325-42556783",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492678",
+      "exposureGameId": "42556783",
+      "gameNumber": null,
+      "gameType": "Pool B",
+      "scheduledDate": "2026-08-29",
+      "scheduledTime": "1:50 PM",
+      "startsAt": "2026-08-29T20:50:00.000Z",
+      "timezone": "America/Los_Angeles",
+      "venueName": "Gale Ranch Middle School",
+      "courtName": "Court 1",
+      "homeTeamId": "public-team-264325-5527676",
+      "awayTeamId": "public-team-264325-5527673",
+      "homeTeamNameSnapshot": "Team Unlimited 11U",
+      "awayTeamNameSnapshot": "209 Heat Black 11U",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "upcoming",
+      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
+      "streamingUrl": null,
+      "updatedAt": "2026-08-28T09:50:10.309Z",
+      "sourceHash": "663dc2f8defd184e441e86e566025fa6cc03c6aa83ffeb37bf481dac307e70d3",
+      "rawJson": {
+        "source": "public_eventgames",
+        "Id": 42556783,
+        "VenueName": "Gale Ranch Middle School",
+        "CourtName": "Court 1",
+        "AwayDivisionTeamId": 5527673,
+        "HomeNumber": null,
+        "AwayNumber": null,
+        "HomeDivisionTeamId": 5527676,
+        "AwayTeamNameSlug": "209-heat-black-11u",
+        "HomeTeamNameSlug": "team-unlimited-11u",
+        "WorkTeamNameSlug": "",
+        "Number": null,
+        "GameType": 1,
+        "GameTypeName": "Pool B",
+        "HomeTeamName": "Team Unlimited 11U",
+        "AwayTeamName": "209 Heat Black 11U",
+        "WorkTeamName": "",
+        "DivisionName": "11U Boys Division",
+        "DivisionId": 1492678,
+        "TimeZone": "Pacific Standard Time",
+        "SubDivisionType": null,
+        "Status": null,
+        "StatisticsType": null,
+        "Assets": [],
+        "HideScores": false,
+        "LiveGameLink": null,
+        "HomeDivisionId": null,
+        "AwayTeamExhibition": false,
+        "HomeTeamExhibition": false,
+        "AwayTeamIsWinner": false,
+        "HomeTeamIsWinner": false,
+        "Venue": "Gale Ranch Middle School, Court 1",
+        "DateFormatted": "8/29/2026",
+        "TimeFormatted": "1:50 PM PDT",
+        "HomeTeamScoreDisplay": "",
+        "AwayTeamScoreDisplay": "",
+        "pgal": "(A)",
+        "pghl": "(H)",
+        "bgal": "(A)",
+        "bghl": "(H)",
+        "HomeTeamOtherScores": [],
+        "AwayTeamOtherScores": [],
+        "ExternalId": null,
+        "DisplayId": null,
+        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
+        "Started": false,
+        "VenueAbbr": "GRMS",
+        "LocationAbbr": "1",
+        "WorkDivisionTeamId": null,
+        "BracketUrl": null,
+        "BracketName": null,
+        "DivisionBracketUrls": []
+      }
+    },
+    {
       "id": "public-game-264325-42556780",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492678",
@@ -6518,7 +6784,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
       "sourceHash": "adc6d8e6a38fba279a05832953a13b81846bf1dbb4500dc80c4a56938eaeef03",
       "rawJson": {
         "source": "public_eventgames",
@@ -6587,35 +6853,35 @@
       "startsAt": "2026-08-29T21:40:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 2",
+      "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5527674",
-      "awayTeamId": "public-team-264325-5527676",
+      "awayTeamId": "public-team-264325-5527673",
       "homeTeamNameSnapshot": "Lakeshow (Johnson) 11U",
-      "awayTeamNameSnapshot": "Team Unlimited 11U",
+      "awayTeamNameSnapshot": "209 Heat Black 11U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
-      "sourceHash": "8b8c091e04dd9796fb50b4d5defd7a40b12b64463f2baf152f9ef3505102c175",
+      "updatedAt": "2026-08-28T09:50:10.309Z",
+      "sourceHash": "d3c8c90264526ea6fae0e2601b442359ee6aabfcaf5426f26ec5a5467bda016f",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556785,
         "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 2",
-        "AwayDivisionTeamId": 5527676,
+        "CourtName": "Court 1",
+        "AwayDivisionTeamId": 5527673,
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527674,
-        "AwayTeamNameSlug": "team-unlimited-11u",
+        "AwayTeamNameSlug": "209-heat-black-11u",
         "HomeTeamNameSlug": "lakeshow-johnson-11u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
         "HomeTeamName": "Lakeshow (Johnson) 11U",
-        "AwayTeamName": "Team Unlimited 11U",
+        "AwayTeamName": "209 Heat Black 11U",
         "WorkTeamName": "",
         "DivisionName": "11U Boys Division",
         "DivisionId": 1492678,
@@ -6631,7 +6897,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 2",
+        "Venue": "Gale Ranch Middle School, Court 1",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "2:40 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -6647,7 +6913,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
         "Started": false,
         "VenueAbbr": "GRMS",
-        "LocationAbbr": "2",
+        "LocationAbbr": "1",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -6676,7 +6942,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.310Z",
       "sourceHash": "094ae7274a7bb5c7ffa44b970c8d0a8914d25d2d1ace2c491cb972506521d309",
       "rawJson": {
         "source": "public_eventgames",
@@ -6755,7 +7021,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.045Z",
+      "updatedAt": "2026-08-28T09:50:10.310Z",
       "sourceHash": "43b6a7242bd77354570b522e333b3872e7840ae0c5756a034406a9721487b2ec",
       "rawJson": {
         "source": "public_eventgames",
@@ -6834,7 +7100,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.164Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "e31dc3c028dcff71df8fc2831d38c031368d49d951e271dd81a41a57eb871ee7",
       "rawJson": {
         "source": "public_eventgames",
@@ -6913,7 +7179,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "b30bd07f8933660deb7f019b561c8d1e79e4e267f507f21f59aa7cf2482ece5d",
       "rawJson": {
         "source": "public_eventgames",
@@ -6992,7 +7258,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "8f7356890a1225921d19299a40b6f804a4de1d445554e6fc860838735e4d9452",
       "rawJson": {
         "source": "public_eventgames",
@@ -7071,7 +7337,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "83fdab878aa03a00d6fdab107b390f9cf612156268ef9d857a6ea6b6b52273fd",
       "rawJson": {
         "source": "public_eventgames",
@@ -7150,7 +7416,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "59098de611ebb32b0ed7e0f17ffc49a8d4b3a9122dd19f9736a47666448d3759",
       "rawJson": {
         "source": "public_eventgames",
@@ -7229,7 +7495,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "711fcfec0a002bf791b00d75dac9ef55367d83d8e62c6de8be9b4aa217ed9f54",
       "rawJson": {
         "source": "public_eventgames",
@@ -7308,7 +7574,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "b32e73acdcf8635f818c89637bd80037573d0b60c21c127e4f2e31057fccf916",
       "rawJson": {
         "source": "public_eventgames",
@@ -7366,46 +7632,46 @@
       }
     },
     {
-      "id": "public-game-264325-42557044",
+      "id": "public-game-264325-42557045",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492681",
-      "exposureGameId": "42557044",
+      "exposureGameId": "42557045",
       "gameNumber": null,
-      "gameType": "Pool B/C",
+      "gameType": "Pool B",
       "scheduledDate": "2026-08-29",
       "scheduledTime": "1:50 PM",
       "startsAt": "2026-08-29T20:50:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Diablo Vista Middle School",
       "courtName": "Court 1",
-      "homeTeamId": "public-team-264325-5527696",
-      "awayTeamId": "public-team-264325-5527691",
-      "homeTeamNameSnapshot": "Mercado Basketball Orange 12U",
-      "awayTeamNameSnapshot": "Lakeshow (Phillips) 12U",
+      "homeTeamId": "public-team-264325-5527695",
+      "awayTeamId": "public-team-264325-5527692",
+      "homeTeamNameSnapshot": "Team Unlimited West 12U",
+      "awayTeamNameSnapshot": "TM Warriors 12U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
-      "sourceHash": "13539e987e3d10708de836be7d4d5a5f02745669c4138a4e15734b300868a1f3",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
+      "sourceHash": "d22a5d385a13970e9ec620b73231a359700bf2e5ff93fbcc66fb814a6a11eed8",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42557044,
+        "Id": 42557045,
         "VenueName": "Diablo Vista Middle School",
         "CourtName": "Court 1",
-        "AwayDivisionTeamId": 5527691,
+        "AwayDivisionTeamId": 5527692,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527696,
-        "AwayTeamNameSlug": "lakeshow-phillips-12u",
-        "HomeTeamNameSlug": "mercado-basketball-orange-12u",
+        "HomeDivisionTeamId": 5527695,
+        "AwayTeamNameSlug": "tm-warriors-12u",
+        "HomeTeamNameSlug": "team-unlimited-west-12u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
-        "GameTypeName": "Pool B/C",
-        "HomeTeamName": "Mercado Basketball Orange 12U",
-        "AwayTeamName": "Lakeshow (Phillips) 12U",
+        "GameTypeName": "Pool B",
+        "HomeTeamName": "Team Unlimited West 12U",
+        "AwayTeamName": "TM Warriors 12U",
         "WorkTeamName": "",
         "DivisionName": "12U Boys Division",
         "DivisionId": 1492681,
@@ -7445,108 +7711,29 @@
       }
     },
     {
-      "id": "public-game-264325-42557045",
-      "eventId": "event-264325",
-      "divisionId": "division-264325-1492681",
-      "exposureGameId": "42557045",
-      "gameNumber": null,
-      "gameType": "Pool B",
-      "scheduledDate": "2026-08-29",
-      "scheduledTime": "1:50 PM",
-      "startsAt": "2026-08-29T20:50:00.000Z",
-      "timezone": "America/Los_Angeles",
-      "venueName": "Diablo Vista Middle School",
-      "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527695",
-      "awayTeamId": "public-team-264325-5527692",
-      "homeTeamNameSnapshot": "Team Unlimited West 12U",
-      "awayTeamNameSnapshot": "TM Warriors 12U",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "upcoming",
-      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
-      "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
-      "sourceHash": "e5cb4ad8a30b650bd674f9de2ce006194b8ceeb8cf56357cae03755f23865267",
-      "rawJson": {
-        "source": "public_eventgames",
-        "Id": 42557045,
-        "VenueName": "Diablo Vista Middle School",
-        "CourtName": "Court 2",
-        "AwayDivisionTeamId": 5527692,
-        "HomeNumber": null,
-        "AwayNumber": null,
-        "HomeDivisionTeamId": 5527695,
-        "AwayTeamNameSlug": "tm-warriors-12u",
-        "HomeTeamNameSlug": "team-unlimited-west-12u",
-        "WorkTeamNameSlug": "",
-        "Number": null,
-        "GameType": 1,
-        "GameTypeName": "Pool B",
-        "HomeTeamName": "Team Unlimited West 12U",
-        "AwayTeamName": "TM Warriors 12U",
-        "WorkTeamName": "",
-        "DivisionName": "12U Boys Division",
-        "DivisionId": 1492681,
-        "TimeZone": "Pacific Standard Time",
-        "SubDivisionType": null,
-        "Status": null,
-        "StatisticsType": null,
-        "Assets": [],
-        "HideScores": false,
-        "LiveGameLink": null,
-        "HomeDivisionId": null,
-        "AwayTeamExhibition": false,
-        "HomeTeamExhibition": false,
-        "AwayTeamIsWinner": false,
-        "HomeTeamIsWinner": false,
-        "Venue": "Diablo Vista Middle School, Court 2",
-        "DateFormatted": "8/29/2026",
-        "TimeFormatted": "1:50 PM PDT",
-        "HomeTeamScoreDisplay": "",
-        "AwayTeamScoreDisplay": "",
-        "pgal": "(A)",
-        "pghl": "(H)",
-        "bgal": "(A)",
-        "bghl": "(H)",
-        "HomeTeamOtherScores": [],
-        "AwayTeamOtherScores": [],
-        "ExternalId": null,
-        "DisplayId": null,
-        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7991683,-121.8964603",
-        "Started": false,
-        "VenueAbbr": "DVMS",
-        "LocationAbbr": "2",
-        "WorkDivisionTeamId": null,
-        "BracketUrl": null,
-        "BracketName": null,
-        "DivisionBracketUrls": []
-      }
-    },
-    {
       "id": "public-game-264325-42557046",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492681",
       "exposureGameId": "42557046",
       "gameNumber": null,
-      "gameType": "Pool B/C",
+      "gameType": "Pool B",
       "scheduledDate": "2026-08-29",
       "scheduledTime": "2:40 PM",
       "startsAt": "2026-08-29T21:40:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Diablo Vista Middle School",
       "courtName": "Court 1",
-      "homeTeamId": "public-team-264325-5527696",
+      "homeTeamId": "public-team-264325-5527691",
       "awayTeamId": "public-team-264325-5527697",
-      "homeTeamNameSnapshot": "Mercado Basketball Orange 12U",
+      "homeTeamNameSnapshot": "Lakeshow (Phillips) 12U",
       "awayTeamNameSnapshot": "STL Black 12U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
-      "sourceHash": "445dc0e33a009d00e8774dad6a165a5f2e83defe487b70eed983c414f985b994",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
+      "sourceHash": "19eb3728c102526317026e3335eef6bd17e47f6fea6efa2554e9ef9131d0debc",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557046,
@@ -7555,14 +7742,14 @@
         "AwayDivisionTeamId": 5527697,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527696,
+        "HomeDivisionTeamId": 5527691,
         "AwayTeamNameSlug": "stl-black-12u",
-        "HomeTeamNameSlug": "mercado-basketball-orange-12u",
+        "HomeTeamNameSlug": "lakeshow-phillips-12u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
-        "GameTypeName": "Pool B/C",
-        "HomeTeamName": "Mercado Basketball Orange 12U",
+        "GameTypeName": "Pool B",
+        "HomeTeamName": "Lakeshow (Phillips) 12U",
         "AwayTeamName": "STL Black 12U",
         "WorkTeamName": "",
         "DivisionName": "12U Boys Division",
@@ -7624,7 +7811,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "857bc3dd5013709affcde4df8078bd1236d25470b839d5b32137b6c282829bee",
       "rawJson": {
         "source": "public_eventgames",
@@ -7703,7 +7890,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "ec8cdc8d89ccdde3b2041419074ffde6c11b87b0b2b401772151552de4d88ae6",
       "rawJson": {
         "source": "public_eventgames",
@@ -7782,7 +7969,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "a0616caff4b41fe8db4eb6759700cf551a31526f1b0be0ae9961f1eccf0704a4",
       "rawJson": {
         "source": "public_eventgames",
@@ -7861,7 +8048,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.326Z",
       "sourceHash": "ca81a8ecb089ec3ebdea9471cc764213c0021af2a6a73bc403df55672f62117d",
       "rawJson": {
         "source": "public_eventgames",
@@ -7940,7 +8127,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.327Z",
       "sourceHash": "5d9bce9470a75a2ceecb7869281c60201b2c5dc0d7b8604358d7327f9665fdd0",
       "rawJson": {
         "source": "public_eventgames",
@@ -8019,7 +8206,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.327Z",
       "sourceHash": "18997a22b1e92800f98f2828aed36d9a7160954ddd9c1f6f58ad735185d47521",
       "rawJson": {
         "source": "public_eventgames",
@@ -8098,7 +8285,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.327Z",
       "sourceHash": "6b5d6829e2b6fad5f18cb8d9028c1f75fc33a9320d9183f8830b48335c4ce411",
       "rawJson": {
         "source": "public_eventgames",
@@ -8177,7 +8364,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.327Z",
       "sourceHash": "d23cd62d2763773b82a0f633c9a3fe9f847daa639ff8475e3fab689fe6434046",
       "rawJson": {
         "source": "public_eventgames",
@@ -8256,7 +8443,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.165Z",
+      "updatedAt": "2026-08-28T09:50:10.327Z",
       "sourceHash": "5a5054f95f09392b2b91e0e9d1661f22cf3372df902ce8a548b6265647b1cd8e",
       "rawJson": {
         "source": "public_eventgames",
@@ -8335,7 +8522,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.368Z",
       "sourceHash": "b505aa6d2306000671eb2cabcc137aa82dd7887b09970e2115ca9c4489fd63c0",
       "rawJson": {
         "source": "public_eventgames",
@@ -8414,7 +8601,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.368Z",
       "sourceHash": "a76622c44dc8efac5d0fb2f16ca758ace924d7c3520e304697ef9a3569181a34",
       "rawJson": {
         "source": "public_eventgames",
@@ -8493,7 +8680,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.368Z",
       "sourceHash": "ad1678aa16e9fb074692776c8fb28b95d87325e3be3c6ec330213058d49a9968",
       "rawJson": {
         "source": "public_eventgames",
@@ -8563,17 +8750,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Iron Horse Middle School",
       "courtName": "Court 3",
-      "homeTeamId": "public-team-264325-5527708",
+      "homeTeamId": "public-team-264325-5528862",
       "awayTeamId": "public-team-264325-5527710",
-      "homeTeamNameSnapshot": "Bay Area Mambas Red 12U/13U",
+      "homeTeamNameSnapshot": "P Town Next Ballers (Brady) 13U",
       "awayTeamNameSnapshot": "NorCal Force 13U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
-      "sourceHash": "1a7cde523688d87ecc40c81a704a8c6a36c8cfb9357db5edd2198f4989cecc9a",
+      "updatedAt": "2026-08-28T09:50:10.368Z",
+      "sourceHash": "c6e179335ca7049a9d71a3241fd21ee90e2855bd8cc667f930feaf290f9d746c",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556450,
@@ -8582,14 +8769,14 @@
         "AwayDivisionTeamId": 5527710,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527708,
+        "HomeDivisionTeamId": 5528862,
         "AwayTeamNameSlug": "norcal-force-13u",
-        "HomeTeamNameSlug": "bay-area-mambas-red-12u-13u",
+        "HomeTeamNameSlug": "p-town-next-ballers-brady-13u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "Bay Area Mambas Red 12U/13U",
+        "HomeTeamName": "P Town Next Ballers (Brady) 13U",
         "AwayTeamName": "NorCal Force 13U",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Division",
@@ -8651,7 +8838,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.368Z",
       "sourceHash": "65d56e72634c1bfb9e9999e5e59c66516cb805be626a0afa707c03349c82a77c",
       "rawJson": {
         "source": "public_eventgames",
@@ -8730,7 +8917,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.368Z",
       "sourceHash": "cdba8bef4a99944ae1d25e38d65ed73347b1bbf4cfaef90f7c2c207f0a32d79a",
       "rawJson": {
         "source": "public_eventgames",
@@ -8809,7 +8996,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "ed1e83b91b41e6242f3bbefc7ce32a1461b502d453517640f8aff10e48c67e66",
       "rawJson": {
         "source": "public_eventgames",
@@ -8867,6 +9054,85 @@
       }
     },
     {
+      "id": "public-game-264325-42563214",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492684",
+      "exposureGameId": "42563214",
+      "gameNumber": null,
+      "gameType": "Pool B",
+      "scheduledDate": "2026-08-29",
+      "scheduledTime": "11:20 AM",
+      "startsAt": "2026-08-29T18:20:00.000Z",
+      "timezone": "America/Los_Angeles",
+      "venueName": "Diablo Vista Middle School",
+      "courtName": "Court 1",
+      "homeTeamId": "public-team-264325-5527708",
+      "awayTeamId": "public-team-264325-5528862",
+      "homeTeamNameSnapshot": "Bay Area Mambas Red 12U/13U",
+      "awayTeamNameSnapshot": "P Town Next Ballers (Brady) 13U",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "upcoming",
+      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
+      "streamingUrl": null,
+      "updatedAt": "2026-08-28T09:50:10.369Z",
+      "sourceHash": "edc93c10c3b280f04484e68b3a92db4d2949f88354a35f0564300b1d07207d8f",
+      "rawJson": {
+        "source": "public_eventgames",
+        "Id": 42563214,
+        "VenueName": "Diablo Vista Middle School",
+        "CourtName": "Court 1",
+        "AwayDivisionTeamId": 5528862,
+        "HomeNumber": null,
+        "AwayNumber": null,
+        "HomeDivisionTeamId": 5527708,
+        "AwayTeamNameSlug": "p-town-next-ballers-brady-13u",
+        "HomeTeamNameSlug": "bay-area-mambas-red-12u-13u",
+        "WorkTeamNameSlug": "",
+        "Number": null,
+        "GameType": 1,
+        "GameTypeName": "Pool B",
+        "HomeTeamName": "Bay Area Mambas Red 12U/13U",
+        "AwayTeamName": "P Town Next Ballers (Brady) 13U",
+        "WorkTeamName": "",
+        "DivisionName": "13U Boys Division",
+        "DivisionId": 1492684,
+        "TimeZone": "Pacific Standard Time",
+        "SubDivisionType": null,
+        "Status": null,
+        "StatisticsType": null,
+        "Assets": [],
+        "HideScores": false,
+        "LiveGameLink": null,
+        "HomeDivisionId": null,
+        "AwayTeamExhibition": false,
+        "HomeTeamExhibition": false,
+        "AwayTeamIsWinner": false,
+        "HomeTeamIsWinner": false,
+        "Venue": "Diablo Vista Middle School, Court 1",
+        "DateFormatted": "8/29/2026",
+        "TimeFormatted": "11:20 AM PDT",
+        "HomeTeamScoreDisplay": "",
+        "AwayTeamScoreDisplay": "",
+        "pgal": "(A)",
+        "pghl": "(H)",
+        "bgal": "(A)",
+        "bghl": "(H)",
+        "HomeTeamOtherScores": [],
+        "AwayTeamOtherScores": [],
+        "ExternalId": null,
+        "DisplayId": null,
+        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7991683,-121.8964603",
+        "Started": false,
+        "VenueAbbr": "DVMS",
+        "LocationAbbr": "1",
+        "WorkDivisionTeamId": null,
+        "BracketUrl": null,
+        "BracketName": null,
+        "DivisionBracketUrls": []
+      }
+    },
+    {
       "id": "public-game-264325-42556623",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492684",
@@ -8888,7 +9154,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "74d53a1e57a6a450ebf7e625208c6a79d585a01f266feae786c8d1f01d61ff1c",
       "rawJson": {
         "source": "public_eventgames",
@@ -8967,7 +9233,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "53413ca218ef859c6de399034cf7da68a708264a2cc5d22c0bce5fcfadacc597",
       "rawJson": {
         "source": "public_eventgames",
@@ -9038,33 +9304,33 @@
       "venueName": "Pine Valley Middle School",
       "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5507676",
-      "awayTeamId": "public-team-264325-5527712",
+      "awayTeamId": "public-team-264325-5527713",
       "homeTeamNameSnapshot": "Nevada Hoop Culture 13U",
-      "awayTeamNameSnapshot": "Just Breathe Elite 12U/13U",
+      "awayTeamNameSnapshot": "Mercado Basketball 13U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
-      "sourceHash": "5100080c0d6036d399b86d293e3d0c465ee60e971660d30e83897acd83faa483",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
+      "sourceHash": "f03194460b6bd759db76ece53d16d3322c07ca9fb558d8d01f098b4b1504f7bf",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556452,
         "VenueName": "Pine Valley Middle School",
         "CourtName": "Court 1",
-        "AwayDivisionTeamId": 5527712,
+        "AwayDivisionTeamId": 5527713,
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5507676,
-        "AwayTeamNameSlug": "just-breathe-elite-12u-13u",
+        "AwayTeamNameSlug": "mercado-basketball-13u",
         "HomeTeamNameSlug": "nevada-hoop-culture-13u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
         "HomeTeamName": "Nevada Hoop Culture 13U",
-        "AwayTeamName": "Just Breathe Elite 12U/13U",
+        "AwayTeamName": "Mercado Basketball 13U",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Division",
         "DivisionId": 1492684,
@@ -9115,35 +9381,35 @@
       "startsAt": "2026-08-29T21:40:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Pine Valley Middle School",
-      "courtName": "Court 1",
-      "homeTeamId": "public-team-264325-5527713",
-      "awayTeamId": "public-team-264325-5527715",
-      "homeTeamNameSnapshot": "Mercado Basketball 13U",
-      "awayTeamNameSnapshot": "Scholars 13U",
+      "courtName": "Court 2",
+      "homeTeamId": "public-team-264325-5527715",
+      "awayTeamId": "public-team-264325-5527712",
+      "homeTeamNameSnapshot": "Scholars 13U",
+      "awayTeamNameSnapshot": "Just Breathe Elite 12U/13U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
-      "sourceHash": "b0a1a851053edc0c28ca0e1285faa8be5677a48831278c95764f6cb30cc5cba8",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
+      "sourceHash": "0f58df4c7a706b6c9ea7377898d52598faf4463c4507385d7303cdd7a7455907",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556454,
         "VenueName": "Pine Valley Middle School",
-        "CourtName": "Court 1",
-        "AwayDivisionTeamId": 5527715,
+        "CourtName": "Court 2",
+        "AwayDivisionTeamId": 5527712,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527713,
-        "AwayTeamNameSlug": "scholars-13u",
-        "HomeTeamNameSlug": "mercado-basketball-13u",
+        "HomeDivisionTeamId": 5527715,
+        "AwayTeamNameSlug": "just-breathe-elite-12u-13u",
+        "HomeTeamNameSlug": "scholars-13u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "Mercado Basketball 13U",
-        "AwayTeamName": "Scholars 13U",
+        "HomeTeamName": "Scholars 13U",
+        "AwayTeamName": "Just Breathe Elite 12U/13U",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Division",
         "DivisionId": 1492684,
@@ -9159,7 +9425,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Pine Valley Middle School, Court 1",
+        "Venue": "Pine Valley Middle School, Court 2",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "2:40 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -9175,7 +9441,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7378151,-121.9423337",
         "Started": false,
         "VenueAbbr": "PVMS",
-        "LocationAbbr": "1",
+        "LocationAbbr": "2",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -9194,7 +9460,7 @@
       "startsAt": "2026-08-29T22:30:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Pine Valley Middle School",
-      "courtName": "Court 1",
+      "courtName": "Court 2",
       "homeTeamId": "public-team-264325-5527709",
       "awayTeamId": "public-team-264325-5527712",
       "homeTeamNameSnapshot": "Slight Underdawgs White 13U",
@@ -9204,13 +9470,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
-      "sourceHash": "74f1f5f62b18d7d5137d043784097a0442284e9abbbc68cf16578f62a3940648",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
+      "sourceHash": "63e288ab92667b894ea98a43f127cc4c2ee5a03d02c01aa40971c5e9787ad5d5",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556455,
         "VenueName": "Pine Valley Middle School",
-        "CourtName": "Court 1",
+        "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527712,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -9238,7 +9504,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Pine Valley Middle School, Court 1",
+        "Venue": "Pine Valley Middle School, Court 2",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "3:30 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -9254,7 +9520,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7378151,-121.9423337",
         "Started": false,
         "VenueAbbr": "PVMS",
-        "LocationAbbr": "1",
+        "LocationAbbr": "2",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -9283,7 +9549,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.166Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "3732ec6fd6cb574271925b562f8b97afbefdf5ca7a97b0bc750432ce0474d8b6",
       "rawJson": {
         "source": "public_eventgames",
@@ -9362,7 +9628,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "904a400614a2359b795ab33c85117df3a13df235777eb2e143ad2252a62fd1b5",
       "rawJson": {
         "source": "public_eventgames",
@@ -9441,7 +9707,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "d716d9470f3611416352c01ec39d2ec20b2245885eccf61bf1959789688e14f4",
       "rawJson": {
         "source": "public_eventgames",
@@ -9506,11 +9772,11 @@
       "gameNumber": null,
       "gameType": "Pool A",
       "scheduledDate": "2026-08-29",
-      "scheduledTime": "5:10 PM",
-      "startsAt": "2026-08-30T00:10:00.000Z",
+      "scheduledTime": "6:00 PM",
+      "startsAt": "2026-08-30T01:00:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 2",
+      "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5527717",
       "awayTeamId": "public-team-264325-5527718",
       "homeTeamNameSnapshot": "Elevate (Jay) 13U",
@@ -9520,13 +9786,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
-      "sourceHash": "728fcf4a1af8248fb8f1490e10b3fc79a06fa19833525b3427c90d7136d016a0",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
+      "sourceHash": "9f86f492fe886b5e344ce0444eea1fcf47e18eb1afcb3562db418305ceb0dcfd",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556627,
         "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 2",
+        "CourtName": "Court 1",
         "AwayDivisionTeamId": 5527718,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -9554,9 +9820,9 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 2",
+        "Venue": "Gale Ranch Middle School, Court 1",
         "DateFormatted": "8/29/2026",
-        "TimeFormatted": "5:10 PM PDT",
+        "TimeFormatted": "6:00 PM PDT",
         "HomeTeamScoreDisplay": "",
         "AwayTeamScoreDisplay": "",
         "pgal": "(A)",
@@ -9570,7 +9836,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
         "Started": false,
         "VenueAbbr": "GRMS",
-        "LocationAbbr": "2",
+        "LocationAbbr": "1",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -9599,7 +9865,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "2d09a674b16ec2ad6107fe99be5cde572695b1ea072bca9d60440ffa06bc708a",
       "rawJson": {
         "source": "public_eventgames",
@@ -9678,7 +9944,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "4ec5617d6ee3622442d3ad640f09b0cfea97ab1f168a58f6e1e70e4adb734930",
       "rawJson": {
         "source": "public_eventgames",
@@ -9757,7 +10023,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "4d8880fcd4b3a3369375bc062bdcae6d2bb2e92767ea0563055fb6d8886bea56",
       "rawJson": {
         "source": "public_eventgames",
@@ -9836,7 +10102,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.167Z",
+      "updatedAt": "2026-08-28T09:50:10.369Z",
       "sourceHash": "1d70f20751ff27d62b902d5acdd215346ee02ca204d7fa5c6e869ada8bd0982f",
       "rawJson": {
         "source": "public_eventgames",
@@ -9915,7 +10181,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.476Z",
       "sourceHash": "4f099845c1031b598b13fd65c251edd3181d9e4158f291a07a9a81a28ad787c8",
       "rawJson": {
         "source": "public_eventgames",
@@ -9994,7 +10260,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
       "sourceHash": "6456e17ca517ed08e5dce16292de56057b2d0d2c051226cbde3d1bf13611ea7e",
       "rawJson": {
         "source": "public_eventgames",
@@ -10073,7 +10339,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
       "sourceHash": "64d681bc23270a6c007041adcb756750b729eb8d820a9dc80e75b09107b1744c",
       "rawJson": {
         "source": "public_eventgames",
@@ -10152,7 +10418,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
       "sourceHash": "587be6384514edb57e3d860fae256b006e90384c3ebffcdc70209cc399290b57",
       "rawJson": {
         "source": "public_eventgames",
@@ -10231,7 +10497,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
       "sourceHash": "fd2f08d99def9bad1018e388c1f06675cf13d4def75a68383721c81b6cd2fc1c",
       "rawJson": {
         "source": "public_eventgames",
@@ -10310,7 +10576,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
       "sourceHash": "7a8850289849659b30e23a56e2cc777d031bb76d3acc4a9f28e6f722d59ff171",
       "rawJson": {
         "source": "public_eventgames",
@@ -10368,85 +10634,6 @@
       }
     },
     {
-      "id": "public-game-264325-42556435",
-      "eventId": "event-264325",
-      "divisionId": "division-264325-1492686",
-      "exposureGameId": "42556435",
-      "gameNumber": null,
-      "gameType": "Pool B",
-      "scheduledDate": "2026-08-29",
-      "scheduledTime": "9:40 AM",
-      "startsAt": "2026-08-29T16:40:00.000Z",
-      "timezone": "America/Los_Angeles",
-      "venueName": "Diablo Vista Middle School",
-      "courtName": "Court 1",
-      "homeTeamId": "public-team-264325-5527732",
-      "awayTeamId": "public-team-264325-5527729",
-      "homeTeamNameSnapshot": "P Town Next Ballers (Nilo) 14U",
-      "awayTeamNameSnapshot": "Mercado Basketball 14U",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "upcoming",
-      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
-      "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
-      "sourceHash": "c400122ec5a58a5d4549d50b19a0b2cc86e283f7435a608ff47f5065b4179761",
-      "rawJson": {
-        "source": "public_eventgames",
-        "Id": 42556435,
-        "VenueName": "Diablo Vista Middle School",
-        "CourtName": "Court 1",
-        "AwayDivisionTeamId": 5527729,
-        "HomeNumber": null,
-        "AwayNumber": null,
-        "HomeDivisionTeamId": 5527732,
-        "AwayTeamNameSlug": "mercado-basketball-14u",
-        "HomeTeamNameSlug": "p-town-next-ballers-nilo-14u",
-        "WorkTeamNameSlug": "",
-        "Number": null,
-        "GameType": 1,
-        "GameTypeName": "Pool B",
-        "HomeTeamName": "P Town Next Ballers (Nilo) 14U",
-        "AwayTeamName": "Mercado Basketball 14U",
-        "WorkTeamName": "",
-        "DivisionName": "14U Boys Division",
-        "DivisionId": 1492686,
-        "TimeZone": "Pacific Standard Time",
-        "SubDivisionType": null,
-        "Status": null,
-        "StatisticsType": null,
-        "Assets": [],
-        "HideScores": false,
-        "LiveGameLink": null,
-        "HomeDivisionId": null,
-        "AwayTeamExhibition": false,
-        "HomeTeamExhibition": false,
-        "AwayTeamIsWinner": false,
-        "HomeTeamIsWinner": false,
-        "Venue": "Diablo Vista Middle School, Court 1",
-        "DateFormatted": "8/29/2026",
-        "TimeFormatted": "9:40 AM PDT",
-        "HomeTeamScoreDisplay": "",
-        "AwayTeamScoreDisplay": "",
-        "pgal": "(A)",
-        "pghl": "(H)",
-        "bgal": "(A)",
-        "bghl": "(H)",
-        "HomeTeamOtherScores": [],
-        "AwayTeamOtherScores": [],
-        "ExternalId": null,
-        "DisplayId": null,
-        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7991683,-121.8964603",
-        "Started": false,
-        "VenueAbbr": "DVMS",
-        "LocationAbbr": "1",
-        "WorkDivisionTeamId": null,
-        "BracketUrl": null,
-        "BracketName": null,
-        "DivisionBracketUrls": []
-      }
-    },
-    {
       "id": "public-game-264325-42556434",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492686",
@@ -10459,17 +10646,17 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Iron Horse Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527730",
+      "homeTeamId": "public-team-264325-5527732",
       "awayTeamId": "public-team-264325-5527728",
-      "homeTeamNameSnapshot": "Just Breathe Elite 14U",
+      "homeTeamNameSnapshot": "P Town Next Ballers (Nilo) 14U",
       "awayTeamNameSnapshot": "Top Performance 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
-      "sourceHash": "f910561dee2fa5ac38a1d26cec7aa0b6dadcfa2ecb60ca2fa8578def62627184",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
+      "sourceHash": "3d233a2114dca65ffec2478ba275f1116ae137c69daa45e759fce6f9eee0f4ad",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556434,
@@ -10478,14 +10665,14 @@
         "AwayDivisionTeamId": 5527728,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527730,
+        "HomeDivisionTeamId": 5527732,
         "AwayTeamNameSlug": "top-performance-14u",
-        "HomeTeamNameSlug": "just-breathe-elite-14u",
+        "HomeTeamNameSlug": "p-town-next-ballers-nilo-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "Just Breathe Elite 14U",
+        "HomeTeamName": "P Town Next Ballers (Nilo) 14U",
         "AwayTeamName": "Top Performance 14U",
         "WorkTeamName": "",
         "DivisionName": "14U Boys Division",
@@ -10526,45 +10713,45 @@
       }
     },
     {
-      "id": "public-game-264325-42556437",
+      "id": "public-game-264325-42556436",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492686",
-      "exposureGameId": "42556437",
+      "exposureGameId": "42556436",
       "gameNumber": null,
       "gameType": "Pool B",
       "scheduledDate": "2026-08-29",
-      "scheduledTime": "11:20 AM",
-      "startsAt": "2026-08-29T18:20:00.000Z",
+      "scheduledTime": "1:00 PM",
+      "startsAt": "2026-08-29T20:00:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Diablo Vista Middle School",
-      "courtName": "Court 1",
-      "homeTeamId": "public-team-264325-5527729",
+      "courtName": "Court 2",
+      "homeTeamId": "public-team-264325-5527730",
       "awayTeamId": "public-team-264325-5527727",
-      "homeTeamNameSnapshot": "Mercado Basketball 14U",
+      "homeTeamNameSnapshot": "Just Breathe Elite 14U",
       "awayTeamNameSnapshot": "Reign City 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
-      "sourceHash": "44bc6aec4a492c37c1023903af2bc9db7b047c3fed0a0df357dadc44f9adaf66",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
+      "sourceHash": "fc88fe44c9bc65473d318029b443b85d273e4d96cfc173c0d0fd18a5efd7c6c7",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42556437,
+        "Id": 42556436,
         "VenueName": "Diablo Vista Middle School",
-        "CourtName": "Court 1",
+        "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527727,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527729,
+        "HomeDivisionTeamId": 5527730,
         "AwayTeamNameSlug": "reign-city-14u",
-        "HomeTeamNameSlug": "mercado-basketball-14u",
+        "HomeTeamNameSlug": "just-breathe-elite-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "Mercado Basketball 14U",
+        "HomeTeamName": "Just Breathe Elite 14U",
         "AwayTeamName": "Reign City 14U",
         "WorkTeamName": "",
         "DivisionName": "14U Boys Division",
@@ -10581,9 +10768,9 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Diablo Vista Middle School, Court 1",
+        "Venue": "Diablo Vista Middle School, Court 2",
         "DateFormatted": "8/29/2026",
-        "TimeFormatted": "11:20 AM PDT",
+        "TimeFormatted": "1:00 PM PDT",
         "HomeTeamScoreDisplay": "",
         "AwayTeamScoreDisplay": "",
         "pgal": "(A)",
@@ -10597,7 +10784,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7991683,-121.8964603",
         "Started": false,
         "VenueAbbr": "DVMS",
-        "LocationAbbr": "1",
+        "LocationAbbr": "2",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -10605,15 +10792,15 @@
       }
     },
     {
-      "id": "public-game-264325-42556436",
+      "id": "public-game-264325-42556437",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492686",
-      "exposureGameId": "42556436",
+      "exposureGameId": "42556437",
       "gameNumber": null,
       "gameType": "Pool B",
       "scheduledDate": "2026-08-29",
-      "scheduledTime": "1:00 PM",
-      "startsAt": "2026-08-29T20:00:00.000Z",
+      "scheduledTime": "1:50 PM",
+      "startsAt": "2026-08-29T20:50:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Diablo Vista Middle School",
       "courtName": "Court 2",
@@ -10626,11 +10813,11 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
-      "sourceHash": "7e1c4f2378e96946722eb46640add7d651ee6972e84416642880f18da5737fa9",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
+      "sourceHash": "4cbe99d62ed45e5fedc713a0bafc272892c992b5f2d8d0a4fc26aa0349c2b3db",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42556436,
+        "Id": 42556437,
         "VenueName": "Diablo Vista Middle School",
         "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527727,
@@ -10662,7 +10849,7 @@
         "HomeTeamIsWinner": false,
         "Venue": "Diablo Vista Middle School, Court 2",
         "DateFormatted": "8/29/2026",
-        "TimeFormatted": "1:00 PM PDT",
+        "TimeFormatted": "1:50 PM PDT",
         "HomeTeamScoreDisplay": "",
         "AwayTeamScoreDisplay": "",
         "pgal": "(A)",
@@ -10705,7 +10892,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.179Z",
+      "updatedAt": "2026-08-28T09:50:10.477Z",
       "sourceHash": "ef11511c5e4fe0b9abb1c9d35e148db98697b52b194ec31fbacb33ce1158a1d0",
       "rawJson": {
         "source": "public_eventgames",
@@ -10784,7 +10971,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.178Z",
+      "updatedAt": "2026-08-28T09:50:10.481Z",
       "sourceHash": "2d75d4ddf5d3f3e33af968db86f668fe77663a2d4cac2ec31ebe23f870a1044d",
       "rawJson": {
         "source": "public_eventgames",
@@ -10863,7 +11050,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.178Z",
+      "updatedAt": "2026-08-28T09:50:10.481Z",
       "sourceHash": "5029252dce124b96479a5a5c906a3d8e86ef47b583d4df20a092e75ebf09b634",
       "rawJson": {
         "source": "public_eventgames",
@@ -10942,7 +11129,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.178Z",
+      "updatedAt": "2026-08-28T09:50:10.481Z",
       "sourceHash": "e46a43fe8d7b28c6fadf65572118b455f18ea1f39350e960b9f49549e7f91d0c",
       "rawJson": {
         "source": "public_eventgames",
@@ -11021,7 +11208,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.178Z",
+      "updatedAt": "2026-08-28T09:50:10.481Z",
       "sourceHash": "ccb8e863d6d117b7f27bbd2f7beb27a04c534264e2655b89526ac2a00159002d",
       "rawJson": {
         "source": "public_eventgames",
@@ -11100,7 +11287,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.178Z",
+      "updatedAt": "2026-08-28T09:50:10.481Z",
       "sourceHash": "ef11511c5e4fe0b9abb1c9d35e148db98697b52b194ec31fbacb33ce1158a1d0",
       "rawJson": {
         "source": "public_eventgames",
@@ -11179,7 +11366,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "e47490a5730aa016e495c436c154eaac884820afec49f171079dd1de15204c19",
       "rawJson": {
         "source": "public_eventgames",
@@ -11258,7 +11445,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "2d65c31a26346a1cc9f3478290b4268d1ee6836680c87411aaa827ee31fa3252",
       "rawJson": {
         "source": "public_eventgames",
@@ -11337,7 +11524,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "ffe89611d2cefd67ed57b10f7825f11edb68f3a8e7be100863a712b749418e4b",
       "rawJson": {
         "source": "public_eventgames",
@@ -11416,7 +11603,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "e9d910dd5b88cdd212e9bd9bba0a3f2f0d4f3941dd49bf3cbee4383ad3d6ffbe",
       "rawJson": {
         "source": "public_eventgames",
@@ -11495,7 +11682,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "b2e4f707cd396bddbc30ded31a432b52e054cb12db13834adb62eae12ad689f7",
       "rawJson": {
         "source": "public_eventgames",
@@ -11574,7 +11761,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "8fe667435b3997a32ec017619961b7f18526d3e8b243199a2d96863cd1ba79e1",
       "rawJson": {
         "source": "public_eventgames",
@@ -11653,7 +11840,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "1f8c3f68f2a4d601faba61d6e1b4818a7e52a357be65f0049b57879854cf5b09",
       "rawJson": {
         "source": "public_eventgames",
@@ -11732,7 +11919,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "1eb3aa72436281231453f6f574119d0cace97a0d5f2d39ece68c5ab56643c676",
       "rawJson": {
         "source": "public_eventgames",
@@ -11811,7 +11998,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "3e8a0a195d2515e5ba96fb761ccc594f5df29569f9243cb111abdd203804ac29",
       "rawJson": {
         "source": "public_eventgames",
@@ -11890,7 +12077,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.301Z",
+      "updatedAt": "2026-08-28T09:50:10.492Z",
       "sourceHash": "e4083d6406d47eba698d11f64e3b95c361d2e6481ff8ccabf8aa9d0e537631bf",
       "rawJson": {
         "source": "public_eventgames",
@@ -11969,7 +12156,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "2ae5e5ba0a40ba78153864aae62f0f92409ecb0cac7d0544b8f9305e5de74b73",
       "rawJson": {
         "source": "public_eventgames",
@@ -12048,7 +12235,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "ffe89611d2cefd67ed57b10f7825f11edb68f3a8e7be100863a712b749418e4b",
       "rawJson": {
         "source": "public_eventgames",
@@ -12127,7 +12314,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "8b77ef4214a29e6bea1b186faa7f5b4c8aae5807ea2c359e754baaac25084a8d",
       "rawJson": {
         "source": "public_eventgames",
@@ -12206,7 +12393,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "19e6eb14928cbcf828e93e1475015c55d3fd5b9c973857427fe00fa5493788e3",
       "rawJson": {
         "source": "public_eventgames",
@@ -12285,7 +12472,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "7bf47345c2e6bd0680133bc12963436e7d8eb817bd66d446d51955afd7e4b94b",
       "rawJson": {
         "source": "public_eventgames",
@@ -12364,7 +12551,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "25968e55a1af9fb4901a3f586f75554d6342e0565054f5c6b47a7a23aa3a466c",
       "rawJson": {
         "source": "public_eventgames",
@@ -12443,7 +12630,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "8fe667435b3997a32ec017619961b7f18526d3e8b243199a2d96863cd1ba79e1",
       "rawJson": {
         "source": "public_eventgames",
@@ -12515,15 +12702,15 @@
       "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5527813",
       "awayTeamId": "public-team-264325-5527761",
-      "homeTeamNameSnapshot": "Blaze",
+      "homeTeamNameSnapshot": "Team Blaze 17 Premier",
       "awayTeamNameSnapshot": "Bay Area Regulators",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
-      "sourceHash": "36333021cb319c09978d22949f150fdbfb52e554b3a94b722ac553d6d77b0b74",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
+      "sourceHash": "ffd6e3f6c46247cd7255a68d2b038a89731376c94f719c47fbb8530cb5d7e3c4",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557053,
@@ -12534,12 +12721,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527813,
         "AwayTeamNameSlug": "bay-area-regulators",
-        "HomeTeamNameSlug": "blaze",
+        "HomeTeamNameSlug": "team-blaze-17-premier",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A/B",
-        "HomeTeamName": "Blaze",
+        "HomeTeamName": "Team Blaze 17 Premier",
         "AwayTeamName": "Bay Area Regulators",
         "WorkTeamName": "",
         "DivisionName": "16U/17U Boys Division",
@@ -12601,7 +12788,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
       "sourceHash": "4bde8c61cf5e3f4cfed993b3b3f3521df54109e3b063ea52168e36f784608b89",
       "rawJson": {
         "source": "public_eventgames",
@@ -12674,14 +12861,14 @@
       "homeTeamId": "public-team-264325-5527763",
       "awayTeamId": "public-team-264325-5527813",
       "homeTeamNameSnapshot": "West Coast Xtreme",
-      "awayTeamNameSnapshot": "Blaze",
+      "awayTeamNameSnapshot": "Team Blaze 17 Premier",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.302Z",
-      "sourceHash": "e987bf97d7b310961fca45c2ed7e2ee26a5ca5f670de881289b7557722c05c52",
+      "updatedAt": "2026-08-28T09:50:10.534Z",
+      "sourceHash": "ac81cfcf6594725749b3fa5c832842d6be71ab8dcbcb3e90e119695ac9e0b78f",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42557054,
@@ -12691,14 +12878,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527763,
-        "AwayTeamNameSlug": "blaze",
+        "AwayTeamNameSlug": "team-blaze-17-premier",
         "HomeTeamNameSlug": "west-coast-xtreme",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B/A",
         "HomeTeamName": "West Coast Xtreme",
-        "AwayTeamName": "Blaze",
+        "AwayTeamName": "Team Blaze 17 Premier",
         "WorkTeamName": "",
         "DivisionName": "16U/17U Boys Division",
         "DivisionId": 1492691,
@@ -12759,7 +12946,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.312Z",
+      "updatedAt": "2026-08-28T09:50:10.640Z",
       "sourceHash": "d7b8da52340fdcb7624b463d92c5452e6197a89824f7b3afa6f968c4154817a5",
       "rawJson": {
         "source": "public_eventgames",
@@ -12838,7 +13025,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.312Z",
+      "updatedAt": "2026-08-28T09:50:10.640Z",
       "sourceHash": "d77d1a71524e5d8744d943ef2b59263d77cb35334a848492dc34a1fc4a9f8c5b",
       "rawJson": {
         "source": "public_eventgames",
@@ -12917,7 +13104,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.312Z",
+      "updatedAt": "2026-08-28T09:50:10.640Z",
       "sourceHash": "7c51ae35055dde3339e3d6726f3b710e6e34a9072f38e3f713bf941105c52a2b",
       "rawJson": {
         "source": "public_eventgames",
@@ -12996,7 +13183,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.312Z",
+      "updatedAt": "2026-08-28T09:50:10.650Z",
       "sourceHash": "361057953f3e0aa6489c69a9d928a590e52664ed5a8c87cbf14ce97e2ea83e2f",
       "rawJson": {
         "source": "public_eventgames",
@@ -13075,7 +13262,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.312Z",
+      "updatedAt": "2026-08-28T09:50:10.650Z",
       "sourceHash": "2e068c482a512b193ce0f67059395fe807f32a5dace5877fe1cb8bbd11768535",
       "rawJson": {
         "source": "public_eventgames",
@@ -13154,7 +13341,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.312Z",
+      "updatedAt": "2026-08-28T09:50:10.650Z",
       "sourceHash": "b3ec71b97a311a6c856d227882bb6cdce84b73ee51fad25663621159e79c2e96",
       "rawJson": {
         "source": "public_eventgames",
@@ -13224,34 +13411,34 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 1",
-      "homeTeamId": "public-team-264325-5527701",
-      "awayTeamId": "public-team-264325-5528269",
-      "homeTeamNameSnapshot": "Elevate (Jay) 11U/12U",
-      "awayTeamNameSnapshot": "SJ Spartans 11U/12U",
+      "homeTeamId": "public-team-264325-5528269",
+      "awayTeamId": "public-team-264325-5527701",
+      "homeTeamNameSnapshot": "SJ Spartans 11U/12U",
+      "awayTeamNameSnapshot": "Elevate (Jay) 11U/12U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.442Z",
-      "sourceHash": "f9a6b68b91f94c515897d7cd029801c6f276ecf23f31e9ec6cba9ffb805214cd",
+      "updatedAt": "2026-08-28T09:50:10.655Z",
+      "sourceHash": "88b8f946946d74baf5fff520ee294cbdb5787bc3d927457759d12877faf9e062",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556858,
         "VenueName": "Gale Ranch Middle School",
         "CourtName": "Court 1",
-        "AwayDivisionTeamId": 5528269,
+        "AwayDivisionTeamId": 5527701,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527701,
-        "AwayTeamNameSlug": "sj-spartans-11u-12u",
-        "HomeTeamNameSlug": "elevate-jay-11u-12u",
+        "HomeDivisionTeamId": 5528269,
+        "AwayTeamNameSlug": "elevate-jay-11u-12u",
+        "HomeTeamNameSlug": "sj-spartans-11u-12u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Elevate (Jay) 11U/12U",
-        "AwayTeamName": "SJ Spartans 11U/12U",
+        "HomeTeamName": "SJ Spartans 11U/12U",
+        "AwayTeamName": "Elevate (Jay) 11U/12U",
         "WorkTeamName": "",
         "DivisionName": "12U Girls Division ♀",
         "DivisionId": 1492682,
@@ -13298,11 +13485,11 @@
       "gameNumber": null,
       "gameType": "Pool A",
       "scheduledDate": "2026-08-29",
-      "scheduledTime": "1:50 PM",
-      "startsAt": "2026-08-29T20:50:00.000Z",
+      "scheduledTime": "1:00 PM",
+      "startsAt": "2026-08-29T20:00:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
-      "courtName": "Court 2",
+      "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5528269",
       "awayTeamId": "public-team-264325-5527700",
       "homeTeamNameSnapshot": "SJ Spartans 11U/12U",
@@ -13312,13 +13499,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.442Z",
-      "sourceHash": "f896a5c40082be29d37c71848ca2e3629f3495be93ac7ff0d89f07cae08d6e0f",
+      "updatedAt": "2026-08-28T09:50:10.655Z",
+      "sourceHash": "b02cc3e6f54d0b8c19a7d54ad4adf797c15e84a3b5e87092af7f3a3c6da0a3d7",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556857,
         "VenueName": "Gale Ranch Middle School",
-        "CourtName": "Court 2",
+        "CourtName": "Court 1",
         "AwayDivisionTeamId": 5527700,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -13346,9 +13533,9 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Gale Ranch Middle School, Court 2",
+        "Venue": "Gale Ranch Middle School, Court 1",
         "DateFormatted": "8/29/2026",
-        "TimeFormatted": "1:50 PM PDT",
+        "TimeFormatted": "1:00 PM PDT",
         "HomeTeamScoreDisplay": "",
         "AwayTeamScoreDisplay": "",
         "pgal": "(A)",
@@ -13362,7 +13549,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
         "Started": false,
         "VenueAbbr": "GRMS",
-        "LocationAbbr": "2",
+        "LocationAbbr": "1",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -13391,7 +13578,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.442Z",
+      "updatedAt": "2026-08-28T09:50:10.655Z",
       "sourceHash": "32b615cdd537a43248d8d9254e0e5db95985798f6f1792046c61ef0913f77d6f",
       "rawJson": {
         "source": "public_eventgames",
@@ -13470,7 +13657,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.442Z",
+      "updatedAt": "2026-08-28T09:50:10.699Z",
       "sourceHash": "8eac546d4f3460356be9ee9a4dbc42481c87dd4648d2543d69d9d8bedeea84ad",
       "rawJson": {
         "source": "public_eventgames",
@@ -13541,33 +13728,33 @@
       "venueName": "Pine Valley Middle School",
       "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5527707",
-      "awayTeamId": "public-team-264325-5527702",
+      "awayTeamId": "public-team-264325-5527704",
       "homeTeamNameSnapshot": "M.I.E. 13U",
-      "awayTeamNameSnapshot": "Mercado Basketball 13U",
+      "awayTeamNameSnapshot": "Team Kidd 12U/13U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.443Z",
-      "sourceHash": "f04e3585f30c1c5678b7eec0de060a544f363154e3ff3a0b4a6cbb7fd58e685e",
+      "updatedAt": "2026-08-28T09:50:10.699Z",
+      "sourceHash": "c406e0d4dcf60d7ca511175eb59b46b4802a716a4918713e495cd625af358705",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556852,
         "VenueName": "Pine Valley Middle School",
         "CourtName": "Court 1",
-        "AwayDivisionTeamId": 5527702,
+        "AwayDivisionTeamId": 5527704,
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527707,
-        "AwayTeamNameSlug": "mercado-basketball-13u",
+        "AwayTeamNameSlug": "team-kidd-12u-13u",
         "HomeTeamNameSlug": "mie-13u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "M.I.E. 13U",
-        "AwayTeamName": "Mercado Basketball 13U",
+        "AwayTeamName": "Team Kidd 12U/13U",
         "WorkTeamName": "",
         "DivisionName": "13U Girls Division ♀",
         "DivisionId": 1492683,
@@ -13618,34 +13805,34 @@
       "startsAt": "2026-08-29T21:40:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Pine Valley Middle School",
-      "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527704",
+      "courtName": "Court 1",
+      "homeTeamId": "public-team-264325-5527702",
       "awayTeamId": "public-team-264325-5527706",
-      "homeTeamNameSnapshot": "Team Kidd 12U/13U",
+      "homeTeamNameSnapshot": "Mercado Basketball 13U",
       "awayTeamNameSnapshot": "Elevate (Jim) 13U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.443Z",
-      "sourceHash": "35cd9f5a00084fddb7376e707eaf6320ddd8d58c487984695df2a0db8315fa74",
+      "updatedAt": "2026-08-28T09:50:10.699Z",
+      "sourceHash": "579197b5df09195f742c97fd0787ff4283227640c54b424b9b25d3a41424eb2e",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556855,
         "VenueName": "Pine Valley Middle School",
-        "CourtName": "Court 2",
+        "CourtName": "Court 1",
         "AwayDivisionTeamId": 5527706,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527704,
+        "HomeDivisionTeamId": 5527702,
         "AwayTeamNameSlug": "elevate-jim-13u",
-        "HomeTeamNameSlug": "team-kidd-12u-13u",
+        "HomeTeamNameSlug": "mercado-basketball-13u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Team Kidd 12U/13U",
+        "HomeTeamName": "Mercado Basketball 13U",
         "AwayTeamName": "Elevate (Jim) 13U",
         "WorkTeamName": "",
         "DivisionName": "13U Girls Division ♀",
@@ -13662,7 +13849,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Pine Valley Middle School, Court 2",
+        "Venue": "Pine Valley Middle School, Court 1",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "2:40 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -13678,7 +13865,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7378151,-121.9423337",
         "Started": false,
         "VenueAbbr": "PVMS",
-        "LocationAbbr": "2",
+        "LocationAbbr": "1",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -13697,7 +13884,7 @@
       "startsAt": "2026-08-29T22:30:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Pine Valley Middle School",
-      "courtName": "Court 2",
+      "courtName": "Court 1",
       "homeTeamId": "public-team-264325-5527702",
       "awayTeamId": "public-team-264325-5527703",
       "homeTeamNameSnapshot": "Mercado Basketball 13U",
@@ -13707,13 +13894,13 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.443Z",
-      "sourceHash": "141f6fe3af61fb7e3170f606be707d13bb34fbd34723c6df7bfd65ff6142eebe",
+      "updatedAt": "2026-08-28T09:50:10.699Z",
+      "sourceHash": "6f3b783ce38a06d56fbc91390dda6096591c0b2d76a5ab432fcf92faf327380d",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556851,
         "VenueName": "Pine Valley Middle School",
-        "CourtName": "Court 2",
+        "CourtName": "Court 1",
         "AwayDivisionTeamId": 5527703,
         "HomeNumber": null,
         "AwayNumber": null,
@@ -13741,7 +13928,7 @@
         "HomeTeamExhibition": false,
         "AwayTeamIsWinner": false,
         "HomeTeamIsWinner": false,
-        "Venue": "Pine Valley Middle School, Court 2",
+        "Venue": "Pine Valley Middle School, Court 1",
         "DateFormatted": "8/29/2026",
         "TimeFormatted": "3:30 PM PDT",
         "HomeTeamScoreDisplay": "",
@@ -13757,7 +13944,7 @@
         "DirectionsUrl": "https://www.google.com/maps?daddr=37.7378151,-121.9423337",
         "Started": false,
         "VenueAbbr": "PVMS",
-        "LocationAbbr": "2",
+        "LocationAbbr": "1",
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
@@ -13786,7 +13973,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.443Z",
+      "updatedAt": "2026-08-28T09:50:10.699Z",
       "sourceHash": "90da3d06420aa64db0e5338b59a5b0c9b60301e5651423b854d79098985e4966",
       "rawJson": {
         "source": "public_eventgames",
@@ -13858,15 +14045,15 @@
       "courtName": "Court 2",
       "homeTeamId": "public-team-264325-5527705",
       "awayTeamId": "public-team-264325-5527724",
-      "homeTeamNameSnapshot": "Team Inspire 13U",
+      "homeTeamNameSnapshot": "Team Inspire 13U/14U",
       "awayTeamNameSnapshot": "Chuck Hayes 13U/14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
-      "sourceHash": "f5a0b00925b12f616919523797cb03ab3d821ce50aa51186fb2d96585fa16a7a",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
+      "sourceHash": "786cb16f632a0452dae29c6067d328b692a54298d0221e483141749bbaaaf48e",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556438,
@@ -13877,12 +14064,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527705,
         "AwayTeamNameSlug": "chuck-hayes-13u-14u",
-        "HomeTeamNameSlug": "team-inspire-13u",
+        "HomeTeamNameSlug": "team-inspire-13u-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Team Inspire 13U",
+        "HomeTeamName": "Team Inspire 13U/14U",
         "AwayTeamName": "Chuck Hayes 13U/14U",
         "WorkTeamName": "",
         "DivisionName": "14U Girls Division ♀",
@@ -13944,7 +14131,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
       "sourceHash": "716d2d6a3ad8d6a995d39f5bf3f5790b744d825f1e6cc9c616eb8d8fabb04686",
       "rawJson": {
         "source": "public_eventgames",
@@ -14023,7 +14210,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
       "sourceHash": "3cfc4ff1cfa2f8cb28dcb58867936a5107ae77247f8f65f200372f25aeb207e0",
       "rawJson": {
         "source": "public_eventgames",
@@ -14102,7 +14289,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
       "sourceHash": "3a3bc8178b9c764d368da78443d5dd4878249baf8453981fca53bba97f5e2595",
       "rawJson": {
         "source": "public_eventgames",
@@ -14174,15 +14361,15 @@
       "courtName": "Court 2",
       "homeTeamId": "public-team-264325-5527705",
       "awayTeamId": "public-team-264325-5527725",
-      "homeTeamNameSnapshot": "Team Inspire 13U",
+      "homeTeamNameSnapshot": "Team Inspire 13U/14U",
       "awayTeamNameSnapshot": "SF Sparks 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
-      "sourceHash": "d21b122977e90b9580fff021b5ab2e2d5ce6571e4a3b91d18b408df50d4fda04",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
+      "sourceHash": "5c04535431e80305261c9557bca02fc32217e58b6e917f8708fe546674432646",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42556442,
@@ -14193,12 +14380,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5527705,
         "AwayTeamNameSlug": "sf-sparks-14u",
-        "HomeTeamNameSlug": "team-inspire-13u",
+        "HomeTeamNameSlug": "team-inspire-13u-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Team Inspire 13U",
+        "HomeTeamName": "Team Inspire 13U/14U",
         "AwayTeamName": "SF Sparks 14U",
         "WorkTeamName": "",
         "DivisionName": "14U Girls Division ♀",
@@ -14260,7 +14447,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
       "sourceHash": "964d82d0591fc49dd5044fc920f9dda324d694bc3f6441c7de7ef7d8f532add7",
       "rawJson": {
         "source": "public_eventgames",
@@ -14318,10 +14505,10 @@
       }
     },
     {
-      "id": "public-game-264325-42557055",
+      "id": "public-game-264325-42557056",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492689",
-      "exposureGameId": "42557055",
+      "exposureGameId": "42557056",
       "gameNumber": null,
       "gameType": "Pool B",
       "scheduledDate": "2026-08-30",
@@ -14330,33 +14517,33 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527725",
+      "homeTeamId": "public-team-264325-5528866",
       "awayTeamId": "public-team-264325-5527821",
-      "homeTeamNameSnapshot": "SF Sparks 14U",
+      "homeTeamNameSnapshot": "FTS 15U",
       "awayTeamNameSnapshot": "Align 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
-      "sourceHash": "b8e8ec4adf7f17ea92fc2b26d6519b1463c64d1c027436799582c74809ac84db",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
+      "sourceHash": "7cd7b9a8c68cdbadce9699b6ca94f987a8acf3a86ba3b823046e1e8fa8425238",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42557055,
+        "Id": 42557056,
         "VenueName": "Gale Ranch Middle School",
         "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527821,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527725,
+        "HomeDivisionTeamId": 5528866,
         "AwayTeamNameSlug": "align-14u",
-        "HomeTeamNameSlug": "sf-sparks-14u",
+        "HomeTeamNameSlug": "fts-15u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "SF Sparks 14U",
+        "HomeTeamName": "FTS 15U",
         "AwayTeamName": "Align 14U",
         "WorkTeamName": "",
         "DivisionName": "15U Girls Division ♀",
@@ -14397,45 +14584,45 @@
       }
     },
     {
-      "id": "public-game-264325-42557056",
+      "id": "public-game-264325-42557055",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492689",
-      "exposureGameId": "42557056",
+      "exposureGameId": "42557055",
       "gameNumber": null,
-      "gameType": "Pool B/A",
+      "gameType": "Pool B",
       "scheduledDate": "2026-08-30",
       "scheduledTime": "2:20 PM",
       "startsAt": "2026-08-30T21:20:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527745",
+      "homeTeamId": "public-team-264325-5527725",
       "awayTeamId": "public-team-264325-5527821",
-      "homeTeamNameSnapshot": "Team Legree 15U",
+      "homeTeamNameSnapshot": "SF Sparks 14U",
       "awayTeamNameSnapshot": "Align 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.446Z",
-      "sourceHash": "17d250a47486c5b6ad864c674c43385054c89fd7f42a5a9d1574bba0975e002a",
+      "updatedAt": "2026-08-28T09:50:10.806Z",
+      "sourceHash": "98d21fd7917870d2e60bd435b1f9e8118f583ad5568f639deeee42938754656f",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42557056,
+        "Id": 42557055,
         "VenueName": "Gale Ranch Middle School",
         "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527821,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527745,
+        "HomeDivisionTeamId": 5527725,
         "AwayTeamNameSlug": "align-14u",
-        "HomeTeamNameSlug": "team-legree-15u",
+        "HomeTeamNameSlug": "sf-sparks-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
-        "GameTypeName": "Pool B/A",
-        "HomeTeamName": "Team Legree 15U",
+        "GameTypeName": "Pool B",
+        "HomeTeamName": "SF Sparks 14U",
         "AwayTeamName": "Align 14U",
         "WorkTeamName": "",
         "DivisionName": "15U Girls Division ♀",
@@ -14497,7 +14684,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
       "sourceHash": "c5fe2259d7a297e7e67eefd1c2e6e028482468d84c10fdb71269c1345e62d864",
       "rawJson": {
         "source": "public_eventgames",
@@ -14576,7 +14763,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
       "sourceHash": "d962dad3410187e38ee4dd7e8c204b12ce137c69172bd86aff2b1381a30dfaf3",
       "rawJson": {
         "source": "public_eventgames",
@@ -14655,7 +14842,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
       "sourceHash": "9baf6a87f45acf9c6fe41f76a2f96f1c214dbe18ab020d44c94fb8f7846b4402",
       "rawJson": {
         "source": "public_eventgames",
@@ -14734,7 +14921,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
       "sourceHash": "f3e7aff175852bc736bdd987a3b2693b9b39bcf90e94fb795126b7f0b85573eb",
       "rawJson": {
         "source": "public_eventgames",
@@ -14792,6 +14979,85 @@
       }
     },
     {
+      "id": "public-game-264325-42563417",
+      "eventId": "event-264325",
+      "divisionId": "division-264325-1492689",
+      "exposureGameId": "42563417",
+      "gameNumber": null,
+      "gameType": "Pool A/B",
+      "scheduledDate": "2026-08-30",
+      "scheduledTime": "11:50 AM",
+      "startsAt": "2026-08-30T18:50:00.000Z",
+      "timezone": "America/Los_Angeles",
+      "venueName": "Gale Ranch Middle School",
+      "courtName": "Court 2",
+      "homeTeamId": "public-team-264325-5528866",
+      "awayTeamId": "public-team-264325-5527745",
+      "homeTeamNameSnapshot": "FTS 15U",
+      "awayTeamNameSnapshot": "Team Legree 15U",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "upcoming",
+      "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
+      "streamingUrl": null,
+      "updatedAt": "2026-08-28T09:50:10.820Z",
+      "sourceHash": "b554a6faa8eed397e38b64a36f2a2568624732ae71c93ef8a5bf05d667d181ae",
+      "rawJson": {
+        "source": "public_eventgames",
+        "Id": 42563417,
+        "VenueName": "Gale Ranch Middle School",
+        "CourtName": "Court 2",
+        "AwayDivisionTeamId": 5527745,
+        "HomeNumber": null,
+        "AwayNumber": null,
+        "HomeDivisionTeamId": 5528866,
+        "AwayTeamNameSlug": "team-legree-15u",
+        "HomeTeamNameSlug": "fts-15u",
+        "WorkTeamNameSlug": "",
+        "Number": null,
+        "GameType": 1,
+        "GameTypeName": "Pool A/B",
+        "HomeTeamName": "FTS 15U",
+        "AwayTeamName": "Team Legree 15U",
+        "WorkTeamName": "",
+        "DivisionName": "15U Girls Division ♀",
+        "DivisionId": 1492689,
+        "TimeZone": "Pacific Standard Time",
+        "SubDivisionType": null,
+        "Status": null,
+        "StatisticsType": null,
+        "Assets": [],
+        "HideScores": false,
+        "LiveGameLink": null,
+        "HomeDivisionId": null,
+        "AwayTeamExhibition": false,
+        "HomeTeamExhibition": false,
+        "AwayTeamIsWinner": false,
+        "HomeTeamIsWinner": false,
+        "Venue": "Gale Ranch Middle School, Court 2",
+        "DateFormatted": "8/30/2026",
+        "TimeFormatted": "11:50 AM PDT",
+        "HomeTeamScoreDisplay": "",
+        "AwayTeamScoreDisplay": "",
+        "pgal": "(A)",
+        "pghl": "(H)",
+        "bgal": "(A)",
+        "bghl": "(H)",
+        "HomeTeamOtherScores": [],
+        "AwayTeamOtherScores": [],
+        "ExternalId": null,
+        "DisplayId": null,
+        "DirectionsUrl": "https://www.google.com/maps?daddr=37.7691211,-121.9106365",
+        "Started": false,
+        "VenueAbbr": "GRMS",
+        "LocationAbbr": "2",
+        "WorkDivisionTeamId": null,
+        "BracketUrl": null,
+        "BracketName": null,
+        "DivisionBracketUrls": []
+      }
+    },
+    {
       "id": "public-game-264325-42557057",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492689",
@@ -14813,7 +15079,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
       "sourceHash": "964d82d0591fc49dd5044fc920f9dda324d694bc3f6441c7de7ef7d8f532add7",
       "rawJson": {
         "source": "public_eventgames",
@@ -14871,10 +15137,10 @@
       }
     },
     {
-      "id": "public-game-264325-42557055",
+      "id": "public-game-264325-42557056",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492689",
-      "exposureGameId": "42557055",
+      "exposureGameId": "42557056",
       "gameNumber": null,
       "gameType": "Pool B",
       "scheduledDate": "2026-08-30",
@@ -14883,33 +15149,33 @@
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527725",
+      "homeTeamId": "public-team-264325-5528866",
       "awayTeamId": "public-team-264325-5527821",
-      "homeTeamNameSnapshot": "SF Sparks 14U",
+      "homeTeamNameSnapshot": "FTS 15U",
       "awayTeamNameSnapshot": "Align 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
-      "sourceHash": "b8e8ec4adf7f17ea92fc2b26d6519b1463c64d1c027436799582c74809ac84db",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
+      "sourceHash": "7cd7b9a8c68cdbadce9699b6ca94f987a8acf3a86ba3b823046e1e8fa8425238",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42557055,
+        "Id": 42557056,
         "VenueName": "Gale Ranch Middle School",
         "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527821,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527725,
+        "HomeDivisionTeamId": 5528866,
         "AwayTeamNameSlug": "align-14u",
-        "HomeTeamNameSlug": "sf-sparks-14u",
+        "HomeTeamNameSlug": "fts-15u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool B",
-        "HomeTeamName": "SF Sparks 14U",
+        "HomeTeamName": "FTS 15U",
         "AwayTeamName": "Align 14U",
         "WorkTeamName": "",
         "DivisionName": "15U Girls Division ♀",
@@ -14950,45 +15216,45 @@
       }
     },
     {
-      "id": "public-game-264325-42557056",
+      "id": "public-game-264325-42557055",
       "eventId": "event-264325",
       "divisionId": "division-264325-1492689",
-      "exposureGameId": "42557056",
+      "exposureGameId": "42557055",
       "gameNumber": null,
-      "gameType": "Pool B/A",
+      "gameType": "Pool B",
       "scheduledDate": "2026-08-30",
       "scheduledTime": "2:20 PM",
       "startsAt": "2026-08-30T21:20:00.000Z",
       "timezone": "America/Los_Angeles",
       "venueName": "Gale Ranch Middle School",
       "courtName": "Court 2",
-      "homeTeamId": "public-team-264325-5527745",
+      "homeTeamId": "public-team-264325-5527725",
       "awayTeamId": "public-team-264325-5527821",
-      "homeTeamNameSnapshot": "Team Legree 15U",
+      "homeTeamNameSnapshot": "SF Sparks 14U",
       "awayTeamNameSnapshot": "Align 14U",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.445Z",
-      "sourceHash": "17d250a47486c5b6ad864c674c43385054c89fd7f42a5a9d1574bba0975e002a",
+      "updatedAt": "2026-08-28T09:50:10.820Z",
+      "sourceHash": "98d21fd7917870d2e60bd435b1f9e8118f583ad5568f639deeee42938754656f",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42557056,
+        "Id": 42557055,
         "VenueName": "Gale Ranch Middle School",
         "CourtName": "Court 2",
         "AwayDivisionTeamId": 5527821,
         "HomeNumber": null,
         "AwayNumber": null,
-        "HomeDivisionTeamId": 5527745,
+        "HomeDivisionTeamId": 5527725,
         "AwayTeamNameSlug": "align-14u",
-        "HomeTeamNameSlug": "team-legree-15u",
+        "HomeTeamNameSlug": "sf-sparks-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
-        "GameTypeName": "Pool B/A",
-        "HomeTeamName": "Team Legree 15U",
+        "GameTypeName": "Pool B",
+        "HomeTeamName": "SF Sparks 14U",
         "AwayTeamName": "Align 14U",
         "WorkTeamName": "",
         "DivisionName": "15U Girls Division ♀",
@@ -15050,7 +15316,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.575Z",
+      "updatedAt": "2026-08-28T09:50:10.818Z",
       "sourceHash": "4b405988859387adb717ac807b6c32b8c33248d7d03fa2996d790c33fe894133",
       "rawJson": {
         "source": "public_eventgames",
@@ -15129,7 +15395,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.575Z",
+      "updatedAt": "2026-08-28T09:50:10.818Z",
       "sourceHash": "8c7b7dc57127e044eb17d2da2b4dcb6cbca43e5f05517f93780987c2fe7406df",
       "rawJson": {
         "source": "public_eventgames",
@@ -15208,7 +15474,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.575Z",
+      "updatedAt": "2026-08-28T09:50:10.818Z",
       "sourceHash": "00ef63b37e5fe9ab36ed2ce5a0f8d7fee1a7377a49038d2052b22fa342c9fc26",
       "rawJson": {
         "source": "public_eventgames",
@@ -15287,7 +15553,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.575Z",
+      "updatedAt": "2026-08-28T09:50:10.818Z",
       "sourceHash": "74258e2df5163a02a3750c58cc826d45786351c9da0dabcfde7092f8c4bc84b6",
       "rawJson": {
         "source": "public_eventgames",
@@ -15366,7 +15632,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.577Z",
+      "updatedAt": "2026-08-28T09:50:10.863Z",
       "sourceHash": "f547405f61aecee5ae5f6b60eaa7f0119f725febf2b31d9fa5a8e64a77fa7eff",
       "rawJson": {
         "source": "public_eventgames",
@@ -15445,7 +15711,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.577Z",
+      "updatedAt": "2026-08-28T09:50:10.863Z",
       "sourceHash": "c011ad681332b913d49bfd54832360a9b137e148257fb61f3b4e894975e7fc4d",
       "rawJson": {
         "source": "public_eventgames",
@@ -15524,7 +15790,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.577Z",
+      "updatedAt": "2026-08-28T09:50:10.863Z",
       "sourceHash": "5ec3b7e711a7ff039a6c4d2dd0cfa669c9a553bb7bdec1de0fce489d1e0d703f",
       "rawJson": {
         "source": "public_eventgames",
@@ -15603,7 +15869,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.577Z",
+      "updatedAt": "2026-08-28T09:50:10.863Z",
       "sourceHash": "0da05fb5da3a16328c283375c99d44902f1814363a602f426dc4616c1ce4d61f",
       "rawJson": {
         "source": "public_eventgames",
@@ -15682,7 +15948,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/264325/bam-x-gsg-summer-finale/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-08-27T23:53:48.577Z",
+      "updatedAt": "2026-08-28T09:50:10.863Z",
       "sourceHash": "c1a21064d12cc0679cadb87cf28538e7119a67f7b254827222b29d989c2a26b6",
       "rawJson": {
         "source": "public_eventgames",
