@@ -16,15 +16,15 @@
   "dependencies": {
     "@courtwatch/core": "0.1.0",
     "@courtwatch/db": "0.1.0",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^7.10.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.7.0",
     "helmet": "^8.1.0",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
     "web-push": "^3.6.7",
-    "zod": "^4.1.13"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

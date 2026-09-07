@@ -17,7 +17,7 @@
     "@courtwatch/core": "0.1.0",
     "@courtwatch/db": "0.1.0",
     "pino": "^10.1.0",
-    "zod": "^4.1.13"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "vitest": "^4.0.13"
