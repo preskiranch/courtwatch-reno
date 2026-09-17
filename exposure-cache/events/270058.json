@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-09-17T09:50:31.040Z",
+  "cachedAt": "2026-09-17T14:42:57.237Z",
   "eventId": 270058,
   "eventSlug": "fall-preview-ie",
   "event": {
@@ -117,7 +117,7 @@
         "Value": 5557845,
         "Name": "Alien Hoops 14U (CA) (Boys 14U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557839",
@@ -144,7 +144,7 @@
         "Value": 5557839,
         "Name": "Alien Hoops Black (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557868",
@@ -171,7 +171,7 @@
         "Value": 5557868,
         "Name": "B Elite 5th/6th (CA) (Girls MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557862",
@@ -198,7 +198,7 @@
         "Value": 5557862,
         "Name": "B Elite 7th/8th (CA) (Girls)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557848",
@@ -225,7 +225,7 @@
         "Value": 5557848,
         "Name": "Blaze Basketball (CA) (Boys 14U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557849",
@@ -252,7 +252,7 @@
         "Value": 5557849,
         "Name": "D3 Performance (CA) (Boys 14U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557856",
@@ -279,7 +279,7 @@
         "Value": 5557856,
         "Name": "Damand 11U (CA) (Boys 11U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557869",
@@ -306,7 +306,7 @@
         "Value": 5557869,
         "Name": "Damand 12U Girls (CA) (Girls MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557865",
@@ -333,7 +333,7 @@
         "Value": 5557865,
         "Name": "Damand 14U Girls (CA) (Girls)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557857",
@@ -360,7 +360,7 @@
         "Value": 5557857,
         "Name": "Edge 11U (CA) (Boys 11U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557851",
@@ -387,7 +387,7 @@
         "Value": 5557851,
         "Name": "Edge I (CA) (Boys MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557852",
@@ -414,7 +414,7 @@
         "Value": 5557852,
         "Name": "Edge II (CA) (Boys MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557854",
@@ -441,7 +441,7 @@
         "Value": 5557854,
         "Name": "Fearless (CA) (Boys MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557859",
@@ -468,7 +468,7 @@
         "Value": 5557859,
         "Name": "Fearless 11U (CA) (Boys 11U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557866",
@@ -495,7 +495,7 @@
         "Value": 5557866,
         "Name": "Flex Premier 7th/6th (CA) (Girls MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557860",
@@ -522,7 +522,7 @@
         "Value": 5557860,
         "Name": "Flex Premier 8th (CA) (Girls)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557846",
@@ -549,7 +549,7 @@
         "Value": 5557846,
         "Name": "Game Speed (CA) (Boys 14U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557861",
@@ -576,7 +576,7 @@
         "Value": 5557861,
         "Name": "HD Elite (CA) (Girls)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557855",
@@ -603,7 +603,7 @@
         "Value": 5557855,
         "Name": "HD Elite 11U (CA) (Boys 11U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557844",
@@ -630,7 +630,7 @@
         "Value": 5557844,
         "Name": "HD Elite 14U (CA) (Boys 14U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557867",
@@ -657,7 +657,7 @@
         "Value": 5557867,
         "Name": "HD Elite Girls (CA) (Girls MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557858",
@@ -684,7 +684,7 @@
         "Value": 5557858,
         "Name": "Hoop Show (CA) (Boys 11U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557979",
@@ -711,7 +711,7 @@
         "Value": 5557979,
         "Name": "IE Rain (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557870",
@@ -738,7 +738,7 @@
         "Value": 5557870,
         "Name": "Impact 7th (CA) (Girls MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557842",
@@ -765,7 +765,7 @@
         "Value": 5557842,
         "Name": "KBC 15U (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557838",
@@ -792,7 +792,7 @@
         "Value": 5557838,
         "Name": "KBC 16U (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557847",
@@ -819,7 +819,7 @@
         "Value": 5557847,
         "Name": "La Habra Ice Cubes (CA) (Boys 14U)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557840",
@@ -846,7 +846,7 @@
         "Value": 5557840,
         "Name": "LB Cabrillo I (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557843",
@@ -873,7 +873,7 @@
         "Value": 5557843,
         "Name": "LB Cabrillo II (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557853",
@@ -900,7 +900,7 @@
         "Value": 5557853,
         "Name": "New Legends 12U (CA) (Boys MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557850",
@@ -927,7 +927,7 @@
         "Value": 5557850,
         "Name": "REBELS C.A.S.H. (CA) (Boys MS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557863",
@@ -954,7 +954,7 @@
         "Value": 5557863,
         "Name": "Temecula Dawgs I (CA) (Girls)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557864",
@@ -981,7 +981,7 @@
         "Value": 5557864,
         "Name": "Temecula Dawgs II (CA) (Girls)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     },
     {
       "id": "public-team-270058-5557841",
@@ -1008,7 +1008,7 @@
         "Value": 5557841,
         "Name": "WGHA (CA) (Boys HS)"
       },
-      "lastSeenAt": "2026-09-17T09:50:29.410Z"
+      "lastSeenAt": "2026-09-17T14:42:56.539Z"
     }
   ],
   "games": [
@@ -1034,7 +1034,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "02e0c7c813e0e2915e2bdbca0fae178c92ae32977cb7c327028cc7100a289b10",
       "rawJson": {
         "source": "public_eventgames",
@@ -1120,7 +1120,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "e7ced0576a93da3d5441b351dd5682f77997e3fb3c2fdb86597b925933d7f943",
       "rawJson": {
         "source": "public_eventgames",
@@ -1206,7 +1206,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "37b3a6e91524cddbef0f1fcc21394c2d095505ff14766738e4d30052c2ced41f",
       "rawJson": {
         "source": "public_eventgames",
@@ -1292,7 +1292,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "58f24a44e0714b3a83a05b705214e2d3f1faed11527a6614a2a6e6d69410039d",
       "rawJson": {
         "source": "public_eventgames",
@@ -1378,7 +1378,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "bca00a4939eaef09a7ba3f5a8ffe7f07c4a0adf00c28757f68e0fb43f3fb640a",
       "rawJson": {
         "source": "public_eventgames",
@@ -1464,7 +1464,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "9faae1f18d4770a5fb4f5489804d1ad7969f12833910e5eeb6ec2f692833febd",
       "rawJson": {
         "source": "public_eventgames",
@@ -1550,7 +1550,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "890e6fedb74ea2e0f2312741875328d4d0928829d6fc5cdc86aae57773bc49f6",
       "rawJson": {
         "source": "public_eventgames",
@@ -1636,7 +1636,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.804Z",
+      "updatedAt": "2026-09-17T14:42:56.922Z",
       "sourceHash": "0d14906a75596d7d2ec02461b4cb62a4ceb7ac2f57fc5a47e3b3290ba5cfe402",
       "rawJson": {
         "source": "public_eventgames",
@@ -1722,7 +1722,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.920Z",
       "sourceHash": "bdba9f7cdb6e675a7acb5e32dcb5cfdd94e55c09f2841b6ae0307c62fe545d07",
       "rawJson": {
         "source": "public_eventgames",
@@ -1808,7 +1808,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "abe4a8c28d96d036a6dbc6157f5dba9ce7711aada89d830d77b2235f7ecb61c3",
       "rawJson": {
         "source": "public_eventgames",
@@ -1894,7 +1894,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "dae0efb2464e8817321864c5f7d46244dbb2f09e41cbb1f048714271289c22e1",
       "rawJson": {
         "source": "public_eventgames",
@@ -1980,7 +1980,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "5e6fdeb0e13c29865c037480c2867e403057b9d5bc2a02b5a3023aa1b79b8ba0",
       "rawJson": {
         "source": "public_eventgames",
@@ -2066,7 +2066,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "a807d35d25f3d164efada707acb06e5ff92a5f1a8a00856f1b58c5ba47f834ce",
       "rawJson": {
         "source": "public_eventgames",
@@ -2152,7 +2152,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "6075d0e9fd4af34eec59915361e14ceda30f6e43e1892090a57ab8ea1cfc668a",
       "rawJson": {
         "source": "public_eventgames",
@@ -2238,7 +2238,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "cc2cb725d61013ad6c58a71dce8c8785f38ab426447e3a2d34eb6ec0d990798a",
       "rawJson": {
         "source": "public_eventgames",
@@ -2324,7 +2324,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "a033a992154ad9452df56a02f49314bd61e142bf86edc5053523eb417f1d41f9",
       "rawJson": {
         "source": "public_eventgames",
@@ -2410,7 +2410,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.808Z",
+      "updatedAt": "2026-09-17T14:42:56.921Z",
       "sourceHash": "d8f7f1f6e68f8ebcb78086d03197e725f23ea6c2a567f036baedcc4a739ee527",
       "rawJson": {
         "source": "public_eventgames",
@@ -2496,7 +2496,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.742Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "2b8e450043146ab35fa594fc1b707797527c73c008474be5a1f7901724edfd8a",
       "rawJson": {
         "source": "public_eventgames",
@@ -2582,7 +2582,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "fccf54dc69904b29027a387e517aef5ab0c857de30eb67afd3e8538485c4461e",
       "rawJson": {
         "source": "public_eventgames",
@@ -2668,7 +2668,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "db3abf960bc84dd8db11d986d6abef70660c535dbe6d84df9bb9273cb2de3b2f",
       "rawJson": {
         "source": "public_eventgames",
@@ -2754,7 +2754,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "01dfac6a6e9329d69959f406afa5d5d6e34071304520549af602c7ac758b8c95",
       "rawJson": {
         "source": "public_eventgames",
@@ -2840,7 +2840,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "06aa8fcc6602359ebccaf786eb80f8ffb70cf6d8ffed51476cf8b0db392192a4",
       "rawJson": {
         "source": "public_eventgames",
@@ -2926,7 +2926,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "46372842c3512161cfb34e475a922d9d3824e9d4daf04ad6a0a1639dfbeba4e8",
       "rawJson": {
         "source": "public_eventgames",
@@ -3012,7 +3012,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "4b4c5e44feac629a4300afadafe92c7ae6fb80b577bc66f277e7ce4e39eb68f4",
       "rawJson": {
         "source": "public_eventgames",
@@ -3098,7 +3098,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.743Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "e3921d160fc549a44ebd6494ce8f22b76455c091f950e152a96dbcd9d1b6df24",
       "rawJson": {
         "source": "public_eventgames",
@@ -3184,7 +3184,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.744Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "5c9c8749cd8f74ce215bfe0d8ae725348c1e0b2476f7e656945ea07f891d0653",
       "rawJson": {
         "source": "public_eventgames",
@@ -3270,7 +3270,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.744Z",
+      "updatedAt": "2026-09-17T14:42:56.964Z",
       "sourceHash": "c47f6609ac2e74d24fe6cc2004f758acb686a256fc042aed3a847b066ab3f97b",
       "rawJson": {
         "source": "public_eventgames",
@@ -3356,7 +3356,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.744Z",
+      "updatedAt": "2026-09-17T14:42:56.964Z",
       "sourceHash": "ef11afd110fb2bf13e46450854effafde8217c4a32774d469ad4b0c875f22317",
       "rawJson": {
         "source": "public_eventgames",
@@ -3442,7 +3442,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.746Z",
+      "updatedAt": "2026-09-17T14:42:56.962Z",
       "sourceHash": "fe304ec1369937c4e4b651faff6f95d45ca311fbc67fa84ad8aab1c923f06e9d",
       "rawJson": {
         "source": "public_eventgames",
@@ -3528,7 +3528,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.746Z",
+      "updatedAt": "2026-09-17T14:42:56.962Z",
       "sourceHash": "21bc1e4c54e270e9746433f5f09d874b33e0e7c1ed9e4a881f5160a3df5574e7",
       "rawJson": {
         "source": "public_eventgames",
@@ -3614,7 +3614,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.746Z",
+      "updatedAt": "2026-09-17T14:42:56.962Z",
       "sourceHash": "c8f4ad5f312e99fc13477ad3330996151c1e7c135bcff865980d3b2f05d17e70",
       "rawJson": {
         "source": "public_eventgames",
@@ -3700,7 +3700,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.746Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "8ff92231d8b5e2afaeb634dc44b196707108ea153642a45434404575d1a4d564",
       "rawJson": {
         "source": "public_eventgames",
@@ -3786,7 +3786,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.746Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "ecac7b8eaa3a1d8ebb5097ffa891b19d16b547753babe9bfb9e00e0ae6d5e8fd",
       "rawJson": {
         "source": "public_eventgames",
@@ -3872,7 +3872,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.746Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "3fc871ea5ab3feeac74939ede4f9b9a6969d7ed13faf4f095a8ba0fe3ca97076",
       "rawJson": {
         "source": "public_eventgames",
@@ -3958,7 +3958,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.747Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "ace3ee0fd6a9560d50898af8771b3946eb15b7c18536b3ca583598d440f9804c",
       "rawJson": {
         "source": "public_eventgames",
@@ -4044,7 +4044,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.747Z",
+      "updatedAt": "2026-09-17T14:42:56.963Z",
       "sourceHash": "d2ebbee1debb76ade9c3fbe8e6dbcb05b08b3e79bd0b4544c2000e1717769b7c",
       "rawJson": {
         "source": "public_eventgames",
@@ -4130,7 +4130,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "d1bda092b8217e01c9bc07ea25fa8a2c53066ea41f83de853453e7fd7311d515",
       "rawJson": {
         "source": "public_eventgames",
@@ -4216,7 +4216,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "b22c702d1b26199a0ec6c56e235c958143d5ad3fd3ab5a3b68dd637fed62de7d",
       "rawJson": {
         "source": "public_eventgames",
@@ -4302,7 +4302,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "32698f95af804eca5dc1173c1a4b74879824a8ce0739f643838f41f036707008",
       "rawJson": {
         "source": "public_eventgames",
@@ -4388,7 +4388,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "116e0a08fe7f5e0aac9e3e5ae7163c6cc953f9af14f72fdd7ffac5d27f0f9824",
       "rawJson": {
         "source": "public_eventgames",
@@ -4474,7 +4474,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "43fd850a0d6d4b2d48044307fe5259eff4be9931aca2dd3465b3eaf2a1f8aa96",
       "rawJson": {
         "source": "public_eventgames",
@@ -4560,7 +4560,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "3213ec003942c1201a7cfb596915bbdefe59f33d289c05e3370cc50a711d44eb",
       "rawJson": {
         "source": "public_eventgames",
@@ -4646,7 +4646,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "b2f56ba1c63fbe4ce2d88733fb73f1fa5d3ce3d228eee8958217da50bbfdbd0e",
       "rawJson": {
         "source": "public_eventgames",
@@ -4732,7 +4732,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.916Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "27314e6008643b76546dd27621545e3c2e68ee951a59b8906e3099a9db9c49de",
       "rawJson": {
         "source": "public_eventgames",
@@ -4818,7 +4818,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.916Z",
+      "updatedAt": "2026-09-17T14:42:57.111Z",
       "sourceHash": "92df99f3974cfda8673aa0d9ffdffbcd52766d3b4204bfeca398c909dbe280bb",
       "rawJson": {
         "source": "public_eventgames",
@@ -4904,7 +4904,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.914Z",
+      "updatedAt": "2026-09-17T14:42:57.109Z",
       "sourceHash": "ff937bce151ddeaaf33c75c5d40b4ced27cf421ae8cbbb574389293431c9cd21",
       "rawJson": {
         "source": "public_eventgames",
@@ -4990,7 +4990,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.914Z",
+      "updatedAt": "2026-09-17T14:42:57.110Z",
       "sourceHash": "28fd6f1267b14ac84ec44533f75b8e9b348be86db729baa4f3672a72c11e5503",
       "rawJson": {
         "source": "public_eventgames",
@@ -5076,7 +5076,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.914Z",
+      "updatedAt": "2026-09-17T14:42:57.110Z",
       "sourceHash": "be9117b822ba18445561b05c5c041153eb4c6114ce3f576984331f611eccb988",
       "rawJson": {
         "source": "public_eventgames",
@@ -5162,7 +5162,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.914Z",
+      "updatedAt": "2026-09-17T14:42:57.110Z",
       "sourceHash": "620403106537f12582f1d27c2f5052d47d6e47be3964a21e98a3191638f93337",
       "rawJson": {
         "source": "public_eventgames",
@@ -5248,7 +5248,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.110Z",
       "sourceHash": "c90983a1791173383826e460f1adb9eb2dcdc25cef43d9a4f38809ab99129578",
       "rawJson": {
         "source": "public_eventgames",
@@ -5334,7 +5334,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.110Z",
       "sourceHash": "3006a72b67a45380e913f11d3ada473b2d48a1f62417888138cc52d60867d38c",
       "rawJson": {
         "source": "public_eventgames",
@@ -5420,7 +5420,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270058/fall-preview-ie/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T09:50:30.915Z",
+      "updatedAt": "2026-09-17T14:42:57.110Z",
       "sourceHash": "2cc2f93bec048dad6554c78c12fb048e5f53f03da0e77e68171dd5ba4cb3879f",
       "rawJson": {
         "source": "public_eventgames",
