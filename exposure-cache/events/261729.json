@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-09-16T21:54:34.687Z",
+  "cachedAt": "2026-09-17T00:08:31.340Z",
   "eventId": 261729,
   "eventSlug": "sf-rumble-for-the-ring",
   "event": {
@@ -143,7 +143,7 @@
         "Value": 5556878,
         "Name": "All in elite 11u Elite (Boys-11u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556880",
@@ -170,7 +170,7 @@
         "Value": 5556880,
         "Name": "All in Elite 11u Select (Boys-11u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556875",
@@ -197,7 +197,7 @@
         "Value": 5556875,
         "Name": "All in Elite 12u (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556855",
@@ -224,7 +224,7 @@
         "Value": 5556855,
         "Name": "All in Elite 14u (Boys-14u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556841",
@@ -251,7 +251,7 @@
         "Value": 5556841,
         "Name": "Bay Area Hurricanes (Boys-17u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556852",
@@ -278,7 +278,7 @@
         "Value": 5556852,
         "Name": "Bay Area Stars (Boys-15u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556864",
@@ -305,7 +305,7 @@
         "Value": 5556864,
         "Name": "Blueprint 13u Black (Boys-13u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556856",
@@ -332,7 +332,7 @@
         "Value": 5556856,
         "Name": "Blueprint 14u Black (Boys-14u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556860",
@@ -359,7 +359,7 @@
         "Value": 5556860,
         "Name": "Blueprint 14u Blue (Boys-14u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556847",
@@ -386,7 +386,7 @@
         "Value": 5556847,
         "Name": "Daly City Falcons 16u (Boys- 16u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556873",
@@ -413,7 +413,7 @@
         "Value": 5556873,
         "Name": "FOA 12u (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556866",
@@ -440,7 +440,7 @@
         "Value": 5556866,
         "Name": "FOA 13u (Boys-13u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556850",
@@ -467,7 +467,7 @@
         "Value": 5556850,
         "Name": "FOA 15u (Boys-15u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556870",
@@ -494,7 +494,7 @@
         "Value": 5556870,
         "Name": "Fury 12u Elite (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556871",
@@ -521,7 +521,7 @@
         "Value": 5556871,
         "Name": "Fury 12u Select (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556845",
@@ -548,7 +548,7 @@
         "Value": 5556845,
         "Name": "Golden State Heat 16u (Boys- 16u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556838",
@@ -575,7 +575,7 @@
         "Value": 5556838,
         "Name": "Golden State Heat 17u (Boys-17u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556853",
@@ -602,7 +602,7 @@
         "Value": 5556853,
         "Name": "H2G Black 14u (Boys-14u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556839",
@@ -629,7 +629,7 @@
         "Value": 5556839,
         "Name": "H2G Black 17u (Boys-17u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556849",
@@ -656,7 +656,7 @@
         "Value": 5556849,
         "Name": "Higher Intentions 15u Black (Boys-15u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556851",
@@ -683,7 +683,7 @@
         "Value": 5556851,
         "Name": "Higher Intentions 15u Orange (Boys-15u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556844",
@@ -710,7 +710,7 @@
         "Value": 5556844,
         "Name": "Higher Intentions 16u (Boys- 16u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556837",
@@ -737,7 +737,7 @@
         "Value": 5556837,
         "Name": "Higher Intentions 17u (Boys-17u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556862",
@@ -764,7 +764,7 @@
         "Value": 5556862,
         "Name": "Hoop Elite 14u (Boys-14u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556843",
@@ -791,7 +791,7 @@
         "Value": 5556843,
         "Name": "Hoop Elite 16u (Boys- 16u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556879",
@@ -818,7 +818,7 @@
         "Value": 5556879,
         "Name": "MBA Triple Threat 11u (Boys-11u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556868",
@@ -845,7 +845,7 @@
         "Value": 5556868,
         "Name": "MBA Triple Threat 12u (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556857",
@@ -872,7 +872,7 @@
         "Value": 5556857,
         "Name": "MBA Triple Threat 14u (Boys-14u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556848",
@@ -899,7 +899,7 @@
         "Value": 5556848,
         "Name": "MBA Triple Threat 15u (Boys-15u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556842",
@@ -926,7 +926,7 @@
         "Value": 5556842,
         "Name": "MBA Triple Threat 16u (Boys- 16u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556865",
@@ -953,7 +953,7 @@
         "Value": 5556865,
         "Name": "Net Rippers 13u (Boys-13u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556881",
@@ -980,7 +980,7 @@
         "Value": 5556881,
         "Name": "SF Champs 11u (Boys-11u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556872",
@@ -1007,7 +1007,7 @@
         "Value": 5556872,
         "Name": "SF Champs 12u (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556861",
@@ -1034,7 +1034,7 @@
         "Value": 5556861,
         "Name": "SF Champs 14u (Boys-14u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556877",
@@ -1061,7 +1061,7 @@
         "Value": 5556877,
         "Name": "SF PAL 11u (Boys-11u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556874",
@@ -1088,7 +1088,7 @@
         "Value": 5556874,
         "Name": "SF PAL 12u (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556867",
@@ -1115,7 +1115,7 @@
         "Value": 5556867,
         "Name": "SF SPARTANS 13u (All City)) (Boys-13u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556876",
@@ -1142,7 +1142,7 @@
         "Value": 5556876,
         "Name": "SJ Mavs 11u (Boys-11u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556869",
@@ -1169,7 +1169,7 @@
         "Value": 5556869,
         "Name": "SJ Mavs 12u (Boys-12u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556863",
@@ -1196,7 +1196,7 @@
         "Value": 5556863,
         "Name": "SJ Mavs 13u (Boys-13u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556854",
@@ -1223,7 +1223,7 @@
         "Value": 5556854,
         "Name": "SJ Mavs 14u (Boys-14u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556859",
@@ -1250,7 +1250,7 @@
         "Value": 5556859,
         "Name": "SJ Mavs 14u Kelley (Boys-14u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556858",
@@ -1277,7 +1277,7 @@
         "Value": 5556858,
         "Name": "Stockton Bulls 14u (Boys-14u American)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556846",
@@ -1304,7 +1304,7 @@
         "Value": 5556846,
         "Name": "Young Guns 16u (Boys- 16u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     },
     {
       "id": "public-team-261729-5556840",
@@ -1331,7 +1331,7 @@
         "Value": 5556840,
         "Name": "Young Guns 17u (Boys-17u National)"
       },
-      "lastSeenAt": "2026-09-16T21:54:34.071Z"
+      "lastSeenAt": "2026-09-17T00:08:30.756Z"
     }
   ],
   "games": [
@@ -1357,7 +1357,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.017Z",
       "sourceHash": "62e1c93040ee744200bf8ebd6867cfcf7a320d971196367bc65081f521bf5001",
       "rawJson": {
         "source": "public_eventgames",
@@ -1443,7 +1443,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.017Z",
       "sourceHash": "fa69f2e43ec58528dea84614dfa7918c80a9a2100452f02d26579e27813a9ac9",
       "rawJson": {
         "source": "public_eventgames",
@@ -1529,7 +1529,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.017Z",
       "sourceHash": "5413935cedf1c915be1ebf48750d7c6992480af4bbadab528b32039657e24828",
       "rawJson": {
         "source": "public_eventgames",
@@ -1615,7 +1615,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "67059accbb87dadec8eb0418bd2875c8c3cf089dfe2a983bb6cb212ab4c0f189",
       "rawJson": {
         "source": "public_eventgames",
@@ -1701,7 +1701,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "57c765c0a457d468ff3a0a432ff779af574cb81d89b275a580faeb663dc36e5d",
       "rawJson": {
         "source": "public_eventgames",
@@ -1787,7 +1787,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "f12f9e1b463a2a306a489f701f53260a46060ddded41599a6f64b03d919ea4f1",
       "rawJson": {
         "source": "public_eventgames",
@@ -1873,7 +1873,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "2e62bd9c9893f1eccd8e1265e714a8a83ac8b215e05c814d6d0b99fc898aee15",
       "rawJson": {
         "source": "public_eventgames",
@@ -1959,7 +1959,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "4cf3e9e0a7cfff54231bbecd2a963f712cf44e22dfc32099af3fc074ed513f87",
       "rawJson": {
         "source": "public_eventgames",
@@ -2045,7 +2045,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "f78ce553c469dac9ef3b5a74aa943cf522dc5d6c5ced24e69eb50964b95a12d1",
       "rawJson": {
         "source": "public_eventgames",
@@ -2131,7 +2131,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.348Z",
+      "updatedAt": "2026-09-17T00:08:31.018Z",
       "sourceHash": "1ddf4c42ae331b651da3b27b5ccb4bcf011fbe658a46964dae3ea1780011deef",
       "rawJson": {
         "source": "public_eventgames",
@@ -2217,7 +2217,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "84d3f9fc0424dc08c4678ed949c0dc1f772c86172ac503fde76b0ffdbfaff1f1",
       "rawJson": {
         "source": "public_eventgames",
@@ -2303,7 +2303,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "c8662b6bee7235ea6a04c0e5632623557d4319a0514c5f98f667573005c1fb1a",
       "rawJson": {
         "source": "public_eventgames",
@@ -2389,7 +2389,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "8a2362c4bf706a68fd24fc0f41f9c7ca9cd442d9af09ecda1145302fe9da039c",
       "rawJson": {
         "source": "public_eventgames",
@@ -2475,7 +2475,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "fa28e5d88c374b0c246275951b305a8bfbcd63ad80cf2c8251b8b32eaa2b8108",
       "rawJson": {
         "source": "public_eventgames",
@@ -2561,7 +2561,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "77fcfbc69821ab646de0e97cfc2e7118935d2b3ef7f5f2f57784b936b1364cb9",
       "rawJson": {
         "source": "public_eventgames",
@@ -2647,7 +2647,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "608e67e7bcd19066d16ffbb27fc62659da04e5203bddf320a98e142d82699498",
       "rawJson": {
         "source": "public_eventgames",
@@ -2733,7 +2733,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "a1e870d1c7a73fa554b9c8c334561b860f563ade2c191fedd0c77678c82be957",
       "rawJson": {
         "source": "public_eventgames",
@@ -2819,7 +2819,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "4825b2bc143d1ffbbbd7441d93a704ebca5af28a5b5736369e6e7a92af6fccef",
       "rawJson": {
         "source": "public_eventgames",
@@ -2905,7 +2905,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "1ae12a11c50a13ce8ca231a14076ad4211595cf3fbb60bda1754b9bafa9e7f4a",
       "rawJson": {
         "source": "public_eventgames",
@@ -2991,7 +2991,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "c5556d709e6d2651b571d3376b5dea63e170b15b84e494d6731f4b0b44eb7df8",
       "rawJson": {
         "source": "public_eventgames",
@@ -3077,7 +3077,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.355Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "d733a44aa2a632f872b4a94c0e2dcd67baa742d946bc199d0b7c8843f224d88f",
       "rawJson": {
         "source": "public_eventgames",
@@ -3163,7 +3163,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "4e4044792dd88fc5622da864475cb54ff95bf1109a053b69695a052f3a316310",
       "rawJson": {
         "source": "public_eventgames",
@@ -3249,7 +3249,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.019Z",
       "sourceHash": "a3de041e50f7b07bd8dbf8954fb45b66475ea24571f4c724c682c996b99e7d9f",
       "rawJson": {
         "source": "public_eventgames",
@@ -3335,7 +3335,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "b73d795d473d6dba5889a0ef00b14a18b308f10bdf12afb2b152133f6ef888b0",
       "rawJson": {
         "source": "public_eventgames",
@@ -3421,7 +3421,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "7a32014701bbf9efe22582bd0431dd9f45b9df124c2f9afe03f6a3c315be2181",
       "rawJson": {
         "source": "public_eventgames",
@@ -3507,7 +3507,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "691ec8ff8998587e1e958df88e7c9dc98504299681447b99190eec8d77089ad7",
       "rawJson": {
         "source": "public_eventgames",
@@ -3593,7 +3593,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "3804a8b800bb8e47f6791a4bb133f9c0c5bd5aa833521c7d827de9c7e759a9ee",
       "rawJson": {
         "source": "public_eventgames",
@@ -3679,7 +3679,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "479ab17237662e0507bca77f99374bc7b647b12f190030c0bf28f4544d6f935c",
       "rawJson": {
         "source": "public_eventgames",
@@ -3765,7 +3765,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "381a80a3228cd2964ba2cc86e5be4d84c85e979ae06a0404cf117136b6edaebc",
       "rawJson": {
         "source": "public_eventgames",
@@ -3851,7 +3851,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "b49cd025d20c307ba92db4c4052d87a7f48b7216015df42d4402c048bc792533",
       "rawJson": {
         "source": "public_eventgames",
@@ -3937,7 +3937,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "5fbcda795c5376da8ec548d865fac353f274fc08732b628056d0807505ef7fd1",
       "rawJson": {
         "source": "public_eventgames",
@@ -4023,7 +4023,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "8b859efd8e47474d973ad17c6d66b679072ffbb703992b3123f4d3d7a297fadd",
       "rawJson": {
         "source": "public_eventgames",
@@ -4109,7 +4109,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.342Z",
+      "updatedAt": "2026-09-17T00:08:31.020Z",
       "sourceHash": "9fb9d25b62b96cc497f0155391a9dad9a9f1024c19dd5f335126cb4d06474a9e",
       "rawJson": {
         "source": "public_eventgames",
@@ -4195,7 +4195,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.351Z",
+      "updatedAt": "2026-09-17T00:08:31.021Z",
       "sourceHash": "7ca13f27fb18e24a20d45981c0c32145f44ae99da0086283d6e136009bcdf681",
       "rawJson": {
         "source": "public_eventgames",
@@ -4274,7 +4274,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.351Z",
+      "updatedAt": "2026-09-17T00:08:31.021Z",
       "sourceHash": "1e79949266cf422554a43d36858cdd056767d49637eca4f5a2568ffcdcd5f419",
       "rawJson": {
         "source": "public_eventgames",
@@ -4353,7 +4353,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.352Z",
+      "updatedAt": "2026-09-17T00:08:31.021Z",
       "sourceHash": "739c0b14b99d6576e0f7cfc2a8e9b7df840716dcec0cf30d3005cc042b789255",
       "rawJson": {
         "source": "public_eventgames",
@@ -4432,7 +4432,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.352Z",
+      "updatedAt": "2026-09-17T00:08:31.021Z",
       "sourceHash": "4bf841112670b6797984d047a14b9ce3daba3150a358ad8bab6006c8bcfb7ea1",
       "rawJson": {
         "source": "public_eventgames",
@@ -4511,7 +4511,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.352Z",
+      "updatedAt": "2026-09-17T00:08:31.021Z",
       "sourceHash": "14321c712d497531903fa941890721a0cd77f3133ee9b0c5272f138f88768075",
       "rawJson": {
         "source": "public_eventgames",
@@ -4590,7 +4590,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.547Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "2c0b484514a07a6cbca8d1008ccf2acaf61500e2710b2616b329c4f8a3671233",
       "rawJson": {
         "source": "public_eventgames",
@@ -4676,7 +4676,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.547Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "3d912d508c8107f4322bc747c898cd623eed91d50ebd78afd2cf6de2eb30da48",
       "rawJson": {
         "source": "public_eventgames",
@@ -4762,7 +4762,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.547Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "07177e4c9207a125fc177cbd1bd2cfeaa1e99d9e79a3ad555aba1235848581c0",
       "rawJson": {
         "source": "public_eventgames",
@@ -4848,7 +4848,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "80e55fc065750df0f0a8adbaf5b715aef787ae27abc484e776680341cabb1892",
       "rawJson": {
         "source": "public_eventgames",
@@ -4934,7 +4934,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "f83f1cfbe790104c6a844dac0e8ce211fd38005d1badce4347c83bceaef39c53",
       "rawJson": {
         "source": "public_eventgames",
@@ -5020,7 +5020,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "6ef6357004a5516ed38418788e7b49789e2f0b5e26867c3bd24f1ad49bbdeea8",
       "rawJson": {
         "source": "public_eventgames",
@@ -5106,7 +5106,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "d47f81de88e6dedadca2ae1592117a2cdc6bd1e4cdba202481ca8185f5f7f06f",
       "rawJson": {
         "source": "public_eventgames",
@@ -5192,7 +5192,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "0be43a6f0237e31d6d641645e91850eac3986053bbeee135e9805f5b9dcd4b0c",
       "rawJson": {
         "source": "public_eventgames",
@@ -5278,7 +5278,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "94370540a1cea5b6710da6e0c92f178deb838438ca18e8b15542272aaa7f112d",
       "rawJson": {
         "source": "public_eventgames",
@@ -5364,7 +5364,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.548Z",
+      "updatedAt": "2026-09-17T00:08:31.210Z",
       "sourceHash": "a0a9de70501cf4ecda114eff3151fc9fd3445751626a9cb80a13e661e028d2ec",
       "rawJson": {
         "source": "public_eventgames",
@@ -5450,7 +5450,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.553Z",
+      "updatedAt": "2026-09-17T00:08:31.208Z",
       "sourceHash": "5b8d29ae02eaa54beee98a8d79c618f27bedbf7670ae4aedfd0171056baf6364",
       "rawJson": {
         "source": "public_eventgames",
@@ -5536,7 +5536,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.553Z",
+      "updatedAt": "2026-09-17T00:08:31.209Z",
       "sourceHash": "9efee4d1818b6cc8e73cee6bb9f6b71fe2ad73047e16b8adac68809630d53cb3",
       "rawJson": {
         "source": "public_eventgames",
@@ -5622,7 +5622,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.553Z",
+      "updatedAt": "2026-09-17T00:08:31.209Z",
       "sourceHash": "b12f97a11c45b8f8ae8aa3b875f8d257f310db529e04d8f8f7b639dcabf1107e",
       "rawJson": {
         "source": "public_eventgames",
@@ -5708,7 +5708,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.553Z",
+      "updatedAt": "2026-09-17T00:08:31.209Z",
       "sourceHash": "031d687e58ad02a9744e85dc574892a7f3c15e9fae1b10669063b66b46a220e7",
       "rawJson": {
         "source": "public_eventgames",
@@ -5794,7 +5794,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.553Z",
+      "updatedAt": "2026-09-17T00:08:31.209Z",
       "sourceHash": "ca37042588b8b9e95aa6d1c460a8c91ac1de8fbdb756349f50dac003ebc1c12f",
       "rawJson": {
         "source": "public_eventgames",
@@ -5880,7 +5880,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.554Z",
+      "updatedAt": "2026-09-17T00:08:31.209Z",
       "sourceHash": "28daa2a7e625a716fd7b443006c3a6c8d342f2febe08680c33145ebc1ddb4437",
       "rawJson": {
         "source": "public_eventgames",
@@ -5959,15 +5959,15 @@
       "courtName": "Court 1",
       "homeTeamId": "public-team-261729-5556852",
       "awayTeamId": "public-team-261729-5556851",
-      "homeTeamNameSnapshot": "Bay Area Stars",
+      "homeTeamNameSnapshot": "BU Elite 15u",
       "awayTeamNameSnapshot": "Higher Intentions 15u Orange",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
-      "sourceHash": "1303b5356802e1edcfb20bae70d09a16c6211b883b7366a1882485ef56a5dec9",
+      "updatedAt": "2026-09-17T00:08:31.205Z",
+      "sourceHash": "7ee869b20e484cccf993d19cf32339d897eab9c494ff396352b0430c8f900246",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42778489,
@@ -5978,12 +5978,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5556852,
         "AwayTeamNameSlug": "higher-intentions-15u-orange",
-        "HomeTeamNameSlug": "bay-area-stars",
+        "HomeTeamNameSlug": "bu-elite-15u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Bay Area Stars",
+        "HomeTeamName": "BU Elite 15u",
         "AwayTeamName": "Higher Intentions 15u Orange",
         "WorkTeamName": "",
         "DivisionName": "Boys-15u American",
@@ -6052,7 +6052,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
       "sourceHash": "14c19fd01d74eb565e760ebf983cbf42f02a9d04ee49970dc9dc10e1744e77fa",
       "rawJson": {
         "source": "public_eventgames",
@@ -6138,7 +6138,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
       "sourceHash": "7bf265e123741af80cf96908e793f3be0fc9e230cefb5628604fbcd7ba400340",
       "rawJson": {
         "source": "public_eventgames",
@@ -6217,15 +6217,15 @@
       "courtName": "Court 3",
       "homeTeamId": "public-team-261729-5556852",
       "awayTeamId": "public-team-261729-5556849",
-      "homeTeamNameSnapshot": "Bay Area Stars",
+      "homeTeamNameSnapshot": "BU Elite 15u",
       "awayTeamNameSnapshot": "Higher Intentions 15u Black",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
-      "sourceHash": "6b6a7547b1b880c81ba9eb9af160ecc36ea5a1a89b3884936d58526f09e8919f",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
+      "sourceHash": "948b4b5069fbacc001baaa13cc1a794bad39bf3847d95cea6b7d60bdb6a442e6",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42778492,
@@ -6236,12 +6236,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5556852,
         "AwayTeamNameSlug": "higher-intentions-15u-black",
-        "HomeTeamNameSlug": "bay-area-stars",
+        "HomeTeamNameSlug": "bu-elite-15u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Bay Area Stars",
+        "HomeTeamName": "BU Elite 15u",
         "AwayTeamName": "Higher Intentions 15u Black",
         "WorkTeamName": "",
         "DivisionName": "Boys-15u American",
@@ -6310,7 +6310,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
       "sourceHash": "f10f1e055faf3194c6c41282b04da140d23f0b24b74e3afba8e96351ae4b7072",
       "rawJson": {
         "source": "public_eventgames",
@@ -6389,15 +6389,15 @@
       "courtName": "Court 4",
       "homeTeamId": "public-team-261729-5556852",
       "awayTeamId": "public-team-261729-5556848",
-      "homeTeamNameSnapshot": "Bay Area Stars",
+      "homeTeamNameSnapshot": "BU Elite 15u",
       "awayTeamNameSnapshot": "MBA Triple Threat 15u",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
-      "sourceHash": "c6d29d9bce3bdc450444acc40ee9fd3cc48f566d91abcee70bb2ebb4418b6303",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
+      "sourceHash": "4c04b0fc09fe6c6fe84865a44bbee0fd9083d013cc5cccaf40b81c22de52ee34",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42778496,
@@ -6408,12 +6408,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5556852,
         "AwayTeamNameSlug": "mba-triple-threat-15u",
-        "HomeTeamNameSlug": "bay-area-stars",
+        "HomeTeamNameSlug": "bu-elite-15u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Bay Area Stars",
+        "HomeTeamName": "BU Elite 15u",
         "AwayTeamName": "MBA Triple Threat 15u",
         "WorkTeamName": "",
         "DivisionName": "Boys-15u American",
@@ -6482,7 +6482,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
       "sourceHash": "9efcb3e8038f4ded38c85d9729e6e835e049eb72ceab2c2b542fcff7900059f7",
       "rawJson": {
         "source": "public_eventgames",
@@ -6568,7 +6568,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.546Z",
+      "updatedAt": "2026-09-17T00:08:31.206Z",
       "sourceHash": "2f2fb3a806415fca45cdc2f65b2c3524a8d013e66fc55f607b51d3bd51ad4d72",
       "rawJson": {
         "source": "public_eventgames",
@@ -6654,7 +6654,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.562Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "8fb0c0413c96bd4f801b3d821f43bf43e4cb9a8e80a4ab8a5929fab68d9ffb65",
       "rawJson": {
         "source": "public_eventgames",
@@ -6740,7 +6740,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.562Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "944086498cb789c451651d1a1ea6bbe9fa6bb74061600a39463eb4101fc3a35c",
       "rawJson": {
         "source": "public_eventgames",
@@ -6826,7 +6826,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.562Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "d3fa22e81f6ae3f774218dbce5c4da5dd7da208fbcf3dd2a3f9ad2343424e508",
       "rawJson": {
         "source": "public_eventgames",
@@ -6912,7 +6912,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.563Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "ce48a0f4d7b6e88e34a99aff773b2460ab964f42204f65c4f49a72d8f9e1fe8b",
       "rawJson": {
         "source": "public_eventgames",
@@ -6998,7 +6998,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.563Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "db5c67e2ad3834e2366563c4ec116a81b3bad8ab7140f98aa91ecf0bdf92d6d8",
       "rawJson": {
         "source": "public_eventgames",
@@ -7084,7 +7084,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.563Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "4a897b0463f5934f52164d117ddaf06b5efe2c131b10612c20e961b22310ffd0",
       "rawJson": {
         "source": "public_eventgames",
@@ -7170,7 +7170,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.563Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "7575cabdc4b74d9eab6fdbddd83ed6a95446a8529bb76948f9e0007dc80d3179",
       "rawJson": {
         "source": "public_eventgames",
@@ -7256,7 +7256,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.563Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "0fd57d3686526417ab9b1dfbc0f76e58361178d9677696f82abd7429f9fa1c5c",
       "rawJson": {
         "source": "public_eventgames",
@@ -7342,7 +7342,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/261729/sf-rumble-for-the-ring/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-16T21:54:34.563Z",
+      "updatedAt": "2026-09-17T00:08:31.215Z",
       "sourceHash": "ff23d579e1f71961584e09b6e5def0e56651683ef63421255e9afa59eed5fe43",
       "rawJson": {
         "source": "public_eventgames",
