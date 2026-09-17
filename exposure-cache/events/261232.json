@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-09-17T21:46:39.887Z",
+  "cachedAt": "2026-09-17T23:55:47.651Z",
   "eventId": 261232,
   "eventSlug": "back-to-school-kickoff",
   "event": {
@@ -81,26 +81,13 @@
       "id": "division-261232-1507123",
       "eventId": "event-261232",
       "exposureDivisionId": "1507123",
-      "name": "14u/15u Boys Division",
+      "name": "14/15u Freshmen Boys Division",
       "gender": "Boys",
-      "gradeLevel": "14U",
+      "gradeLevel": "15U",
       "level": null,
       "rawJson": {
         "source": "public_search",
         "divisionId": "1507123"
-      }
-    },
-    {
-      "id": "division-261232-1507126",
-      "eventId": "event-261232",
-      "exposureDivisionId": "1507126",
-      "name": "8th Grade Girls Division",
-      "gender": "Girls",
-      "gradeLevel": "8TH",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "divisionId": "1507126"
       }
     },
     {
@@ -143,7 +130,7 @@
         "Value": 5559004,
         "Name": "5 on Five  (6th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.014Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5558992",
@@ -170,7 +157,7 @@
         "Value": 5558992,
         "Name": "B Baller Supreme (3/4th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.014Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5558996",
@@ -197,7 +184,7 @@
         "Value": 5558996,
         "Name": "Cali Dunks  (5th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.014Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559026",
@@ -224,7 +211,7 @@
         "Value": 5559026,
         "Name": "Cali Dunks  (8th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.014Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559020",
@@ -251,7 +238,7 @@
         "Value": 5559020,
         "Name": "Gamechangers (8th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5558997",
@@ -278,7 +265,7 @@
         "Value": 5558997,
         "Name": "Gamechangers (5th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559013",
@@ -305,7 +292,7 @@
         "Value": 5559013,
         "Name": "IE Elite (6th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5558994",
@@ -332,34 +319,61 @@
         "Value": 5558994,
         "Name": "IE Elite (3/4th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
-      "id": "public-team-261232-5559006",
+      "id": "public-team-261232-5559001",
       "eventId": "event-261232",
-      "divisionId": "division-261232-1507119",
-      "exposureTeamId": "5559006",
-      "name": "JW Basketball",
-      "normalizedName": "jw basketball",
+      "divisionId": "division-261232-1507118",
+      "exposureTeamId": "5559001",
+      "name": "InVipers",
+      "normalizedName": "invipers",
       "clubName": null,
       "normalizedClubName": null,
       "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/jw-basketball?divisionteamid=5559006",
-      "divisionName": "6th Grade Boys Division",
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/invipers?divisionteamid=5559001",
+      "divisionName": "5th Grade Boys Division",
       "gender": "Boys",
-      "gradeLevel": "6TH",
+      "gradeLevel": "5TH",
       "level": null,
       "rawJson": {
         "source": "public_search",
         "timezone": "America/Los_Angeles",
-        "Division": "6th Grade Boys Division",
-        "DivisionId": 1507119,
-        "Slug": "jw-basketball",
+        "Division": "5th Grade Boys Division",
+        "DivisionId": 1507118,
+        "Slug": "invipers",
         "Selected": false,
-        "Value": 5559006,
-        "Name": "JW Basketball (6th Grade Boys Division)"
+        "Value": 5559001,
+        "Name": "InVipers (5th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
+    },
+    {
+      "id": "public-team-261232-5559287",
+      "eventId": "event-261232",
+      "divisionId": "division-261232-1507121",
+      "exposureTeamId": "5559287",
+      "name": "InVipers",
+      "normalizedName": "invipers",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/invipers?divisionteamid=5559287",
+      "divisionName": "8th Grade Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "8TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "8th Grade Boys Division",
+        "DivisionId": 1507121,
+        "Slug": "invipers",
+        "Selected": false,
+        "Value": 5559287,
+        "Name": "InVipers (8th Grade Boys Division)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559038",
@@ -386,7 +400,34 @@
         "Value": 5559038,
         "Name": "JW Basketball (High School Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
+    },
+    {
+      "id": "public-team-261232-5559006",
+      "eventId": "event-261232",
+      "divisionId": "division-261232-1507119",
+      "exposureTeamId": "5559006",
+      "name": "JW Basketball",
+      "normalizedName": "jw basketball",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/jw-basketball?divisionteamid=5559006",
+      "divisionName": "6th Grade Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "6TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "6th Grade Boys Division",
+        "DivisionId": 1507119,
+        "Slug": "jw-basketball",
+        "Selected": false,
+        "Value": 5559006,
+        "Name": "JW Basketball (6th Grade Boys Division)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559007",
@@ -413,7 +454,7 @@
         "Value": 5559007,
         "Name": "Lakewood Elite (6th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559029",
@@ -440,34 +481,7 @@
         "Value": 5559029,
         "Name": "Legend (8th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
-    },
-    {
-      "id": "public-team-261232-5559034",
-      "eventId": "event-261232",
-      "divisionId": "division-261232-1507123",
-      "exposureTeamId": "5559034",
-      "name": "Lyceum",
-      "normalizedName": "lyceum",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/lyceum?divisionteamid=5559034",
-      "divisionName": "14u/15u Boys Division",
-      "gender": "Boys",
-      "gradeLevel": "14U",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "14u/15u Boys Division",
-        "DivisionId": 1507123,
-        "Slug": "lyceum",
-        "Selected": false,
-        "Value": 5559034,
-        "Name": "Lyceum (14u/15u Boys Division)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559027",
@@ -494,34 +508,34 @@
         "Value": 5559027,
         "Name": "Lyceum (8th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
-      "id": "public-team-261232-5559043",
+      "id": "public-team-261232-5559034",
       "eventId": "event-261232",
-      "divisionId": "division-261232-1507126",
-      "exposureTeamId": "5559043",
-      "name": "Northstars",
-      "normalizedName": "northstars",
+      "divisionId": "division-261232-1507123",
+      "exposureTeamId": "5559034",
+      "name": "Lyceum",
+      "normalizedName": "lyceum",
       "clubName": null,
       "normalizedClubName": null,
       "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/northstars?divisionteamid=5559043",
-      "divisionName": "8th Grade Girls Division",
-      "gender": "Girls",
-      "gradeLevel": "8TH",
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/lyceum?divisionteamid=5559034",
+      "divisionName": "14/15u Freshmen Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "15U",
       "level": null,
       "rawJson": {
         "source": "public_search",
         "timezone": "America/Los_Angeles",
-        "Division": "8th Grade Girls Division",
-        "DivisionId": 1507126,
-        "Slug": "northstars",
+        "Division": "14/15u Freshmen Boys Division",
+        "DivisionId": 1507123,
+        "Slug": "lyceum",
         "Selected": false,
-        "Value": 5559043,
-        "Name": "Northstars (8th Grade Girls Division)"
+        "Value": 5559034,
+        "Name": "Lyceum (14/15u Freshmen Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559033",
@@ -534,48 +548,21 @@
       "normalizedClubName": null,
       "coachName": null,
       "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/oc-pride?divisionteamid=5559033",
-      "divisionName": "14u/15u Boys Division",
+      "divisionName": "14/15u Freshmen Boys Division",
       "gender": "Boys",
-      "gradeLevel": "14U",
+      "gradeLevel": "15U",
       "level": null,
       "rawJson": {
         "source": "public_search",
         "timezone": "America/Los_Angeles",
-        "Division": "14u/15u Boys Division",
+        "Division": "14/15u Freshmen Boys Division",
         "DivisionId": 1507123,
         "Slug": "oc-pride",
         "Selected": false,
         "Value": 5559033,
-        "Name": "OC Pride (14u/15u Boys Division)"
+        "Name": "OC Pride (14/15u Freshmen Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
-    },
-    {
-      "id": "public-team-261232-5559042",
-      "eventId": "event-261232",
-      "divisionId": "division-261232-1507126",
-      "exposureTeamId": "5559042",
-      "name": "OC Rythme",
-      "normalizedName": "oc rythme",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/oc-rythme?divisionteamid=5559042",
-      "divisionName": "8th Grade Girls Division",
-      "gender": "Girls",
-      "gradeLevel": "8TH",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "8th Grade Girls Division",
-        "DivisionId": 1507126,
-        "Slug": "oc-rythme",
-        "Selected": false,
-        "Value": 5559042,
-        "Name": "OC Rythme (8th Grade Girls Division)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559036",
@@ -588,21 +575,21 @@
       "normalizedClubName": null,
       "coachName": null,
       "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/powermove-elite?divisionteamid=5559036",
-      "divisionName": "14u/15u Boys Division",
+      "divisionName": "14/15u Freshmen Boys Division",
       "gender": "Boys",
-      "gradeLevel": "14U",
+      "gradeLevel": "15U",
       "level": null,
       "rawJson": {
         "source": "public_search",
         "timezone": "America/Los_Angeles",
-        "Division": "14u/15u Boys Division",
+        "Division": "14/15u Freshmen Boys Division",
         "DivisionId": 1507123,
         "Slug": "powermove-elite",
         "Selected": false,
         "Value": 5559036,
-        "Name": "Powermove Elite (14u/15u Boys Division)"
+        "Name": "Powermove Elite (14/15u Freshmen Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559039",
@@ -629,61 +616,7 @@
         "Value": 5559039,
         "Name": "Powermove Elite (High School Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
-    },
-    {
-      "id": "public-team-261232-5559044",
-      "eventId": "event-261232",
-      "divisionId": "division-261232-1507126",
-      "exposureTeamId": "5559044",
-      "name": "Powermove Elite",
-      "normalizedName": "powermove elite",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/powermove-elite?divisionteamid=5559044",
-      "divisionName": "8th Grade Girls Division",
-      "gender": "Girls",
-      "gradeLevel": "8TH",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "8th Grade Girls Division",
-        "DivisionId": 1507126,
-        "Slug": "powermove-elite",
-        "Selected": false,
-        "Value": 5559044,
-        "Name": "Powermove Elite (8th Grade Girls Division)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
-    },
-    {
-      "id": "public-team-261232-5559001",
-      "eventId": "event-261232",
-      "divisionId": "division-261232-1507118",
-      "exposureTeamId": "5559001",
-      "name": "Pressure Elite",
-      "normalizedName": "pressure elite",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/pressure-elite?divisionteamid=5559001",
-      "divisionName": "5th Grade Boys Division",
-      "gender": "Boys",
-      "gradeLevel": "5TH",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "5th Grade Boys Division",
-        "DivisionId": 1507118,
-        "Slug": "pressure-elite",
-        "Selected": false,
-        "Value": 5559001,
-        "Name": "Pressure Elite (5th Grade Boys Division)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559040",
@@ -710,7 +643,61 @@
         "Value": 5559040,
         "Name": "Prestige Sports (High School Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
+    },
+    {
+      "id": "public-team-261232-5559263",
+      "eventId": "event-261232",
+      "divisionId": "division-261232-1507124",
+      "exposureTeamId": "5559263",
+      "name": "San Diego All Stars",
+      "normalizedName": "san diego all stars",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/san-diego-all-stars?divisionteamid=5559263",
+      "divisionName": "High School Boys Division",
+      "gender": "Boys",
+      "gradeLevel": null,
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "High School Boys Division",
+        "DivisionId": 1507124,
+        "Slug": "san-diego-all-stars",
+        "Selected": false,
+        "Value": 5559263,
+        "Name": "San Diego All Stars (High School Boys Division)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
+    },
+    {
+      "id": "public-team-261232-5559264",
+      "eventId": "event-261232",
+      "divisionId": "division-261232-1507123",
+      "exposureTeamId": "5559264",
+      "name": "San Diego All Stars",
+      "normalizedName": "san diego all stars",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/san-diego-all-stars?divisionteamid=5559264",
+      "divisionName": "14/15u Freshmen Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "15U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "14/15u Freshmen Boys Division",
+        "DivisionId": 1507123,
+        "Slug": "san-diego-all-stars",
+        "Selected": false,
+        "Value": 5559264,
+        "Name": "San Diego All Stars (14/15u Freshmen Boys Division)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559037",
@@ -737,7 +724,7 @@
         "Value": 5559037,
         "Name": "San Diego Buckets (High School Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559015",
@@ -764,7 +751,7 @@
         "Value": 5559015,
         "Name": "So Cal Elite (7th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5558995",
@@ -791,7 +778,7 @@
         "Value": 5558995,
         "Name": "Splash (3/4th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559019",
@@ -818,7 +805,7 @@
         "Value": 5559019,
         "Name": "Swoosh Legend (7th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559016",
@@ -845,7 +832,7 @@
         "Value": 5559016,
         "Name": "Team Us  (7th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559012",
@@ -872,61 +859,7 @@
         "Value": 5559012,
         "Name": "The Vine  (6th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
-    },
-    {
-      "id": "public-team-261232-5559041",
-      "eventId": "event-261232",
-      "divisionId": "division-261232-1507126",
-      "exposureTeamId": "5559041",
-      "name": "Thunder",
-      "normalizedName": "thunder",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/thunder?divisionteamid=5559041",
-      "divisionName": "8th Grade Girls Division",
-      "gender": "Girls",
-      "gradeLevel": "8TH",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "8th Grade Girls Division",
-        "DivisionId": 1507126,
-        "Slug": "thunder",
-        "Selected": false,
-        "Value": 5559041,
-        "Name": "Thunder (8th Grade Girls Division)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
-    },
-    {
-      "id": "public-team-261232-5559022",
-      "eventId": "event-261232",
-      "divisionId": "division-261232-1507121",
-      "exposureTeamId": "5559022",
-      "name": "Village",
-      "normalizedName": "village",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/village?divisionteamid=5559022",
-      "divisionName": "8th Grade Boys Division",
-      "gender": "Boys",
-      "gradeLevel": "8TH",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "8th Grade Boys Division",
-        "DivisionId": 1507121,
-        "Slug": "village",
-        "Selected": false,
-        "Value": 5559022,
-        "Name": "Village (8th Grade Boys Division)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559000",
@@ -953,7 +886,7 @@
         "Value": 5559000,
         "Name": "Village (5th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559018",
@@ -980,7 +913,7 @@
         "Value": 5559018,
         "Name": "Village (7th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5558993",
@@ -1007,7 +940,34 @@
         "Value": 5558993,
         "Name": "Village (3/4th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
+    },
+    {
+      "id": "public-team-261232-5559022",
+      "eventId": "event-261232",
+      "divisionId": "division-261232-1507121",
+      "exposureTeamId": "5559022",
+      "name": "Village",
+      "normalizedName": "village",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/village?divisionteamid=5559022",
+      "divisionName": "8th Grade Boys Division",
+      "gender": "Boys",
+      "gradeLevel": "8TH",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "8th Grade Boys Division",
+        "DivisionId": 1507121,
+        "Slug": "village",
+        "Selected": false,
+        "Value": 5559022,
+        "Name": "Village (8th Grade Boys Division)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559024",
@@ -1034,7 +994,7 @@
         "Value": 5559024,
         "Name": "Westside United  (8th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559035",
@@ -1047,21 +1007,21 @@
       "normalizedClubName": null,
       "coachName": null,
       "sourceUrl": "https://basketball.exposureevents.com/261232/back-to-school-kickoff/teams/westside-united?divisionteamid=5559035",
-      "divisionName": "14u/15u Boys Division",
+      "divisionName": "14/15u Freshmen Boys Division",
       "gender": "Boys",
-      "gradeLevel": "14U",
+      "gradeLevel": "15U",
       "level": null,
       "rawJson": {
         "source": "public_search",
         "timezone": "America/Los_Angeles",
-        "Division": "14u/15u Boys Division",
+        "Division": "14/15u Freshmen Boys Division",
         "DivisionId": 1507123,
         "Slug": "westside-united",
         "Selected": false,
         "Value": 5559035,
-        "Name": "Westside United  (14u/15u Boys Division)"
+        "Name": "Westside United  (14/15u Freshmen Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559008",
@@ -1088,7 +1048,7 @@
         "Value": 5559008,
         "Name": "Westside United  Black  (6th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     },
     {
       "id": "public-team-261232-5559009",
@@ -1115,7 +1075,7 @@
         "Value": 5559009,
         "Name": "Westside United  Blue (6th Grade Boys Division)"
       },
-      "lastSeenAt": "2026-09-17T21:46:38.015Z"
+      "lastSeenAt": "2026-09-17T23:55:45.310Z"
     }
   ],
   "games": []

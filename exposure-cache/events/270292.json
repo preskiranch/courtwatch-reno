@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cachedAt": "2026-09-17T21:46:43.052Z",
+  "cachedAt": "2026-09-17T23:55:51.415Z",
   "eventId": 270292,
   "eventSlug": "fall-showcase",
   "event": {
@@ -208,7 +208,7 @@
         "Value": 5558044,
         "Name": "3 PT Wolfpack (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558097",
@@ -235,7 +235,7 @@
         "Value": 5558097,
         "Name": "3 PT Wolfpack  (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558057",
@@ -262,7 +262,7 @@
         "Value": 5558057,
         "Name": "3 PT Wolfpack Elite (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558052",
@@ -289,7 +289,7 @@
         "Value": 5558052,
         "Name": "3 PT Wolfpack Prestige (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558065",
@@ -316,7 +316,7 @@
         "Value": 5558065,
         "Name": "AAO (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558087",
@@ -343,7 +343,7 @@
         "Value": 5558087,
         "Name": "AAO 14U National (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5559070",
@@ -370,7 +370,7 @@
         "Value": 5559070,
         "Name": "Against All Odds (San Diego) (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5559076",
@@ -397,73 +397,19 @@
         "Value": 5559076,
         "Name": "Against All Odds (San Diego) (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
-    },
-    {
-      "id": "public-team-270292-5558089",
-      "eventId": "event-270292",
-      "divisionId": "division-270292-1506676",
-      "exposureTeamId": "5558089",
-      "name": "Against All Odds 15U",
-      "normalizedName": "against all odds 15u",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/270292/fall-showcase/teams/against-all-odds-15u?divisionteamid=5558089",
-      "divisionName": "15/16U Boys",
-      "gender": "Boys",
-      "gradeLevel": "16U",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "15/16U Boys",
-        "DivisionId": 1506676,
-        "Slug": "against-all-odds-15u",
-        "Selected": false,
-        "Value": 5558089,
-        "Name": "Against All Odds 15U (15/16U Boys)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
-    },
-    {
-      "id": "public-team-270292-5558088",
-      "eventId": "event-270292",
-      "divisionId": "division-270292-1506676",
-      "exposureTeamId": "5558088",
-      "name": "Against All Odds 16U",
-      "normalizedName": "against all odds 16u",
-      "clubName": null,
-      "normalizedClubName": null,
-      "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/270292/fall-showcase/teams/against-all-odds-16u?divisionteamid=5558088",
-      "divisionName": "15/16U Boys",
-      "gender": "Boys",
-      "gradeLevel": "16U",
-      "level": null,
-      "rawJson": {
-        "source": "public_search",
-        "timezone": "America/Los_Angeles",
-        "Division": "15/16U Boys",
-        "DivisionId": 1506676,
-        "Slug": "against-all-odds-16u",
-        "Selected": false,
-        "Value": 5558088,
-        "Name": "Against All Odds 16U (15/16U Boys)"
-      },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558081",
       "eventId": "event-270292",
       "divisionId": "division-270292-1506675",
       "exposureTeamId": "5558081",
-      "name": "Against All Odds*",
-      "normalizedName": "against all odds",
+      "name": "Against All Odds (San Diego)*",
+      "normalizedName": "against all odds san diego",
       "clubName": null,
       "normalizedClubName": null,
       "coachName": null,
-      "sourceUrl": "https://basketball.exposureevents.com/270292/fall-showcase/teams/against-all-odds?divisionteamid=5558081",
+      "sourceUrl": "https://basketball.exposureevents.com/270292/fall-showcase/teams/against-all-odds-san-diego?divisionteamid=5558081",
       "divisionName": "14U Boys Silver",
       "gender": "Boys",
       "gradeLevel": "14U",
@@ -473,12 +419,66 @@
         "timezone": "America/Los_Angeles",
         "Division": "14U Boys Silver",
         "DivisionId": 1506675,
-        "Slug": "against-all-odds",
+        "Slug": "against-all-odds-san-diego",
         "Selected": false,
         "Value": 5558081,
-        "Name": "Against All Odds* (14U Boys Silver)"
+        "Name": "Against All Odds (San Diego)* (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
+    },
+    {
+      "id": "public-team-270292-5558089",
+      "eventId": "event-270292",
+      "divisionId": "division-270292-1506676",
+      "exposureTeamId": "5558089",
+      "name": "Against All Odds 15U (San Diego)",
+      "normalizedName": "against all odds 15u san diego",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/270292/fall-showcase/teams/against-all-odds-15u-san-diego?divisionteamid=5558089",
+      "divisionName": "15/16U Boys",
+      "gender": "Boys",
+      "gradeLevel": "16U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "15/16U Boys",
+        "DivisionId": 1506676,
+        "Slug": "against-all-odds-15u-san-diego",
+        "Selected": false,
+        "Value": 5558089,
+        "Name": "Against All Odds 15U (San Diego) (15/16U Boys)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
+    },
+    {
+      "id": "public-team-270292-5558088",
+      "eventId": "event-270292",
+      "divisionId": "division-270292-1506676",
+      "exposureTeamId": "5558088",
+      "name": "Against All Odds 16U (San Diego)",
+      "normalizedName": "against all odds 16u san diego",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/270292/fall-showcase/teams/against-all-odds-16u-san-diego?divisionteamid=5558088",
+      "divisionName": "15/16U Boys",
+      "gender": "Boys",
+      "gradeLevel": "16U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "15/16U Boys",
+        "DivisionId": 1506676,
+        "Slug": "against-all-odds-16u-san-diego",
+        "Selected": false,
+        "Value": 5558088,
+        "Name": "Against All Odds 16U (San Diego) (15/16U Boys)"
+      },
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558058",
@@ -505,7 +505,7 @@
         "Value": 5558058,
         "Name": "Against All Odds* (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558046",
@@ -532,7 +532,7 @@
         "Value": 5558046,
         "Name": "All World (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558060",
@@ -559,7 +559,7 @@
         "Value": 5558060,
         "Name": "All World Elite (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558054",
@@ -586,7 +586,7 @@
         "Value": 5558054,
         "Name": "All World Select (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558236",
@@ -613,7 +613,7 @@
         "Value": 5558236,
         "Name": "Anaheim Colonists 15U* (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558091",
@@ -640,7 +640,7 @@
         "Value": 5558091,
         "Name": "Ballerz Elite 15U* (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558042",
@@ -667,7 +667,7 @@
         "Value": 5558042,
         "Name": "Ballerz Elite* (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558041",
@@ -694,7 +694,7 @@
         "Value": 5558041,
         "Name": "Beach City Ballers (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558064",
@@ -721,7 +721,7 @@
         "Value": 5558064,
         "Name": "Beach City Ballers (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558233",
@@ -748,7 +748,7 @@
         "Value": 5558233,
         "Name": "Beach City Ballers 10U* (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558234",
@@ -775,7 +775,7 @@
         "Value": 5558234,
         "Name": "Beach City Ballers* (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558035",
@@ -802,7 +802,7 @@
         "Value": 5558035,
         "Name": "B-Unit (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558040",
@@ -829,7 +829,7 @@
         "Value": 5558040,
         "Name": "B-Unit (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.375Z"
     },
     {
       "id": "public-team-270292-5558055",
@@ -856,7 +856,7 @@
         "Value": 5558055,
         "Name": "B-Unit (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558082",
@@ -883,7 +883,7 @@
         "Value": 5558082,
         "Name": "B-Unit (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558096",
@@ -910,7 +910,7 @@
         "Value": 5558096,
         "Name": "Cal Sparks Futures  (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558068",
@@ -937,7 +937,7 @@
         "Value": 5558068,
         "Name": "Cal Sparks Rising Stars 12U (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558027",
@@ -964,7 +964,7 @@
         "Value": 5558027,
         "Name": "Cali Rebels 8U (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558025",
@@ -991,7 +991,7 @@
         "Value": 5558025,
         "Name": "Cali Rebels Black (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558024",
@@ -1018,7 +1018,7 @@
         "Value": 5558024,
         "Name": "Cali Rebels LB (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558047",
@@ -1045,7 +1045,7 @@
         "Value": 5558047,
         "Name": "CEO (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558061",
@@ -1072,7 +1072,7 @@
         "Value": 5558061,
         "Name": "CEO (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558023",
@@ -1099,7 +1099,7 @@
         "Value": 5558023,
         "Name": "Connected (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558030",
@@ -1126,7 +1126,7 @@
         "Value": 5558030,
         "Name": "Connected (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558034",
@@ -1153,7 +1153,7 @@
         "Value": 5558034,
         "Name": "Cooper Academy (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558031",
@@ -1180,7 +1180,7 @@
         "Value": 5558031,
         "Name": "Corona Scorpions (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558051",
@@ -1207,7 +1207,7 @@
         "Value": 5558051,
         "Name": "Echo Legends (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558831",
@@ -1234,7 +1234,7 @@
         "Value": 5558831,
         "Name": "HB Hoops (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558086",
@@ -1261,7 +1261,7 @@
         "Value": 5558086,
         "Name": "HB Hoops 15U (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558063",
@@ -1288,7 +1288,7 @@
         "Value": 5558063,
         "Name": "HB Hoops* (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558098",
@@ -1315,7 +1315,7 @@
         "Value": 5558098,
         "Name": "HB Waves White  (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558053",
@@ -1342,7 +1342,7 @@
         "Value": 5558053,
         "Name": "IE Bruins (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558037",
@@ -1369,7 +1369,7 @@
         "Value": 5558037,
         "Name": "IE Bruins (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558032",
@@ -1396,7 +1396,7 @@
         "Value": 5558032,
         "Name": "IE Bruins (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558864",
@@ -1423,7 +1423,7 @@
         "Value": 5558864,
         "Name": "IE Elite  (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558867",
@@ -1450,7 +1450,7 @@
         "Value": 5558867,
         "Name": "IE Elite (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558239",
@@ -1477,7 +1477,7 @@
         "Value": 5558239,
         "Name": "IE Mambas (SUN)* (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558072",
@@ -1504,7 +1504,7 @@
         "Value": 5558072,
         "Name": "IMB Elite (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558074",
@@ -1531,7 +1531,7 @@
         "Value": 5558074,
         "Name": "IMB Elite Black (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558080",
@@ -1558,7 +1558,7 @@
         "Value": 5558080,
         "Name": "KBC (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558059",
@@ -1585,7 +1585,7 @@
         "Value": 5558059,
         "Name": "KBC (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558231",
@@ -1612,7 +1612,7 @@
         "Value": 5558231,
         "Name": "LA Suns (SUN) (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558230",
@@ -1639,7 +1639,7 @@
         "Value": 5558230,
         "Name": "LA Suns (SUN) (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558782",
@@ -1666,7 +1666,7 @@
         "Value": 5558782,
         "Name": "Lady Ironmen (10/11U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558069",
@@ -1693,7 +1693,7 @@
         "Value": 5558069,
         "Name": "Lady Ironmen 11U (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558101",
@@ -1720,7 +1720,7 @@
         "Value": 5558101,
         "Name": "Lady Ironmen 14U (14U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558243",
@@ -1747,7 +1747,7 @@
         "Value": 5558243,
         "Name": "Lady Luv'd Ones* (14U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558237",
@@ -1774,7 +1774,7 @@
         "Value": 5558237,
         "Name": "Lady Luv'd Ones* (HS Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558106",
@@ -1801,7 +1801,7 @@
         "Value": 5558106,
         "Name": "Lady Whittier Bulldogs (HS Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558050",
@@ -1828,7 +1828,7 @@
         "Value": 5558050,
         "Name": "Lake Forest Bobcats (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558029",
@@ -1855,7 +1855,7 @@
         "Value": 5558029,
         "Name": "Lead Tha Way (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558235",
@@ -1882,7 +1882,7 @@
         "Value": 5558235,
         "Name": "Lead Tha Way* (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558090",
@@ -1909,7 +1909,7 @@
         "Value": 5558090,
         "Name": "Los Amigos 16U (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558781",
@@ -1936,7 +1936,7 @@
         "Value": 5558781,
         "Name": "Mar Vista Thunder  (10/11U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558229",
@@ -1963,7 +1963,7 @@
         "Value": 5558229,
         "Name": "Mar Vista Thunder 11U* (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558095",
@@ -1990,7 +1990,7 @@
         "Value": 5558095,
         "Name": "OC Players Black  (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558094",
@@ -2017,7 +2017,7 @@
         "Value": 5558094,
         "Name": "OC Players Gold  (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558073",
@@ -2044,7 +2044,7 @@
         "Value": 5558073,
         "Name": "Pac 14U White (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558085",
@@ -2071,7 +2071,7 @@
         "Value": 5558085,
         "Name": "PAC Black 13U (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558092",
@@ -2098,7 +2098,7 @@
         "Value": 5558092,
         "Name": "PAC Black 15U (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558084",
@@ -2125,7 +2125,7 @@
         "Value": 5558084,
         "Name": "PAC White 14U (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558238",
@@ -2152,7 +2152,7 @@
         "Value": 5558238,
         "Name": "Parkside Hustlers (SUN) (HS Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558242",
@@ -2179,7 +2179,7 @@
         "Value": 5558242,
         "Name": "Premier Elite LA* (14U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558075",
@@ -2206,7 +2206,7 @@
         "Value": 5558075,
         "Name": "Pure Vision (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558104",
@@ -2233,7 +2233,7 @@
         "Value": 5558104,
         "Name": "San Marcos Bball (HS Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558825",
@@ -2260,7 +2260,7 @@
         "Value": 5558825,
         "Name": "SC Storm (SAT) (10/11U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558240",
@@ -2287,7 +2287,7 @@
         "Value": 5558240,
         "Name": "SC Storm 11U* (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558100",
@@ -2314,7 +2314,7 @@
         "Value": 5558100,
         "Name": "SC Storm 14U (14U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558241",
@@ -2341,7 +2341,7 @@
         "Value": 5558241,
         "Name": "SC Storm* (HS Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558039",
@@ -2368,7 +2368,7 @@
         "Value": 5558039,
         "Name": "Sigma (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558045",
@@ -2395,7 +2395,7 @@
         "Value": 5558045,
         "Name": "So Cal Elite Black (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558056",
@@ -2422,7 +2422,7 @@
         "Value": 5558056,
         "Name": "So Cal Elite Black (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558228",
@@ -2449,7 +2449,7 @@
         "Value": 5558228,
         "Name": "So Cal Wolves (SUN)* (15/16U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558077",
@@ -2476,7 +2476,7 @@
         "Value": 5558077,
         "Name": "Spartan Academy (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558865",
@@ -2503,7 +2503,7 @@
         "Value": 5558865,
         "Name": "STC  (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558099",
@@ -2530,7 +2530,7 @@
         "Value": 5558099,
         "Name": "Team TBD (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558093",
@@ -2557,7 +2557,7 @@
         "Value": 5558093,
         "Name": "The Vine* (13U Girls Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558076",
@@ -2584,7 +2584,7 @@
         "Value": 5558076,
         "Name": "Tide Bronze (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558079",
@@ -2611,7 +2611,7 @@
         "Value": 5558079,
         "Name": "Tide Silver (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558038",
@@ -2638,7 +2638,7 @@
         "Value": 5558038,
         "Name": "TSL (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558026",
@@ -2665,7 +2665,7 @@
         "Value": 5558026,
         "Name": "Tustin Cobras (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558105",
@@ -2692,7 +2692,7 @@
         "Value": 5558105,
         "Name": "Vanguard (HS Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558028",
@@ -2719,7 +2719,7 @@
         "Value": 5558028,
         "Name": "Whittier Bulldogs (9/10U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558048",
@@ -2746,7 +2746,7 @@
         "Value": 5558048,
         "Name": "Whittier Bulldogs (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558062",
@@ -2773,7 +2773,7 @@
         "Value": 5558062,
         "Name": "Whittier Bulldogs (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558078",
@@ -2800,7 +2800,7 @@
         "Value": 5558078,
         "Name": "Whittier Bulldogs Bronze (14U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558083",
@@ -2827,7 +2827,7 @@
         "Value": 5558083,
         "Name": "Whittier Bulldogs Silver (14U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558071",
@@ -2854,7 +2854,7 @@
         "Value": 5558071,
         "Name": "Whittier Lady Bulldogs 12U (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558103",
@@ -2881,7 +2881,7 @@
         "Value": 5558103,
         "Name": "Whittier Lady Bulldogs Black 14U (14U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558102",
@@ -2908,7 +2908,7 @@
         "Value": 5558102,
         "Name": "Whittier Lady Bulldogs White 14U (14U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558066",
@@ -2935,7 +2935,7 @@
         "Value": 5558066,
         "Name": "WYSE (13U Boys Silver)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558043",
@@ -2962,7 +2962,7 @@
         "Value": 5558043,
         "Name": "WYSE (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558033",
@@ -2989,7 +2989,7 @@
         "Value": 5558033,
         "Name": "Xtra Reps (11U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558049",
@@ -3016,7 +3016,7 @@
         "Value": 5558049,
         "Name": "YSC Elite (13U Boys Bronze)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558783",
@@ -3043,7 +3043,7 @@
         "Value": 5558783,
         "Name": "YSC Elite (10/11U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558070",
@@ -3070,7 +3070,7 @@
         "Value": 5558070,
         "Name": "YSC Elite 11U (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558067",
@@ -3097,7 +3097,7 @@
         "Value": 5558067,
         "Name": "YSC Elite 12U (12U Girls)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     },
     {
       "id": "public-team-270292-5558036",
@@ -3124,7 +3124,7 @@
         "Value": 5558036,
         "Name": "YSC Elite IE (12U Boys)"
       },
-      "lastSeenAt": "2026-09-17T21:46:42.349Z"
+      "lastSeenAt": "2026-09-17T23:55:50.376Z"
     }
   ],
   "games": [
@@ -3150,7 +3150,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.476Z",
+      "updatedAt": "2026-09-17T23:55:50.722Z",
       "sourceHash": "d2e3e73d6e5f5f468608cbf86caa4f6f9d1517a6b2aad7b95bfa4190fd1fd1ea",
       "rawJson": {
         "source": "public_eventgames",
@@ -3229,7 +3229,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.476Z",
+      "updatedAt": "2026-09-17T23:55:50.722Z",
       "sourceHash": "af11dd30e67436d4e81375a6d979d0e7a6a360d1a40214d17c518f513cad6892",
       "rawJson": {
         "source": "public_eventgames",
@@ -3308,7 +3308,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.476Z",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
       "sourceHash": "d59218d19b3b87e3cdceacc9c5fb30925f390657f3ed74712d2e4661f1c1b27e",
       "rawJson": {
         "source": "public_eventgames",
@@ -3387,7 +3387,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.476Z",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
       "sourceHash": "1b9de4767756d39b7486c492927922ba75e955e25fa1657157b729950344dc83",
       "rawJson": {
         "source": "public_eventgames",
@@ -3466,8 +3466,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "58d3913d6c043c397203d66c4216ff72c6b4f5916b87e5049517e22881626587",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "f88fd931650fdfca912acd8c47004652201a8a950fb71b8936c5f6d902e6a139",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795294,
@@ -3520,7 +3520,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -3545,8 +3552,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "ba671e0c7a484c9eef820585fc71a0848c62845cf7238d6c33b37e7e894cfb2a",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "0d5451438afd792aa6da39a4386e17e12e566cd9669429c60b3125f175afc76e",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795288,
@@ -3599,7 +3606,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -3624,8 +3638,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "c87d1f3d6b833426caff6347d60a2acdd974d1ac64a4b4fcf409127518200278",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "f23acfe558883f126ae804283f86edd504e2550c7779daf0821b28eea325175a",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795301,
@@ -3678,7 +3692,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -3703,8 +3724,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "abd163ddfda720edfa3574db79013b4f9a7d9a3130889d39a76b97cb3b23da61",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "ce8180d8d23ef22b4aa95c56c6fbd9496ea6b6fb9fffb41e2fe48f3cac304ac1",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795312,
@@ -3757,7 +3778,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -3782,8 +3810,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "9b1802c85a633e4e458541d7b7e1ccefaf40759fdd73a8b76fcbef45993f028b",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "0ced213f652472ee27103a2ca5e0127e1903c5203d974787a13db2edd2606b85",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795340,
@@ -3836,7 +3864,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -3861,8 +3896,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "14fa029a6345cdb5205b941cc2b2b5ad37be532df447c478c57bda3a824ffcc0",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "5542e46ed7c10849c3a7d30acc91bd6750f7fe91c33a1b96ff7970f6c9a7622b",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795358,
@@ -3915,7 +3950,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -3940,8 +3982,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.477Z",
-      "sourceHash": "0738496d224b6f511ba676b160bff1b957a57da812a7e64661cebe68eb2b64ca",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
+      "sourceHash": "290865fc4852e7f4dab6c2805dffea5aabc914788e5bbf07ede835b118a8ee5a",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795365,
@@ -3994,7 +4036,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836396",
+            "name": "Championship",
+            "divisionId": "1506669",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836396"
+          }
+        ]
       }
     },
     {
@@ -4019,7 +4068,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
       "sourceHash": "ab851fa8a8fe9fa4bde23a036e78fb67d0edc6849f70fdef32a37313a6c3b38c",
       "rawJson": {
         "source": "public_eventgames",
@@ -4098,7 +4147,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.723Z",
       "sourceHash": "d6bbf98c0fd1d5ddc841b77727d6cb947d20633be1994c7bdf283b029a0f381e",
       "rawJson": {
         "source": "public_eventgames",
@@ -4177,7 +4226,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "6211d4e1e5646ca2d1851ad5bfe31cafc7316ff3ad404137fcebac46c59878a5",
       "rawJson": {
         "source": "public_eventgames",
@@ -4256,7 +4305,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "390062fce1b6fc351d53102d825da8189399de1f6f85334c2016812e6d63350b",
       "rawJson": {
         "source": "public_eventgames",
@@ -4335,7 +4384,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "fc01be4e8b3c626a6e938b4d0ee42376808a81d5c18b709881b457a78d3af338",
       "rawJson": {
         "source": "public_eventgames",
@@ -4414,7 +4463,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "aa488fd765f7026c06651687f0207fe1b4aa4c06f41359dd7580b9bf0468d782",
       "rawJson": {
         "source": "public_eventgames",
@@ -4493,7 +4542,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "914a5175839675a347c74b9a8db798d230cad4885b930adff02885f58d2f7a6f",
       "rawJson": {
         "source": "public_eventgames",
@@ -4572,7 +4621,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "417786290bf40850c300f88386207e299fd695006d02bae7e786b8b56d655955",
       "rawJson": {
         "source": "public_eventgames",
@@ -4651,7 +4700,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "326c747c719c175af9dd5c5845f68018693640335701f302d5dc6a810d64eab1",
       "rawJson": {
         "source": "public_eventgames",
@@ -4730,7 +4779,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "fe3a7f2096214524ec5fe0fc403198a719871d7146e97e17cff55fb42d1247b7",
       "rawJson": {
         "source": "public_eventgames",
@@ -4809,7 +4858,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.478Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "e4686debb1f8ccd67d7f11b5e977fe04510c72a9ecea9e678e10c74ba319dbec",
       "rawJson": {
         "source": "public_eventgames",
@@ -4888,7 +4937,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.479Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "e3989479d84d711c874a38cb1af25eb347915b1e2bc0981ba6049025e75552db",
       "rawJson": {
         "source": "public_eventgames",
@@ -4967,7 +5016,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.479Z",
+      "updatedAt": "2026-09-17T23:55:50.724Z",
       "sourceHash": "ecacf9ad472c6226ac618f3a71385f1673cddc117529b6e15bf0534b1116a582",
       "rawJson": {
         "source": "public_eventgames",
@@ -5046,7 +5095,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.474Z",
+      "updatedAt": "2026-09-17T23:55:50.725Z",
       "sourceHash": "b786d1552d7428a32b1f0ac795c78b2da3e7d49fad223d9ef4a131861a925d7b",
       "rawJson": {
         "source": "public_eventgames",
@@ -5125,7 +5174,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.475Z",
+      "updatedAt": "2026-09-17T23:55:50.725Z",
       "sourceHash": "7c9d2d627742451dc558f2b229d02329cda0c7f5cbe2f76c0fa372a70393c32c",
       "rawJson": {
         "source": "public_eventgames",
@@ -5204,7 +5253,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.475Z",
+      "updatedAt": "2026-09-17T23:55:50.725Z",
       "sourceHash": "37f671253157c515a632d3543c3a164b8807451eac8ccf5e61648c8e7363bd94",
       "rawJson": {
         "source": "public_eventgames",
@@ -5283,7 +5332,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.625Z",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
       "sourceHash": "9bc3a1746799927ebb12272db5aaa8ef425be7a4ffd052204080a50187613223",
       "rawJson": {
         "source": "public_eventgames",
@@ -5355,15 +5404,15 @@
       "courtName": "Court 7",
       "homeTeamId": "public-team-270292-5558056",
       "awayTeamId": "public-team-270292-5558055",
-      "homeTeamNameSnapshot": "So Cal Elite Black",
+      "homeTeamNameSnapshot": "So Cal Elite Black (SAT)",
       "awayTeamNameSnapshot": "B-Unit",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.625Z",
-      "sourceHash": "5d5bee4d357bb70fc9d2945a0a3216809612792fcbff8397ee7ff7834e0ccfd9",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
+      "sourceHash": "b69ed0331314acd1ad5ce578e2e3df0bfa5941e12ee7a9bf5d5d36b910805604",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795302,
@@ -5374,12 +5423,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558056,
         "AwayTeamNameSlug": "b-unit",
-        "HomeTeamNameSlug": "so-cal-elite-black",
+        "HomeTeamNameSlug": "so-cal-elite-black-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "So Cal Elite Black",
+        "HomeTeamName": "So Cal Elite Black (SAT)",
         "AwayTeamName": "B-Unit",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Bronze",
@@ -5441,7 +5490,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
       "sourceHash": "fc85fb4900b5d4756e67d2b523dc9fc302ff7476a70075548b21089f65c59008",
       "rawJson": {
         "source": "public_eventgames",
@@ -5514,14 +5563,14 @@
       "homeTeamId": "public-team-270292-5558049",
       "awayTeamId": "public-team-270292-5558056",
       "homeTeamNameSnapshot": "YSC Elite",
-      "awayTeamNameSnapshot": "So Cal Elite Black",
+      "awayTeamNameSnapshot": "So Cal Elite Black (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
-      "sourceHash": "727162548f8d5d9fb959cdb88ee5dddd151c893758f46c886c62fc6e723f6a24",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
+      "sourceHash": "574decf316e69850ed67785ad26437207b16e2a454f2626d00ef5e6b12a48402",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795316,
@@ -5531,14 +5580,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558049,
-        "AwayTeamNameSlug": "so-cal-elite-black",
+        "AwayTeamNameSlug": "so-cal-elite-black-sat",
         "HomeTeamNameSlug": "ysc-elite",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "YSC Elite",
-        "AwayTeamName": "So Cal Elite Black",
+        "AwayTeamName": "So Cal Elite Black (SAT)",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Bronze",
         "DivisionId": 1506671,
@@ -5592,15 +5641,15 @@
       "courtName": "Court 1",
       "homeTeamId": "public-team-270292-5558050",
       "awayTeamId": "public-team-270292-5558054",
-      "homeTeamNameSnapshot": "Lake Forest Bobcats",
+      "homeTeamNameSnapshot": "Lake Forest Bobcats (SAT)",
       "awayTeamNameSnapshot": "All World Select",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
-      "sourceHash": "3685b09906cdf33000b193438a826bba644d181642c3a0ddb81c385106390d22",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
+      "sourceHash": "ca6872ff58c7cb11110edcac11b8ad7d479ad8315a5f0a9be641afe2ccd9566b",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795331,
@@ -5611,12 +5660,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558050,
         "AwayTeamNameSlug": "all-world-select",
-        "HomeTeamNameSlug": "lake-forest-bobcats",
+        "HomeTeamNameSlug": "lake-forest-bobcats-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Lake Forest Bobcats",
+        "HomeTeamName": "Lake Forest Bobcats (SAT)",
         "AwayTeamName": "All World Select",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Bronze",
@@ -5671,15 +5720,15 @@
       "courtName": "Court 3",
       "homeTeamId": "public-team-270292-5558051",
       "awayTeamId": "public-team-270292-5558054",
-      "homeTeamNameSnapshot": "Echo Legends",
+      "homeTeamNameSnapshot": "Echo Legends (SAT)",
       "awayTeamNameSnapshot": "All World Select",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
-      "sourceHash": "13e2659d797fd556935b553180078d7ed5d735242e089d837bc11a3f10abcbcd",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
+      "sourceHash": "160a8f547adc1f27043edfe394c6b1b688768485cc51c5d136c50142aa7feb41",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795330,
@@ -5690,12 +5739,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558051,
         "AwayTeamNameSlug": "all-world-select",
-        "HomeTeamNameSlug": "echo-legends",
+        "HomeTeamNameSlug": "echo-legends-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Echo Legends",
+        "HomeTeamName": "Echo Legends (SAT)",
         "AwayTeamName": "All World Select",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Bronze",
@@ -5757,7 +5806,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
       "sourceHash": "037c323a7915a56cbd2135eddb731fcd5a6df1ff1474f537753ed87df60a67ac",
       "rawJson": {
         "source": "public_eventgames",
@@ -5829,15 +5878,15 @@
       "courtName": "Court 4",
       "homeTeamId": "public-team-270292-5558050",
       "awayTeamId": "public-team-270292-5558051",
-      "homeTeamNameSnapshot": "Lake Forest Bobcats",
-      "awayTeamNameSnapshot": "Echo Legends",
+      "homeTeamNameSnapshot": "Lake Forest Bobcats (SAT)",
+      "awayTeamNameSnapshot": "Echo Legends (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
-      "sourceHash": "a80115cfd650d5ca8e7690bf67ab1f06a8c5d739ec161fe34219cd3832030215",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
+      "sourceHash": "1d4d5c47f15fbccd7953fc5e5e1ec4da2341c3223eb10ca8021631b2de5d46c8",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42799891,
@@ -5847,14 +5896,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558050,
-        "AwayTeamNameSlug": "echo-legends",
-        "HomeTeamNameSlug": "lake-forest-bobcats",
+        "AwayTeamNameSlug": "echo-legends-sat",
+        "HomeTeamNameSlug": "lake-forest-bobcats-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Lake Forest Bobcats",
-        "AwayTeamName": "Echo Legends",
+        "HomeTeamName": "Lake Forest Bobcats (SAT)",
+        "AwayTeamName": "Echo Legends (SAT)",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Bronze",
         "DivisionId": 1506671,
@@ -5915,7 +5964,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
       "sourceHash": "9c9aad045e6dbda05f55519e30743928807413a3fe187c5c23f7c0ade77b9bdb",
       "rawJson": {
         "source": "public_eventgames",
@@ -5994,7 +6043,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.626Z",
+      "updatedAt": "2026-09-17T23:55:50.912Z",
       "sourceHash": "1e685496ea18017d57a62b856a2e10862a5c23c457f0d75e088d288d1a10a413",
       "rawJson": {
         "source": "public_eventgames",
@@ -6052,10 +6101,10 @@
       }
     },
     {
-      "id": "public-game-270292-42795289",
+      "id": "public-game-270292-42795303",
       "eventId": "event-270292",
       "divisionId": "division-270292-1506672",
-      "exposureGameId": "42795289",
+      "exposureGameId": "42795303",
       "gameNumber": null,
       "gameType": "Pool A",
       "scheduledDate": "2026-09-19",
@@ -6073,11 +6122,11 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
-      "sourceHash": "7eb84bf928847e9b115a0279e64b349c641a19de3ab8d3e6a68fac3e80433cc3",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
+      "sourceHash": "daa3153844a1b9a210d32913b5881842d69e977c68908bb057c3b56cb844a905",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42795289,
+        "Id": 42795303,
         "VenueName": "Clava Sports Facility",
         "CourtName": "Court 2",
         "AwayDivisionTeamId": 5558062,
@@ -6152,7 +6201,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
       "sourceHash": "4619e0494628e1d5d4345f7f3b8e699dc73c9d7a7542ac5a8a30d438f3163bd4",
       "rawJson": {
         "source": "public_eventgames",
@@ -6210,10 +6259,10 @@
       }
     },
     {
-      "id": "public-game-270292-42795303",
+      "id": "public-game-270292-42795289",
       "eventId": "event-270292",
       "divisionId": "division-270292-1506672",
-      "exposureGameId": "42795303",
+      "exposureGameId": "42795289",
       "gameNumber": null,
       "gameType": "Pool A",
       "scheduledDate": "2026-09-19",
@@ -6223,33 +6272,33 @@
       "venueName": "Clava Sports Facility",
       "courtName": "Court 7",
       "homeTeamId": "public-team-270292-5558060",
-      "awayTeamId": "public-team-270292-5558066",
+      "awayTeamId": "public-team-270292-5558061",
       "homeTeamNameSnapshot": "All World Elite",
-      "awayTeamNameSnapshot": "WYSE",
+      "awayTeamNameSnapshot": "CEO",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
-      "sourceHash": "84e89a01e825211bf3b8d5dba84f0d556cf308438aba9caaacefcfb183739b4d",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
+      "sourceHash": "942a0517e0143d352c9a177bcb7ae88f8b99add1c45ed813a244573eb680d1f6",
       "rawJson": {
         "source": "public_eventgames",
-        "Id": 42795303,
+        "Id": 42795289,
         "VenueName": "Clava Sports Facility",
         "CourtName": "Court 7",
-        "AwayDivisionTeamId": 5558066,
+        "AwayDivisionTeamId": 5558061,
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558060,
-        "AwayTeamNameSlug": "wyse",
+        "AwayTeamNameSlug": "ceo",
         "HomeTeamNameSlug": "all-world-elite",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "All World Elite",
-        "AwayTeamName": "WYSE",
+        "AwayTeamName": "CEO",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Silver",
         "DivisionId": 1506672,
@@ -6304,14 +6353,14 @@
       "homeTeamId": "public-team-270292-5558061",
       "awayTeamId": "public-team-270292-5558059",
       "homeTeamNameSnapshot": "CEO",
-      "awayTeamNameSnapshot": "KBC",
+      "awayTeamNameSnapshot": "KBC (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
-      "sourceHash": "9c20fb20627a92d01cb4b4a0ac0b3ecc9b4805902f9bcc9b51062c36e76b6ef7",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
+      "sourceHash": "7ad5201a77b0f079349db1ed4ca9ba7148077bd21589ea70a88cbff54cd8424d",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795328,
@@ -6321,14 +6370,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558061,
-        "AwayTeamNameSlug": "kbc",
+        "AwayTeamNameSlug": "kbc-sat",
         "HomeTeamNameSlug": "ceo",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "CEO",
-        "AwayTeamName": "KBC",
+        "AwayTeamName": "KBC (SAT)",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Silver",
         "DivisionId": 1506672,
@@ -6381,33 +6430,33 @@
       "venueName": "Clava Sports Facility",
       "courtName": "Court 6",
       "homeTeamId": "public-team-270292-5558064",
-      "awayTeamId": "public-team-270292-5558061",
+      "awayTeamId": "public-team-270292-5558066",
       "homeTeamNameSnapshot": "Beach City Ballers",
-      "awayTeamNameSnapshot": "CEO",
+      "awayTeamNameSnapshot": "WYSE",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
-      "sourceHash": "9feed184c892f01c5788e0d287f516228fded2c35fab1a64726e89927fae176d",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
+      "sourceHash": "b92c7dad77fe7c9c899dc0f6261f6f7a572d4e956014996d5c237d70b59cf1ea",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795321,
         "VenueName": "Clava Sports Facility",
         "CourtName": "Court 6",
-        "AwayDivisionTeamId": 5558061,
+        "AwayDivisionTeamId": 5558066,
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558064,
-        "AwayTeamNameSlug": "ceo",
+        "AwayTeamNameSlug": "wyse",
         "HomeTeamNameSlug": "beach-city-ballers",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "Beach City Ballers",
-        "AwayTeamName": "CEO",
+        "AwayTeamName": "WYSE",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Silver",
         "DivisionId": 1506672,
@@ -6468,7 +6517,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
       "sourceHash": "785be2c017c5d28176a9077a2b10dc69b6d3431cd28f0f9e3cb97261b64a15f0",
       "rawJson": {
         "source": "public_eventgames",
@@ -6540,15 +6589,15 @@
       "courtName": "Court 2",
       "homeTeamId": "public-team-270292-5558059",
       "awayTeamId": "public-team-270292-5558065",
-      "homeTeamNameSnapshot": "KBC",
+      "homeTeamNameSnapshot": "KBC (SAT)",
       "awayTeamNameSnapshot": "AAO",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.629Z",
-      "sourceHash": "ae1313541c932ae18bf5802225bde89127a53d4de0d85fafa22865d316c1e1f6",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
+      "sourceHash": "5e6f9e5469b99ff8d4e45ceb6e6f2b1d5a9d04a84a1f3fde12e5b92bb0db6a8e",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795349,
@@ -6559,12 +6608,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558059,
         "AwayTeamNameSlug": "aao",
-        "HomeTeamNameSlug": "kbc",
+        "HomeTeamNameSlug": "kbc-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "KBC",
+        "HomeTeamName": "KBC (SAT)",
         "AwayTeamName": "AAO",
         "WorkTeamName": "",
         "DivisionName": "13U Boys Silver",
@@ -6626,7 +6675,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.629Z",
+      "updatedAt": "2026-09-17T23:55:50.924Z",
       "sourceHash": "c709090eb14fe0dad5b331cd22f72a242a7f8c6b5ce9ccd329d26531bba59ffd",
       "rawJson": {
         "source": "public_eventgames",
@@ -6698,15 +6747,15 @@
       "courtName": "Court 6",
       "homeTeamId": "public-team-270292-5558097",
       "awayTeamId": "public-team-270292-5558094",
-      "homeTeamNameSnapshot": "3 PT Wolfpack",
-      "awayTeamNameSnapshot": "OC Players Gold",
+      "homeTeamNameSnapshot": "3 PT Wolfpack (SAT)",
+      "awayTeamNameSnapshot": "OC Players Gold (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.624Z",
-      "sourceHash": "924c0d002f35ef0ed1a08259d495c319929a8c780b66793a988ffb864458fac2",
+      "updatedAt": "2026-09-17T23:55:50.910Z",
+      "sourceHash": "2ef4e044ad4b09d41f52a754758a47c7f610d1eee0d5eca9beb0025c1a196690",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795304,
@@ -6716,14 +6765,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558097,
-        "AwayTeamNameSlug": "oc-players-gold",
-        "HomeTeamNameSlug": "3-pt-wolfpack",
+        "AwayTeamNameSlug": "oc-players-gold-sat",
+        "HomeTeamNameSlug": "3-pt-wolfpack-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "3 PT Wolfpack",
-        "AwayTeamName": "OC Players Gold",
+        "HomeTeamName": "3 PT Wolfpack (SAT)",
+        "AwayTeamName": "OC Players Gold (SAT)",
         "WorkTeamName": "",
         "DivisionName": "13U Girls Bronze",
         "DivisionId": 1506677,
@@ -6777,15 +6826,15 @@
       "courtName": "Court 1",
       "homeTeamId": "public-team-270292-5558094",
       "awayTeamId": "public-team-270292-5558096",
-      "homeTeamNameSnapshot": "OC Players Gold",
+      "homeTeamNameSnapshot": "OC Players Gold (SAT)",
       "awayTeamNameSnapshot": "Cal Sparks Futures",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.624Z",
-      "sourceHash": "eb2c77bd73ae7b235f25b1825528690d9616f3a4de268da7821f5b009979d7b1",
+      "updatedAt": "2026-09-17T23:55:50.910Z",
+      "sourceHash": "d3000e14947363c697881b44caa1fee9cd5bfaf47e741ebe8b5806f3743e84c4",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795313,
@@ -6796,12 +6845,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558094,
         "AwayTeamNameSlug": "cal-sparks-futures",
-        "HomeTeamNameSlug": "oc-players-gold",
+        "HomeTeamNameSlug": "oc-players-gold-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "OC Players Gold",
+        "HomeTeamName": "OC Players Gold (SAT)",
         "AwayTeamName": "Cal Sparks Futures",
         "WorkTeamName": "",
         "DivisionName": "13U Girls Bronze",
@@ -6856,15 +6905,15 @@
       "courtName": "Court 6",
       "homeTeamId": "public-team-270292-5558097",
       "awayTeamId": "public-team-270292-5558095",
-      "homeTeamNameSnapshot": "3 PT Wolfpack",
+      "homeTeamNameSnapshot": "3 PT Wolfpack (SAT)",
       "awayTeamNameSnapshot": "OC Players Black",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.624Z",
-      "sourceHash": "1ee347654832bc4802bc7daa78ef1e1cd5f3309ab46b610537257d40783146df",
+      "updatedAt": "2026-09-17T23:55:50.910Z",
+      "sourceHash": "c484c0703c739a02e43377b792ec4abe38bfd3e2a2c14135c9fb9dc3fda36e96",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795318,
@@ -6875,12 +6924,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558097,
         "AwayTeamNameSlug": "oc-players-black",
-        "HomeTeamNameSlug": "3-pt-wolfpack",
+        "HomeTeamNameSlug": "3-pt-wolfpack-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "3 PT Wolfpack",
+        "HomeTeamName": "3 PT Wolfpack (SAT)",
         "AwayTeamName": "OC Players Black",
         "WorkTeamName": "",
         "DivisionName": "13U Girls Bronze",
@@ -6942,7 +6991,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.624Z",
+      "updatedAt": "2026-09-17T23:55:50.910Z",
       "sourceHash": "00f12c1638b21a6b0969f0da130dfdae2532101b2f11a72b02a5a8f94ebd1879",
       "rawJson": {
         "source": "public_eventgames",
@@ -7021,7 +7070,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.624Z",
+      "updatedAt": "2026-09-17T23:55:50.910Z",
       "sourceHash": "4ea9b6a7515fb337672746bbc24e2de1daa15fbd6b28b32136eef4c5b3924935",
       "rawJson": {
         "source": "public_eventgames",
@@ -7100,7 +7149,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.627Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "535b254e03182ca82088c2516c0b0128d2b4ffc2a257f53deb9fa666c1038631",
       "rawJson": {
         "source": "public_eventgames",
@@ -7179,7 +7228,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.627Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "735438b1ef95e17e16c8c5c5b940f226bf6973089c1b5e595098b32103fbeba0",
       "rawJson": {
         "source": "public_eventgames",
@@ -7258,7 +7307,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.627Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "da3820966c75abe3971995da4d33bbec4d9b2bba4d755c0c0f7f4073c5338254",
       "rawJson": {
         "source": "public_eventgames",
@@ -7337,7 +7386,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "fab43882ce85075cf7930e35d534e86a5b22bc69e0f90c92dad8256af0045538",
       "rawJson": {
         "source": "public_eventgames",
@@ -7416,7 +7465,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "18053772d26bf3aed60c72f13a5383222d8f8f1ef9218096a350342556dbd9de",
       "rawJson": {
         "source": "public_eventgames",
@@ -7495,7 +7544,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "238774c6fb97e54e544a695bc2f8cc270f8a821733decd6066e90434481a1cd1",
       "rawJson": {
         "source": "public_eventgames",
@@ -7574,7 +7623,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "88ec8d8a08ced3df2a4fd8e998dd3714a82e5299500c8218046477e5f86e2fb3",
       "rawJson": {
         "source": "public_eventgames",
@@ -7653,7 +7702,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.628Z",
+      "updatedAt": "2026-09-17T23:55:50.916Z",
       "sourceHash": "cf7f7f60ed27636a0aca8fdffeac08612096138ec3805a640ec38b407d30b5d0",
       "rawJson": {
         "source": "public_eventgames",
@@ -7732,7 +7781,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
+      "updatedAt": "2026-09-17T23:55:51.099Z",
       "sourceHash": "4b7a9037c70c817e727bf8e1978c0b5e8b6de9278a4daa4d01bbf7cdb387b06c",
       "rawJson": {
         "source": "public_eventgames",
@@ -7811,7 +7860,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
+      "updatedAt": "2026-09-17T23:55:51.099Z",
       "sourceHash": "b63340821073b3a9cca3d0f9a47ec7c6f5b8cf758a7a125b764e99c482e64284",
       "rawJson": {
         "source": "public_eventgames",
@@ -7890,7 +7939,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
+      "updatedAt": "2026-09-17T23:55:51.099Z",
       "sourceHash": "7eaf791464a7c8256b3629e00ac011a00a4662c3ac9d03d477131a44ec530612",
       "rawJson": {
         "source": "public_eventgames",
@@ -7969,7 +8018,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.775Z",
+      "updatedAt": "2026-09-17T23:55:51.099Z",
       "sourceHash": "06a38733d4fce2a8e264308a0f6f22cb67f3349ea76c1d060efd550a501e6e54",
       "rawJson": {
         "source": "public_eventgames",
@@ -8048,7 +8097,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.775Z",
+      "updatedAt": "2026-09-17T23:55:51.099Z",
       "sourceHash": "827706a90f1a0effb71da1f5f678025c8295277d88f592aa5dd7db57aed5bd6b",
       "rawJson": {
         "source": "public_eventgames",
@@ -8127,7 +8176,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.775Z",
+      "updatedAt": "2026-09-17T23:55:51.099Z",
       "sourceHash": "715078b2b3ddb4145c09e28ae34c8e67a3d96d03e19c8f81a6bd0f06e2f06d08",
       "rawJson": {
         "source": "public_eventgames",
@@ -8206,7 +8255,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
+      "updatedAt": "2026-09-17T23:55:51.102Z",
       "sourceHash": "7d601e326fa14201f5d6dbe65d8e3cf17d3722e96ab19baeb2b3106527568c35",
       "rawJson": {
         "source": "public_eventgames",
@@ -8279,14 +8328,14 @@
       "homeTeamId": "public-team-270292-5558101",
       "awayTeamId": "public-team-270292-5558102",
       "homeTeamNameSnapshot": "Lady Ironmen 14U",
-      "awayTeamNameSnapshot": "Whittier Lady Bulldogs White 14U",
+      "awayTeamNameSnapshot": "Whittier Lady Bulldogs White 14U (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
-      "sourceHash": "65162d440dcb2fd2d11a1d2e785879d51aa753c51b3f13ed12c65d94864a59a1",
+      "updatedAt": "2026-09-17T23:55:51.102Z",
+      "sourceHash": "54310dbbcca566c0f1ee3ab78c94971fb7043037c96e69f0541566a6ef08bef6",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795324,
@@ -8296,14 +8345,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558101,
-        "AwayTeamNameSlug": "whittier-lady-bulldogs-white-14u",
+        "AwayTeamNameSlug": "whittier-lady-bulldogs-white-14u-sat",
         "HomeTeamNameSlug": "lady-ironmen-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "Lady Ironmen 14U",
-        "AwayTeamName": "Whittier Lady Bulldogs White 14U",
+        "AwayTeamName": "Whittier Lady Bulldogs White 14U (SAT)",
         "WorkTeamName": "",
         "DivisionName": "14U Girls",
         "DivisionId": 1506678,
@@ -8364,7 +8413,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
+      "updatedAt": "2026-09-17T23:55:51.102Z",
       "sourceHash": "ddda46629972d139c293eb6803da34142328326833ffc9ce8e1357fc4a1ff842",
       "rawJson": {
         "source": "public_eventgames",
@@ -8437,14 +8486,14 @@
       "homeTeamId": "public-team-270292-5558100",
       "awayTeamId": "public-team-270292-5558102",
       "homeTeamNameSnapshot": "SC Storm 14U",
-      "awayTeamNameSnapshot": "Whittier Lady Bulldogs White 14U",
+      "awayTeamNameSnapshot": "Whittier Lady Bulldogs White 14U (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.774Z",
-      "sourceHash": "d8bf9e27f6e620d97fb786c9db7ae19b4a451524c556b3b79294be1f8870683e",
+      "updatedAt": "2026-09-17T23:55:51.102Z",
+      "sourceHash": "8e731fabb5dcddbd1aa24021cd10b291365144eb20eee4e29396ef7b75a1c6f8",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795334,
@@ -8454,14 +8503,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558100,
-        "AwayTeamNameSlug": "whittier-lady-bulldogs-white-14u",
+        "AwayTeamNameSlug": "whittier-lady-bulldogs-white-14u-sat",
         "HomeTeamNameSlug": "sc-storm-14u",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "SC Storm 14U",
-        "AwayTeamName": "Whittier Lady Bulldogs White 14U",
+        "AwayTeamName": "Whittier Lady Bulldogs White 14U (SAT)",
         "WorkTeamName": "",
         "DivisionName": "14U Girls",
         "DivisionId": 1506678,
@@ -8522,7 +8571,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.776Z",
+      "updatedAt": "2026-09-17T23:55:51.105Z",
       "sourceHash": "0495239ca869eabc2129a5b40264dc6b676436b58c2c06da91e0957635680469",
       "rawJson": {
         "source": "public_eventgames",
@@ -8601,7 +8650,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.776Z",
+      "updatedAt": "2026-09-17T23:55:51.105Z",
       "sourceHash": "9a716002f01eec788efa12c5cf756d1a86cfc3f9396a5ced580796fc3bec02f1",
       "rawJson": {
         "source": "public_eventgames",
@@ -8680,7 +8729,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.776Z",
+      "updatedAt": "2026-09-17T23:55:51.105Z",
       "sourceHash": "e91de24a380a9d44fda4f68787197f9344668c80333a80790ff1a72c9bffa9c6",
       "rawJson": {
         "source": "public_eventgames",
@@ -8759,7 +8808,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.776Z",
+      "updatedAt": "2026-09-17T23:55:51.105Z",
       "sourceHash": "749e57f74dd98e85b8225ed7a4cf24b4e429a1e4066971ce23f77501e3caa05a",
       "rawJson": {
         "source": "public_eventgames",
@@ -8838,7 +8887,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.776Z",
+      "updatedAt": "2026-09-17T23:55:51.105Z",
       "sourceHash": "b0e7d59be2b7dcf1a5153a227d9ef0b1035a51898a588b2d56e78d5db71e7744",
       "rawJson": {
         "source": "public_eventgames",
@@ -8917,7 +8966,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.776Z",
+      "updatedAt": "2026-09-17T23:55:51.105Z",
       "sourceHash": "29e001568dd346b603f075d4e3930ac6114121878f507cfbb59c530faf287316",
       "rawJson": {
         "source": "public_eventgames",
@@ -8989,15 +9038,15 @@
       "courtName": "Court 3",
       "homeTeamId": "public-team-270292-5558027",
       "awayTeamId": "public-team-270292-5558028",
-      "homeTeamNameSnapshot": "Cali Rebels 8U",
+      "homeTeamNameSnapshot": "Cali Rebels 8U (SAT)",
       "awayTeamNameSnapshot": "Whittier Bulldogs",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "e0e080389f3263d7b7657e318ee16067d3e7b49e50bb0c16b50ab42e5a991094",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "f1109dc80abcff30491e243ad0b676edcb5514da91b1d949960c9932acd132fe",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795305,
@@ -9008,12 +9057,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558027,
         "AwayTeamNameSlug": "whittier-bulldogs",
-        "HomeTeamNameSlug": "cali-rebels-8u",
+        "HomeTeamNameSlug": "cali-rebels-8u-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Cali Rebels 8U",
+        "HomeTeamName": "Cali Rebels 8U (SAT)",
         "AwayTeamName": "Whittier Bulldogs",
         "WorkTeamName": "",
         "DivisionName": "9/10U Boys",
@@ -9050,7 +9099,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9075,8 +9131,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "04968fad042284dc5d2654fbbf2e015ff1b12af8c181845d9306c0278fb40597",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "1146c1d82e26d50ba1d132984326c0a87b12b6d8d581c60ca8e505428bb1bbd1",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42799554,
@@ -9129,7 +9185,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9147,15 +9210,15 @@
       "courtName": "Court 3",
       "homeTeamId": "public-team-270292-5558027",
       "awayTeamId": "public-team-270292-5558865",
-      "homeTeamNameSnapshot": "Cali Rebels 8U",
+      "homeTeamNameSnapshot": "Cali Rebels 8U (SAT)",
       "awayTeamNameSnapshot": "STC",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "6dcaeb385e003668ddd53d936abd5c326e123be66caa94271a1279355adc335c",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "26c16d8b669f471c6fe7f2cf0cb1dd16735330b2c9391967c4915a6e2a07e6d0",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795287,
@@ -9166,12 +9229,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558027,
         "AwayTeamNameSlug": "stc",
-        "HomeTeamNameSlug": "cali-rebels-8u",
+        "HomeTeamNameSlug": "cali-rebels-8u-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Cali Rebels 8U",
+        "HomeTeamName": "Cali Rebels 8U (SAT)",
         "AwayTeamName": "STC",
         "WorkTeamName": "",
         "DivisionName": "9/10U Boys",
@@ -9208,7 +9271,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9226,15 +9296,15 @@
       "courtName": "Court 4",
       "homeTeamId": "public-team-270292-5558024",
       "awayTeamId": "public-team-270292-5558028",
-      "homeTeamNameSnapshot": "Cali Rebels LB",
+      "homeTeamNameSnapshot": "Cali Rebels LB (SAT)",
       "awayTeamNameSnapshot": "Whittier Bulldogs",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "1010dc5a9102ea50db8de77486b8005386eda9de2f1dc80542de3329bed24ebd",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "c224e9f69232fe91cddbf5ad23bfd98ed46cb8fbbaa7ee75ce0e1f2d41be9a65",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795308,
@@ -9245,12 +9315,12 @@
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558024,
         "AwayTeamNameSlug": "whittier-bulldogs",
-        "HomeTeamNameSlug": "cali-rebels-lb",
+        "HomeTeamNameSlug": "cali-rebels-lb-sat",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
-        "HomeTeamName": "Cali Rebels LB",
+        "HomeTeamName": "Cali Rebels LB (SAT)",
         "AwayTeamName": "Whittier Bulldogs",
         "WorkTeamName": "",
         "DivisionName": "9/10U Boys",
@@ -9287,7 +9357,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9312,8 +9389,8 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "e492665c7281d96a65449dc24e778cae8caee3da43a7b43c802ab3f028d4b5b2",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "24ca8c151251d0bccf3ba40fc4d4bba63b52fdafb25546a2d4b9dc578f830a85",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795293,
@@ -9366,7 +9443,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9385,14 +9469,14 @@
       "homeTeamId": "public-team-270292-5558864",
       "awayTeamId": "public-team-270292-5558024",
       "homeTeamNameSnapshot": "IE Elite",
-      "awayTeamNameSnapshot": "Cali Rebels LB",
+      "awayTeamNameSnapshot": "Cali Rebels LB (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "36a4c7ed5275bae4e952a0d83ece5ff23814f724b6349f1404f98257be613c4d",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "c8487fd60dcdd61d34fba8d300dfea1354e812beec5f9b1a8bda0aef5b7b91c3",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42799562,
@@ -9402,14 +9486,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558864,
-        "AwayTeamNameSlug": "cali-rebels-lb",
+        "AwayTeamNameSlug": "cali-rebels-lb-sat",
         "HomeTeamNameSlug": "ie-elite",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "IE Elite",
-        "AwayTeamName": "Cali Rebels LB",
+        "AwayTeamName": "Cali Rebels LB (SAT)",
         "WorkTeamName": "",
         "DivisionName": "9/10U Boys",
         "DivisionId": 1506632,
@@ -9445,7 +9529,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9464,14 +9555,14 @@
       "homeTeamId": "public-team-270292-5558864",
       "awayTeamId": "public-team-270292-5558026",
       "homeTeamNameSnapshot": "IE Elite",
-      "awayTeamNameSnapshot": "Tustin Cobras",
+      "awayTeamNameSnapshot": "Tustin Cobras (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "16137b76df63cc2bd36a384033d8802df8ee9bab7e981ffa1f1ddd9f6babe346",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "07983f41b5d483e64b39b3d858ee704eef504342344e6585b3346e3b51d15bd8",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795345,
@@ -9481,14 +9572,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558864,
-        "AwayTeamNameSlug": "tustin-cobras",
+        "AwayTeamNameSlug": "tustin-cobras-sat",
         "HomeTeamNameSlug": "ie-elite",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "IE Elite",
-        "AwayTeamName": "Tustin Cobras",
+        "AwayTeamName": "Tustin Cobras (SAT)",
         "WorkTeamName": "",
         "DivisionName": "9/10U Boys",
         "DivisionId": 1506632,
@@ -9524,7 +9615,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9543,14 +9641,14 @@
       "homeTeamId": "public-team-270292-5558025",
       "awayTeamId": "public-team-270292-5558026",
       "homeTeamNameSnapshot": "Cali Rebels Black",
-      "awayTeamNameSnapshot": "Tustin Cobras",
+      "awayTeamNameSnapshot": "Tustin Cobras (SAT)",
       "homeScore": null,
       "awayScore": null,
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.777Z",
-      "sourceHash": "0bf5f710d6f2329e4f6d8185ea3d9f7c7cce23178516168b9cb573e54f585522",
+      "updatedAt": "2026-09-17T23:55:51.121Z",
+      "sourceHash": "714de7461d0dcc1099b50302bed4637f756040e741f926f6036236643a9722de",
       "rawJson": {
         "source": "public_eventgames",
         "Id": 42795352,
@@ -9560,14 +9658,14 @@
         "HomeNumber": null,
         "AwayNumber": null,
         "HomeDivisionTeamId": 5558025,
-        "AwayTeamNameSlug": "tustin-cobras",
+        "AwayTeamNameSlug": "tustin-cobras-sat",
         "HomeTeamNameSlug": "cali-rebels-black",
         "WorkTeamNameSlug": "",
         "Number": null,
         "GameType": 1,
         "GameTypeName": "Pool A",
         "HomeTeamName": "Cali Rebels Black",
-        "AwayTeamName": "Tustin Cobras",
+        "AwayTeamName": "Tustin Cobras (SAT)",
         "WorkTeamName": "",
         "DivisionName": "9/10U Boys",
         "DivisionId": 1506632,
@@ -9603,7 +9701,14 @@
         "WorkDivisionTeamId": null,
         "BracketUrl": null,
         "BracketName": null,
-        "DivisionBracketUrls": []
+        "DivisionBracketUrls": [
+          {
+            "id": "836394",
+            "name": "Championship",
+            "divisionId": "1506632",
+            "url": "https://basketball.exposureevents.com/270292/fall-showcase/bracket/836394"
+          }
+        ]
       }
     },
     {
@@ -9628,7 +9733,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.926Z",
+      "updatedAt": "2026-09-17T23:55:51.290Z",
       "sourceHash": "1642fc65afd062c39f924ea0a69c8c5ee8b810118422749cba0470b5eb026663",
       "rawJson": {
         "source": "public_eventgames",
@@ -9707,7 +9812,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.926Z",
+      "updatedAt": "2026-09-17T23:55:51.290Z",
       "sourceHash": "e02cebd6d898ccc89ea45ed63058740c1479f7005ac7aece073a4211ce710bed",
       "rawJson": {
         "source": "public_eventgames",
@@ -9786,7 +9891,7 @@
       "status": "upcoming",
       "officialUrl": "https://basketball.exposureevents.com/270292/fall-showcase/schedule",
       "streamingUrl": null,
-      "updatedAt": "2026-09-17T21:46:42.926Z",
+      "updatedAt": "2026-09-17T23:55:51.291Z",
       "sourceHash": "3a823680667e058d864838d3427a33e8de8254e5c0a266c4fae71b6ababa9f46",
       "rawJson": {
         "source": "public_eventgames",
