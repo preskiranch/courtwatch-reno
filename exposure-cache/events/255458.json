@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "cachedAt": "2026-09-19T12:32:43.294Z",
+  "eventId": 255458,
+  "eventSlug": "2026-october-hoop-fest",
+  "event": {
+    "endDate": "2026-10-04",
+    "name": "2026 October Hoop Fest",
+    "officialUrl": "https://basketball.exposureevents.com/255458/2026-october-hoop-fest",
+    "organizer": "Hoop 121",
+    "startDate": "2026-10-03",
+    "timezone": "America/Los_Angeles"
+  },
+  "divisions": [
+    {
+      "id": "division-255458-1277654",
+      "eventId": "event-255458",
+      "exposureDivisionId": "1277654",
+      "name": "14u",
+      "gender": null,
+      "gradeLevel": "14U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "divisionId": "1277654"
+      }
+    }
+  ],
+  "teams": [
+    {
+      "id": "public-team-255458-5555116",
+      "eventId": "event-255458",
+      "divisionId": "division-255458-1277654",
+      "exposureTeamId": "5555116",
+      "name": "Top Flight Elite",
+      "normalizedName": "top flight elite",
+      "clubName": null,
+      "normalizedClubName": null,
+      "coachName": null,
+      "sourceUrl": "https://basketball.exposureevents.com/255458/2026-october-hoop-fest/teams/top-flight-elite?divisionteamid=5555116",
+      "divisionName": "14u",
+      "gender": null,
+      "gradeLevel": "14U",
+      "level": null,
+      "rawJson": {
+        "source": "public_search",
+        "timezone": "America/Los_Angeles",
+        "Division": "14u",
+        "DivisionId": 1277654,
+        "Slug": "top-flight-elite",
+        "Selected": false,
+        "Value": 5555116,
+        "Name": "Top Flight Elite (14u)"
+      },
+      "lastSeenAt": "2026-09-19T12:32:42.292Z"
+    }
+  ],
+  "games": []
+}
